@@ -400,23 +400,29 @@
       var viz = this;
       var d3g = window.d3;
 
+      // O zoom por roda do mouse fica a cargo do d3.zoom() (não tem o
+      // problema abaixo, porque o evento "wheel" dispara direto no elemento
+      // sob o cursor, sem precisar rastrear um arraste). O PAN (arrastar
+      // para mover o mapa) é feito à mão com Pointer Events +
+      // setPointerCapture: a visualização roda dentro de um <iframe>
+      // "sandboxed" pequeno no Looker, e sem captura de ponteiro, se o
+      // cursor sair da área do iframe durante um arraste (fácil de
+      // acontecer), os eventos de "mouse se movendo" simplesmente param de
+      // chegar e o pan trava no meio — foi exatamente isso que aconteceu
+      // com o Globo antes dessa correção. this.filter(...) abaixo faz o
+      // d3.zoom() ignorar completamente gestos de arraste/toque e reagir
+      // só à roda do mouse.
       if (d3g && typeof d3g.zoom === 'function') {
         this._zoomTransform = d3g.zoomIdentity;
         var zoomBehavior = d3g.zoom()
           .scaleExtent([0.5, 40])
-          .on('start', function () { viz._arrastando = true; canvas.classList.add('mc-arrastando'); })
-          .on('end', function () { viz._arrastando = false; canvas.classList.remove('mc-arrastando'); })
+          .filter(function (ev) { return ev.type === 'wheel'; })
           .on('zoom', function (ev) {
             var t = ev.transform;
             var prev = viz._zoomTransform || d3g.zoomIdentity;
             var estado = viz._estado;
-            if (estado) {
-              if (estado.allowZooming === false && t.k !== prev.k) {
-                t = new d3g.ZoomTransform(prev.k, t.x, t.y);
-              }
-              if (estado.allowPanning === false && (t.x !== prev.x || t.y !== prev.y)) {
-                t = new d3g.ZoomTransform(t.k, prev.x, prev.y);
-              }
+            if (estado && estado.allowZooming === false) {
+              t = new d3g.ZoomTransform(prev.k, t.x, t.y);
             }
             viz._zoomTransform = t;
             desenharMapa(viz);
@@ -425,7 +431,45 @@
         d3g.select(canvas).call(zoomBehavior);
       }
 
+      function iniciarPan(ev) {
+        if (ev.button !== undefined && ev.button !== 0) return;
+        var estado = viz._estado;
+        if (estado && estado.allowPanning === false) return;
+        viz._arrastando = true;
+        viz._ultimaPosPan = { x: ev.clientX, y: ev.clientY };
+        canvas.classList.add('mc-arrastando');
+        if (typeof canvas.setPointerCapture === 'function' && ev.pointerId !== undefined) {
+          try { canvas.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ }
+        }
+      }
+      function moverPan(ev) {
+        if (!viz._arrastando) return;
+        var dx = ev.clientX - viz._ultimaPosPan.x, dy = ev.clientY - viz._ultimaPosPan.y;
+        viz._ultimaPosPan = { x: ev.clientX, y: ev.clientY };
+        var atual = viz._zoomTransform || (d3g && d3g.zoomIdentity) || { k: 1, x: 0, y: 0 };
+        var novo = d3g ? new d3g.ZoomTransform(atual.k, atual.x + dx, atual.y + dy) : { k: atual.k, x: atual.x + dx, y: atual.y + dy };
+        viz._zoomTransform = novo;
+        // mantém o d3.zoom() sincronizado, senão o próximo zoom por roda do
+        // mouse "pularia" de volta para a posição de antes do pan
+        if (viz._zoomBehavior && d3g) {
+          try { d3g.select(canvas).call(viz._zoomBehavior.transform, novo); } catch (e) { /* ignora */ }
+        }
+        desenharMapa(viz);
+      }
+      function pararPan(ev) {
+        viz._arrastando = false;
+        canvas.classList.remove('mc-arrastando');
+        if (ev && typeof canvas.releasePointerCapture === 'function' && ev.pointerId !== undefined) {
+          try { canvas.releasePointerCapture(ev.pointerId); } catch (e) { /* ignora */ }
+        }
+      }
+      canvas.addEventListener('pointerdown', iniciarPan);
+      canvas.addEventListener('pointermove', moverPan);
+      canvas.addEventListener('pointerup', pararPan);
+      canvas.addEventListener('pointercancel', pararPan);
+
       canvas.addEventListener('mousemove', function (ev) {
+        if (viz._arrastando) { esconderTooltip(viz); return; }
         var rect = canvas.getBoundingClientRect();
         var p = pontoSobMouse(viz, ev.clientX - rect.left, ev.clientY - rect.top);
         if (p) {
@@ -433,7 +477,7 @@
           canvas.style.cursor = 'pointer';
         } else {
           esconderTooltip(viz);
-          canvas.style.cursor = viz._arrastando ? 'grabbing' : 'grab';
+          canvas.style.cursor = 'grab';
         }
       });
       canvas.addEventListener('mouseleave', function () { esconderTooltip(viz); });

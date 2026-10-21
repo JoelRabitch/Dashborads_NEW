@@ -340,22 +340,28 @@
 
       var self = this;
 
-      function posEvento(ev) {
-        if (ev.touches && ev.touches.length) return { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
-        return { x: ev.clientX, y: ev.clientY };
-      }
-
+      // Arraste com Pointer Events + captura de ponteiro (setPointerCapture):
+      // a visualização do Looker roda dentro de um <iframe> "sandboxed" bem
+      // pequeno — sem captura de ponteiro, se o cursor sair da área do
+      // iframe durante um arraste rápido (muito fácil de acontecer), os
+      // eventos de mousemove/mouseup param de chegar e o giro "trava" no
+      // meio do caminho. Com setPointerCapture, o navegador garante que os
+      // eventos continuem chegando até o ponteiro ser solto, não importa
+      // onde o cursor esteja. Isso também unifica mouse e toque num só
+      // código (Pointer Events cobre os dois).
       function iniciarArraste(ev) {
         self._arrastando = true;
-        self._ultimaPos = posEvento(ev);
+        self._ultimaPos = { x: ev.clientX, y: ev.clientY };
+        if (typeof wrapper.setPointerCapture === 'function' && ev.pointerId !== undefined) {
+          try { wrapper.setPointerCapture(ev.pointerId); } catch (e) { /* ignora se o navegador recusar */ }
+        }
         if (self._svg) self._svg.classList.add('gl-arrastando');
         ev.preventDefault();
       }
       function moverArraste(ev) {
         if (!self._arrastando || !self._estado) return;
-        var p = posEvento(ev);
-        var dx = p.x - self._ultimaPos.x, dy = p.y - self._ultimaPos.y;
-        self._ultimaPos = p;
+        var dx = ev.clientX - self._ultimaPos.x, dy = ev.clientY - self._ultimaPos.y;
+        self._ultimaPos = { x: ev.clientX, y: ev.clientY };
         var sens = self._estado.dragSensitivity;
         self._rotacao.lon += dx * sens;
         self._rotacao.lat -= dy * sens;
@@ -364,24 +370,24 @@
         desenharGlobo(self);
         ev.preventDefault();
       }
-      function pararArraste() {
+      function pararArraste(ev) {
         self._arrastando = false;
         if (self._svg) self._svg.classList.remove('gl-arrastando');
+        if (ev && typeof wrapper.releasePointerCapture === 'function' && ev.pointerId !== undefined) {
+          try { wrapper.releasePointerCapture(ev.pointerId); } catch (e) { /* ignora */ }
+        }
       }
 
-      wrapper.addEventListener('mousedown', iniciarArraste);
-      window.addEventListener('mousemove', moverArraste);
-      window.addEventListener('mouseup', pararArraste);
-      wrapper.addEventListener('touchstart', iniciarArraste, { passive: false });
-      window.addEventListener('touchmove', moverArraste, { passive: false });
-      window.addEventListener('touchend', pararArraste);
+      wrapper.addEventListener('pointerdown', iniciarArraste);
+      wrapper.addEventListener('pointermove', moverArraste);
+      wrapper.addEventListener('pointerup', pararArraste);
+      wrapper.addEventListener('pointercancel', pararArraste);
 
       this._destruido = false;
       this._onDestroyCleanup = function () {
-        window.removeEventListener('mousemove', moverArraste);
-        window.removeEventListener('mouseup', pararArraste);
-        window.removeEventListener('touchmove', moverArraste);
-        window.removeEventListener('touchend', pararArraste);
+        wrapper.removeEventListener('pointermove', moverArraste);
+        wrapper.removeEventListener('pointerup', pararArraste);
+        wrapper.removeEventListener('pointercancel', pararArraste);
       };
 
       if (typeof ResizeObserver !== 'undefined') {
