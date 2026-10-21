@@ -224,7 +224,7 @@ execução** — os dados do mapa já vêm embutidos.
 
 ---
 
-## 3. Mapa Customizável (ETAPA 1 de várias — mapa plano com pontos)
+## 3. Mapa Customizável (mapa plano + globo, numa visualização só)
 
 Arquivo: [`src/mapa_customizavel.js`](src/mapa_customizavel.js)
 Dados do mapa: [`src/world_topology_110m.js`](src/world_topology_110m.js) e
@@ -234,10 +234,24 @@ detalhado) — gerados por [`tools/gerar_topologia_mundial.js`](tools/gerar_topo
 - **ID sugerido**: `mapa_customizavel`
 - **Label sugerido**: `Mapa Customizável`
 
-Esta é a primeira de várias entregas (ver "O que falta" abaixo). Reúne as
-opções dos dois mapas de referência num só, usando **Canvas** (não SVG)
-para aguentar muitos pontos, e um mapa-múndi **vetorial embutido** (sem
-nenhum tile de servidor externo).
+Reúne as opções dos dois mapas de referência numa visualização só, usando
+**Canvas** (não SVG) para aguentar muitos pontos, e um mapa-múndi
+**vetorial embutido** (sem nenhum tile de servidor externo). Tem **dois
+modos**, alternados pela opção "Map Mode" (seção Map):
+
+- **Mapa Plano**: as 16 projeções pedidas, pan e zoom independentes, Fit
+  to Data ou posição customizada.
+- **Globo**: a mesma base de dados/estilo, só que em projeção ortográfica
+  — arraste para girar (com inércia suave ao soltar), zoom pela roda do
+  mouse, botão "Resetar", rotação automática opcional, grade de
+  coordenadas, brilho de atmosfera na borda, "iniciar centralizado nos
+  dados". O recorte do lado oculto usa o `clipAngle(90)` nativo do
+  `d3.geoPath` — por isso não sofre do problema de "lacunas" no horizonte
+  que a implementação manual do Globo Terrestre Rotacionável (seção 2)
+  tinha antes de ser corrigida.
+
+Ainda faltam heatmaps, ícones, cor por valor/categoria, linhas, áreas e a
+seção "Layers" — ver "O que falta" no fim desta seção.
 
 ### Dependencies — cole estas URLs em Admin > Visualizations > Dependencies, NESTA ORDEM
 
@@ -291,15 +305,19 @@ atualizados de `/src` para lá).
 - Campo de rótulo específico ainda não existe nesta etapa — o tooltip
   padrão já mostra todos os campos da consulta.
 
-### Opções desta etapa
+### Opções
 
 | Seção | Opções |
 |-------|--------|
 | **Plot** | Plot Mode (só "Points" por ora), Custom Tooltip, template do tooltip |
-| **Map** | Map Style (Custom/Light/Dark/Satellite-like — só paleta), Resolução do mapa, Projection (as 16 pedidas), Map Position (Fit to Data/Custom) + centro/zoom customizados, Allow Panning, Allow Zooming, Display Coordinates, Modo debug |
+| **Map** | **Map Mode (Mapa Plano/Globo)**, Map Style (Custom/Light/Dark/Satellite-like — só paleta), Resolução do mapa, Projection (as 16 pedidas; só usada no Mapa Plano), Map Position (Fit to Data/Custom) + centro/zoom customizados, Allow Panning, Allow Zooming, Display Coordinates, Modo debug |
 | **Points** | Point Color, Point Radius (em branco = automático) |
-| **Style** | Background/Ocean Color, Map Color, Outer/Inner Border Color, Outer/Inner Border Width, Show Full Field Name in Tooltips |
+| **Style** | Background/Ocean Color, Map Color, Outer/Inner Border Color, Outer/Inner Border Width, Show Full Field Name in Tooltips (valem para os dois modos) |
+| **Globo** (só com Map Mode = Globo) | Mostrar grade de coordenadas + cor, Brilho na borda (atmosfera), Iniciar centralizado nos dados, Rotação inicial (longitude/latitude), Sensibilidade do arraste, Inércia suave ao soltar, Rotação automática + velocidade, Esconder pontos do lado oculto |
 | **Dados** (nossa, dinâmica) | Modo de coordenadas, Campo de localização, Campo de latitude, Campo de longitude |
+
+No modo Globo: arraste para girar, roda do mouse para zoom, botão
+"Resetar" no canto inferior direito volta para a rotação/zoom iniciais.
 
 ### Decisões tomadas por ambiguidade (me avise se quiser diferente)
 
@@ -324,20 +342,22 @@ atualizados de `/src` para lá).
   navegador) para ver a célula crua do seu campo de localização real e me
   avise se o formato for diferente.
 
-### O que FALTA (próximas etapas, nesta ordem)
+### O que FALTA
 
-1. ~~Mapa plano com pontos, projeções, pan/zoom e estilo~~ ✅ esta entrega
-2. Modo Globo (arrastar para girar, zoom, inércia, botão Resetar, rotação
-   automática, atmosfera, grade de coordenadas, recorte de pontos/linhas/
-   áreas do lado oculto)
+1. ~~Mapa plano com pontos, projeções, pan/zoom e estilo~~ ✅
+2. ~~Modo Globo (arrastar para girar, zoom, inércia, botão Resetar, rotação
+   automática, atmosfera, grade de coordenadas, recorte correto do lado
+   oculto)~~ ✅ — unificado nesta mesma visualização (ver acima). Recorte de
+   **linhas e áreas** do lado oculto do globo ainda não se aplica, porque
+   linhas/áreas em si ainda não existem (item 5).
 3. Ícones (pin, círculo, café, estrela, casa, loja, caminhão, avião), cor
    por valor (escala) e por categoria, com legenda
 4. Heatmap: densidade (`d3.contourDensity`), "Automagic" (células) e 3D
    (colunas extrudadas no plano / barras radiais no globo)
 5. Linhas (sequência ou origem-destino, com arco de círculo máximo no
    globo) e áreas (convex hull ou ordem dos dados)
-6. Tooltip/drill já estão nesta etapa; falta a seção "Layers" (liga/
-   desliga e ordem de cada camada: pontos, calor, linhas, áreas)
+6. Tooltip/drill já estão prontos; falta a seção "Layers" (liga/desliga e
+   ordem de cada camada: pontos, calor, linhas, áreas)
 
 ### O que conferir no Looker real (o harness não cobre)
 
@@ -347,6 +367,10 @@ atualizados de `/src` para lá).
   testei isso só com Node + `node-canvas` (confirma que os comandos de
   desenho rodam sem erro e pintam pixels corretos), não com um navegador
   real nem com frame rate.
+- Desempenho do **modo Globo** especificamente com muitos pontos — a
+  rotação/inércia redesenha tudo a cada frame; testei a mecânica (rotação,
+  zoom, reset) mas não a fluidez visual com milhares de pontos num
+  navegador de verdade.
 - O formato real da célula de um campo `location` do seu Looker — ligue
   "Modo debug" e me mande o que aparecer no console se não for a string
   `"lat,lon"`.
@@ -354,3 +378,5 @@ atualizados de `/src` para lá).
   Conic*) — testei que não quebram, mas o enquadramento pode não ficar
   bonito para todo tipo de dado; ajustes finos de zoom ficam a seu critério
   nas opções Custom.
+- "Iniciar centralizado nos dados" com pontos espalhados perto de ±180° de
+  longitude (ver limitação da média circular no cabeçalho do arquivo).

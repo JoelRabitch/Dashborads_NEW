@@ -102,6 +102,7 @@
         <button data-preset="customBrasil">Custom centrado no Brasil</button>
         <button data-preset="semPanZoom">Sem pan nem zoom</button>
         <button data-preset="tooltipCustom">Tooltip customizado</button>
+        <button data-preset="modoGlobo">Modo Globo (arrastar para girar)</button>
       </div>
     </div>
   </div>
@@ -628,7 +629,8 @@ var PRESETS_MAPA = {
   satellite: { mapStyle: 'satellite' },
   customBrasil: { mapPosition: 'custom', customCenterLon: -51, customCenterLat: -14, customZoom: 4 },
   semPanZoom: { allowPanning: false, allowZooming: false },
-  tooltipCustom: { customTooltip: true, customTooltipTemplate: '{{cidade}}: {{populacao}} hab.\n{{latitude}}, {{longitude}}' }
+  tooltipCustom: { customTooltip: true, customTooltipTemplate: '{{cidade}}: {{populacao}} hab.\n{{latitude}}, {{longitude}}' },
+  modoGlobo: { mapMode: 'globe', startCenteredOnData: true, autoRotate: false }
 };
 document.querySelectorAll('#presetsMapa button[data-preset]').forEach(function (btn) {
   btn.addEventListener('click', function () {

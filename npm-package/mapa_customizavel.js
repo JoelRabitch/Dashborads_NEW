@@ -1,24 +1,32 @@
 /*
  * Mapa Customizável — looker.plugins.visualizations.add
  * ========================================================================
- * ETAPA 1 DE VÁRIAS (ver README.md para o roteiro completo). Esta entrega
- * cobre: mapa-múndi vetorial plano, todas as 16 projeções pedidas, pan e
- * zoom (com liga/desliga independentes), "Fit to Data" ou posição manual,
- * estilo do mapa-base (cores + temas prontos), pontos simples (cor e raio
- * fixos), tooltip padrão e customizado, "Display Coordinates", drill ao
- * clicar no ponto, e detecção de latitude/longitude em dois formatos.
+ * Uma visualização só com DOIS MODOS alternáveis por opção ("Map Mode"):
+ *   - Mapa Plano: mapa-múndi vetorial com as 16 projeções pedidas, pan e
+ *     zoom independentes, "Fit to Data" ou posição manual.
+ *   - Globo: a mesma base de dados e estilo, mas em projeção ortográfica
+ *     que gira ao arrastar (com inércia suave), zoom pela roda do mouse,
+ *     botão "Resetar", rotação automática opcional, grade de coordenadas,
+ *     brilho de atmosfera na borda e "iniciar centralizado nos dados". O
+ *     recorte do lado oculto do globo (continentes e fronteiras) usa o
+ *     clipAngle(90) nativo do d3.geoPath — por isso não tem o problema de
+ *     "lacunas" que uma implementação manual de recorte teria.
  *
- * AINDA NÃO IMPLEMENTADO (entra nas próximas etapas, ver README):
- *   - Modo Globo (seção "Globo"), heatmaps, 3D, ícones, cor por valor/
- *     categoria + legenda, linhas, áreas, camadas (liga/desliga/ordem).
+ * Em ambos os modos: pontos (cor e raio, fixos ou automáticos), tooltip
+ * padrão e customizado, "Display Coordinates", drill ao clicar no ponto, e
+ * detecção de latitude/longitude em dois formatos.
+ *
+ * AINDA NÃO IMPLEMENTADO (ver README.md para o roteiro completo):
+ *   - Heatmaps (densidade/automagic/3D), ícones, cor por valor/categoria +
+ *     legenda, linhas, áreas, seção "Layers" (liga/desliga/ordem).
  *   O seletor "Plot Mode" já existe mas só tem a opção "Points" por ora.
  *
  * O QUE FAZ
- *   Desenha um mapa-múndi vetorial (sem tiles de servidor nenhum — os
- *   contornos dos países vêm de um arquivo de dados embutido, carregado
- *   via Dependencies) e plota um ponto por linha de dado, usando latitude
- *   e longitude. Renderiza em <canvas> (não SVG) com d3.geoPath, para
- *   aguentar muitos pontos com arraste suave.
+ *   Desenha um mapa-múndi vetorial — plano ou como globo — sem tiles de
+ *   servidor nenhum (os contornos dos países vêm de um arquivo de dados
+ *   embutido, carregado via Dependencies) e plota um ponto por linha de
+ *   dado, usando latitude e longitude. Renderiza em <canvas> (não SVG) com
+ *   d3.geoPath, para aguentar muitos pontos com arraste suave.
  *
  * DEPENDÊNCIAS (cadastrar em Admin > Visualizations > Dependencies, NESTA
  * ORDEM EXATA — cada uma depende da anterior já estar carregada):
@@ -52,18 +60,27 @@
  *   Campos opcionais: uma dimensão de rótulo (tooltip); medida para
  *   tamanho do ponto e campo de cor entram na Etapa 3.
  *
- * OPÇÕES (painel Edit) — seções "Plot", "Map", "Points", "Style" nesta
- * etapa (as seções "Layers" e "Globo" entram depois):
+ * OPÇÕES (painel Edit) — seções "Plot", "Map", "Points", "Style", "Globo"
+ * (a seção "Layers" ainda não existe):
  *   Plot: Plot Mode (só "Points" por enquanto), Custom Tooltip, template
  *     do tooltip customizado.
- *   Map: Map Style (Custom/Light/Dark/Satellite-like — paleta, sem tiles
- *     de verdade), Resolução do mapa (110m/50m), Projection (as 16 da
- *     especificação), Map Position (Fit to Data/Custom) + centro/zoom
+ *   Map: Map Mode (Mapa Plano/Globo), Map Style (Custom/Light/Dark/
+ *     Satellite-like — paleta, sem tiles de verdade), Resolução do mapa
+ *     (110m/50m), Projection (as 16 da especificação — só usada no modo
+ *     Mapa Plano), Map Position (Fit to Data/Custom) + centro/zoom
  *     customizados, Allow Panning, Allow Zooming, Display Coordinates,
  *     Modo debug.
  *   Points: Point Color, Point Radius (em branco = automático).
  *   Style: Background/Ocean Color, Map Color, Outer/Inner Border Color,
- *     Outer/Inner Border Width, Show Full Field Name in Tooltips.
+ *     Outer/Inner Border Width, Show Full Field Name in Tooltips (usadas
+ *     nos dois modos — no Globo, "Background/Ocean Color" vira a cor da
+ *     esfera e "Map Color" a cor da terra).
+ *   Globo (só tem efeito com Map Mode = "Globo"): mostrar grade de
+ *     coordenadas + sua cor, brilho na borda (atmosfera), iniciar
+ *     centralizado nos dados, rotação inicial (longitude/latitude, usada
+ *     quando NÃO centraliza nos dados), sensibilidade do arraste, inércia
+ *     suave ao soltar, rotação automática + velocidade, esconder pontos do
+ *     lado oculto do globo.
  *   Dados (seção nossa, não existia nos dois mapas originais): Modo de
  *     coordenadas, Campo de localização, Campo de latitude, Campo de
  *     longitude — aparecem via registerOptions depois da 1ª consulta.
@@ -87,6 +104,15 @@
  *     temos como confirmar sem acesso a elas.
  *   - Sem tiles, então sem nomes de rua/cidade de fundo nem zoom a nível
  *     de rua — só os contornos de países do dataset embutido.
+ *   - "Iniciar centralizado nos dados" (Globo) calcula uma média aritmética
+ *     simples de latitude/longitude, não uma média circular — para pontos
+ *     espalhados perto da linha de virada da data (±180°) o centro
+ *     calculado pode sair errado (ex.: pontos em +179° e -179° dariam uma
+ *     média perto de 0°, não perto de 180°). Para a maioria dos casos
+ *     (dados concentrados numa região) funciona bem.
+ *   - A inércia do Globo usa um modelo simples de atrito fixo (não é uma
+ *     física "realista"), e a rotação automática pausa durante o arraste e
+ *     a inércia, retomando depois.
  */
 
 (function () {
@@ -306,6 +332,13 @@
     'pointer-events:none;z-index:1000;white-space:normal;}',
     '.mc-aviso{position:absolute;right:8px;top:6px;font-size:11px;color:#92400e;',
     'background:rgba(255,251,235,0.9);padding:2px 6px;border-radius:4px;pointer-events:none;}',
+    '.mc-dica{position:absolute;left:8px;bottom:6px;font-size:11px;color:#6b7280;',
+    'background:rgba(255,255,255,0.75);padding:2px 6px;border-radius:4px;pointer-events:none;display:none;}',
+    '.mc-wrapper.mc-modo-globo .mc-dica{display:block;}',
+    '.mc-resetar{position:absolute;right:8px;bottom:6px;font-size:11px;padding:4px 10px;',
+    'border-radius:4px;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;display:none;}',
+    '.mc-resetar:hover{background:#f3f4f6;}',
+    '.mc-wrapper.mc-modo-globo .mc-resetar{display:block;}',
     '.mc-empty{padding:16px;color:#6b7280;}'
   ].join('');
 
@@ -326,6 +359,10 @@
       },
 
       // ---- Map ----
+      mapMode: {
+        type: 'string', label: 'Map Mode', section: 'Map', order: 0, display: 'select', default: 'flat',
+        values: [{ 'Mapa Plano': 'flat' }, { 'Globo (arrastar para girar)': 'globe' }]
+      },
       mapStyle: {
         type: 'string', label: 'Map Style', section: 'Map', order: 1, display: 'select', default: 'custom',
         values: [{ 'Custom (usa as cores da seção Style)': 'custom' }, { 'Light': 'light' }, { 'Dark': 'dark' }, { 'Satellite-like (só paleta, sem imagem real)': 'satellite' }]
@@ -369,7 +406,20 @@
       innerBorderColor: { type: 'string', label: 'Inner Border Color', section: 'Style', order: 4, display: 'color', default: '#9ca3af' },
       outerBorderWidth: { type: 'number', label: 'Outer Border Width (px, >0)', section: 'Style', order: 5, display: 'range', min: 0.5, max: 6, step: 0.5, default: 1.5 },
       innerBorderWidth: { type: 'number', label: 'Inner Border Width (px, >0)', section: 'Style', order: 6, display: 'range', min: 0.25, max: 6, step: 0.25, default: 0.5 },
-      showFullFieldNameTooltips: { type: 'boolean', label: 'Show Full Field Name in Tooltips', section: 'Style', order: 7, default: false }
+      showFullFieldNameTooltips: { type: 'boolean', label: 'Show Full Field Name in Tooltips', section: 'Style', order: 7, default: false },
+
+      // ---- Globo (só tem efeito quando Map Mode = "Globo") ----
+      showGraticule: { type: 'boolean', label: 'Mostrar grade de latitude/longitude', section: 'Globo', order: 1, default: true },
+      graticuleColor: { type: 'string', label: 'Cor da grade de coordenadas', section: 'Globo', order: 2, display: 'color', default: '#b9d3e6' },
+      atmosphereGlow: { type: 'boolean', label: 'Brilho na borda (atmosfera)', section: 'Globo', order: 3, default: true },
+      startCenteredOnData: { type: 'boolean', label: 'Iniciar centralizado nos dados', section: 'Globo', order: 4, default: true },
+      initialRotationLon: { type: 'number', label: 'Rotação inicial: longitude (graus, se não centralizar nos dados)', section: 'Globo', order: 5, display: 'range', min: -180, max: 180, step: 1, default: -50 },
+      initialRotationLat: { type: 'number', label: 'Rotação inicial: latitude (graus, se não centralizar nos dados)', section: 'Globo', order: 6, display: 'range', min: -90, max: 90, step: 1, default: -20 },
+      dragSensitivityGlobe: { type: 'number', label: 'Sensibilidade do arraste', section: 'Globo', order: 7, display: 'range', min: 0.1, max: 2, step: 0.1, default: 0.5 },
+      inertia: { type: 'boolean', label: 'Inércia suave ao soltar o arraste', section: 'Globo', order: 8, default: true },
+      autoRotate: { type: 'boolean', label: 'Rotação automática', section: 'Globo', order: 9, default: false },
+      autoRotateSpeed: { type: 'number', label: 'Velocidade da rotação automática (graus/s)', section: 'Globo', order: 10, display: 'range', min: 1, max: 60, step: 1, default: 6 },
+      hideBackPoints: { type: 'boolean', label: 'Esconder pontos do lado oculto do globo', section: 'Globo', order: 11, default: true }
     },
 
     create: function (element, config) {
@@ -390,15 +440,42 @@
       tooltip.className = 'mc-tooltip';
       wrapper.appendChild(tooltip);
 
+      var dica = document.createElement('div');
+      dica.className = 'mc-dica';
+      dica.textContent = 'Arraste para girar o globo';
+      wrapper.appendChild(dica);
+
+      var botaoResetar = document.createElement('button');
+      botaoResetar.type = 'button';
+      botaoResetar.className = 'mc-resetar';
+      botaoResetar.textContent = 'Resetar';
+      wrapper.appendChild(botaoResetar);
+
       this._wrapper = wrapper;
       this._canvas = canvas;
       this._tooltipEl = tooltip;
       this._ctx = (typeof canvas.getContext === 'function') ? canvas.getContext('2d') : null;
       this._estado = null;
       this._ultimaAssinaturaCampos = null;
+      this._rotacaoGlobo = null;
+      this._zoomGlobo = 1;
+      this._configInicialGlobo = null;
+      this._inerciaRaf = null;
 
       var viz = this;
       var d3g = window.d3;
+
+      botaoResetar.addEventListener('click', function () {
+        if (viz._inerciaRaf) { cancelAnimationFrame(viz._inerciaRaf); viz._inerciaRaf = null; }
+        if (viz._estado && viz._estado.rotacaoInicialGlobo) {
+          viz._rotacaoGlobo = { lon: viz._estado.rotacaoInicialGlobo.lon, lat: viz._estado.rotacaoInicialGlobo.lat };
+        }
+        viz._zoomGlobo = 1;
+        if (viz._zoomBehavior && d3g) {
+          try { d3g.select(canvas).call(viz._zoomBehavior.transform, d3g.zoomIdentity); } catch (e) { /* ignora */ }
+        }
+        desenharMapa(viz);
+      });
 
       // O zoom por roda do mouse fica a cargo do d3.zoom() (não tem o
       // problema abaixo, porque o evento "wheel" dispara direto no elemento
@@ -419,8 +496,15 @@
           .filter(function (ev) { return ev.type === 'wheel'; })
           .on('zoom', function (ev) {
             var t = ev.transform;
-            var prev = viz._zoomTransform || d3g.zoomIdentity;
             var estado = viz._estado;
+            if (estado && estado.mapMode === 'globe') {
+              // no globo, a roda do mouse controla só o zoom (raio da
+              // esfera); a posição (x,y) do transform do d3 é ignorada
+              if (!(estado.allowZooming === false)) viz._zoomGlobo = t.k;
+              desenharMapa(viz);
+              return;
+            }
+            var prev = viz._zoomTransform || d3g.zoomIdentity;
             if (estado && estado.allowZooming === false) {
               t = new d3g.ZoomTransform(prev.k, t.x, t.y);
             }
@@ -431,12 +515,23 @@
         d3g.select(canvas).call(zoomBehavior);
       }
 
+      // Histórico curto de posições do arraste, usado só para calcular a
+      // velocidade no momento de soltar (inércia do globo).
+      var historicoArraste = [];
+
+      function pararInercia() {
+        if (viz._inerciaRaf) { cancelAnimationFrame(viz._inerciaRaf); viz._inerciaRaf = null; }
+      }
+
       function iniciarPan(ev) {
         if (ev.button !== undefined && ev.button !== 0) return;
         var estado = viz._estado;
-        if (estado && estado.allowPanning === false) return;
+        var modoGlobo = estado && estado.mapMode === 'globe';
+        if (!modoGlobo && estado && estado.allowPanning === false) return;
+        pararInercia();
         viz._arrastando = true;
         viz._ultimaPosPan = { x: ev.clientX, y: ev.clientY };
+        historicoArraste = [{ x: ev.clientX, y: ev.clientY, t: Date.now() }];
         canvas.classList.add('mc-arrastando');
         if (typeof canvas.setPointerCapture === 'function' && ev.pointerId !== undefined) {
           try { canvas.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ }
@@ -446,6 +541,15 @@
         if (!viz._arrastando) return;
         var dx = ev.clientX - viz._ultimaPosPan.x, dy = ev.clientY - viz._ultimaPosPan.y;
         viz._ultimaPosPan = { x: ev.clientX, y: ev.clientY };
+        historicoArraste.push({ x: ev.clientX, y: ev.clientY, t: Date.now() });
+        if (historicoArraste.length > 5) historicoArraste.shift();
+
+        var estado = viz._estado;
+        if (estado && estado.mapMode === 'globe') {
+          girarGlobo(viz, dx, dy);
+          return;
+        }
+
         var atual = viz._zoomTransform || (d3g && d3g.zoomIdentity) || { k: 1, x: 0, y: 0 };
         var novo = d3g ? new d3g.ZoomTransform(atual.k, atual.x + dx, atual.y + dy) : { k: atual.k, x: atual.x + dx, y: atual.y + dy };
         viz._zoomTransform = novo;
@@ -457,11 +561,17 @@
         desenharMapa(viz);
       }
       function pararPan(ev) {
+        var estava = viz._arrastando;
         viz._arrastando = false;
         canvas.classList.remove('mc-arrastando');
         if (ev && typeof canvas.releasePointerCapture === 'function' && ev.pointerId !== undefined) {
           try { canvas.releasePointerCapture(ev.pointerId); } catch (e) { /* ignora */ }
         }
+        var estado = viz._estado;
+        if (estava && estado && estado.mapMode === 'globe' && estado.inertia !== false && historicoArraste.length >= 2) {
+          iniciarInerciaGlobo(viz, historicoArraste);
+        }
+        historicoArraste = [];
       }
       canvas.addEventListener('pointerdown', iniciarPan);
       canvas.addEventListener('pointermove', moverPan);
@@ -497,6 +607,22 @@
         this._resizeObserver = new ResizeObserver(function () { desenharMapa(viz); });
         this._resizeObserver.observe(wrapper);
       }
+
+      // Rotação automática do globo (só roda quando mapMode='globe',
+      // autoRotate ligado, e não há arraste/inércia ativos no momento).
+      var ultimoTsAuto = null;
+      function loopAutoRotate(ts) {
+        if (!document.body.contains(wrapper)) return; // visualização removida; para o loop
+        var estado = viz._estado;
+        if (estado && estado.mapMode === 'globe' && estado.autoRotate && !viz._arrastando && !viz._inerciaRaf) {
+          var dt = ultimoTsAuto ? (ts - ultimoTsAuto) / 1000 : 0;
+          if (viz._rotacaoGlobo) viz._rotacaoGlobo.lon += estado.autoRotateSpeed * dt;
+          desenharMapa(viz);
+        }
+        ultimoTsAuto = ts;
+        requestAnimationFrame(loopAutoRotate);
+      }
+      requestAnimationFrame(loopAutoRotate);
     },
 
     updateAsync: function (data, element, config, queryResponse, details, done) {
@@ -655,27 +781,53 @@
         outer: config.outerBorderColor || '#3f6b4f', inner: config.innerBorderColor || '#9ca3af'
       };
 
-    // ---- projeção ----
-    var projecao = construirProjecao(config.projection || 'mercator');
     var cssW = wrapper.clientWidth || 300, cssH = wrapper.clientHeight || 300;
+    var mapMode = config.mapMode === 'globe' ? 'globe' : 'flat';
 
-    if ((config.mapPosition || 'fit_data') === 'custom') {
-      var featureMundo = { type: 'Sphere' };
-      try { projecao.fitSize([cssW, cssH], featureMundo); } catch (e) { /* algumas projeções (ex. identity) lidam com Sphere de forma diferente */ }
-      var escalaBase = projecao.scale();
-      if (typeof projecao.center === 'function') {
-        projecao.center([Number(config.customCenterLon) || 0, Number(config.customCenterLat) || 0]);
+    // ---- projeção (só usada no modo Mapa Plano — no Globo a projeção é
+    // montada a cada frame dentro de desenharGlobo, a partir da rotação e
+    // zoom atuais) ----
+    var projecao = null;
+    if (mapMode !== 'globe') {
+      projecao = construirProjecao(config.projection || 'mercator');
+      if ((config.mapPosition || 'fit_data') === 'custom') {
+        var featureMundo = { type: 'Sphere' };
+        try { projecao.fitSize([cssW, cssH], featureMundo); } catch (e) { /* algumas projeções (ex. identity) lidam com Sphere de forma diferente */ }
+        var escalaBase = projecao.scale();
+        if (typeof projecao.center === 'function') {
+          projecao.center([Number(config.customCenterLon) || 0, Number(config.customCenterLat) || 0]);
+        }
+        projecao.scale(escalaBase * (Number(config.customZoom) || 1)).translate([cssW / 2, cssH / 2]);
+      } else {
+        var colecaoPontos = { type: 'FeatureCollection', features: pontosValidos.map(function (p) { return { type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: {} }; }) };
+        try { projecao.fitSize([cssW, cssH], colecaoPontos); }
+        catch (e) { projecao.fitSize([cssW, cssH], { type: 'Sphere' }); }
       }
-      projecao.scale(escalaBase * (Number(config.customZoom) || 1)).translate([cssW / 2, cssH / 2]);
-    } else {
-      var colecaoPontos = { type: 'FeatureCollection', features: pontosValidos.map(function (p) { return { type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: {} }; }) };
-      try { projecao.fitSize([cssW, cssH], colecaoPontos); }
-      catch (e) { projecao.fitSize([cssW, cssH], { type: 'Sphere' }); }
     }
 
-    viz._zoomTransform = (window.d3 && window.d3.zoomIdentity) || null;
+    // ---- rotação inicial do Globo: centralizada na média dos pontos, ou
+    // nos campos "Rotação inicial" — preserva a rotação atual (resultado de
+    // arrastar) entre atualizações, só reinicia se a config inicial mudou ----
+    var rotacaoInicialGlobo;
+    if (config.startCenteredOnData !== false && pontosValidos.length) {
+      var somaLon = 0, somaLat = 0;
+      pontosValidos.forEach(function (p) { somaLon += p.lon; somaLat += p.lat; });
+      rotacaoInicialGlobo = { lon: somaLon / pontosValidos.length, lat: -(somaLat / pontosValidos.length) };
+    } else {
+      rotacaoInicialGlobo = { lon: Number(config.initialRotationLon) || 0, lat: Number(config.initialRotationLat) || 0 };
+    }
+    var assinaturaGlobo = JSON.stringify(rotacaoInicialGlobo);
+    if (!viz._rotacaoGlobo || viz._configInicialGlobo !== assinaturaGlobo) {
+      viz._rotacaoGlobo = { lon: rotacaoInicialGlobo.lon, lat: rotacaoInicialGlobo.lat };
+      viz._configInicialGlobo = assinaturaGlobo;
+    }
+
+    if (mapMode !== 'globe') {
+      viz._zoomTransform = (window.d3 && window.d3.zoomIdentity) || null;
+    }
 
     viz._estado = {
+      mapMode: mapMode,
       pontosValidos: pontosValidos,
       projecao: projecao,
       countriesFeature: countriesFeature,
@@ -692,8 +844,20 @@
       customTooltip: !!config.customTooltip,
       customTooltipTemplate: config.customTooltipTemplate || '',
       showFullFieldName: !!config.showFullFieldNameTooltips,
-      camposTooltip: dims.concat(medidas)
+      camposTooltip: dims.concat(medidas),
+      // ---- específico do Globo ----
+      rotacaoInicialGlobo: rotacaoInicialGlobo,
+      showGraticule: config.showGraticule !== false,
+      graticuleColor: config.graticuleColor || '#b9d3e6',
+      atmosphereGlow: config.atmosphereGlow !== false,
+      dragSensitivityGlobe: Number(config.dragSensitivityGlobe) || 0.5,
+      inertia: config.inertia !== false,
+      autoRotate: !!config.autoRotate,
+      autoRotateSpeed: Number(config.autoRotateSpeed) || 6,
+      hideBackPoints: config.hideBackPoints !== false
     };
+
+    wrapper.classList.toggle('mc-modo-globo', mapMode === 'globe');
 
     desenharMapa(viz);
   }
@@ -705,9 +869,16 @@
   function pontoSobMouse(viz, mx, my) {
     var estado = viz._estado;
     if (!estado || !window.d3) return null;
-    var t = viz._zoomTransform || window.d3.zoomIdentity;
-    var inv = t.invert([mx, my]);
-    var px = inv[0], py = inv[1];
+    var px, py;
+    if (estado.mapMode === 'globe') {
+      // no globo os pontos já são projetados direto em coordenadas de
+      // tela (sem transform de canvas), então compara sem desfazer nada
+      px = mx; py = my;
+    } else {
+      var t = viz._zoomTransform || window.d3.zoomIdentity;
+      var inv = t.invert([mx, my]);
+      px = inv[0]; py = inv[1];
+    }
     var raio = estado.pointRadiusEfetivo + 2;
     var melhor = null, melhorDist = Infinity;
     for (var i = 0; i < estado.pontosValidos.length; i++) {
@@ -736,8 +907,49 @@
   function esconderTooltip(viz) { viz._tooltipEl.style.display = 'none'; }
 
   // ------------------------------------------------------------------
-  // Desenho no canvas (mapa-base + pontos), aplicando o transform de
-  // zoom/pan atual diretamente no contexto 2D.
+  // Gira o globo a partir de um delta de arraste em pixels, respeitando a
+  // sensibilidade configurada e travando a latitude em [-90,90] (senão o
+  // globo "passaria" pelo polo de cabeça para baixo).
+  // ------------------------------------------------------------------
+  function girarGlobo(viz, dx, dy) {
+    var estado = viz._estado;
+    if (!estado || !viz._rotacaoGlobo) return;
+    var sens = estado.dragSensitivityGlobe || 0.5;
+    viz._rotacaoGlobo.lon += dx * sens;
+    viz._rotacaoGlobo.lat -= dy * sens;
+    if (viz._rotacaoGlobo.lat > 90) viz._rotacaoGlobo.lat = 90;
+    if (viz._rotacaoGlobo.lat < -90) viz._rotacaoGlobo.lat = -90;
+    desenharMapa(viz);
+  }
+
+  // Inércia: continua girando por mais alguns frames com velocidade
+  // decrescente, calculada a partir dos últimos pontos do arraste.
+  function iniciarInerciaGlobo(viz, historico) {
+    var ultimo = historico[historico.length - 1];
+    var anterior = historico[0];
+    var dt = ultimo.t - anterior.t;
+    if (dt <= 0 || dt > 300) return; // arraste muito lento/parado: sem inércia
+    var vx = (ultimo.x - anterior.x) / dt; // px por ms
+    var vy = (ultimo.y - anterior.y) / dt;
+    var ultimoTs = null;
+
+    function passo(ts) {
+      if (!viz._estado || viz._arrastando) { viz._inerciaRaf = null; return; }
+      var dtFrame = ultimoTs ? (ts - ultimoTs) : 16;
+      ultimoTs = ts;
+      girarGlobo(viz, vx * dtFrame, vy * dtFrame);
+      vx *= 0.92; vy *= 0.92; // atrito
+      if (Math.abs(vx) < 0.002 && Math.abs(vy) < 0.002) { viz._inerciaRaf = null; return; }
+      viz._inerciaRaf = requestAnimationFrame(passo);
+    }
+    viz._inerciaRaf = requestAnimationFrame(passo);
+  }
+
+  // ------------------------------------------------------------------
+  // Desenho no canvas — ramifica entre mapa plano (com pan/zoom em 2D) e
+  // globo (projeção orthographic do D3, que já recorta corretamente tudo
+  // que estiver no lado oculto via clipAngle(90) — sem precisar de nenhuma
+  // lógica manual de recorte no horizonte).
   // ------------------------------------------------------------------
   function desenharMapa(viz) {
     var estado = viz._estado;
@@ -749,11 +961,20 @@
     if (canvas.width !== pxW || canvas.height !== pxH) {
       canvas.width = pxW; canvas.height = pxH;
     }
-
     if (!ctx) return; // ambiente de teste sem canvas 2D real (ex.: jsdom sem o pacote "canvas")
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
+
+    if (estado.mapMode === 'globe') {
+      desenharGlobo(viz, ctx, cssW, cssH);
+    } else {
+      desenharMapaPlano(viz, ctx, cssW, cssH);
+    }
+  }
+
+  function desenharMapaPlano(viz, ctx, cssW, cssH) {
+    var estado = viz._estado;
     ctx.fillStyle = estado.cores.ocean;
     ctx.fillRect(0, 0, cssW, cssH);
 
@@ -781,6 +1002,78 @@
     ctx.fill();
 
     ctx.restore();
+  }
+
+  function desenharGlobo(viz, ctx, cssW, cssH) {
+    var estado = viz._estado;
+    var d3g = window.d3;
+    var cx = cssW / 2, cy = cssH / 2;
+    var raioBase = Math.max(10, Math.min(cssW, cssH) / 2 - 10);
+    var raio = raioBase * (viz._zoomGlobo || 1);
+    var rot = viz._rotacaoGlobo || estado.rotacaoInicialGlobo || { lon: 0, lat: 0 };
+
+    var projecao = d3g.geoOrthographic().clipAngle(90).translate([cx, cy]).scale(raio).rotate([-rot.lon, -rot.lat]);
+    var path = d3g.geoPath(projecao, ctx);
+    viz._projecaoGlobo = projecao;
+
+    // fundo (fora da esfera) — fixo em branco; reaproveita as cores de
+    // Style só para o que fica dentro do globo (oceano/terra/contornos)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, cssW, cssH);
+
+    // brilho na borda (atmosfera) — degradê radial logo atrás da esfera
+    if (estado.atmosphereGlow) {
+      var grad = ctx.createRadialGradient(cx, cy, raio * 0.86, cx, cy, raio * 1.2);
+      grad.addColorStop(0, 'rgba(147,197,253,0.35)');
+      grad.addColorStop(1, 'rgba(147,197,253,0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, raio * 1.2, 0, 2 * Math.PI);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // esfera (oceano) + contorno externo
+    ctx.beginPath();
+    ctx.arc(cx, cy, raio, 0, 2 * Math.PI);
+    ctx.fillStyle = estado.cores.ocean;
+    ctx.fill();
+    ctx.lineWidth = estado.outerBorderWidth;
+    ctx.strokeStyle = estado.cores.outer;
+    ctx.stroke();
+
+    // grade de coordenadas
+    if (estado.showGraticule && typeof d3g.geoGraticule === 'function') {
+      var graticula = d3g.geoGraticule();
+      ctx.beginPath(); path(graticula()); ctx.lineWidth = 0.5; ctx.strokeStyle = estado.graticuleColor; ctx.stroke();
+    }
+
+    // terra + fronteiras internas — o clipAngle(90) da projeção já recorta
+    // tudo isso corretamente no horizonte, sem lógica extra nossa
+    ctx.beginPath(); path(estado.countriesFeature); ctx.fillStyle = estado.cores.map; ctx.fill();
+    ctx.beginPath(); path(estado.innerMesh); ctx.lineWidth = estado.innerBorderWidth; ctx.strokeStyle = estado.cores.inner; ctx.stroke();
+
+    // pontos — para estes, checamos a visibilidade manualmente (distância
+    // angular ao centro da vista), já que desenhamos os círculos direto
+    // com ctx.arc (raio variável), não via path() do d3
+    var rotLonRad = rot.lon * Math.PI / 180, rotLatRad = rot.lat * Math.PI / 180;
+    var sinRot = Math.sin(rotLatRad), cosRot = Math.cos(rotLatRad);
+    ctx.beginPath();
+    for (var i = 0; i < estado.pontosValidos.length; i++) {
+      var p = estado.pontosValidos[i];
+      if (estado.hideBackPoints) {
+        var lonRel = (p.lon * Math.PI / 180) - rotLonRad;
+        var latRad = p.lat * Math.PI / 180;
+        var cosc = sinRot * Math.sin(latRad) + cosRot * Math.cos(latRad) * Math.cos(lonRel);
+        if (cosc < 0) { p._sx = undefined; p._sy = undefined; continue; }
+      }
+      var xy = projecao([p.lon, p.lat]);
+      if (!xy) { p._sx = undefined; p._sy = undefined; continue; }
+      p._sx = xy[0]; p._sy = xy[1];
+      ctx.moveTo(xy[0] + estado.pointRadiusEfetivo, xy[1]);
+      ctx.arc(xy[0], xy[1], estado.pointRadiusEfetivo, 0, 2 * Math.PI);
+    }
+    ctx.fillStyle = estado.pointColor;
+    ctx.fill();
   }
 
   looker.plugins.visualizations.add(definicaoVisualizacao);
