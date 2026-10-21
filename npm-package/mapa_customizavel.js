@@ -541,7 +541,14 @@
           values: opcoesCampo(dims), default: escolherPorNomeOuConfig(null, dims, ['lon', 'lng']).name
         }
       };
-      if (typeof viz.trigger === 'function') viz.trigger('registerOptions', opcoesDinamicas);
+      // Importante: this.trigger('registerOptions', ...) SUBSTITUI o painel
+      // de opções inteiro pelo que for passado aqui (confirmado testando no
+      // Looker real — as seções estáticas "Plot"/"Map"/"Points"/"Style"
+      // sumiam do painel Edit quando mandávamos só as opções dinâmicas).
+      // Por isso sempre mandamos as opções estáticas JUNTO com as novas.
+      if (typeof viz.trigger === 'function') {
+        viz.trigger('registerOptions', Object.assign({}, definicaoVisualizacao.options, opcoesDinamicas));
+      }
     }
 
     // ---- decide o modo de coordenadas efetivo ----

@@ -472,7 +472,18 @@
         values: opcoesCampo(medidas), default: medidas[0].name
       };
     }
-    if (typeof viz.trigger === 'function') viz.trigger('registerOptions', opcoesDinamicas);
+    // Só registra quando a lista de campos realmente muda (evita registrar
+    // de novo a cada updateAsync) — e sempre junto com as opções estáticas:
+    // this.trigger('registerOptions', ...) SUBSTITUI o painel de opções
+    // inteiro pelo que for passado, confirmado testando no Looker real (as
+    // seções estáticas de estilo sumiam do painel Edit sem isso).
+    var assinaturaCampos = dims.map(function (f) { return f.name; }).join('|') + '::' + medidas.map(function (f) { return f.name; }).join('|');
+    if (assinaturaCampos !== viz._ultimaAssinaturaCampos) {
+      viz._ultimaAssinaturaCampos = assinaturaCampos;
+      if (typeof viz.trigger === 'function') {
+        viz.trigger('registerOptions', Object.assign({}, definicaoVisualizacao.options, opcoesDinamicas));
+      }
+    }
 
     // ---- Decide o modo de coordenadas efetivo ----
     var modo = config.modoCoordenadas || 'auto';

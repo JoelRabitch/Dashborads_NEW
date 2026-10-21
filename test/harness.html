@@ -544,7 +544,12 @@ function anexarMetodosDeInstancia(definicao) {
   definicao.trigger = function (evento, args) {
     console.log('[harness] trigger', evento, args);
     if (evento === 'registerOptions' && args) {
-      definicao.options = Object.assign({}, definicao.options, args);
+      // IMPORTANTE: testado no Looker real — registerOptions SUBSTITUI o
+      // painel de opções inteiro pelo que for passado (não mescla com o
+      // que já existia). Simulamos isso aqui de propósito, mesmo que
+      // pareça "destrutivo", para pegar esse bug no harness em vez de só
+      // descobrir depois de publicar no Looker.
+      definicao.options = args;
     }
   };
   return definicao;
