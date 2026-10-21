@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<!--
+  Harness de teste local para as Custom Visualizations do Looker.
+
+  O que este arquivo faz:
+    - Simula o mínimo necessário do ambiente do Looker para carregar e
+      testar os arquivos de /src sem precisar subir nada ao Looker real:
+        window.looker.plugins.visualizations.add(definicao)
+        window.LookerCharts.Utils.textForCell / openDrillMenu / ...
+        this.addError(...) / this.clearErrors() / this.trigger(...)
+    - Gera conjuntos de dados de exemplo: sem pivô, com pivô (com e sem o
+      pivô de "total de linha" que o próprio Looker às vezes fornece),
+      com valores nulos, com 20 linhas e com 5.000 linhas.
+    - Deixa editar a configuração (equivalente ao painel "Edit" do Admin)
+      como JSON simples, e mostra o tempo gasto em updateAsync.
+
+  O que este harness NÃO simula (confira sempre no Looker real):
+    - O editor visual de opções do Looker (aqui a config é só um JSON).
+    - Drill real (clique em célula com link só mostra um alerta/console).
+    - Diferenças de layout/CSS do tile do Looker (tamanho do tile real,
+      fontes do tema da conta, modo escuro do Looker etc.).
+    - Tipos de agregação de medidas (sum/average/...), que a API de
+      visualização não expõe.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Harness - Custom Visualizations Looker</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; margin: 0; padding: 16px; background: #f5f6f8; color: #111827; }
+  h1 { font-size: 18px; margin: 0 0 12px; }
+  .painel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+  .linha { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 8px; }
+  label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #374151; }
+  select, button, input[type=number] { font-size: 13px; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; }
+  button { cursor: pointer; background: #111827; color: #fff; border-color: #111827; }
+  button:hover { opacity: 0.9; }
+  textarea { width: 100%; min-height: 140px; font-family: Consolas, "Courier New", monospace; font-size: 12px; box-sizing: border-box; }
+  #vizContainer { width: 100%; height: 70vh; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; overflow: hidden; }
+  #erros { white-space: pre-wrap; font-size: 12px; color: #b91c1c; }
+  #status { font-size: 12px; color: #374151; margin-top: 6px; }
+  .check { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>Harness local — Custom Visualizations do Looker</h1>
+
+<div class="painel">
+  <div class="linha">
+    <div>
+      <label for="vizSelect">Visualização (arquivo em /src)</label>
+      <select id="vizSelect"></select>
+    </div>
+    <div>
+      <label for="dataSelect">Conjunto de dados de exemplo</label>
+      <select id="dataSelect">
+        <option value="flat20">Sem pivô — 20 linhas (com nulos)</option>
+        <option value="flat5000">Sem pivô — 5.000 linhas</option>
+        <option value="pivot20">Com pivô — 20 linhas (com nulos)</option>
+        <option value="pivot20total">Com pivô — 20 linhas + total de linha do Looker</option>
+        <option value="pivot5000">Com pivô — 5.000 linhas</option>
+        <option value="vazio">Sem dimensões nem medidas (teste de erro)</option>
+      </select>
+    </div>
+    <div>
+      <button id="btnRenderizar">Renderizar</button>
+    </div>
+    <div id="status"></div>
+  </div>
+  <div class="linha">
+    <div style="flex:1;min-width:280px;">
+      <label for="configArea">Config (equivalente às opções do painel Edit, em JSON)</label>
+      <textarea id="configArea"></textarea>
+    </div>
+  </div>
+  <div id="erros"></div>
+</div>
+
+<div id="vizContainer"></div>
+
+<script>
+// =======================================================================
+// 1) Simulação mínima do ambiente global do Looker
+// =======================================================================
+var registroDeVisualizacoes = {};
+
+window.looker = {
+  plugins: {
+    visualizations: {
+      add: function (definicao) {
+        registroDeVisualizacoes[definicao.id] = definicao;
+      }
+    }
+  }
+};
+
+window.LookerCharts = {
+  Utils: {
+    // Nunca retorna null — igual à API real.
+    textForCell: function (cell) {
+      if (cell === undefined || cell === null) return '';
+      if (cell.value === undefined || cell.value === null) return '∅';
+      if (typeof cell.rendered === 'string') return cell.rendered;
+      return String(cell.value);
+    },
+    htmlForCell: function (cell) {
+      var texto = window.LookerCharts.Utils.textForCell(cell);
+      return texto; // simplificado: harness não gera HTML de drill de verdade
+    },
+    filterableValueForCell: function (cell) {
+      return cell && cell.value !== undefined ? String(cell.value) : '';
+    },
+    openDrillMenu: function (opts) {
+      var links = (opts && opts.links) || [];
+      var resumo = links.map(function (l) { return l.label + ' -> ' + l.url; }).join('\n');
+      console.log('[harness] openDrillMenu chamado com', opts);
+      window.alert('Simulação de drill (não abre no Looker real):\n' + (resumo || '(sem links)'));
+    }
+  }
+};
+
+// =======================================================================
+// 2) Geradores de dados de exemplo
+// =======================================================================
+
+// Gerador pseudo-aleatório determinístico (para os testes serem repetíveis)
+function criarRng(semente) {
+  var s = semente;
+  return function () {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
+var PAISES = ['Brasil', 'Japão', 'Portugal', 'EUA', 'Alemanha'];
+var PRODUTOS = ['Espresso', 'Latte', 'Cappuccino', 'Cold Brew', 'Mocha'];
+var TRIMESTRES = ['Q1', 'Q2', 'Q3', 'Q4'];
+
+function campoDimensao(nome, label) {
+  return { name: nome, label: label, label_short: label, is_numeric: false };
+}
+function campoMedida(nome, label, formato) {
+  return { name: nome, label: label, label_short: label, is_numeric: true, value_format: formato || '#,##0' };
+}
+
+function celula(valor, formatado, links) {
+  if (valor === null || valor === undefined) return { value: null, rendered: null };
+  return { value: valor, rendered: (formatado !== undefined ? formatado : String(valor)), links: links };
+}
+
+function gerarDadosSemPivo(n, comNulos) {
+  var rng = criarRng(42);
+  var queryResponse = {
+    fields: {
+      dimensions: [campoDimensao('pais', 'País'), campoDimensao('produto', 'Produto')],
+      measures: [campoMedida('vendas', 'Vendas (R$)', '$#,##0.00'), campoMedida('quantidade', 'Quantidade')],
+      table_calculations: [campoMedida('ticket_medio', 'Ticket Médio (table calc)', '$#,##0.00')],
+      dimension_like: [campoDimensao('pais', 'País'), campoDimensao('produto', 'Produto')],
+      measure_like: [
+        campoMedida('vendas', 'Vendas (R$)', '$#,##0.00'),
+        campoMedida('quantidade', 'Quantidade'),
+        campoMedida('ticket_medio', 'Ticket Médio (table calc)', '$#,##0.00')
+      ],
+      pivots: []
+    },
+    pivots: []
+  };
+
+  var data = [];
+  for (var i = 0; i < n; i++) {
+    var pais = PAISES[i % PAISES.length];
+    var produto = PRODUTOS[Math.floor(rng() * PRODUTOS.length)];
+    var temNulo = comNulos && rng() < 0.08;
+    var qtd = temNulo ? null : Math.floor(rng() * 500);
+    var vendas = temNulo ? null : Math.round(qtd * (10 + rng() * 40) * 100) / 100;
+    var ticket = (qtd && vendas) ? Math.round((vendas / qtd) * 100) / 100 : null;
+
+    data.push({
+      pais: celula(pais, pais, [{ label: 'Ver ' + pais, url: '#', type: 'measure_default' }]),
+      produto: celula(produto, produto),
+      vendas: celula(vendas, vendas === null ? null : 'R$ ' + vendas.toFixed(2)),
+      quantidade: celula(qtd, qtd === null ? null : String(qtd)),
+      ticket_medio: celula(ticket, ticket === null ? null : 'R$ ' + ticket.toFixed(2))
+    });
+  }
+  return { data: data, queryResponse: queryResponse };
+}
+
+function gerarDadosComPivo(n, comNulos, comTotalDoLooker) {
+  var rng = criarRng(7);
+  var pivotField = campoDimensao('trimestre', 'Trimestre');
+
+  var pivotsQR = TRIMESTRES.map(function (t) {
+    return { key: t, is_total: false, data: { trimestre: t }, metadata: { trimestre: { value: t, rendered: t } } };
+  });
+  if (comTotalDoLooker) {
+    pivotsQR.push({
+      key: '$$$_row_total_$$$', is_total: true,
+      data: { trimestre: null }, metadata: { trimestre: { value: null, rendered: 'Total' } }
+    });
+  }
+
+  var queryResponse = {
+    fields: {
+      dimensions: [campoDimensao('pais', 'País'), campoDimensao('produto', 'Produto')],
+      measures: [campoMedida('vendas', 'Vendas (R$)', '$#,##0.00'), campoMedida('quantidade', 'Quantidade')],
+      table_calculations: [],
+      dimension_like: [campoDimensao('pais', 'País'), campoDimensao('produto', 'Produto')],
+      measure_like: [campoMedida('vendas', 'Vendas (R$)', '$#,##0.00'), campoMedida('quantidade', 'Quantidade')],
+      pivots: [pivotField]
+    },
+    pivots: pivotsQR
+  };
+
+  var data = [];
+  for (var i = 0; i < n; i++) {
+    var pais = PAISES[i % PAISES.length];
+    var produto = PRODUTOS[Math.floor(rng() * PRODUTOS.length)];
+
+    var vendasPorTrimestre = {};
+    var qtdPorTrimestre = {};
+    var somaVendas = 0, somaQtd = 0, achouAlgumNaoNulo = false;
+
+    TRIMESTRES.forEach(function (t) {
+      var nulo = comNulos && rng() < 0.08;
+      var qtd = nulo ? null : Math.floor(rng() * 200);
+      var vendas = nulo ? null : Math.round(qtd * (10 + rng() * 40) * 100) / 100;
+      if (!nulo) { somaVendas += vendas; somaQtd += qtd; achouAlgumNaoNulo = true; }
+      vendasPorTrimestre[t] = celula(vendas, vendas === null ? null : 'R$ ' + vendas.toFixed(2));
+      qtdPorTrimestre[t] = celula(qtd, qtd === null ? null : String(qtd));
+    });
+
+    if (comTotalDoLooker) {
+      vendasPorTrimestre['$$$_row_total_$$$'] = celula(achouAlgumNaoNulo ? somaVendas : null, achouAlgumNaoNulo ? 'R$ ' + somaVendas.toFixed(2) : null);
+      qtdPorTrimestre['$$$_row_total_$$$'] = celula(achouAlgumNaoNulo ? somaQtd : null, achouAlgumNaoNulo ? String(somaQtd) : null);
+    }
+
+    data.push({
+      pais: celula(pais, pais),
+      produto: celula(produto, produto),
+      vendas: vendasPorTrimestre,
+      quantidade: qtdPorTrimestre
+    });
+  }
+  return { data: data, queryResponse: queryResponse };
+}
+
+function conjuntoVazio() {
+  return {
+    data: [],
+    queryResponse: { fields: { dimensions: [], measures: [], table_calculations: [], dimension_like: [], measure_like: [], pivots: [] }, pivots: [] }
+  };
+}
+
+var GERADORES = {
+  flat20: function () { return gerarDadosSemPivo(20, true); },
+  flat5000: function () { return gerarDadosSemPivo(5000, true); },
+  pivot20: function () { return gerarDadosComPivo(20, true, false); },
+  pivot20total: function () { return gerarDadosComPivo(20, true, true); },
+  pivot5000: function () { return gerarDadosComPivo(5000, false, false); },
+  vazio: function () { return conjuntoVazio(); }
+};
+
+// =======================================================================
+// 3) Lista de arquivos de /src — ADICIONE UMA LINHA AQUI PARA CADA NOVA
+//    VISUALIZAÇÃO CRIADA (o harness não lê o disco, então o include é manual)
+// =======================================================================
+var ARQUIVOS_SRC = [
+  '../src/tabela_pivot_avancada.js'
+];
+
+function carregarScriptsSrc(callback) {
+  var i = 0;
+  function proximo() {
+    if (i >= ARQUIVOS_SRC.length) { callback(); return; }
+    var s = document.createElement('script');
+    s.src = ARQUIVOS_SRC[i];
+    s.onload = function () { i++; proximo(); };
+    s.onerror = function () { console.error('Falha ao carregar', ARQUIVOS_SRC[i]); i++; proximo(); };
+    document.head.appendChild(s);
+  }
+  proximo();
+}
+
+// =======================================================================
+// 4) Orquestração do harness
+// =======================================================================
+var vizSelect = document.getElementById('vizSelect');
+var dataSelect = document.getElementById('dataSelect');
+var configArea = document.getElementById('configArea');
+var vizContainer = document.getElementById('vizContainer');
+var statusEl = document.getElementById('status');
+var errosEl = document.getElementById('erros');
+
+var instanciaAtual = null; // guarda a MESMA instância entre updates, como o Looker faz
+
+function montarConfigPadrao(definicao) {
+  var cfg = {};
+  var opts = definicao.options || {};
+  Object.keys(opts).forEach(function (chave) {
+    cfg[chave] = opts[chave].default;
+  });
+  return cfg;
+}
+
+function popularSelectDeVisualizacoes() {
+  vizSelect.innerHTML = '';
+  Object.keys(registroDeVisualizacoes).forEach(function (id) {
+    var def = registroDeVisualizacoes[id];
+    var opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = def.label + ' (' + id + ')';
+    vizSelect.appendChild(opt);
+  });
+}
+
+function anexarMetodosDeInstancia(definicao) {
+  // Simula os métodos que o runtime do Looker injeta na instância da
+  // visualização, além de create/updateAsync.
+  definicao.addError = function (erro) {
+    var msg = (erro && (erro.title ? erro.title + ': ' : '') + (erro.message || '')) || JSON.stringify(erro);
+    errosEl.textContent += '[addError] ' + msg + '\n';
+  };
+  definicao.clearErrors = function () {
+    errosEl.textContent = '';
+  };
+  definicao.trigger = function (evento, args) {
+    console.log('[harness] trigger', evento, args);
+    if (evento === 'registerOptions' && args) {
+      definicao.options = Object.assign({}, definicao.options, args);
+    }
+  };
+  return definicao;
+}
+
+function renderizar() {
+  var vizId = vizSelect.value;
+  var definicao = registroDeVisualizacoes[vizId];
+  if (!definicao) { return; }
+
+  errosEl.textContent = '';
+  var geradorKey = dataSelect.value;
+  var conjunto = GERADORES[geradorKey]();
+
+  var config;
+  try {
+    config = JSON.parse(configArea.value || '{}');
+  } catch (e) {
+    statusEl.textContent = 'Config inválida (JSON): ' + e.message;
+    return;
+  }
+
+  // Recria o container e a instância a cada troca de visualização/dados,
+  // para simular uma nova carga de tile (evita estado residual entre testes).
+  vizContainer.innerHTML = '';
+  instanciaAtual = anexarMetodosDeInstancia(Object.create(definicao));
+  // copia create/updateAsync/options para a instância (Object.create já dá
+  // acesso via protótipo, mas deixamos explícito para clareza)
+
+  try {
+    instanciaAtual.create(vizContainer, config);
+  } catch (e) {
+    errosEl.textContent += '[create] ' + e.message + '\n';
+    return;
+  }
+
+  var t0 = performance.now();
+  try {
+    instanciaAtual.updateAsync(conjunto.data, vizContainer, config, conjunto.queryResponse, {}, function () {
+      var t1 = performance.now();
+      statusEl.textContent = 'OK — ' + conjunto.data.length + ' linhas, updateAsync levou ' + (t1 - t0).toFixed(1) + ' ms';
+    });
+  } catch (e) {
+    errosEl.textContent += '[updateAsync] ' + e.message + '\n';
+  }
+}
+
+document.getElementById('btnRenderizar').addEventListener('click', renderizar);
+vizSelect.addEventListener('change', function () {
+  var def = registroDeVisualizacoes[vizSelect.value];
+  configArea.value = JSON.stringify(montarConfigPadrao(def), null, 2);
+});
+
+carregarScriptsSrc(function () {
+  popularSelectDeVisualizacoes();
+  if (vizSelect.options.length > 0) {
+    vizSelect.selectedIndex = 0;
+    configArea.value = JSON.stringify(montarConfigPadrao(registroDeVisualizacoes[vizSelect.value]), null, 2);
+    renderizar();
+  } else {
+    statusEl.textContent = 'Nenhuma visualização carregada — confira ARQUIVOS_SRC no harness.';
+  }
+});
+</script>
+
+</body>
+</html>
