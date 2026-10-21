@@ -1,13 +1,14 @@
 {
   "name": "looker-viz-mapa-customizavel",
-  "version": "1.0.1",
-  "description": "Arquivos estaticos (visualizacao + dados do mapa-mundi) do Mapa Customizavel para Looker, publicados no npm so para serem distribuidos via cdn.jsdelivr.net/npm/... (caminho que nao sofre o bloqueio ERR_BLOCKED_BY_ORB visto no caminho cdn.jsdelivr.net/gh/...). Nao e uma biblioteca para importar em codigo Node/JS.",
+  "version": "1.0.2",
+  "description": "Arquivos estaticos de visualizacoes customizadas para Looker (Mapa Customizavel e Globo Terrestre Rotacionavel), publicados no npm so para serem distribuidos via cdn.jsdelivr.net/npm/... (caminho que nao sofre o bloqueio ERR_BLOCKED_BY_ORB visto no caminho cdn.jsdelivr.net/gh/...). Nao e uma biblioteca para importar em codigo Node/JS.",
   "license": "MIT",
   "private": false,
   "files": [
     "mapa_customizavel.js",
     "world_topology_110m.js",
-    "world_topology_50m.js"
+    "world_topology_50m.js",
+    "globo_terra_pontos.js"
   ],
   "repository": {
     "type": "git",
