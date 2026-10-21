@@ -1,0 +1,16 @@
+{
+  "name": "looker-viz-mapa-customizavel",
+  "version": "1.0.0",
+  "description": "Arquivos estaticos (visualizacao + dados do mapa-mundi) do Mapa Customizavel para Looker, publicados no npm so para serem distribuidos via cdn.jsdelivr.net/npm/... (caminho que nao sofre o bloqueio ERR_BLOCKED_BY_ORB visto no caminho cdn.jsdelivr.net/gh/...). Nao e uma biblioteca para importar em codigo Node/JS.",
+  "license": "MIT",
+  "private": false,
+  "files": [
+    "mapa_customizavel.js",
+    "world_topology_110m.js",
+    "world_topology_50m.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoelRabitch/Dashborads_NEW.git"
+  }
+}

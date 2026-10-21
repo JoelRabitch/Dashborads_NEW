@@ -263,6 +263,24 @@ dias — todas de 2019 a 2024):
 - `d3-geo-projection@4.0.0` — publicado em 2021-06-11
 - `topojson-client@3.1.0` — publicado em 2019-11-06
 
+### Se `mapa_customizavel.js` ou `world_topology_110m.js` aparecerem como `(failed) net::ERR_BLOCKED_BY_ORB` no Network do navegador
+
+Isso aconteceu em teste real: o Chrome bloqueou especificamente os arquivos
+vindos de `cdn.jsdelivr.net/gh/...` (proxy direto do GitHub), enquanto
+`d3`/`d3-geo-projection`/`topojson-client` — vindos de `cdn.jsdelivr.net/
+npm/...` — carregaram normalmente. A suspeita é que alguma ferramenta de
+segurança de rede da empresa trata um link de repositório GitHub único e
+desconhecido com mais desconfiança do que um pacote npm popular.
+
+**Solução que funcionou**: publicar `mapa_customizavel.js` e os arquivos
+`world_topology_*.js` como um pacotinho no **npm** (não é uma biblioteca de
+verdade, só um jeito de hospedar) e servir pelo mesmo caminho
+`cdn.jsdelivr.net/npm/...` que já se mostrou estável. Os arquivos prontos
+para isso ficam em [`npm-package/`](npm-package/) — veja o
+[`npm-package/README.md`](npm-package/README.md) para o passo a passo
+(resumo: `npm login` + `npm publish` depois de copiar os arquivos
+atualizados de `/src` para lá).
+
 ### Como montar o Explore
 
 - **Localização**: ou (a) duas dimensões numéricas de latitude e
