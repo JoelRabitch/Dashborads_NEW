@@ -173,6 +173,9 @@ Não aceita pivô (não faz sentido para este tipo de gráfico).
 | **Pontos** | cor, opacidade, raio mínimo/máximo, cor/espessura do contorno do ponto, esconder pontos do lado oculto do globo, máximo de pontos desenhados (desempenho) |
 | **Comportamento** | mostrar dica "arraste para girar", mostrar tooltip, permitir clique para drill |
 
+A grade de coordenadas e o contorno externo do globo agora também têm
+espessura configurável (além da cor), e a grade pode ficar tracejada.
+
 ### De onde vêm os continentes (e por que não há chamada de rede)
 
 O contorno dos continentes é uma cópia **estática**, já dentro do arquivo
@@ -189,11 +192,14 @@ execução** — os dados do mapa já vêm embutidos.
   horizonte mais simples. Se quiser fronteiras de países depois, dá para
   trocar o dataset embutido (fica bem mais pesado).
 - O recorte dos continentes na linha do horizonte (lado oculto do globo)
-  usa uma aproximação própria (interpolação linear fechando o contorno com
-  uma linha reta), **não** um recorte esférico exato como o da biblioteca
-  D3. Visualmente funciona bem, mas pode aparecer uma pequena "mordida
-  reta" em vez de uma curva perfeita bem na borda do globo ao girar.
-  Confira visualmente se isso incomoda para o seu uso.
+  acha o ponto de cruzamento por interpolação linear e fecha o contorno
+  recortado com um **arco** pela borda do globo (pelo caminho mais curto),
+  não mais com uma linha reta — isso corrigiu a "mordida reta" que
+  aparecia antes ao girar. Ainda não é um recorte esférico completo como o
+  da biblioteca D3: em casos raros perto dos polos (ex.: bordas da
+  Antártida), o "caminho mais curto" pela borda pode não ser o lado
+  geometricamente correto. Se notar um continente grudando no lugar
+  errado ao girar bem devagar perto dos polos, me avise.
 - Com datasets muito grandes de pontos, o arraste pode ficar menos fluido
   — existe a opção "Máximo de pontos desenhados" (padrão 2.000) para
   limitar isso; o harness testa até 2.500 pontos sem erro, mas a fluidez

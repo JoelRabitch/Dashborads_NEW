@@ -36,8 +36,9 @@
  *   Seção "Rotação": longitude/latitude iniciais, rotação automática,
  *     velocidade da rotação automática, sensibilidade do arraste.
  *   Seção "Estilo do Globo": cor do oceano, cor da terra, cor/espessura do
- *     contorno da terra, mostrar grade de coordenadas (graticule) e sua
- *     cor, cor do contorno externo do globo, cor de fundo.
+ *     contorno da terra, mostrar grade de coordenadas (graticule), cor/
+ *     espessura/tracejado da grade, cor/espessura do contorno externo do
+ *     globo, cor de fundo.
  *   Seção "Pontos": cor, opacidade, raio mínimo/máximo, esconder pontos do
  *     lado oculto do globo, cor/espessura do contorno do ponto, máximo de
  *     pontos desenhados (por desempenho).
@@ -48,13 +49,18 @@
  *   - Só contornos de continentes (coastline), sem fronteiras de países —
  *     escolha deliberada para manter o arquivo menor e o recorte do
  *     horizonte mais simples/confiável.
- *   - O recorte dos continentes no horizonte (lado oculto do globo) usa uma
- *     aproximação própria (interpolação linear no ponto onde o continente
- *     "mergulha" no horizonte, fechando o contorno recortado com uma linha
- *     reta até o ponto seguinte) — NÃO é um recorte esférico exato como o
- *     da biblioteca D3. Pode haver uma pequena "mordida reta" em vez de uma
- *     curva perfeita bem na linha do horizonte. Funciona bem visualmente,
- *     mas não é geometricamente perfeito.
+ *   - O recorte dos continentes no horizonte (lado oculto do globo) acha o
+ *     ponto de cruzamento por interpolação linear (aproximação; o cosseno
+ *     não é linear ao longo do segmento, mas os segmentos do dataset são
+ *     curtos o bastante para o erro ser imperceptível) e fecha o contorno
+ *     recortado com um ARCO ao longo da borda do globo — não com uma linha
+ *     reta — pelo caminho mais curto entre os dois pontos de cruzamento.
+ *     Isso resolve a "mordida reta" visível ao girar. Ainda não é um
+ *     recorte esférico completo como o da biblioteca D3 (que lida também
+ *     com casos raros em que o caminho mais curto pela borda não é o
+ *     lado correto — pode acontecer em trechos que cruzam bem perto dos
+ *     polos, como a Antártida). Se notar algum continente "grudando" no
+ *     lugar errado perto dos polos ao girar bem devagar ali, me avise.
  *   - Não reimplementamos nenhuma função da API do Looker: a extração de
  *     lat/lon e o desenho do globo são lógica nossa (matemática de projeção
  *     ortográfica padrão), não recursos documentados do Looker.
@@ -121,7 +127,10 @@
   // -1..1, para depois multiplicar pelo raio em pixels). Processa aresta
   // por aresta (par de pontos consecutivos); quando uma aresta cruza o
   // horizonte, insere o ponto de cruzamento para fechar/abrir o sub-trecho
-  // exatamente na borda do globo.
+  // exatamente na borda do globo. Cada sub-trecho criado a partir de um
+  // cruzamento fica marcado com .cortadoInicio / .cortadoFim — usado depois
+  // por construirPathDTerra para fechar o contorno com um arco (em vez de
+  // uma linha reta cortando por dentro do globo).
   function projetarComRecorte(pontosLonLat, proj, fechado) {
     var n = pontosLonLat.length;
     var numArestas = fechado ? n : n - 1;
@@ -142,15 +151,37 @@
         atual.push(pb);
       } else if (aVisivel && !bVisivel) {
         atual.push(pontoNoHorizonte(a, b, proj));
+        atual.cortadoFim = true;
         atual = null;
       } else if (!aVisivel && bVisivel) {
         atual = [pontoNoHorizonte(a, b, proj)];
+        atual.cortadoInicio = true;
         subtrechos.push(atual);
         atual.push(pb);
       }
       // se os dois pontos da aresta estiverem ocultos, não desenha nada
     }
     return subtrechos;
+  }
+
+  // Gera pontos intermediários ao longo do círculo-horizonte (raio 1),
+  // pelo caminho mais curto, entre dois pontos já normalizados na borda.
+  // É exatamente sobre esse círculo que o horizonte da projeção ortográfica
+  // cai (identidade x²+y²+cosc²=1 ⇒ cosc=0 implica x²+y²=1), então o arco
+  // fecha o contorno recortado de forma suave em vez de um corte reto.
+  function arcoNoHorizonte(pInicio, pFim) {
+    var a0 = Math.atan2(pInicio.y, pInicio.x);
+    var a1 = Math.atan2(pFim.y, pFim.x);
+    var delta = a1 - a0;
+    while (delta > Math.PI) delta -= 2 * Math.PI;
+    while (delta < -Math.PI) delta += 2 * Math.PI;
+    var passos = Math.max(1, Math.ceil(Math.abs(delta) / (Math.PI / 60)));
+    var pontos = [];
+    for (var i = 1; i < passos; i++) {
+      var a = a0 + delta * (i / passos);
+      pontos.push({ x: Math.cos(a), y: Math.sin(a) });
+    }
+    return pontos;
   }
 
   function construirPathD(pontosUnitarios, cx, cy, raio, fechar) {
@@ -161,6 +192,18 @@
       return (idx === 0 ? 'M' : 'L') + x + ',' + y;
     });
     return partes.join(' ') + (fechar ? ' Z' : '');
+  }
+
+  // Como construirPathD, mas para um sub-trecho de TERRA: se ele foi
+  // recortado pelo horizonte dos dois lados, fecha com um arco pela borda
+  // do globo em vez de fechar com uma linha reta (SVG "Z").
+  function construirPathDTerra(subtrecho, cx, cy, raio) {
+    var pontos = subtrecho;
+    if (subtrecho.cortadoInicio && subtrecho.cortadoFim && subtrecho.length > 1) {
+      var arco = arcoNoHorizonte(subtrecho[subtrecho.length - 1], subtrecho[0]);
+      if (arco.length) pontos = subtrecho.concat(arco);
+    }
+    return construirPathD(pontos, cx, cy, raio, true);
   }
 
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -259,8 +302,11 @@
       landStrokeWidth: { type: 'number', label: 'Espessura do contorno da terra (px)', section: 'Estilo do Globo', order: 4, display: 'range', min: 0, max: 3, step: 0.25, default: 0.6 },
       showGraticule: { type: 'boolean', label: 'Mostrar grade de coordenadas', section: 'Estilo do Globo', order: 5, default: true },
       graticuleColor: { type: 'string', label: 'Cor da grade de coordenadas', section: 'Estilo do Globo', order: 6, display: 'color', default: '#b9d3e6' },
-      sphereOutlineColor: { type: 'string', label: 'Cor do contorno externo do globo', section: 'Estilo do Globo', order: 7, display: 'color', default: '#1f2937' },
-      backgroundColor: { type: 'string', label: 'Cor de fundo (fora do globo)', section: 'Estilo do Globo', order: 8, display: 'color', default: '#ffffff' },
+      graticuleStrokeWidth: { type: 'number', label: 'Espessura da grade de coordenadas (px)', section: 'Estilo do Globo', order: 7, display: 'range', min: 0.25, max: 3, step: 0.25, default: 0.5 },
+      graticuleDash: { type: 'boolean', label: 'Grade de coordenadas tracejada', section: 'Estilo do Globo', order: 8, default: false },
+      sphereOutlineColor: { type: 'string', label: 'Cor do contorno externo do globo', section: 'Estilo do Globo', order: 9, display: 'color', default: '#1f2937' },
+      sphereOutlineWidth: { type: 'number', label: 'Espessura do contorno externo do globo (px)', section: 'Estilo do Globo', order: 10, display: 'range', min: 0, max: 5, step: 0.5, default: 1 },
+      backgroundColor: { type: 'string', label: 'Cor de fundo (fora do globo)', section: 'Estilo do Globo', order: 11, display: 'color', default: '#ffffff' },
 
       pointColor: { type: 'string', label: 'Cor dos pontos', section: 'Pontos', order: 1, display: 'color', default: '#dc2626' },
       pointOpacity: { type: 'number', label: 'Opacidade dos pontos', section: 'Pontos', order: 2, display: 'range', min: 0.05, max: 1, step: 0.05, default: 0.6 },
@@ -515,7 +561,10 @@
       landStrokeWidth: Number(config.landStrokeWidth) >= 0 ? Number(config.landStrokeWidth) : 0.6,
       showGraticule: config.showGraticule !== false,
       graticuleColor: config.graticuleColor || '#b9d3e6',
+      graticuleStrokeWidth: Number(config.graticuleStrokeWidth) >= 0 ? Number(config.graticuleStrokeWidth) : 0.5,
+      graticuleDash: !!config.graticuleDash,
       sphereOutlineColor: config.sphereOutlineColor || '#1f2937',
+      sphereOutlineWidth: Number(config.sphereOutlineWidth) >= 0 ? Number(config.sphereOutlineWidth) : 1,
       pointColor: config.pointColor || '#dc2626',
       pointOpacity: Number(config.pointOpacity) >= 0 ? Number(config.pointOpacity) : 0.6,
       pointMinRadius: Number(config.pointMinRadius) || 2,
@@ -571,12 +620,14 @@
 
     // esfera (oceano)
     svg.appendChild(svgEl('circle', {
-      cx: cx, cy: cy, r: raio, fill: estado.oceanColor, stroke: estado.sphereOutlineColor, 'stroke-width': 1
+      cx: cx, cy: cy, r: raio, fill: estado.oceanColor, stroke: estado.sphereOutlineColor, 'stroke-width': estado.sphereOutlineWidth
     }));
 
     // graticule (grade de coordenadas)
     if (estado.showGraticule) {
-      var gGrade = svgEl('g', { fill: 'none', stroke: estado.graticuleColor, 'stroke-width': 0.5 });
+      var atribGrade = { fill: 'none', stroke: estado.graticuleColor, 'stroke-width': estado.graticuleStrokeWidth };
+      if (estado.graticuleDash) atribGrade['stroke-dasharray'] = '3,3';
+      var gGrade = svgEl('g', atribGrade);
       for (var lon = -180; lon < 180; lon += 30) {
         var meridiano = [];
         for (var lat = -80; lat <= 80; lat += 4) meridiano.push([lon, lat]);
@@ -603,7 +654,7 @@
       subtrechos.forEach(function (sub) {
         if (sub.length < 3) return;
         gTerra.appendChild(svgEl('path', {
-          d: construirPathD(sub, cx, cy, raio, true),
+          d: construirPathDTerra(sub, cx, cy, raio),
           fill: anel.buraco ? estado.oceanColor : estado.landColor,
           stroke: anel.buraco ? 'none' : estado.landStrokeColor
         }));
