@@ -2,13 +2,19 @@
 
 Visualizações customizadas para o Looker, feitas com a API clássica
 `looker.plugins.visualizations.add`. Cada visualização é **um único arquivo
-`.js`**, sem build, sem TypeScript, sem dependências externas.
+`.js`**, sem build, sem TypeScript. A maioria não tem nenhuma dependência
+externa; o **Mapa Customizável** é a exceção declarada — usa D3 e
+topojson-client via Dependencies fixadas por versão (ver seção 3), porque
+não dá para desenhar um mapa vetorial do zero de forma viável sem uma
+biblioteca de projeções cartográficas, e isso foi avisado e confirmado
+antes de usar.
 
 ## Estrutura
 
 ```
 /src    um arquivo .js por visualização (nome em snake_case = sugestão de ID)
 /test   harness.html — simula o ambiente do Looker para testar localmente
+/tools  scripts de build que geram dados embutidos (ex.: o mapa-múndi)
 ```
 
 ## Como testar localmente (antes de subir ao Looker)
@@ -215,3 +221,118 @@ execução** — os dados do mapa já vêm embutidos.
   documentado para `type: location`, mas vale conferir no seu ambiente.
 - Drill real ao clicar num ponto (no harness só mostra um alerta).
 - Comportamento em touch (tablet) para girar o globo.
+
+---
+
+## 3. Mapa Customizável (ETAPA 1 de várias — mapa plano com pontos)
+
+Arquivo: [`src/mapa_customizavel.js`](src/mapa_customizavel.js)
+Dados do mapa: [`src/world_topology_110m.js`](src/world_topology_110m.js) e
+[`src/world_topology_50m.js`](src/world_topology_50m.js) (opcional, mais
+detalhado) — gerados por [`tools/gerar_topologia_mundial.js`](tools/gerar_topologia_mundial.js)
+
+- **ID sugerido**: `mapa_customizavel`
+- **Label sugerido**: `Mapa Customizável`
+
+Esta é a primeira de várias entregas (ver "O que falta" abaixo). Reúne as
+opções dos dois mapas de referência num só, usando **Canvas** (não SVG)
+para aguentar muitos pontos, e um mapa-múndi **vetorial embutido** (sem
+nenhum tile de servidor externo).
+
+### Dependencies — cole estas URLs em Admin > Visualizations > Dependencies, NESTA ORDEM
+
+```
+1) https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js
+2) https://cdn.jsdelivr.net/npm/d3-geo-projection@4.0.0/dist/d3-geo-projection.min.js
+3) https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js
+4) <URL do seu world_topology_110m.js — GitHub+jsDelivr ou bucket>
+5) <URL do seu mapa_customizavel.js>
+```
+
+A ordem importa: o item 2 **estende** o objeto global `d3` (adiciona a
+projeção Kavrayskiy7, que não vem no pacote principal), então precisa vir
+depois do item 1. O item 4 só define `window.WORLD_TOPOLOGY_110M` — pode
+trocar por `world_topology_50m.js` (define `window.WORLD_TOPOLOGY_50M`)
+se quiser mais detalhe nas fronteiras (arquivo bem maior, ~740 KB) — ou
+subir os dois e trocar pela opção "Resolução do mapa" dentro da
+visualização, desde que ambos os arquivos estejam nas Dependencies.
+
+**Versões verificadas antes de fixar** (nenhuma publicada nos últimos 14
+dias — todas de 2019 a 2024):
+- `d3@7.9.0` — publicado em 2024-03-12
+- `d3-geo-projection@4.0.0` — publicado em 2021-06-11
+- `topojson-client@3.1.0` — publicado em 2019-11-06
+
+### Como montar o Explore
+
+- **Localização**: ou (a) duas dimensões numéricas de latitude e
+  longitude, ou (b) um campo do tipo `location` do LookML. A visualização
+  tenta detectar sozinha; force manualmente nas opções "Dados" > "Modo de
+  coordenadas" se detectar errado.
+- Não aceita pivô.
+- Campo de rótulo específico ainda não existe nesta etapa — o tooltip
+  padrão já mostra todos os campos da consulta.
+
+### Opções desta etapa
+
+| Seção | Opções |
+|-------|--------|
+| **Plot** | Plot Mode (só "Points" por ora), Custom Tooltip, template do tooltip |
+| **Map** | Map Style (Custom/Light/Dark/Satellite-like — só paleta), Resolução do mapa, Projection (as 16 pedidas), Map Position (Fit to Data/Custom) + centro/zoom customizados, Allow Panning, Allow Zooming, Display Coordinates, Modo debug |
+| **Points** | Point Color, Point Radius (em branco = automático) |
+| **Style** | Background/Ocean Color, Map Color, Outer/Inner Border Color, Outer/Inner Border Width, Show Full Field Name in Tooltips |
+| **Dados** (nossa, dinâmica) | Modo de coordenadas, Campo de localização, Campo de latitude, Campo de longitude |
+
+### Decisões tomadas por ambiguidade (me avise se quiser diferente)
+
+- **"Auto"** na lista de projeções = Equirectangular. O D3 não tem um
+  detector automático de "melhor projeção para estes dados"; não sei o
+  que a ferramenta original faz internamente, então usei a projeção mais
+  neutra como padrão.
+- **"Map Style"** (Light/Dark/Satellite-like) é só uma **paleta de cores**
+  pronta — quando ativado, ele substitui as cores da seção Style. Escolha
+  "Custom" em Map Style para voltar a usar as cores que você define em
+  Style. "Satellite-like" não é imagem de satélite real, é só uma paleta
+  esverdeada/escura parecida.
+- **"Show Full Field Name"** do Mapa A e **"Show Full Field Name in
+  Tooltips"** do Mapa B eram a mesma coisa nos dois originais (nome
+  completo vs. abreviado do campo no tooltip) — consolidei numa única
+  opção, em Style.
+- Adicionei **"Background/Ocean Color"**, que não estava na lista literal
+  do Mapa B, porque sem ela não dá pra colorir a área fora dos países.
+- **Array `[lat, lon]`** e **objeto `{latitude, longitude}`** para campos
+  de localização: tratamos como suposição, não confirmamos que o Looker
+  realmente manda esses formatos. Use "Modo debug" (abre o console do
+  navegador) para ver a célula crua do seu campo de localização real e me
+  avise se o formato for diferente.
+
+### O que FALTA (próximas etapas, nesta ordem)
+
+1. ~~Mapa plano com pontos, projeções, pan/zoom e estilo~~ ✅ esta entrega
+2. Modo Globo (arrastar para girar, zoom, inércia, botão Resetar, rotação
+   automática, atmosfera, grade de coordenadas, recorte de pontos/linhas/
+   áreas do lado oculto)
+3. Ícones (pin, círculo, café, estrela, casa, loja, caminhão, avião), cor
+   por valor (escala) e por categoria, com legenda
+4. Heatmap: densidade (`d3.contourDensity`), "Automagic" (células) e 3D
+   (colunas extrudadas no plano / barras radiais no globo)
+5. Linhas (sequência ou origem-destino, com arco de círculo máximo no
+   globo) e áreas (convex hull ou ordem dos dados)
+6. Tooltip/drill já estão nesta etapa; falta a seção "Layers" (liga/
+   desliga e ordem de cada camada: pontos, calor, linhas, áreas)
+
+### O que conferir no Looker real (o harness não cobre)
+
+- As Dependencies carregando na ordem certa dentro do Looker de verdade
+  (o harness simula isso, mas o comportamento do Admin pode variar).
+- Desempenho real de arraste com 20.000 pontos num navegador de verdade —
+  testei isso só com Node + `node-canvas` (confirma que os comandos de
+  desenho rodam sem erro e pintam pixels corretos), não com um navegador
+  real nem com frame rate.
+- O formato real da célula de um campo `location` do seu Looker — ligue
+  "Modo debug" e me mande o que aparecer no console se não for a string
+  `"lat,lon"`.
+- "Fit to Data" / "Custom" com as projeções mais exóticas (Albers Usa,
+  Conic*) — testei que não quebram, mas o enquadramento pode não ficar
+  bonito para todo tipo de dado; ajustes finos de zoom ficam a seu critério
+  nas opções Custom.

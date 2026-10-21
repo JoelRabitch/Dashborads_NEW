@@ -12,7 +12,12 @@
       pivô de "total de linha" que o próprio Looker às vezes fornece),
       com valores nulos, com 20 linhas e com 5.000 linhas, além de conjuntos
       geográficos (campo único "lat,lon", campos separados de latitude/
-      longitude, e um conjunto grande) para testar o Globo Terrestre.
+      longitude, e um conjunto grande) para testar o Globo Terrestre, e
+      conjuntos para o Mapa Customizável (30 cidades do mundo, 5.000 e
+      20.000 pontos aleatórios, nulos, e pares origem-destino).
+    - Carrega as mesmas Dependencies do Mapa Customizável (d3@7.9.0,
+      d3-geo-projection@4.0.0, topojson-client@3.1.0, dados do mapa) antes
+      dos arquivos de /src, na mesma ordem usada no Admin do Looker.
     - Opções registradas dinamicamente via this.trigger('registerOptions',...)
       (ex.: os seletores de campo do Globo) só aparecem no JSON de config
       depois de clicar em "Completar opções novas".
@@ -69,6 +74,10 @@
         <option value="geoLocation">Globo — campo único de localização (lat,lon), 25 pontos</option>
         <option value="geoManual">Globo — campos separados de latitude/longitude, 25 pontos</option>
         <option value="geo2000">Globo — 2.000 pontos (teste de desempenho)</option>
+        <option value="mapaCidades30">Mapa — 30 cidades do mundo (lat/lon separados)</option>
+        <option value="mapaAleatorio5000">Mapa — 5.000 pontos aleatórios (com nulos)</option>
+        <option value="mapaAleatorio20000">Mapa — 20.000 pontos aleatórios (teste de desempenho)</option>
+        <option value="mapaOrigemDestino">Mapa — 200 pares origem-destino (para a etapa de linhas)</option>
       </select>
     </div>
     <div>
@@ -78,6 +87,23 @@
       <button id="btnOpcoesPadrao" title="Útil depois que a visualização registra opções dinâmicas por campo (registerOptions), como os seletores de campo do Globo">Completar opções novas</button>
     </div>
     <div id="status"></div>
+  </div>
+  <div class="linha" id="presetsMapa">
+    <div>
+      <label>Presets rápidos do Mapa Customizável (mesclam no JSON de config)</label>
+      <div class="linha" style="margin-bottom:0;">
+        <button data-preset="mercator">Mercator (padrão)</button>
+        <button data-preset="orthographic">Orthographic (estática)</button>
+        <button data-preset="kavrayskiy7">Kavrayskiy7</button>
+        <button data-preset="albersUsa">Albers Usa</button>
+        <button data-preset="identity">Cartesian (sem projeção)</button>
+        <button data-preset="dark">Tema Dark</button>
+        <button data-preset="satellite">Tema Satellite-like</button>
+        <button data-preset="customBrasil">Custom centrado no Brasil</button>
+        <button data-preset="semPanZoom">Sem pan nem zoom</button>
+        <button data-preset="tooltipCustom">Tooltip customizado</button>
+      </div>
+    </div>
   </div>
   <div class="linha">
     <div style="flex:1;min-width:280px;">
@@ -345,6 +371,85 @@ function gerarDadosGeoGrande(n) {
   return { data: data, queryResponse: qr };
 }
 
+// ---- Dados para o Mapa Customizável ----
+var CIDADES_MUNDO = [
+  ['São Paulo', -23.5505, -46.6333], ['Rio de Janeiro', -22.9068, -43.1729], ['Brasília', -15.7939, -47.8828],
+  ['Belo Horizonte', -19.9167, -43.9345], ['Manaus', -3.1190, -60.0217], ['Salvador', -12.9777, -38.5016],
+  ['Tóquio', 35.6762, 139.6503], ['Nova York', 40.7128, -74.0060], ['Londres', 51.5074, -0.1278],
+  ['Paris', 48.8566, 2.3522], ['Sydney', -33.8688, 151.2093], ['Cairo', 30.0444, 31.2357],
+  ['Moscou', 55.7558, 37.6173], ['Cidade do México', 19.4326, -99.1332], ['Lagos', 6.5244, 3.3792],
+  ['Mumbai', 19.0760, 72.8777], ['Buenos Aires', -34.6037, -58.3816], ['Joanesburgo', -26.2041, 28.0473],
+  ['Toronto', 43.6532, -79.3832], ['Berlim', 52.5200, 13.4050], ['Jacarta', -6.2088, 106.8456],
+  ['Seul', 37.5665, 126.9780], ['Bangkok', 13.7563, 100.5018], ['Istambul', 41.0082, 28.9784],
+  ['Lima', -12.0464, -77.0428], ['Nairóbi', -1.2921, 36.8219], ['Manila', 14.5995, 120.9842],
+  ['Dubai', 25.2048, 55.2708], ['Singapura', 1.3521, 103.8198], ['Madri', 40.4168, -3.7038]
+];
+
+function gerarMapaCidades30() {
+  var qr = {
+    fields: {
+      dimension_like: [campoDimensao('cidade', 'Cidade'), campoDimensao('latitude', 'Latitude'), campoDimensao('longitude', 'Longitude')],
+      measures: [campoMedida('populacao', 'População')], measure_like: [campoMedida('populacao', 'População')],
+      table_calculations: [], dimensions: [campoDimensao('cidade', 'Cidade')], pivots: []
+    },
+    pivots: []
+  };
+  var data = CIDADES_MUNDO.map(function (c, i) {
+    return {
+      cidade: celula(c[0], c[0], [{ label: 'Ver ' + c[0], url: '#', type: 'measure_default' }]),
+      latitude: celula(c[1]), longitude: celula(c[2]),
+      populacao: celula(1000000 + i * 53000)
+    };
+  });
+  return { data: data, queryResponse: qr };
+}
+
+function gerarMapaAleatorio(n, comNulos) {
+  var rng = criarRng(55);
+  var qr = {
+    fields: {
+      dimension_like: [campoDimensao('local', 'Localização')],
+      measure_like: [campoMedida('valor', 'Valor')], measures: [campoMedida('valor', 'Valor')],
+      table_calculations: [], dimensions: [campoDimensao('local', 'Localização')], pivots: []
+    },
+    pivots: []
+  };
+  var data = [];
+  for (var i = 0; i < n; i++) {
+    if (comNulos && rng() < 0.03) { data.push({ local: celula(null), valor: celula(null) }); continue; }
+    var lat = (rng() * 170 - 85).toFixed(3);
+    var lon = (rng() * 360 - 180).toFixed(3);
+    data.push({ local: celula(lat + ',' + lon), valor: celula(Math.round(rng() * 1000)) });
+  }
+  return { data: data, queryResponse: qr };
+}
+
+function gerarMapaOrigemDestino(n) {
+  var rng = criarRng(77);
+  var qr = {
+    fields: {
+      dimension_like: [
+        campoDimensao('origem_lat', 'Origem - Latitude'), campoDimensao('origem_lon', 'Origem - Longitude'),
+        campoDimensao('destino_lat', 'Destino - Latitude'), campoDimensao('destino_lon', 'Destino - Longitude')
+      ],
+      measure_like: [campoMedida('viagens', 'Viagens')], measures: [campoMedida('viagens', 'Viagens')],
+      table_calculations: [], dimensions: [], pivots: []
+    },
+    pivots: []
+  };
+  var data = [];
+  for (var i = 0; i < n; i++) {
+    var a = CIDADES_MUNDO[Math.floor(rng() * CIDADES_MUNDO.length)];
+    var b = CIDADES_MUNDO[Math.floor(rng() * CIDADES_MUNDO.length)];
+    data.push({
+      origem_lat: celula(a[1]), origem_lon: celula(a[2]),
+      destino_lat: celula(b[1]), destino_lon: celula(b[2]),
+      viagens: celula(Math.round(rng() * 500))
+    });
+  }
+  return { data: data, queryResponse: qr };
+}
+
 var GERADORES = {
   flat20: function () { return gerarDadosSemPivo(20, true); },
   flat5000: function () { return gerarDadosSemPivo(5000, true); },
@@ -354,16 +459,31 @@ var GERADORES = {
   vazio: function () { return conjuntoVazio(); },
   geoLocation: function () { return gerarDadosGeoLocation(25); },
   geoManual: function () { return gerarDadosGeoManual(25); },
-  geo2000: function () { return gerarDadosGeoGrande(2000); }
+  geo2000: function () { return gerarDadosGeoGrande(2000); },
+  mapaCidades30: function () { return gerarMapaCidades30(); },
+  mapaAleatorio5000: function () { return gerarMapaAleatorio(5000, true); },
+  mapaAleatorio20000: function () { return gerarMapaAleatorio(20000, false); },
+  mapaOrigemDestino: function () { return gerarMapaOrigemDestino(200); }
 };
 
 // =======================================================================
 // 3) Lista de arquivos de /src — ADICIONE UMA LINHA AQUI PARA CADA NOVA
 //    VISUALIZAÇÃO CRIADA (o harness não lê o disco, então o include é manual)
+//
+//    O Mapa Customizável precisa das mesmas Dependencies do Admin do
+//    Looker, carregadas NESTA ORDEM (ver cabeçalho de mapa_customizavel.js):
+//    d3 -> d3-geo-projection -> topojson-client -> dados do mapa -> viz.
+//    Isso roda para TODAS as visualizações no harness (não só o mapa);
+//    para as outras, esses arquivos extras só ficam carregados sem uso.
 // =======================================================================
 var ARQUIVOS_SRC = [
   '../src/tabela_pivot_avancada.js',
-  '../src/globo_terra_pontos.js'
+  '../src/globo_terra_pontos.js',
+  'https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js',
+  'https://cdn.jsdelivr.net/npm/d3-geo-projection@4.0.0/dist/d3-geo-projection.min.js',
+  'https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js',
+  '../src/world_topology_110m.js',
+  '../src/mapa_customizavel.js'
 ];
 
 function carregarScriptsSrc(callback) {
@@ -490,6 +610,31 @@ document.getElementById('btnOpcoesPadrao').addEventListener('click', function ()
 vizSelect.addEventListener('change', function () {
   var def = registroDeVisualizacoes[vizSelect.value];
   configArea.value = JSON.stringify(montarConfigPadrao(def), null, 2);
+});
+
+// ---- Presets rápidos do Mapa Customizável ----
+var PRESETS_MAPA = {
+  mercator: { projection: 'mercator', mapStyle: 'custom' },
+  orthographic: { projection: 'orthographic', mapStyle: 'custom' },
+  kavrayskiy7: { projection: 'kavrayskiy7', mapStyle: 'custom' },
+  albersUsa: { projection: 'albersUsa', mapStyle: 'custom' },
+  identity: { projection: 'identity', mapStyle: 'custom' },
+  dark: { mapStyle: 'dark' },
+  satellite: { mapStyle: 'satellite' },
+  customBrasil: { mapPosition: 'custom', customCenterLon: -51, customCenterLat: -14, customZoom: 4 },
+  semPanZoom: { allowPanning: false, allowZooming: false },
+  tooltipCustom: { customTooltip: true, customTooltipTemplate: '{{cidade}}: {{populacao}} hab.\n{{latitude}}, {{longitude}}' }
+};
+document.querySelectorAll('#presetsMapa button[data-preset]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var def = registroDeVisualizacoes[vizSelect.value];
+    if (!def) return;
+    var atual = {};
+    try { atual = JSON.parse(configArea.value || '{}'); } catch (e) { atual = montarConfigPadrao(def); }
+    Object.assign(atual, PRESETS_MAPA[btn.getAttribute('data-preset')]);
+    configArea.value = JSON.stringify(atual, null, 2);
+    renderizar();
+  });
 });
 
 carregarScriptsSrc(function () {
