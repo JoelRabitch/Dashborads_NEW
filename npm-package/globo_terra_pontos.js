@@ -165,16 +165,36 @@
   }
 
   // Gera pontos intermediários ao longo do círculo-horizonte (raio 1),
-  // pelo caminho mais curto, entre dois pontos já normalizados na borda.
-  // É exatamente sobre esse círculo que o horizonte da projeção ortográfica
-  // cai (identidade x²+y²+cosc²=1 ⇒ cosc=0 implica x²+y²=1), então o arco
-  // fecha o contorno recortado de forma suave em vez de um corte reto.
-  function arcoNoHorizonte(pInicio, pFim) {
+  // entre o último ponto (saída de vista) e o primeiro ponto (entrada em
+  // vista) do mesmo sub-trecho. É exatamente sobre esse círculo que o
+  // horizonte da projeção ortográfica cai (identidade x²+y²+cosc²=1 ⇒
+  // cosc=0 implica x²+y²=1), então o arco fecha o contorno recortado de
+  // forma suave em vez de um corte reto.
+  //
+  // O sentido do arco (horário ou anti-horário) é decidido pela direção
+  // que o contorno já estava percorrendo ao sumir de vista — NÃO pelo
+  // caminho mais curto. Perto dos polos o caminho mais curto às vezes é o
+  // lado errado da esfera (foi reportado como uma "lacuna" aparecendo no
+  // continente ao girar o globo perto do Ártico); seguir a direção real do
+  // contorno resolve esse caso.
+  function arcoNoHorizonte(subtrecho) {
+    var pInicio = subtrecho[subtrecho.length - 1];
+    var pFim = subtrecho[0];
     var a0 = Math.atan2(pInicio.y, pInicio.x);
     var a1 = Math.atan2(pFim.y, pFim.x);
     var delta = a1 - a0;
     while (delta > Math.PI) delta -= 2 * Math.PI;
     while (delta < -Math.PI) delta += 2 * Math.PI;
+
+    if (subtrecho.length >= 2) {
+      var anterior = subtrecho[subtrecho.length - 2];
+      var aproxX = pInicio.x - anterior.x, aproxY = pInicio.y - anterior.y;
+      var tangenteCcwX = -pInicio.y, tangenteCcwY = pInicio.x; // tangente anti-horária no ponto de saída
+      var indoAntiHorario = (aproxX * tangenteCcwX + aproxY * tangenteCcwY) >= 0;
+      if (indoAntiHorario && delta < 0) delta += 2 * Math.PI;
+      if (!indoAntiHorario && delta > 0) delta -= 2 * Math.PI;
+    }
+
     var passos = Math.max(1, Math.ceil(Math.abs(delta) / (Math.PI / 60)));
     var pontos = [];
     for (var i = 1; i < passos; i++) {
@@ -200,7 +220,7 @@
   function construirPathDTerra(subtrecho, cx, cy, raio) {
     var pontos = subtrecho;
     if (subtrecho.cortadoInicio && subtrecho.cortadoFim && subtrecho.length > 1) {
-      var arco = arcoNoHorizonte(subtrecho[subtrecho.length - 1], subtrecho[0]);
+      var arco = arcoNoHorizonte(subtrecho);
       if (arco.length) pontos = subtrecho.concat(arco);
     }
     return construirPathD(pontos, cx, cy, raio, true);
