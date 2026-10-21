@@ -10,7 +10,12 @@
         this.addError(...) / this.clearErrors() / this.trigger(...)
     - Gera conjuntos de dados de exemplo: sem pivô, com pivô (com e sem o
       pivô de "total de linha" que o próprio Looker às vezes fornece),
-      com valores nulos, com 20 linhas e com 5.000 linhas.
+      com valores nulos, com 20 linhas e com 5.000 linhas, além de conjuntos
+      geográficos (campo único "lat,lon", campos separados de latitude/
+      longitude, e um conjunto grande) para testar o Globo Terrestre.
+    - Opções registradas dinamicamente via this.trigger('registerOptions',...)
+      (ex.: os seletores de campo do Globo) só aparecem no JSON de config
+      depois de clicar em "Completar opções novas".
     - Deixa editar a configuração (equivalente ao painel "Edit" do Admin)
       como JSON simples, e mostra o tempo gasto em updateAsync.
 
@@ -61,10 +66,16 @@
         <option value="pivot20total">Com pivô — 20 linhas + total de linha do Looker</option>
         <option value="pivot5000">Com pivô — 5.000 linhas</option>
         <option value="vazio">Sem dimensões nem medidas (teste de erro)</option>
+        <option value="geoLocation">Globo — campo único de localização (lat,lon), 25 pontos</option>
+        <option value="geoManual">Globo — campos separados de latitude/longitude, 25 pontos</option>
+        <option value="geo2000">Globo — 2.000 pontos (teste de desempenho)</option>
       </select>
     </div>
     <div>
       <button id="btnRenderizar">Renderizar</button>
+    </div>
+    <div>
+      <button id="btnOpcoesPadrao" title="Útil depois que a visualização registra opções dinâmicas por campo (registerOptions), como os seletores de campo do Globo">Completar opções novas</button>
     </div>
     <div id="status"></div>
   </div>
@@ -253,13 +264,97 @@ function conjuntoVazio() {
   };
 }
 
+// ---- Dados geográficos (para o Globo Terrestre Rotacionável) ----
+var CIDADES = [
+  ['São Paulo', -23.55, -46.63], ['Tóquio', 35.68, 139.69], ['Nova York', 40.71, -74.01],
+  ['Londres', 51.51, -0.13], ['Sydney', -33.87, 151.21], ['Cairo', 30.04, 31.24],
+  ['Moscou', 55.76, 37.62], ['Cidade do México', 19.43, -99.13], ['Lagos', 6.52, 3.38],
+  ['Mumbai', 19.08, 72.88], ['Buenos Aires', -34.6, -58.38], ['Joanesburgo', -26.2, 28.05]
+];
+
+function gerarDadosGeoLocation(n) {
+  var rng = criarRng(13);
+  var qr = {
+    fields: {
+      dimensions: [campoDimensao('local', 'Localização')],
+      measures: [campoMedida('pedidos', 'Pedidos')],
+      table_calculations: [], dimension_like: [campoDimensao('local', 'Localização')],
+      measure_like: [campoMedida('pedidos', 'Pedidos')], pivots: []
+    },
+    pivots: []
+  };
+  var data = [];
+  for (var i = 0; i < n; i++) {
+    var c = CIDADES[i % CIDADES.length];
+    var lat = (c[1] + (rng() - 0.5) * 4).toFixed(2);
+    var lon = (c[2] + (rng() - 0.5) * 4).toFixed(2);
+    var valor = Math.floor(rng() * 1000);
+    data.push({
+      local: celula(lat + ',' + lon, c[0] + ' (' + lat + ', ' + lon + ')', [{ label: 'Ver ' + c[0], url: '#', type: 'measure_default' }]),
+      pedidos: celula(valor, String(valor))
+    });
+  }
+  return { data: data, queryResponse: qr };
+}
+
+function gerarDadosGeoManual(n) {
+  var rng = criarRng(21);
+  var qr = {
+    fields: {
+      dimensions: [campoDimensao('cidade', 'Cidade'), campoDimensao('latitude', 'Latitude'), campoDimensao('longitude', 'Longitude')],
+      measures: [campoMedida('receita', 'Receita (R$)', '$#,##0.00')],
+      table_calculations: [],
+      dimension_like: [campoDimensao('cidade', 'Cidade'), campoDimensao('latitude', 'Latitude'), campoDimensao('longitude', 'Longitude')],
+      measure_like: [campoMedida('receita', 'Receita (R$)', '$#,##0.00')], pivots: []
+    },
+    pivots: []
+  };
+  var data = [];
+  for (var i = 0; i < n; i++) {
+    var c = CIDADES[i % CIDADES.length];
+    var lat = c[1] + (rng() - 0.5) * 4;
+    var lon = c[2] + (rng() - 0.5) * 4;
+    var valor = Math.round(rng() * 50000 * 100) / 100;
+    data.push({
+      cidade: celula(c[0]),
+      latitude: celula(Math.round(lat * 100) / 100),
+      longitude: celula(Math.round(lon * 100) / 100),
+      receita: celula(valor, 'R$ ' + valor.toFixed(2))
+    });
+  }
+  return { data: data, queryResponse: qr };
+}
+
+function gerarDadosGeoGrande(n) {
+  var rng = criarRng(99);
+  var qr = {
+    fields: {
+      dimensions: [campoDimensao('local', 'Localização')],
+      measures: [campoMedida('valor', 'Valor')],
+      table_calculations: [], dimension_like: [campoDimensao('local', 'Localização')],
+      measure_like: [campoMedida('valor', 'Valor')], pivots: []
+    },
+    pivots: []
+  };
+  var data = [];
+  for (var i = 0; i < n; i++) {
+    var lat = (rng() * 170 - 85).toFixed(2);
+    var lon = (rng() * 360 - 180).toFixed(2);
+    data.push({ local: celula(lat + ',' + lon), valor: celula(Math.round(rng() * 100)) });
+  }
+  return { data: data, queryResponse: qr };
+}
+
 var GERADORES = {
   flat20: function () { return gerarDadosSemPivo(20, true); },
   flat5000: function () { return gerarDadosSemPivo(5000, true); },
   pivot20: function () { return gerarDadosComPivo(20, true, false); },
   pivot20total: function () { return gerarDadosComPivo(20, true, true); },
   pivot5000: function () { return gerarDadosComPivo(5000, false, false); },
-  vazio: function () { return conjuntoVazio(); }
+  vazio: function () { return conjuntoVazio(); },
+  geoLocation: function () { return gerarDadosGeoLocation(25); },
+  geoManual: function () { return gerarDadosGeoManual(25); },
+  geo2000: function () { return gerarDadosGeoGrande(2000); }
 };
 
 // =======================================================================
@@ -267,7 +362,8 @@ var GERADORES = {
 //    VISUALIZAÇÃO CRIADA (o harness não lê o disco, então o include é manual)
 // =======================================================================
 var ARQUIVOS_SRC = [
-  '../src/tabela_pivot_avancada.js'
+  '../src/tabela_pivot_avancada.js',
+  '../src/globo_terra_pontos.js'
 ];
 
 function carregarScriptsSrc(callback) {
@@ -377,6 +473,20 @@ function renderizar() {
 }
 
 document.getElementById('btnRenderizar').addEventListener('click', renderizar);
+document.getElementById('btnOpcoesPadrao').addEventListener('click', function () {
+  // Mescla no JSON atual as chaves de opções que ainda não existem nele —
+  // útil depois que a visualização chama this.trigger('registerOptions', ...)
+  // com seletores de campo que só existem depois da 1ª consulta (ex.: o
+  // Globo registra "campoLocalizacao", "campoLatitude" etc. dinamicamente).
+  var def = registroDeVisualizacoes[vizSelect.value];
+  if (!def) return;
+  var atual = {};
+  try { atual = JSON.parse(configArea.value || '{}'); } catch (e) { /* ignora JSON inválido, começa do zero */ }
+  Object.keys(def.options || {}).forEach(function (chave) {
+    if (!(chave in atual)) atual[chave] = def.options[chave].default;
+  });
+  configArea.value = JSON.stringify(atual, null, 2);
+});
 vizSelect.addEventListener('change', function () {
   var def = registroDeVisualizacoes[vizSelect.value];
   configArea.value = JSON.stringify(montarConfigPadrao(def), null, 2);
