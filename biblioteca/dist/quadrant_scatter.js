@@ -1,7 +1,7 @@
 /*!
  * Dispersão com Quadrantes — visualização customizada para o Looker
  * id: quadrant_scatter
- * versão: 0.1.0 | build: 2026-10-22 02:28:10 | commit: 22848f5
+ * versão: 0.1.0 | build: 2026-10-22 02:34:01 | commit: 0c7528d
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

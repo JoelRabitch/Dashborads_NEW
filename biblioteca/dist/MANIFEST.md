@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 02:28:10 (commit `22848f5`).
+Gerado automaticamente pelo build em 2026-10-22 02:34:01 (commit `0c7528d`).
 
 ## Como cadastrar no Looker
 
@@ -25,6 +25,8 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `funil_comparativo` | Funil Comparativo | `dist/funil_comparativo.js` | (vazio) | 1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/funil_comparativo.js` |
 | `gauge_variacoes` | Medidores (Estilos) | `dist/gauge_variacoes.js` | (vazio) | 1 medida (o valor). Opcionalmente uma segunda medida para o alvo. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/gauge_variacoes.js` |
 | `gauge_grid` | Medidores em Grade | `dist/gauge_grid.js` | (vazio) | 1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/gauge_grid.js` |
+| `arvore_radial` | Árvore Radial | `dist/arvore_radial.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arvore_radial.js` |
+| `arvores_multiplas` | Múltiplas Árvores | `dist/arvores_multiplas.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arvores_multiplas.js` |
 
 ## Detalhes por visualização
 
@@ -117,3 +119,21 @@ Um medidor pequeno por item de uma dimensao, numa grade responsiva, todos compar
 - **Explore**: 1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 126.9 KB
+
+### Árvore Radial (`arvore_radial`)
+
+Hierarquia inteira num circulo: raiz no centro, um anel por nivel e as folhas na borda com os nomes acompanhando o raio.
+
+- **Tier**: 1
+- **Explore**: Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 138.0 KB
+
+### Múltiplas Árvores (`arvores_multiplas`)
+
+Uma arvore pequena por ramo de primeiro nivel, lado a lado, para comparar a forma de cada ramo.
+
+- **Tier**: 1
+- **Explore**: Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 145.5 KB

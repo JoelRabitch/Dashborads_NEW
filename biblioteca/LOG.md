@@ -607,13 +607,55 @@ comparação é com a medida já resolvida, não com a opção crua.
 Números: 10 gráficos construídos; 164/164 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 16 — `arvore_radial` e `arvores_multiplas` (TIER 1, itens 11 e 12)
+
+Mais um módulo de núcleo: **`src/core/hierarquia.js`**, que monta uma árvore
+a partir das duas formas que o Looker entrega — várias dimensões aninhadas
+(uma coluna por nível, cada LINHA é um caminho da raiz à folha) ou pares
+id/superior (uma linha por nó). Detecta sozinho e deixa trocar à mão.
+
+A detecção **não confia no nome das colunas** (que muda de modelo para
+modelo): procura um campo sem valores repetidos cujos valores sejam
+apontados por outro campo. Isso é o que caracteriza um par id/pai.
+
+O que esse módulo trata de propósito, em vez de ignorar:
+
+- **Ciclos.** Um nó que é seu próprio ancestral trava o layout do d3 sem
+  mensagem nenhuma. Cortamos a ligação, penduramos o nó na raiz e avisamos.
+- **Superior inexistente.** O nó sumiria da tela em silêncio. Também vai
+  para a raiz, com aviso.
+- **Poda por profundidade.** O valor dos níveis cortados SOBE para o nó que
+  ficou, então o total não muda — há teste garantindo isso.
+
+Base de desenho em `src/charts/_arvore/`, com layout radial e horizontal,
+três formas de ligação (curva, cotovelo, reta) e tamanho de nó por valor.
+
+Um detalhe que custou uma rodada: o `d3.hierarchy` procura `children`, e os
+nossos nós guardam os filhos em `filhos`. Sem passar o acessor, a árvore
+inteira virava um nó só — e sem erro nenhum, o que é o pior jeito de
+falhar. Hoje isso está comentado no código e coberto por teste.
+
+Decisões dos dois gráficos:
+
+- Na árvore radial, o texto das folhas acompanha o raio e **vira de cabeça
+  para baixo na metade esquerda**, senão fica ilegível.
+- Em `arvores_multiplas`, cada ramo vira a RAIZ de uma árvore própria. Usar
+  o nó original faria o layout do d3 reservar espaço para os irmãos que não
+  estão naquela célula.
+- A cor de um ramo sai da árvore inteira, não da mini-árvore: assim o mesmo
+  ramo tem a mesma cor nos dois gráficos.
+- Tamanho dos nós com referência comum por padrão (mesmo argumento do funil
+  comparativo e da grade de medidores).
+
+Números: 12 gráficos construídos; 198/198 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, itens 11 e 12: criar `src/charts/arvore_radial/` ("Árvore Radial") e
-`src/charts/arvores_multiplas/` ("Múltiplas Árvores"). Antes dos dois,
-escrever `src/core/hierarquia.js`, que monta uma hierarquia a partir das
-duas formas que o Looker entrega: várias dimensões aninhadas (fixture
-`hierarquia`) ou pares id/pai (fixture `paiFilho`). Usar `d3-hierarchy`
-(já está nas devDependencies). Depois registrar em `config/charts.json`,
-buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
-commitar.
+TIER 1, item 13: criar `src/charts/org_chart/` ("Organograma"). Reaproveitar
+`core/hierarquia.js` e `src/charts/_arvore/`, mas com CARTÕES retangulares
+em vez de círculos (nome, cargo e uma medida dentro de cada caixa), layout
+de cima para baixo, ligações em cotovelo e expandir/recolher por nó. Depois
+registrar em `config/charts.json`, buildar, rodar `npm test` e
+`npm run seguranca`, marcar em TAREFAS.md e commitar. Com isso o TIER 1
+fica só com o item 14 (`upset_plot`, opcional).

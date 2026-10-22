@@ -35,8 +35,8 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 8. `funil_comparativo` — "Funil Comparativo"
 - [x] 9. `gauge_variacoes` — "Medidores (Estilos)"
 - [x] 10. `gauge_grid` — "Medidores em Grade"
-- [ ] 11. `arvore_radial` — "Árvore Radial"
-- [ ] 12. `arvores_multiplas` — "Múltiplas Árvores"
+- [x] 11. `arvore_radial` — "Árvore Radial"
+- [x] 12. `arvores_multiplas` — "Múltiplas Árvores"
 - [ ] 13. `org_chart` — "Organograma"
 - [ ] 14. `upset_plot` — "UpSet Plot" (opcional)
 

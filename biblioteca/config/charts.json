@@ -157,6 +157,37 @@
         "somenteNulos",
         "vazio"
       ]
+    },
+    {
+      "id": "arvore_radial",
+      "label": "Árvore Radial",
+      "tier": 1,
+      "pasta": "arvore_radial",
+      "resumo": "Hierarquia inteira num circulo: raiz no centro, um anel por nivel e as folhas na borda com os nomes acompanhando o raio.",
+      "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "hierarquia",
+        "paiFilho",
+        "duasDimensoes",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "arvores_multiplas",
+      "label": "Múltiplas Árvores",
+      "tier": 1,
+      "pasta": "arvores_multiplas",
+      "resumo": "Uma arvore pequena por ramo de primeiro nivel, lado a lado, para comparar a forma de cada ramo.",
+      "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "hierarquia",
+        "paiFilho",
+        "duasDimensoes",
+        "vazio"
+      ]
     }
   ]
 }

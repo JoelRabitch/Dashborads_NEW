@@ -146,5 +146,34 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo."
+  },
+  {
+    "id": "arvore_radial",
+    "label": "Árvore Radial",
+    "tier": 1,
+    "arquivo": "../dist/arvore_radial.js",
+    "existe": true,
+    "fixtures": [
+      "hierarquia",
+      "paiFilho",
+      "duasDimensoes",
+      "semPivo",
+      "vazio"
+    ],
+    "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho."
+  },
+  {
+    "id": "arvores_multiplas",
+    "label": "Múltiplas Árvores",
+    "tier": 1,
+    "arquivo": "../dist/arvores_multiplas.js",
+    "existe": true,
+    "fixtures": [
+      "hierarquia",
+      "paiFilho",
+      "duasDimensoes",
+      "vazio"
+    ],
+    "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho."
   }
 ];
