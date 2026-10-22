@@ -1085,18 +1085,63 @@ quando não fecha, medidor que admite não ter escala, Pareto que denuncia o
 próprio limite, drawdown que exige ordem. Em todos esses casos o desenho
 continuaria plausível sem o aviso — e seria mentira.
 
+## TIER 3 — estatística
+
+### Etapa 29 — `core/estatistica.js` + `violin` (TIER 3, item 25)
+
+O núcleo estatístico saiu ANTES do primeiro gráfico, porque seis do tier
+vão usá-lo: quartis, densidade por kernel, limites de outlier, ECDF,
+regressão linear, correlação e quantis da normal.
+
+Decisões do núcleo:
+
+- **Quartis pelo método tipo 7** (padrão do R e do d3), declarado no código
+  E no rodapé do gráfico. Não existe definição única de quartil — o R tem
+  nove métodos — e eles discordam em amostras pequenas. Um quartil sem
+  método declarado é um número sem procedência.
+- **Desvio AMOSTRAL** (divide por n−1): uma consulta do Looker é sempre uma
+  amostra.
+- **Banda de Silverman na versão ROBUSTA** (menor entre desvio e
+  IQR/1,349). Com desvio puro, um único outlier alarga a banda e achata a
+  distribuição inteira — escondendo justamente o que o gráfico mostraria.
+- **Regressão sem variação em X devolve `null`**, em vez de inventar uma
+  reta vertical.
+- **Quantil da normal por aproximação de Acklam** (erro < 1,15e−9), para
+  não trazer dependência só por causa do Q-Q plot.
+
+Os testes do núcleo não conferem "se rodou": conferem contra **valores do
+R** (quantis de 1,2,3,4 dão 1; 1,75; 2,5; 3,25; 4), contra **tabela**
+(z de 97,5% = 1,95996) e contra **propriedades que têm que valer sempre**
+(a densidade integra 1; a ECDF termina em 1; correlação perfeita dá ±1).
+
+Sobre o violino:
+
+- **Largura comparável entre categorias por padrão.** Normalizar cada um
+  pelo próprio pico faz um grupo de 3 observações parecer tão robusto
+  quanto um de 3.000. Tem teste exigindo larguras DIFERENTES no modo
+  comparável e IGUAIS no modo próprio.
+- **A curva é cortada no mínimo e no máximo reais.** O kernel tem cauda
+  infinita; deixá-la livre desenha densidade onde não houve observação.
+- **Grupos pequenos ganham asterisco e aviso.**
+- **Consulta já agregada tem estado vazio EXPLICATIVO**: um valor por
+  categoria não é distribuição, e sem a explicação o usuário conclui que o
+  gráfico está quebrado. A mensagem diz o que mudar no Explore.
+
+Defeito corrigido na verificação: com a fixture `grande5k` saíam **2.000
+violinos**, todos com largura zero. Faltavam o limite de categorias (agora
+30, pelas de maior n) e a escolha de qual dimensão agrupa.
+
+Números: 25 gráficos construídos; 456/456 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Começar o TIER 3 (estatística) pelo item 25: criar `src/charts/violin/`
-("Violin Plot"): a densidade de uma distribuição espelhada nos dois lados
-de um eixo, uma por categoria, com a mediana e o intervalo interquartil
-marcados dentro.
-
-Antes do gráfico, criar **`src/core/estatistica.js`** com o que o TIER 3
-inteiro vai usar: quartis (com o método de interpolação explícito),
-estimativa de densidade por kernel (KDE) com largura de banda por
-Silverman, limites de outlier por 1,5×IQR, e regressão linear simples.
-Fazer isso agora evita a mesma conta aparecer em `violin`, `ridgeline`,
-`beeswarm`, `boxplot_avancado`, `densidade_ecdf` e `dispersao_regressao`.
+TIER 3, item 26: criar `src/charts/ridgeline/` ("Ridgeline"): uma curva de
+densidade por categoria, empilhadas verticalmente com sobreposição
+parcial, compartilhando o mesmo eixo X. Reaproveitar `densidadePorKernel` e
+`agruparValores` do `core/estatistica.js`, e o limite de categorias e a
+marcação de grupos pequenos do `violin` — avaliar extrair
+`src/charts/_distribuicao/` com o que os dois compartilham, já que
+`beeswarm` e `boxplot_avancado` virão em seguida e precisam do mesmo.
 Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
 `npm run seguranca`, marcar em TAREFAS.md e commitar.

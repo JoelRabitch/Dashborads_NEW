@@ -369,6 +369,20 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "violin",
+      "label": "Violin Plot",
+      "tier": 3,
+      "pasta": "violin",
+      "resumo": "Densidade da distribuicao espelhada nos dois lados de um eixo, uma por categoria, com mediana e intervalo interquartil dentro.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
     }
   ]
 }

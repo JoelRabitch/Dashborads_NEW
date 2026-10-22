@@ -344,5 +344,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo."
+  },
+  {
+    "id": "violin",
+    "label": "Violin Plot",
+    "tier": 3,
+    "arquivo": "../dist/violin.js",
+    "existe": true,
+    "fixtures": [
+      "grande5k",
+      "conjuntosPorItem",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo."
   }
 ];

@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 13:19:39 (commit `1bff00f`).
+Gerado automaticamente pelo build em 2026-10-22 13:26:42 (commit `7417705`).
 
 ## Como cadastrar no Looker
 
@@ -39,6 +39,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `treemap_carteira` | Treemap de Carteira | `dist/treemap_carteira.js` | (vazio) | 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/treemap_carteira.js` |
 | `ponte_variacao` | Ponte de Variação | `dist/ponte_variacao.js` | (vazio) | 1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ponte_variacao.js` |
 | `risco_retorno` | Risco x Retorno | `dist/risco_retorno.js` | (vazio) | 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/risco_retorno.js` |
+| `violin` | Violin Plot | `dist/violin.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/violin.js` |
 
 ## Detalhes por visualização
 
@@ -257,3 +258,12 @@ Dispersao com risco no eixo X e retorno no Y, bolha pela exposicao, e a reta de 
 - **Explore**: 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 178.7 KB
+
+### Violin Plot (`violin`)
+
+Densidade da distribuicao espelhada nos dois lados de um eixo, uma por categoria, com mediana e intervalo interquartil dentro.
+
+- **Tier**: 3
+- **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 168.6 KB
