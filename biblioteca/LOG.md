@@ -403,10 +403,48 @@ mensagem clara é a resposta certa, não uma falha.
 Números: bundle 131,6 KB; 43/43 testes passando; checagem de segurança sem
 violação.
 
+### Etapa 11 — `quadrant_scatter` (TIER 1, item 3) — concluída
+
+Entrou junto um módulo de núcleo novo: **`src/core/eixos.js`**. Quase metade
+dos gráficos que faltam é cartesiana, então margens, ticks, grade, títulos e
+rótulos girados agora moram num lugar só, com as opções do `blocoDeEixos`.
+A ordem de uso resolve o ovo-e-galinha de sempre: `calcularMargens()` recebe
+os TEXTOS dos rótulos (não as escalas), depois as escalas usam o espaço que
+sobrou, e só então `desenharEixos()`.
+
+Decisões do gráfico:
+
+- **Canvas para os pontos, SVG por cima para o resto.** Com 5.000 pontos o
+  canvas desenha numa passada; 5.000 elementos SVG travariam o tile. Eixos,
+  divisórias e rótulos continuam em SVG, então o texto segue nítido e
+  selecionável. São três camadas empilhadas: SVG do fundo dos quadrantes,
+  canvas dos pontos, SVG de tudo que é texto e linha.
+- **Divisórias configuráveis** por média, mediana, ponto médio, zero ou
+  valor fixo — e "não mostrar", que desliga os quadrantes sem desligar o
+  gráfico.
+- **Quadrante sem espaço na tela não recebe rótulo**: quando a divisória
+  encosta na borda, o nome ficaria por cima do eixo.
+- **Tamanho do ponto por ÁREA**, não por raio: dobrar o raio quadruplica a
+  mancha e engana quem lê.
+- **Rótulos nos pontos mais distantes do cruzamento**, que são os extremos
+  — os que alguém de fato quer identificar.
+
+Mudança no contrato do teste de fumaça (vale para todos os gráficos): antes
+ele exigia zero erros em TODAS as fixtures básicas. Isso está errado — uma
+dispersão não tem o que fazer com uma consulta de uma medida só, e recusar
+com mensagem clara é a resposta certa. Agora a regra é: **nas fixtures que o
+gráfico DECLARA em `config/charts.json` ele tem que desenhar sem erro**; nas
+outras, pode recusar, desde que o erro tenha título e mensagem explicativa.
+
+Números: bundle 172,6 KB; 61/61 testes passando; checagem de segurança sem
+violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, item 3: criar `src/charts/quadrant_scatter/` ("Dispersão com
-Quadrantes": duas medidas nos eixos, linhas divisórias configuráveis por
-média/mediana/valor fixo, rótulos de quadrante, tamanho e cor por medida,
-drill no ponto), registrar em `config/charts.json`, buildar, rodar
-`npm test` e `npm run seguranca`, marcar em TAREFAS.md e commitar.
+TIER 1, itens 4 e 5: criar `src/charts/matriz_2x2/` e `src/charts/matriz_bcg/`.
+Os dois são primos do `quadrant_scatter` (duas medidas, plano partido em
+quatro), então a primeira coisa a fazer é extrair o que dá para reaproveitar
+— cálculo do corte, classificação por quadrante e desenho do fundo/rótulos —
+para um módulo compartilhado, em vez de copiar código. Depois registrar em
+`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
+marcar em TAREFAS.md e commitar.

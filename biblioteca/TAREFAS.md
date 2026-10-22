@@ -27,7 +27,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 
 - [x] 1. `tabela_completa` — "Tabela Completa" (seção 8 do prompt)
 - [x] 2. `diagrama_venn` — "Diagrama de Venn"
-- [ ] 3. `quadrant_scatter` — "Dispersão com Quadrantes"
+- [x] 3. `quadrant_scatter` — "Dispersão com Quadrantes"
 - [ ] 4. `matriz_2x2` — "Matriz 2x2"
 - [ ] 5. `matriz_bcg` — "Matriz BCG"
 - [ ] 6. `theme_river` — "ThemeRiver"

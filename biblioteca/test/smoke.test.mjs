@@ -82,18 +82,18 @@ for (const grafico of graficos) {
           assert.ok(chamouDone, 'done() precisa ser chamado sempre');
           assert.ok(palco.childNodes.length > 0, 'a visualização precisa colocar algo no DOM');
 
-          // Fixtures com dados válidos não podem gerar erro; as inválidas
-          // (vazio / só nulos) PODEM, desde que com mensagem clara. Recusar
-          // um pivô também é resposta certa num gráfico que não aceita pivô.
-          const fixturesQuePodemErrar = ['vazio', 'semCampos', 'somenteNulos'];
-          if (nomeFixture === 'comPivo' && grafico.aceitaPivo === false) {
-            fixturesQuePodemErrar.push('comPivo');
-          }
-          if (!fixturesQuePodemErrar.includes(nomeFixture)) {
+          // O contrato é: nas fixtures que o gráfico DECLARA em
+          // `config/charts.json`, ele tem que desenhar sem erro. Nas demais
+          // básicas (que podem simplesmente não servir para aquele gráfico —
+          // uma dispersão não tem o que fazer com uma medida só), recusar
+          // com mensagem clara é resposta certa, não falha.
+          const declarada = (grafico.fixtures || []).includes(nomeFixture);
+          const podeRecusar = ['vazio', 'semCampos', 'somenteNulos'].includes(nomeFixture);
+          if (declarada && !podeRecusar) {
             assert.equal(
               amb.chamadasDeApi.erros.length,
               0,
-              `erro inesperado: ${JSON.stringify(amb.chamadasDeApi.erros)}`
+              `erro inesperado numa fixture declarada: ${JSON.stringify(amb.chamadasDeApi.erros)}`
             );
           }
           for (const erro of amb.chamadasDeApi.erros) {

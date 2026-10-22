@@ -33,5 +33,20 @@ window.REGISTRO_BL = [
       "conjuntosBooleanos"
     ],
     "explore": "Uma dimensão com os conjuntos (\"A\", \"A,B\"), ou duas dimensões (item e conjunto), ou várias colunas sim/não. Não aceita pivô."
+  },
+  {
+    "id": "quadrant_scatter",
+    "label": "Dispersão com Quadrantes",
+    "tier": 1,
+    "arquivo": "../dist/quadrant_scatter.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "grande5k",
+      "ohlc",
+      "somenteNulos",
+      "vazio"
+    ],
+    "explore": "1 dimensão (o nome de cada ponto) e pelo menos 2 medidas (eixos X e Y). Opcionalmente mais medidas para tamanho e cor. Não aceita pivô."
   }
 ];
