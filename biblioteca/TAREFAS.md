@@ -30,7 +30,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 3. `quadrant_scatter` — "Dispersão com Quadrantes"
 - [x] 4. `matriz_2x2` — "Matriz 2x2"
 - [x] 5. `matriz_bcg` — "Matriz BCG"
-- [ ] 6. `theme_river` — "ThemeRiver"
+- [x] 6. `theme_river` — "ThemeRiver"
 - [ ] 7. `funil_variacoes` — "Funis (Estilos)"
 - [ ] 8. `funil_comparativo` — "Funil Comparativo"
 - [ ] 9. `gauge_variacoes` — "Medidores (Estilos)"

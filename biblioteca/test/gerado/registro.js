@@ -76,5 +76,21 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô."
+  },
+  {
+    "id": "theme_river",
+    "label": "ThemeRiver",
+    "tier": 1,
+    "arquivo": "../dist/theme_river.js",
+    "existe": true,
+    "fixtures": [
+      "comPivo",
+      "duasDimensoes",
+      "temporal",
+      "semPivo",
+      "vazio",
+      "somenteNulos"
+    ],
+    "explore": "1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas."
   }
 ];

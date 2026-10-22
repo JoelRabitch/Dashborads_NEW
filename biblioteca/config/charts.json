@@ -82,6 +82,23 @@
         "somenteNulos",
         "vazio"
       ]
+    },
+    {
+      "id": "theme_river",
+      "label": "ThemeRiver",
+      "tier": 1,
+      "pasta": "theme_river",
+      "resumo": "Streamgraph: areas empilhadas com base ondulada (wiggle/silhouette) mostrando composicao ao longo do tempo. Series vindas do pivo, da 2a dimensao ou de varias medidas.",
+      "explore": "1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "semPivo",
+        "vazio",
+        "somenteNulos"
+      ]
     }
   ]
 }

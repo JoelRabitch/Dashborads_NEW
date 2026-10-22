@@ -1,7 +1,7 @@
 /*!
  * Diagrama de Venn — visualização customizada para o Looker
  * id: diagrama_venn
- * versão: 0.1.0 | build: 2026-10-22 02:10:47 | commit: dc22bb8
+ * versão: 0.1.0 | build: 2026-10-22 02:15:22 | commit: b661cb8
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -2465,6 +2465,21 @@
         const t = setTimeout(fn, ms);
         bl.timersAgendados.add(t);
         return t;
+      },
+      /**
+       * Redesenha com os MESMOS dados, só com o estado atualizado — é o que
+       * a legenda interativa precisa ao ligar/desligar uma série. Limpa os
+       * listeners antes, senão cada clique empilharia mais um conjunto.
+       */
+      redesenhar() {
+        limparPendencias(bl);
+        bl.avisoEl.style.display = "none";
+        definirTexto(bl.avisoEl, "");
+        try {
+          render(ctx);
+        } catch (e) {
+          if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
+        }
       }
     };
     bl.raiz.style.background = tema.fundo;

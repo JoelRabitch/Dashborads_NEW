@@ -489,12 +489,50 @@ original (o que quebraria os outros gráficos).
 Números: 5 gráficos construídos; 90/90 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 13 — `theme_river` (TIER 1, item 6) — concluída
+
+Entrou junto outro módulo de núcleo: **`src/core/series.js`**, que transforma
+o modelo numa matriz "categorias × séries". É a peça que faltava: o
+`extrairSerie` do data-model é de série ÚNICA e cego a pivô (foi o que
+derrubou o `_template` lá atrás), e praticamente todo gráfico de linha,
+área, barra empilhada, ranking ou fluxo precisa de várias séries alinhadas.
+
+O Looker entrega séries de três jeitos bem diferentes, e o módulo cobre os
+três detectando sozinho: do **pivô**, da **2ª dimensão** ou **uma por
+medida**. A saída é sempre `series[i].valores[j]` já alinhado à categoria
+`j`, com `null` onde não há valor — é isso que permite empilhar e
+interpolar sem cada gráfico reinventar o alinhamento.
+
+Decisões:
+
+- **Séries além do limite viram "Outros", somadas**, não descartadas. Jogar
+  fora mudaria os totais sem o leitor ter como saber. Há teste garantindo
+  que a soma não muda ao agrupar.
+- **Interpolar não inventa nas pontas**: repete o vizinho existente em vez
+  de extrapolar.
+- No ThemeRiver, **o eixo Y vem desligado por padrão** — num streamgraph a
+  base flutua e o Y não significa nada; mostrá-lo seria mentir.
+- **O nome da série só é escrito onde a faixa é mais grossa**, e só se
+  couber (mínimo de 14px). Senão fica a legenda.
+
+Duas peças de infraestrutura que faltavam e entraram agora:
+
+- `ctx.redesenhar()` no `define-viz`: redesenha com os MESMOS dados e o
+  estado atualizado, limpando os listeners antes. É o que a legenda
+  interativa precisa — sem isso, cada clique empilharia mais um conjunto de
+  listeners.
+- `alternar(chave)` no controle de séries desligadas do `interaction.js`.
+
+Números: 6 gráficos construídos; 108/108 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, item 6: criar `src/charts/theme_river/` ("ThemeRiver": áreas
-empilhadas com deslocamento `wiggle`/`silhouette`, uma dimensão temporal no
-eixo X, uma dimensão de série e uma medida; aceita pivô, com cada valor do
-pivô virando uma faixa). Usar `core/eixos.js`, `core/shapes.js`
-(`criarEmpilhador`, `geradorDeArea`) e `core/legend.js`. Depois registrar em
-`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
-marcar em TAREFAS.md e commitar.
+TIER 1, itens 7 e 8: criar `src/charts/funil_variacoes/` ("Funis (Estilos)":
+funil clássico, pirâmide, barras alinhadas e funil de áreas, com taxa de
+conversão entre etapas) e `src/charts/funil_comparativo/` (dois ou mais
+funis lado a lado, comparando segmentos). Como nos quadrantes, extrair a
+base comum para `src/charts/_funil/` ANTES de escrever o segundo. Usar
+`core/series.js` para as etapas e `core/eixos.js` quando houver eixo.
+Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
+`npm run seguranca`, marcar em TAREFAS.md e commitar.

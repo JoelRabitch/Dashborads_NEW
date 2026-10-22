@@ -261,6 +261,21 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
       bl.timersAgendados.add(t);
       return t;
     },
+    /**
+     * Redesenha com os MESMOS dados, só com o estado atualizado — é o que
+     * a legenda interativa precisa ao ligar/desligar uma série. Limpa os
+     * listeners antes, senão cada clique empilharia mais um conjunto.
+     */
+    redesenhar() {
+      limparPendencias(bl);
+      bl.avisoEl.style.display = 'none';
+      definirTexto(bl.avisoEl, '');
+      try {
+        render(ctx);
+      } catch (e) {
+        if (typeof console !== 'undefined' && console.error) console.error(`[${id}]`, e);
+      }
+    },
   };
 
   // Fundo do tile conforme o tema.

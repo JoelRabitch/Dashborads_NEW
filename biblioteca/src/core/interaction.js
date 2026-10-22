@@ -281,5 +281,11 @@ export function criarControleDeSeriesDesligadas(estado, chaveDoEstado = 'seriesD
       estado[chaveDoEstado] = new Set(novoConjunto);
       return estado[chaveDoEstado];
     },
+    alternar(chave) {
+      const conjunto = estado[chaveDoEstado];
+      if (conjunto.has(chave)) conjunto.delete(chave);
+      else conjunto.add(chave);
+      return conjunto;
+    },
   };
 }
