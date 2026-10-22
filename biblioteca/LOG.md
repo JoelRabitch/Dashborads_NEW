@@ -1798,31 +1798,80 @@ que o caminho não foi tomado por engano.
 Números: 38 gráficos construídos; 836/836 testes passando; checagem de
 segurança sem violação em 110 arquivos.
 
+### Etapa 43 — base `_lista_virtual/` + `dot_plot_denso` (TIER 4, item 39)
+
+**A extração primeiro**, como manda a regra que já se pagou várias vezes:
+`src/charts/_lista_virtual/index.js` ficou com o esqueleto que
+`barras_ranking_denso` e `dot_plot_denso` compartilham — campo de busca,
+contagem, área rolável com janela virtual, nota no rodapé, e
+`itemDoEvento()` para achar o item sob o ponteiro em O(1) pelo `dataset`.
+
+Duas propriedades viraram obrigação da base, documentadas nela:
+- **a altura reservada conta TODOS os itens**, nunca os desenhados — senão
+  a barra de rolagem mente sobre quanto falta;
+- **a busca filtra e conta, mas não renumera** — a posição é do chamador.
+
+Critério da extração, de novo: os 14 testes do `barras_ranking_denso`
+passam **sem uma linha alterada**. Para isso o gráfico mantém os próprios
+nomes de classe ao lado dos da base (`br-linha` junto de `lv-linha`) — o
+que não é só cerimônia: dois gráficos virtualizados na mesma tela não
+podem disputar as mesmas classes.
+
+**O dot plot, e a regra invertida.** No `barras_ranking_denso` a barra tem
+de começar em zero, sem opção, porque ela codifica COMPRIMENTO. Aqui o
+ponto codifica POSIÇÃO — cortar o eixo é legítimo e, com valores de 900 a
+1.000, é a única forma de ver qualquer diferença. Dois gráficos vizinhos
+com regras opostas, e as duas corretas pelo mesmo motivo de fundo: o que a
+marca codifica.
+
+A contrapartida do corte é declará-lo, porque o leitor treinado em barras
+lê distância da borda como proporção. O estado medido é `incluiZero` — não
+"começa exatamente em zero": com valores negativos o eixo começa abaixo de
+zero e continua honesto, e o aviso não deve disparar ali. A primeira versão
+confundia as duas coisas numa expressão ilegível; agora é uma comparação só
+e tem teste nos três casos.
+
+Outra decisão com teste: ordenando pela DIFERENÇA entre a primeira e a
+última medida, os itens que não têm a segunda medida vão para o FIM, não
+para o meio. Tratar "sem diferença" como zero os colocaria entre os que
+caíram e os que cresceram, como se a diferença fosse conhecida e nula.
+
+**A regra do laço vazio se pagou na mesma sessão.** O teste "a posição do
+ponto corresponde à ordem dos valores" falhou com a mensagem
+*"nenhuma linha tinha mínima e máxima — o teste não conferiu nada"*: eu
+tinha escrito `minimo`/`maximo` e os campos da fixture são
+`minima`/`maxima`. Sem o `assert` de contagem, o teste teria passado verde
+sem comparar nada — exatamente o erro do SPLOM duas etapas atrás, desta vez
+pego na hora.
+
+Números: 39 gráficos construídos; 868/868 testes passando; checagem de
+segurança sem violação em 113 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 39: criar `src/charts/dot_plot_denso/` ("Dot Plot Denso"):
-pontos em vez de barras, para comparar MUITAS categorias — e, o caso mais
-útil, duas ou três medidas por categoria no mesmo eixo.
+TIER 4, item 40: criar `src/charts/parallel_coords/` ("Coordenadas
+Paralelas"): um eixo vertical por medida, uma LINHA quebrada por registro,
+cruzando todos os eixos — o gráfico para achar padrões em dados de muitas
+dimensões.
 
-Por que pontos: com 300 categorias, barras viram uma mancha de tinta e a
-diferença entre elas some; um ponto por valor mantém a leitura e deixa
-espaço para várias medidas na mesma linha. É o gráfico de Cleveland.
-
-Pontos de atenção: (a) reaproveitar a virtualização recém-escrita no
-`barras_ranking_denso` — se o código for o mesmo, **extrair para
-`_lista_virtual/`** agora (é o segundo da família, e a regra já se pagou
-várias vezes); (b) **aqui a escala NÃO precisa começar em zero**, e isso é
-o contrário da regra do item 38: um ponto codifica POSIÇÃO, não
-comprimento, então cortar o eixo é legítimo e muitas vezes necessário —
-mas precisa ser declarado, porque o leitor treinado em barras lê distância
-da borda; (c) linha de conexão entre os pontos da mesma categoria quando há
-2+ medidas (vira um dumbbell, item 53 — deixar a base pronta); (d) ordenar
-por qualquer uma das medidas, ou pela diferença entre duas, declarando por
-qual; (e) busca com posição preservada, como no item 38.
+Pontos de atenção: (a) **cada eixo tem a própria escala**, e isso aqui é
+correto, não um defeito: as medidas têm unidades diferentes e o que se lê é
+o PADRÃO das linhas, não a altura absoluta; mas é preciso dizer na tela que
+as alturas não são comparáveis entre eixos; (b) **a ordem dos eixos muda
+tudo** — só se vê correlação entre eixos ADJACENTES, então oferecer
+reordenar (e, melhor, uma ordenação automática que ponha juntos os pares
+mais correlacionados, reaproveitando `correlacaoDePearson`); (c) canvas
+obrigatório: 5.000 linhas × 6 eixos são 30 mil segmentos; (d) **escovação
+(brushing)**: arrastar num eixo filtra as linhas, que é a interação que faz
+o gráfico valer — `habilitarBrush` já existe em `core/interaction.js`;
+(e) linhas sobrepostas viram mancha: opacidade baixa por padrão e, acima de
+~2.000 registros, dizer quantos estão desenhados; (f) escala por quantil
+como opção, com a mesma ressalva do `heatmap_denso`.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/dot_plot_denso.test.mjs` (a posição do ponto corresponde ao valor na
-escala declarada; com eixo cortado, o aviso aparece; a ordenação por
-diferença ordena mesmo pela diferença; **e todo laço afirma que a lista não
-é vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar
-e seguir para o item 40 (`parallel_coords`).
+`test/parallel_coords.test.mjs` (cada eixo usa a própria escala e o valor
+mínimo de cada medida cai na base do seu eixo; a escovação num eixo reduz
+a contagem de linhas desenhadas e a contagem é declarada; reordenar os
+eixos muda a ordem das coordenadas; **e todo laço afirma que a lista não é
+vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e
+seguir para o item 41 (`bump_chart`).

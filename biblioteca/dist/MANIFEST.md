@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:05:19 (commit `35c2d09`).
+Gerado automaticamente pelo build em 2026-10-22 18:11:29 (commit `ae9eb87`).
 
 ## Como cadastrar no Looker
 
@@ -53,6 +53,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `heatmap_denso` | Heatmap Denso | `dist/heatmap_denso.js` | (vazio) | 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/heatmap_denso.js` |
 | `small_multiples` | Small Multiples | `dist/small_multiples.js` | (vazio) | 1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/small_multiples.js` |
 | `barras_ranking_denso` | Barras de Ranking Denso | `dist/barras_ranking_denso.js` | (vazio) | 1 dimensao (o nome) e 1 medida (a barra). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/barras_ranking_denso.js` |
+| `dot_plot_denso` | Dot Plot Denso | `dist/dot_plot_denso.js` | (vazio) | 1 dimensao (o nome) e 1 ou mais medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dot_plot_denso.js` |
 
 ## Detalhes por visualização
 
@@ -396,4 +397,13 @@ Milhares de barras ordenadas com rolagem virtualizada, barra sempre a partir do 
 - **Tier**: 4
 - **Explore**: 1 dimensao (o nome) e 1 medida (a barra).
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 117.7 KB
+- **Tamanho do bundle**: 118.8 KB
+
+### Dot Plot Denso (`dot_plot_denso`)
+
+Pontos de Cleveland para muitas categorias e varias medidas por linha, com rolagem virtualizada e aviso quando o eixo esta cortado.
+
+- **Tier**: 4
+- **Explore**: 1 dimensao (o nome) e 1 ou mais medidas.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 121.6 KB

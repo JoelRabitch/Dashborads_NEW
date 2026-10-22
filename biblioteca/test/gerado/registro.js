@@ -536,5 +536,20 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (o nome) e 1 medida (a barra)."
+  },
+  {
+    "id": "dot_plot_denso",
+    "label": "Dot Plot Denso",
+    "tier": 4,
+    "arquivo": "../dist/dot_plot_denso.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "ohlc",
+      "grande5k",
+      "rotulosLongos",
+      "vazio"
+    ],
+    "explore": "1 dimensao (o nome) e 1 ou mais medidas."
   }
 ];

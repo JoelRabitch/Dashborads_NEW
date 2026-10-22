@@ -18,11 +18,15 @@
  */
 
 import { defineViz } from '../../core/define-viz.js';
-import { criarEl, definirTexto, injetarEstilo, limpar } from '../../core/dom.js';
+import { criarEl, definirTexto, injetarEstilo } from '../../core/dom.js';
 import { coresDaPaleta, comOpacidade, textoLegivelSobre } from '../../core/theme.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
-import { criarFiltroDeBusca } from '../../core/interaction.js';
 import { criarTooltip } from '../../core/tooltip.js';
+import {
+  CSS_LISTA_VIRTUAL,
+  criarListaVirtual,
+  itemDoEvento,
+} from '../_lista_virtual/index.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -36,27 +40,16 @@ import {
 } from '../../core/options-kit.js';
 
 const CSS = `
-.br-raiz{position:relative;width:100%;height:100%;display:flex;flex-direction:column;}
-.br-topo{display:flex;align-items:center;gap:8px;padding:4px 8px;flex:0 0 auto;}
-.br-busca{flex:1 1 auto;min-width:60px;border-radius:4px;padding:3px 7px;font:inherit;}
-.br-contagem{font-size:11px;opacity:.75;white-space:nowrap;}
-.br-rolagem{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;}
-.br-conteudo{position:relative;width:100%;}
-.br-linha{position:absolute;left:0;right:0;display:flex;align-items:center;gap:6px;padding:0 8px;box-sizing:border-box;}
 .br-posicao{flex:0 0 auto;text-align:right;font-variant-numeric:tabular-nums;opacity:.6;}
 .br-nome{flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .br-trilho{flex:1 1 auto;position:relative;height:100%;min-width:20px;}
 .br-barra{position:absolute;top:50%;transform:translateY(-50%);border-radius:2px;}
 .br-valor{position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;font-variant-numeric:tabular-nums;}
 .br-zero{position:absolute;top:0;bottom:0;width:1px;}
-.br-nota{flex:0 0 auto;padding:2px 8px 4px;font-size:10px;opacity:.75;}
 `;
 
 /** Acima disso nem a virtualização salva: a ordenação sozinha já pesa. */
 const MAXIMO_DE_BARRAS = 50000;
-
-/** Linhas extras desenhadas acima e abaixo da janela, para a rolagem não piscar. */
-const MARGEM_DA_JANELA = 8;
 
 export default defineViz({
   id: 'barras_ranking_denso',
@@ -228,8 +221,7 @@ export default defineViz({
 
     // ---------- Cena ----------
     ctx.limparRaiz();
-    injetarEstilo(raiz, CSS, 'br');
-    const caixa = criarEl('div', { classe: 'br-raiz', pai: raiz });
+    injetarEstilo(raiz, CSS_LISTA_VIRTUAL + CSS, 'br');
 
     const casas = Number(config.casasDecimaisDoRotulo);
     const formatar = formatadorDeValueFormat(medida.valueFormat, {
@@ -242,30 +234,47 @@ export default defineViz({
     const corDeDestaque = tema.destaque;
     const topN = Math.max(0, Number(config.destacarTop) || 0);
 
-    // --- Topo: busca e contagem ---
-    const topo = criarEl('div', { classe: 'br-topo', pai: caixa });
-    let campoDeBusca = null;
-    if (config.mostrarBusca !== false) {
-      campoDeBusca = criarEl('input', { classe: 'br-busca', pai: topo });
-      campoDeBusca.type = 'search';
-      campoDeBusca.placeholder = `Buscar em ${campoDoNome.rotuloCurto}…`;
-      campoDeBusca.style.background = tema.fundo;
-      campoDeBusca.style.color = tema.texto;
-      campoDeBusca.style.border = `1px solid ${tema.borda}`;
-      if (ctx.estado.busca) campoDeBusca.value = ctx.estado.busca;
-    }
-    const contagem = criarEl('div', { classe: 'br-contagem', pai: topo });
-    contagem.style.color = tema.textoSuave;
+    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
+    ctx.estado.tooltip = tooltip;
 
-    // --- Rolagem e conteúdo ---
-    const rolagem = criarEl('div', { classe: 'br-rolagem', pai: caixa });
-    const conteudo = criarEl('div', { classe: 'br-conteudo', pai: rolagem });
+    const lista = criarListaVirtual({
+      ctx,
+      itens,
+      alturaDaLinha,
+      comBusca: config.mostrarBusca !== false,
+      rotuloDaBusca: `Buscar em ${campoDoNome.rotuloCurto}…`,
+      textoDoItem: (item) => item.nome,
+      montarLinha: (item) =>
+        montarLinha({
+          item,
+          alturaDaLinha,
+          larguraDoNome,
+          maximo,
+          minimo,
+          temNegativos,
+          referencia,
+          topN,
+          cor,
+          corDeDestaque,
+          tema,
+          config,
+          formatar,
+        }),
+    });
 
-    // --- Nota ---
-    const nota = criarEl('div', { classe: 'br-nota', pai: caixa });
-    nota.style.color = tema.textoSuave;
+    // Nomes próprios ao lado dos da base: dois gráficos virtualizados numa
+    // mesma tela não podem disputar as mesmas classes.
+    lista.raiz.classList.add('br-raiz');
+    lista.topo.classList.add('br-topo');
+    lista.rolagem.classList.add('br-rolagem');
+    lista.conteudo.classList.add('br-conteudo');
+    lista.contagem.classList.add('br-contagem');
+    lista.nota.classList.add('br-nota');
+    const campoDeBusca = lista.topo.querySelector('.lv-busca');
+    if (campoDeBusca) campoDeBusca.classList.add('br-busca');
+
     definirTexto(
-      nota,
+      lista.nota,
       [
         `${itens.length.toLocaleString('pt-BR')} itens`,
         'barras a partir do ZERO (sempre)',
@@ -277,89 +286,10 @@ export default defineViz({
         .join(' · ')
     );
 
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
-
-    // ---------- Virtualização ----------
-    let visiveis = itens;
-
-    const aplicarFiltro = () => {
-      const termo = campoDeBusca ? campoDeBusca.value : '';
-      ctx.estado.busca = termo;
-      if (!termo || !termo.trim()) {
-        visiveis = itens;
-      } else {
-        const combina = criarFiltroDeBusca(termo);
-        visiveis = itens.filter((item) => combina(item.nome));
-      }
-      conteudo.style.height = `${visiveis.length * alturaDaLinha}px`;
-      definirTexto(
-        contagem,
-        visiveis.length === itens.length
-          ? `${itens.length.toLocaleString('pt-BR')} itens`
-          : `${visiveis.length.toLocaleString('pt-BR')} de ${itens.length.toLocaleString('pt-BR')}`
-      );
-      pintar();
-    };
-
-    const pintar = () => {
-      limpar(conteudo);
-      const alturaUtil = rolagem.clientHeight || 300;
-      const topo0 = rolagem.scrollTop || 0;
-      const inicio = Math.max(0, Math.floor(topo0 / alturaDaLinha) - MARGEM_DA_JANELA);
-      const fim = Math.min(
-        visiveis.length,
-        inicio + Math.ceil(alturaUtil / alturaDaLinha) + MARGEM_DA_JANELA * 2
-      );
-
-      if (!visiveis.length) {
-        const vazio = criarEl('div', { classe: 'br-linha', pai: conteudo });
-        vazio.style.top = '0px';
-        vazio.style.height = `${alturaDaLinha}px`;
-        vazio.style.color = tema.textoSuave;
-        definirTexto(vazio, 'Nenhum item encontrado para a busca.');
-        return;
-      }
-
-      for (let i = inicio; i < fim; i++) {
-        conteudo.appendChild(
-          montarLinha({
-            item: visiveis[i],
-            indiceNaJanela: i,
-            alturaDaLinha,
-            larguraDoNome,
-            maximo,
-            minimo,
-            temNegativos,
-            referencia,
-            topN,
-            cor,
-            corDeDestaque,
-            tema,
-            config,
-            formatar,
-          })
-        );
-      }
-    };
-
-    ctx.eventos.on(rolagem, 'scroll', () => {
-      ctx.estado.rolagem = rolagem.scrollTop;
-      pintar();
-    });
-
-    if (campoDeBusca) {
-      ctx.eventos.on(campoDeBusca, 'input', () => {
-        rolagem.scrollTop = 0;
-        aplicarFiltro();
-      });
-    }
-
+    // ---------- Interação ----------
     if (tooltip) {
-      ctx.eventos.on(conteudo, 'pointermove', (ev) => {
-        const linha = ev.target.closest ? ev.target.closest('.br-linha') : null;
-        const posicao = linha && linha.dataset ? Number(linha.dataset.posicao) : NaN;
-        const item = itens[posicao - 1];
+      ctx.eventos.on(lista.conteudo, 'pointermove', (ev) => {
+        const item = itemDoEvento(ev, itens);
         if (!item) {
           tooltip.esconder();
           return;
@@ -385,20 +315,15 @@ export default defineViz({
           ev.clientY
         );
       });
-      ctx.eventos.on(conteudo, 'pointerleave', () => tooltip.esconder());
+      ctx.eventos.on(lista.conteudo, 'pointerleave', () => tooltip.esconder());
     }
 
-    ctx.eventos.on(conteudo, 'click', (ev) => {
-      const linha = ev.target.closest ? ev.target.closest('.br-linha') : null;
-      const posicao = linha && linha.dataset ? Number(linha.dataset.posicao) : NaN;
-      const item = itens[posicao - 1];
+    ctx.eventos.on(lista.conteudo, 'click', (ev) => {
+      const item = itemDoEvento(ev, itens);
       if (!item) return;
       const celula = modelo.celula(modelo.linhas[item.indiceDaLinha], campoDoNome.nome);
       if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
     });
-
-    aplicarFiltro();
-    if (ctx.estado.rolagem) rolagem.scrollTop = ctx.estado.rolagem;
   },
 
   aoDestruir({ estado }) {
@@ -455,13 +380,11 @@ export function geometriaDaBarra({ valor, maximo, minimo }) {
 }
 
 function montarLinha({
-  item, indiceNaJanela, alturaDaLinha, larguraDoNome, maximo, minimo, temNegativos,
+  item, alturaDaLinha, larguraDoNome, maximo, minimo, temNegativos,
   referencia, topN, cor, corDeDestaque, tema, config, formatar,
 }) {
   const linha = document.createElement('div');
   linha.className = 'br-linha';
-  linha.style.top = `${indiceNaJanela * alturaDaLinha}px`;
-  linha.style.height = `${alturaDaLinha}px`;
   linha.style.fontSize = `${Math.max(9, Math.min(tema.tamanhoBase, alturaDaLinha - 8))}px`;
   linha.dataset.posicao = String(item.posicao);
 

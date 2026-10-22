@@ -575,6 +575,22 @@
         "rotulosLongos",
         "vazio"
       ]
+    },
+    {
+      "id": "dot_plot_denso",
+      "label": "Dot Plot Denso",
+      "tier": 4,
+      "pasta": "dot_plot_denso",
+      "resumo": "Pontos de Cleveland para muitas categorias e varias medidas por linha, com rolagem virtualizada e aviso quando o eixo esta cortado.",
+      "explore": "1 dimensao (o nome) e 1 ou mais medidas.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "grande5k",
+        "rotulosLongos",
+        "vazio"
+      ]
     }
   ]
 }

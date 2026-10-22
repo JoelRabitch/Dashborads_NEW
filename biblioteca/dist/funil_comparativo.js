@@ -1,7 +1,7 @@
 /*!
  * Funil Comparativo — visualização customizada para o Looker
  * id: funil_comparativo
- * versão: 0.1.0 | build: 2026-10-22 18:05:19 | commit: 35c2d09
+ * versão: 0.1.0 | build: 2026-10-22 18:11:29 | commit: ae9eb87
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
