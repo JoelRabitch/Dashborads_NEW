@@ -252,3 +252,64 @@ test('arvores_multiplas — uma árvore por ramo, com título e valor', (t) => {
   }
   t.diagnostic(`árvores: ${r.titulos.join(' | ')}`);
 });
+
+test('org_chart — cartões, ligações e botões de recolher', (t) => {
+  const r = renderizar('org_chart', 'paiFilho');
+  try {
+    const cartoes = r.palco.querySelectorAll('.oc-cartao');
+    const ligacoes = Array.from(r.palco.querySelectorAll('.oc-ligacao'));
+    assert.equal(cartoes.length, 10, 'a fixture tem 10 nós');
+    assert.equal(ligacoes.length, cartoes.length - 1, 'uma ligação a menos que cartões');
+    for (const ligacao of ligacoes) {
+      assert.ok(!/NaN/.test(ligacao.getAttribute('d') || ''), 'ligação com NaN');
+    }
+    assert.ok(
+      r.palco.querySelectorAll('.oc-botao').length > 0,
+      'quem tem subordinados precisa do botão de recolher'
+    );
+    assert.equal(r.amb.chamadasDeApi.erros.length, 0);
+  } finally {
+    r.fim();
+  }
+  t.diagnostic('organograma desenhado');
+});
+
+test('org_chart — recolher esconde a área e reabrir traz de volta', (t) => {
+  const r = renderizar('org_chart', 'paiFilho');
+  try {
+    const contar = () => r.palco.querySelectorAll('.oc-cartao').length;
+    const antes = contar();
+
+    // O botão da raiz esconde a organização inteira.
+    r.palco.querySelector('.oc-botao').dispatchEvent(new r.amb.window.MouseEvent('click', { bubbles: true }));
+    const depois = contar();
+    assert.ok(depois < antes, `recolher deveria esconder cartões (${antes} → ${depois})`);
+    assert.match(
+      r.palco.querySelector('.oc-dica')?.textContent || '',
+      /recolhida/i,
+      'o usuário precisa saber que há área recolhida'
+    );
+
+    r.palco.querySelector('.oc-botao').dispatchEvent(new r.amb.window.MouseEvent('click', { bubbles: true }));
+    assert.equal(contar(), antes, 'reabrir precisa trazer todos os cartões de volta');
+  } finally {
+    r.fim();
+  }
+  t.diagnostic('recolher e reabrir conferidos');
+});
+
+test('org_chart — cartão recolhido mostra o tamanho REAL da área', (t) => {
+  // O valor e a contagem saem da árvore completa, não da visível: senão um
+  // gestor recolhido pareceria não ter ninguém abaixo.
+  const r = renderizar('org_chart', 'paiFilho', { comecarRecolhidoAPartirDe: 1 });
+  try {
+    const textos = Array.from(r.palco.querySelectorAll('.oc-texto')).map((t2) => t2.textContent);
+    assert.ok(
+      textos.some((texto) => /abaixo/.test(texto)),
+      `um cartão recolhido precisa continuar dizendo quantos tem abaixo; veio: ${textos.join(' | ')}`
+    );
+  } finally {
+    r.fim();
+  }
+  t.diagnostic('contagem real em cartão recolhido conferida');
+});

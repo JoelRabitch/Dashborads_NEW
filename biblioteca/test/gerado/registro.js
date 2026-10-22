@@ -175,5 +175,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho."
+  },
+  {
+    "id": "org_chart",
+    "label": "Organograma",
+    "tier": 1,
+    "arquivo": "../dist/org_chart.js",
+    "existe": true,
+    "fixtures": [
+      "paiFilho",
+      "hierarquia",
+      "duasDimensoes",
+      "vazio"
+    ],
+    "explore": "Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao."
   }
 ];

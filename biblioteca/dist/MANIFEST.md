@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 02:34:01 (commit `0c7528d`).
+Gerado automaticamente pelo build em 2026-10-22 02:37:50 (commit `6cd1802`).
 
 ## Como cadastrar no Looker
 
@@ -27,6 +27,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `gauge_grid` | Medidores em Grade | `dist/gauge_grid.js` | (vazio) | 1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/gauge_grid.js` |
 | `arvore_radial` | Árvore Radial | `dist/arvore_radial.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arvore_radial.js` |
 | `arvores_multiplas` | Múltiplas Árvores | `dist/arvores_multiplas.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arvores_multiplas.js` |
+| `org_chart` | Organograma | `dist/org_chart.js` | (vazio) | Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/org_chart.js` |
 
 ## Detalhes por visualização
 
@@ -137,3 +138,12 @@ Uma arvore pequena por ramo de primeiro nivel, lado a lado, para comparar a form
 - **Explore**: Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 145.5 KB
+
+### Organograma (`org_chart`)
+
+Organograma em cartoes, de cima para baixo ou da esquerda para a direita, com ligacoes em cotovelo e areas que podem ser recolhidas.
+
+- **Tier**: 1
+- **Explore**: Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 137.4 KB

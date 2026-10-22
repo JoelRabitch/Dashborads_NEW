@@ -188,6 +188,21 @@
         "duasDimensoes",
         "vazio"
       ]
+    },
+    {
+      "id": "org_chart",
+      "label": "Organograma",
+      "tier": 1,
+      "pasta": "org_chart",
+      "resumo": "Organograma em cartoes, de cima para baixo ou da esquerda para a direita, com ligacoes em cotovelo e areas que podem ser recolhidas.",
+      "explore": "Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "paiFilho",
+        "hierarquia",
+        "duasDimensoes",
+        "vazio"
+      ]
     }
   ]
 }

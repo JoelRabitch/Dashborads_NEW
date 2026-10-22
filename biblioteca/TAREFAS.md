@@ -37,7 +37,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 10. `gauge_grid` — "Medidores em Grade"
 - [x] 11. `arvore_radial` — "Árvore Radial"
 - [x] 12. `arvores_multiplas` — "Múltiplas Árvores"
-- [ ] 13. `org_chart` — "Organograma"
+- [x] 13. `org_chart` — "Organograma"
 - [ ] 14. `upset_plot` — "UpSet Plot" (opcional)
 
 ## TIER 2 — financeiros

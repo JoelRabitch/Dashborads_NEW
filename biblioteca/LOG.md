@@ -650,12 +650,53 @@ Decisões dos dois gráficos:
 Números: 12 gráficos construídos; 198/198 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 17 — `org_chart` (TIER 1, item 13) — TIER 1 OBRIGATÓRIO COMPLETO
+
+Reaproveita `core/hierarquia.js`, mas NÃO reaproveita `_arvore/`: um
+organograma pede cartões retangulares, não círculos. O que importa ali é
+texto (nome, cargo, tamanho da equipe), e texto precisa de uma caixa com
+largura previsível — um círculo dimensionado por valor empurraria o nome
+para fora e ainda faria o leitor comparar áreas, que não é a pergunta.
+
+Decisões:
+
+- **O layout roda sobre a árvore VISÍVEL**, depois de recolher, e não sobre
+  a completa: senão ficaria um buraco no lugar dos nós escondidos.
+- **Valores e contagens saem da árvore COMPLETA.** Um gestor recolhido
+  continua mostrando quantas pessoas tem abaixo — se saísse da árvore
+  visível, pareceria não ter ninguém. Tem teste para isso.
+- **A identidade de um nó entre renderizações é o CAMINHO de chaves da raiz
+  até ele**, não a referência do objeto: a árvore é remontada a cada
+  desenho e as referências mudam. Esse mapa é montado numa passada só, para
+  o acessor de filhos do d3 consultar em O(1) — procurar o caminho nó a nó
+  deixaria o desenho quadrático.
+- `nodeSize` em vez de `size`: o organograma cresce e a área rola, em vez
+  de ser espremido para caber na tela.
+
+Com isso o **TIER 1 obrigatório está fechado** (13 de 14; o item 14,
+`upset_plot`, está marcado como opcional no próprio prompt).
+
+Números: 13 gráficos construídos; 213/213 testes passando; checagem de
+segurança sem violação.
+
+#### Balanço do TIER 1
+
+Cinco módulos de núcleo nasceram do trabalho e servem a tudo que vem pela
+frente: `eixos.js`, `series.js`, `hierarquia.js`, mais `comDefaults()` e
+`ctx.redesenhar()`. Quatro bases compartilhadas entre gráficos irmãos:
+`_quadrantes`, `_funil`, `_medidor`, `_arvore`.
+
+O padrão que mais rendeu: **extrair a base ANTES de escrever o segundo
+gráfico da família**, não depois. Toda vez que fiz isso, o segundo gráfico
+saiu em um terço do tempo e os defeitos apareceram uma vez só.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, item 13: criar `src/charts/org_chart/` ("Organograma"). Reaproveitar
-`core/hierarquia.js` e `src/charts/_arvore/`, mas com CARTÕES retangulares
-em vez de círculos (nome, cargo e uma medida dentro de cada caixa), layout
-de cima para baixo, ligações em cotovelo e expandir/recolher por nó. Depois
-registrar em `config/charts.json`, buildar, rodar `npm test` e
-`npm run seguranca`, marcar em TAREFAS.md e commitar. Com isso o TIER 1
-fica só com o item 14 (`upset_plot`, opcional).
+TIER 1, item 14 (`upset_plot`, opcional): criar `src/charts/upset_plot/`
+reaproveitando o `dados.js` do `diagrama_venn` (que já lê os três formatos
+de conjuntos) — barras horizontais com o tamanho de cada interseção e uma
+matriz de pontos embaixo indicando quais conjuntos participam. É a
+alternativa ao Venn quando há mais de 5 conjuntos, então vale a pena.
+Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
+`npm run seguranca`, marcar em TAREFAS.md e commitar. Em seguida começa o
+TIER 2 pelo item 15 (`candlestick_ohlc`), que já tem a fixture `ohlc`.
