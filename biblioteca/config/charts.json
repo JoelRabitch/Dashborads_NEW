@@ -680,6 +680,21 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "kpi_vivo",
+      "label": "KPI Vivo",
+      "tier": 5,
+      "pasta": "kpi_vivo",
+      "resumo": "O numero grande com a BASE da comparacao sempre declarada, opcao de menor-e-melhor, sparkline de contexto e deteccao de periodo incompleto.",
+      "explore": "1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "temporal",
+        "semPivo",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:45:42 (commit `41b9772`).
+Gerado automaticamente pelo build em 2026-10-22 18:49:10 (commit `162225a`).
 
 ## Como cadastrar no Looker
 
@@ -60,6 +60,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `horizon_chart` | Horizon Chart | `dist/horizon_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/horizon_chart.js` |
 | `bar_race` | Bar Chart Race | `dist/bar_race.js` | (vazio) | 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bar_race.js` |
 | `motion_bubbles` | Bolhas em Movimento | `dist/motion_bubbles.js` | (vazio) | 2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/motion_bubbles.js` |
+| `kpi_vivo` | KPI Vivo | `dist/kpi_vivo.js` | (vazio) | 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/kpi_vivo.js` |
 
 ## Detalhes por visualização
 
@@ -467,3 +468,12 @@ X, Y, tamanho e cor animados no tempo (Rosling), com a AREA proporcional ao valo
 - **Explore**: 2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho).
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 155.9 KB
+
+### KPI Vivo (`kpi_vivo`)
+
+O numero grande com a BASE da comparacao sempre declarada, opcao de menor-e-melhor, sparkline de contexto e deteccao de periodo incompleto.
+
+- **Tier**: 5
+- **Explore**: 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 144.6 KB

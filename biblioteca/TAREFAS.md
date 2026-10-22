@@ -68,7 +68,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 
 ## TIER 5 — demais
 
-- [x] 44. `bar_race` · [x] 45. `motion_bubbles` · [ ] 46. `kpi_vivo`
+- [x] 44. `bar_race` · [x] 45. `motion_bubbles` · [x] 46. `kpi_vivo`
 - [ ] 47. `parallel_sets` · [ ] 48. `arc_diagram` · [ ] 49. `nightingale`
 - [ ] 50. `radial_bar` · [ ] 51. `lollipop` · [ ] 52. `waffle`
 - [ ] 53. `dumbbell` · [ ] 54. `marimekko`

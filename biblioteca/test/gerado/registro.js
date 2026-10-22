@@ -634,5 +634,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho)."
+  },
+  {
+    "id": "kpi_vivo",
+    "label": "KPI Vivo",
+    "tier": 5,
+    "arquivo": "../dist/kpi_vivo.js",
+    "existe": true,
+    "fixtures": [
+      "temporal",
+      "semPivo",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline."
   }
 ];

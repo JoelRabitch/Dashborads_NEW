@@ -2126,33 +2126,69 @@ lacunas em vez de ligar por cima delas.
 Números: 45 gráficos construídos; 1.033/1.033 testes passando; checagem de
 segurança sem violação em 126 arquivos.
 
+### Etapa 50 — `kpi_vivo` (TIER 5, item 46)
+
+O número grande. É o gráfico mais usado de qualquer painel e o que mais
+mente por omissão — "+12%" é verdadeiro e inútil sem a base.
+
+**A base da comparação vai escrita na tela, sempre**, e com o período
+nomeado: "contra o período anterior (01/11/2026): 1.470". Cada modo
+(anterior, N atrás, primeiro, média dos anteriores, meta) devolve o próprio
+rótulo, e o teste exige que o rótulo diga QUAL período foi usado. Pedir
+"12 períodos atrás" numa série de 4 devolve `null` com `faltouHistorico`,
+não o primeiro período: responder outra pergunta caladamente é pior que
+não responder.
+
+**"Menor é melhor" inverte a COR, nunca o sinal.** Custo, churn, tempo de
+resposta, devoluções — para metade dos indicadores de um painel, cair é
+bom, e um padrão fixo erraria metade das vezes. O teste confere que a seta
+e o texto da variação são IDÊNTICOS nos dois modos e só a cor troca
+(vermelho → verde): a opinião sobre o número não pode mudar o número.
+
+**Período incompleto**, o erro mais comum do gênero: o mês corrente contra
+o mês passado inteiro sempre "cai". A heurística compara a contagem de
+LINHAS do último período com a mediana dos anteriores — linhas, não
+valores, porque é o número de linhas que cai quando o mês ainda não
+acabou. O limiar é folgado (60%) de propósito: meses têm 28 a 31 dias, e
+um aviso que dispara a cada fevereiro vira ruído. Testado dos dois lados —
+acusa 8 contra mediana 30,5; **não** acusa fevereiro (28 contra 31). E
+quando a consulta traz uma linha por período, a heurística se cala e a nota
+assume a hipótese ("a comparação supõe períodos completos").
+
+Detalhe que teria passado despercebido e o teste pegou: **base negativa.**
+De −100 para −50 o indicador melhorou em 50; dividir por −100 daria −50% e
+inverteria o sinal da variação, dizendo o contrário do que aconteceu. O
+denominador usa `Math.abs(base)`.
+
+A sparkline existe porque o contexto muda a leitura: "+12%" depois de três
+quedas é diferente de "+12%" no quarto mês de alta. E o tamanho da fonte se
+ajusta ao texto e à caixa — um número que estoura a borda some sem avisar,
+que é pior que um número pequeno.
+
+Números: 46 gráficos construídos; 1.066/1.066 testes passando; checagem de
+segurança sem violação em 128 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 46: criar `src/charts/kpi_vivo/` ("KPI Vivo"): o número
-grande — valor atual, comparação com um período anterior ou com uma meta,
-e uma sparkline de contexto.
+TIER 5, item 47: criar `src/charts/parallel_sets/` ("Conjuntos
+Paralelos"): fluxo entre categorias de duas ou mais dimensões — as fitas
+que mostram como a população se reparte a cada passo.
 
-É o gráfico mais usado de qualquer dashboard e o mais fácil de errar,
-porque **um número sozinho não significa nada**. As decisões:
-
-(a) **A variação precisa de base declarada.** "+12%" sobre o quê — mês
-anterior, mesmo mês do ano passado, meta? Sem isso o número é retórica.
-Oferecer a escolha e escrever a base na tela, sempre;
-(b) **Cor por direção é armadilha**: queda nem sempre é ruim (custo,
-churn, tempo de resposta). Precisa de opção "menor é melhor" e o padrão
-não pode assumir;
-(c) a sparkline dá o contexto que o número esconde — "+12%" depois de três
-quedas é diferente de "+12%" no quarto mês de alta;
-(d) **comparar com um período incompleto é o erro mais comum do KPI**: o
-mês corrente contra o mês passado inteiro sempre "cai". Se dá para
-detectar (última categoria com menos linhas/dias que as anteriores),
-avisar; se não dá, dizer que a comparação supõe períodos completos;
-(e) tipografia: o número grande precisa caber — ajustar o tamanho da fonte
-ao espaço e ao comprimento do texto, sem estourar.
+Pontos de atenção: (a) **a largura da fita é a CONTAGEM (ou a medida), e a
+ordem das dimensões muda o que se vê** — como nas coordenadas paralelas,
+só se enxerga a relação entre eixos vizinhos; declarar a ordem e permitir
+trocá-la; (b) cruzamentos excessivos viram espaguete: ordenar as categorias
+de cada eixo para minimizar cruzamentos (heurística do baricentro, usada
+em grafos em camadas) e dizer que a ordem é automática; (c) **agrupar as
+categorias pequenas em "Outros" preservando o total** — a mesma regra do
+`pareto` e do `treemap_carteira`; (d) a fita precisa manter a identidade da
+combinação no tooltip (A→B→C e quantos), senão o gráfico é decorativo;
+(e) acima de ~4 dimensões ou ~12 categorias por dimensão, avisar.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/kpi_vivo.test.mjs` (a variação bate com a conta à mão; a base da
-comparação aparece na tela; "menor é melhor" inverte a cor sem inverter o
-sinal do número; período incompleto é denunciado; **e todo laço afirma que
-a lista não é vazia**), `npm test`, `npm run seguranca`, marcar em
-TAREFAS.md, commitar e seguir para o item 47 (`parallel_sets`).
+`test/parallel_sets.test.mjs` (a soma das larguras das fitas que saem de
+uma categoria é igual à largura da categoria — é a conservação que
+garante que nenhum caso se perdeu nem se duplicou; a ordenação por
+baricentro reduz o número de cruzamentos de verdade; **e todo laço afirma
+que a lista não é vazia**), `npm test`, `npm run seguranca`, marcar em
+TAREFAS.md, commitar e seguir para o item 48 (`arc_diagram`).
