@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 12:58:09 (commit `794dafb`).
+Gerado automaticamente pelo build em 2026-10-22 13:04:18 (commit `70de729`).
 
 ## Como cadastrar no Looker
 
@@ -34,6 +34,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `drawdown` | Drawdown | `dist/drawdown.js` | (vazio) | 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/drawdown.js` |
 | `retorno_acumulado` | Retorno Acumulado (Base 100) | `dist/retorno_acumulado.js` | (vazio) | 1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/retorno_acumulado.js` |
 | `fluxo_caixa` | Fluxo de Caixa | `dist/fluxo_caixa.js` | (vazio) | 1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/fluxo_caixa.js` |
+| `pareto` | Pareto | `dist/pareto.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/pareto.js` |
 
 ## Detalhes por visualização
 
@@ -207,3 +208,12 @@ Barras de entradas e saidas por periodo com a linha do saldo acumulado por cima 
 - **Explore**: 1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 167.8 KB
+
+### Pareto (`pareto`)
+
+Barras ordenadas da maior para a menor com a linha de percentual acumulado no eixo da direita e a marca dos 80 por cento.
+
+- **Tier**: 2
+- **Explore**: 1 dimensao (as categorias) e 1 medida. Nao aceita pivo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 171.9 KB

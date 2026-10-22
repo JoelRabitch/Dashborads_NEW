@@ -47,7 +47,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 17. `drawdown` — "Drawdown"
 - [x] 18. `retorno_acumulado` — "Retorno Acumulado (Base 100)"
 - [x] 19. `fluxo_caixa` — "Fluxo de Caixa"
-- [ ] 20. `pareto` — "Pareto"
+- [x] 20. `pareto` — "Pareto"
 - [ ] 21. `lorenz_gini` — "Curva de Lorenz / Gini"
 - [ ] 22. `treemap_carteira` — "Treemap de Carteira"
 - [ ] 23. `ponte_variacao` — "Ponte de Variação"

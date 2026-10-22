@@ -1,7 +1,7 @@
 /*!
  * Funis (Estilos) — visualização customizada para o Looker
  * id: funil_variacoes
- * versão: 0.1.0 | build: 2026-10-22 12:58:09 | commit: 794dafb
+ * versão: 0.1.0 | build: 2026-10-22 13:04:18 | commit: 70de729
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

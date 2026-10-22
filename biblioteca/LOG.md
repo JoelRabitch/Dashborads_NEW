@@ -910,17 +910,51 @@ gráfico — a produção checa antes. Corrigido no teste.
 Números: 19 gráficos construídos; 326/326 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 24 — `pareto` + eixo secundário no núcleo (TIER 2, item 20)
+
+Barras ordenadas da maior para a menor com a linha de percentual acumulado
+no eixo da direita e a marca dos 80%.
+
+Entrou no `core/eixos.js` o suporte a **eixo secundário**
+(`desenharEixoSecundario` + `espacoParaEixoSecundario`), que faltava e vai
+servir a qualquer gráfico que combine duas unidades no mesmo plano.
+
+Decisões:
+
+- **O eixo do acumulado vai sempre de 0 a 100%**, nunca ao intervalo dos
+  dados. É o que dá sentido à marca do corte e permite comparar dois
+  Paretos lado a lado.
+- **Valores negativos geram aviso.** O Pareto pressupõe valores positivos:
+  com negativos o acumulado deixa de ser crescente e "80% do total" não
+  quer dizer nada. O gráfico avisa em vez de desenhar algo plausível.
+- **A nota do rodapé traduz o gráfico numa frase** ("10 de 20 categorias
+  respondem por 83% do total"). É a conclusão que a pessoa vai repetir na
+  reunião; deixá-la implícita no desenho é desperdiçar o gráfico.
+
+Defeito achado na verificação: o balde **"Outros" ia fixo para o fim** e,
+sendo grande, quebrava a ordem decrescente — e com ela a monotonicidade da
+linha acumulada, que é justamente o que sustenta a leitura dos 80%. Na
+fixture `grande5k` (2.001 categorias com limite de 20), "Outros" somava
+1.981 categorias e virava a maior barra, jogada no fim.
+
+A correção foi devolver "Outros" à ordenação. E, quando ele cai entre as
+maiores barras, o gráfico avisa que o limite está escondendo a estrutura
+dos dados — porque aí o problema não é a ordem, é o recorte.
+
+Números: 20 gráficos construídos; 345/345 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 20: criar `src/charts/pareto/` ("Pareto"): barras ordenadas da
-maior para a menor com a linha de percentual ACUMULADO no eixo secundário,
-e a marca dos 80% (configurável) mostrando quantas categorias respondem por
-aquela fatia.
+TIER 2, item 21: criar `src/charts/lorenz_gini/` ("Curva de Lorenz /
+Gini"): eixo X com o percentual acumulado da POPULAÇÃO (categorias
+ordenadas da menor para a maior) e eixo Y com o percentual acumulado do
+VALOR, mais a linha de igualdade perfeita na diagonal e o coeficiente de
+Gini calculado pela área entre as duas curvas.
 
-Cuidados conhecidos: o eixo secundário vai de 0 a 100% e precisa de rótulo
-próprio (`core/eixos.js` hoje desenha um eixo Y só — avaliar se vale
-acrescentar suporte a eixo secundário na base, já que `pareto` e
-`fluxo_caixa` são os primeiros a pedir); e categorias com valor negativo
-quebram a leitura de Pareto, então vale avisar. Depois registrar em
+Cuidados conhecidos: a ordenação do Lorenz é CRESCENTE (o oposto do
+Pareto), valores negativos invalidam o índice (mesmo aviso do Pareto vale
+aqui), e o Gini deve ser calculado por trapézios sobre a curva — não pela
+fórmula de pares, que é O(n²) e trava com 5.000 linhas. Depois registrar em
 `config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
 marcar em TAREFAS.md e commitar.

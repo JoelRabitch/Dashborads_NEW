@@ -274,5 +274,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo."
+  },
+  {
+    "id": "pareto",
+    "label": "Pareto",
+    "tier": 2,
+    "arquivo": "../dist/pareto.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "rotulosLongos",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as categorias) e 1 medida. Nao aceita pivo."
   }
 ];

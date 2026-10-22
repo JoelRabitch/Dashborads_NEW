@@ -294,6 +294,21 @@
         "ohlc",
         "vazio"
       ]
+    },
+    {
+      "id": "pareto",
+      "label": "Pareto",
+      "tier": 2,
+      "pasta": "pareto",
+      "resumo": "Barras ordenadas da maior para a menor com a linha de percentual acumulado no eixo da direita e a marca dos 80 por cento.",
+      "explore": "1 dimensao (as categorias) e 1 medida. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

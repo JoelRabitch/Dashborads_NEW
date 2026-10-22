@@ -199,6 +199,64 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
   return { grupo };
 }
 
+/**
+ * Desenha um segundo eixo Y, à direita.
+ *
+ * Serve a gráficos que combinam duas unidades no mesmo plano — barras de
+ * valor com linha de percentual acumulado, por exemplo. A margem da direita
+ * precisa ter sido reservada antes: use `espacoParaEixoSecundario()` ao
+ * montar as margens, senão o eixo sai por cima do desenho.
+ */
+export function desenharEixoSecundario({ svg, escala, area, tema, formatar, titulo, cor }) {
+  const grupo = criarSvgEl('g', { pai: svg, classe: 'bl-eixo-secundario' });
+  const fonte = Math.max(8, (tema && tema.tamanhoBase) || 12) - 1;
+  const corDoTexto = cor || tema.textoSuave;
+  const x = area.esquerda + area.largura;
+
+  criarSvgEl('line', {
+    pai: grupo,
+    atributos: {
+      x1: x, x2: x, y1: area.cima, y2: area.cima + area.altura,
+      stroke: cor || tema.borda, 'stroke-width': 1,
+    },
+  });
+
+  for (const t of ticksDoEixo(escala, 5)) {
+    const y = escala(t);
+    if (!Number.isFinite(y)) continue;
+    const texto = criarSvgEl('text', {
+      pai: grupo,
+      atributos: {
+        x: x + 6, y, 'text-anchor': 'start', 'dominant-baseline': 'central',
+        'font-size': fonte, fill: corDoTexto,
+      },
+    });
+    definirTexto(texto, formatar ? formatar(t) : String(t));
+  }
+
+  if (titulo) {
+    const tx = x + fonte + 14;
+    const ty = area.cima + area.altura / 2;
+    const texto = criarSvgEl('text', {
+      pai: grupo,
+      atributos: {
+        x: tx, y: ty, 'text-anchor': 'middle', 'font-size': fonte, fill: corDoTexto,
+        transform: `rotate(90 ${tx} ${ty})`,
+      },
+    });
+    definirTexto(texto, titulo);
+  }
+
+  return { grupo };
+}
+
+/** Quanto reservar à direita para um eixo secundário caber. */
+export function espacoParaEixoSecundario(rotulos, tema, comTitulo = false) {
+  const fonte = Math.max(8, (tema && tema.tamanhoBase) || 12) - 1;
+  const maior = rotulos.reduce((a, t) => Math.max(a, larguraAproximada(t, fonte)), 0);
+  return Math.min(120, Math.max(30, maior + 12)) + (comTitulo ? fonte + 8 : 0);
+}
+
 /** Escalas de banda precisam do deslocamento até o meio da faixa. */
 function posicaoNoEixo(escala, valor, ehBanda) {
   const base = escala(valor);
