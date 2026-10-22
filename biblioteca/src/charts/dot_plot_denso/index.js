@@ -27,6 +27,8 @@ import {
   CSS_LISTA_VIRTUAL,
   criarListaVirtual,
   itemDoEvento,
+  montarEscala,
+  calcularDiferenca,
 } from '../_lista_virtual/index.js';
 import {
   montarOpcoes,
@@ -39,6 +41,11 @@ import {
   blocoDeTema,
   blocoAvancado,
 } from '../../core/options-kit.js';
+
+// A escala do trilho e a conta da diferença moram em `_lista_virtual/`,
+// que é a base desta família; os nomes continuam saindo daqui porque são
+// a superfície pública testada do gráfico.
+export { montarEscala, calcularDiferenca } from '../_lista_virtual/index.js';
 
 const CSS = `
 .dp-nome{flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -365,15 +372,6 @@ function nomeDaOrdem(modo) {
   return 'pela 1ª medida (maior primeiro)';
 }
 
-/** Diferença entre a última e a primeira medida, quando as duas existem. */
-export function calcularDiferenca(item) {
-  if (item.valores.length < 2) return null;
-  const primeiro = item.valores[0];
-  const ultimo = item.valores[item.valores.length - 1];
-  if (primeiro === null || ultimo === null) return null;
-  return ultimo - primeiro;
-}
-
 export function ordenarItens(itens, modo = 'primeira') {
   const valor = (item) => (item.valores[0] === null ? -Infinity : item.valores[0]);
 
@@ -396,55 +394,6 @@ export function ordenarItens(itens, modo = 'primeira') {
     itens.sort((a, b) => valor(b) - valor(a));
   }
   return itens;
-}
-
-/**
- * Escala do eixo.
- *
- * O ponto codifica POSIÇÃO, não comprimento — então cortar o eixo é
- * legítimo, e com valores próximos é a única forma de ver diferença. O que
- * não é legítimo é cortar em silêncio: quem chama recebe `comecaEmZero`
- * para declarar na tela.
- *
- * A folga de 4% em cada lado existe para o ponto do extremo não ficar
- * pela metade fora do trilho.
- */
-export function montarEscala({ valores, comecarEmZero = false, folga = 0.04 }) {
-  if (!valores.length) {
-    return { minimo: 0, maximo: 1, incluiZero: true, posicao: () => 0, marcas: [] };
-  }
-
-  let minimo = Math.min(...valores);
-  let maximo = Math.max(...valores);
-
-  if (comecarEmZero) minimo = Math.min(0, minimo);
-
-  if (minimo === maximo) {
-    // Todos iguais: sem um intervalo artificial, todo ponto cairia no
-    // mesmo pixel e a divisão por zero viraria NaN.
-    const passo = Math.abs(minimo) || 1;
-    minimo -= passo / 2;
-    maximo += passo / 2;
-  } else if (!comecarEmZero) {
-    const margem = (maximo - minimo) * folga;
-    minimo -= margem;
-    maximo += margem;
-  }
-
-  const extensao = maximo - minimo || 1;
-  const posicao = (v) =>
-    v === null || !Number.isFinite(v) ? null : (v - minimo) / extensao;
-
-  return {
-    minimo,
-    maximo,
-    // O que importa para o aviso não é "começa exatamente em zero", é se o
-    // eixo está CORTADO — se o zero ficou fora dele. Com valores negativos
-    // e base em zero, o eixo começa abaixo de zero e continua honesto.
-    incluiZero: minimo <= 0 && maximo >= 0,
-    posicao,
-    marcas: [0, 0.25, 0.5, 0.75, 1].map((p) => ({ p, valor: minimo + extensao * p })),
-  };
 }
 
 function montarLinha({

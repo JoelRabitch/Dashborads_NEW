@@ -1,7 +1,7 @@
 /*!
  * Dot Plot Denso — visualização customizada para o Looker
  * id: dot_plot_denso
- * versão: 0.1.0 | build: 2026-10-22 19:19:35 | commit: 219d394
+ * versão: 0.1.0 | build: 2026-10-22 19:23:37 | commit: 60310d4
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -2721,6 +2721,43 @@
     if (!Number.isFinite(posicao)) return null;
     return itens[posicao - 1] || null;
   }
+  function montarEscala({ valores, comecarEmZero = false, folga = 0.04 }) {
+    if (!valores.length) {
+      return { minimo: 0, maximo: 1, incluiZero: true, posicao: () => 0, marcas: [] };
+    }
+    let minimo = Math.min(...valores);
+    let maximo = Math.max(...valores);
+    if (comecarEmZero) minimo = Math.min(0, minimo);
+    if (minimo === maximo) {
+      const passo = Math.abs(minimo) || 1;
+      minimo -= passo / 2;
+      maximo += passo / 2;
+    } else if (!comecarEmZero) {
+      const margem = (maximo - minimo) * folga;
+      minimo -= margem;
+      maximo += margem;
+    }
+    const extensao = maximo - minimo || 1;
+    const posicao = (v) => v === null || !Number.isFinite(v) ? null : (v - minimo) / extensao;
+    return {
+      minimo,
+      maximo,
+      // O que importa para o aviso não é "começa exatamente em zero", é se o
+      // eixo está CORTADO — se o zero ficou fora dele. Com valores negativos
+      // e base em zero, o eixo começa abaixo de zero e continua honesto.
+      incluiZero: minimo <= 0 && maximo >= 0,
+      posicao,
+      marcas: [0, 0.25, 0.5, 0.75, 1].map((p) => ({ p, valor: minimo + extensao * p }))
+    };
+  }
+  function calcularDiferenca(item) {
+    if (!item || !item.valores || item.valores.length < 2) return null;
+    const primeiro = item.valores[0];
+    const ultimo = item.valores[item.valores.length - 1];
+    if (primeiro === null || ultimo === null) return null;
+    if (!Number.isFinite(primeiro) || !Number.isFinite(ultimo)) return null;
+    return ultimo - primeiro;
+  }
 
   // src/charts/dot_plot_denso/index.js
   var CSS = `
@@ -3008,13 +3045,6 @@
     if (modo === "consulta") return "da consulta";
     return "pela 1\xAA medida (maior primeiro)";
   }
-  function calcularDiferenca(item) {
-    if (item.valores.length < 2) return null;
-    const primeiro = item.valores[0];
-    const ultimo = item.valores[item.valores.length - 1];
-    if (primeiro === null || ultimo === null) return null;
-    return ultimo - primeiro;
-  }
   function ordenarItens(itens, modo = "primeira") {
     const valor = (item) => item.valores[0] === null ? -Infinity : item.valores[0];
     if (modo === "primeiraAsc") {
@@ -3034,35 +3064,6 @@
       itens.sort((a, b) => valor(b) - valor(a));
     }
     return itens;
-  }
-  function montarEscala({ valores, comecarEmZero = false, folga = 0.04 }) {
-    if (!valores.length) {
-      return { minimo: 0, maximo: 1, incluiZero: true, posicao: () => 0, marcas: [] };
-    }
-    let minimo = Math.min(...valores);
-    let maximo = Math.max(...valores);
-    if (comecarEmZero) minimo = Math.min(0, minimo);
-    if (minimo === maximo) {
-      const passo = Math.abs(minimo) || 1;
-      minimo -= passo / 2;
-      maximo += passo / 2;
-    } else if (!comecarEmZero) {
-      const margem = (maximo - minimo) * folga;
-      minimo -= margem;
-      maximo += margem;
-    }
-    const extensao = maximo - minimo || 1;
-    const posicao = (v) => v === null || !Number.isFinite(v) ? null : (v - minimo) / extensao;
-    return {
-      minimo,
-      maximo,
-      // O que importa para o aviso não é "começa exatamente em zero", é se o
-      // eixo está CORTADO — se o zero ficou fora dele. Com valores negativos
-      // e base em zero, o eixo começa abaixo de zero e continua honesto.
-      incluiZero: minimo <= 0 && maximo >= 0,
-      posicao,
-      marcas: [0, 0.25, 0.5, 0.75, 1].map((p) => ({ p, valor: minimo + extensao * p }))
-    };
   }
   function montarLinha({
     item,

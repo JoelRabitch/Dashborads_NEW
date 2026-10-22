@@ -2395,34 +2395,71 @@ waffle sobre a pizza — e o desenho continuaria colorido e plausível.
 Números: 52 gráficos construídos; 1.228/1.228 testes passando; checagem de
 segurança sem violação em 141 arquivos.
 
+### Etapa 57 — `dumbbell` (TIER 5, item 53)
+
+Duas medidas por categoria, ligadas por uma barra: o "antes e depois" item
+a item. É o primo do `slope_chart` com os eixos trocados — lá as
+categorias viram linhas inclinadas e a INCLINAÇÃO salta; aqui elas ficam
+empilhadas, o que acomoda muito mais itens e nomes longos. Cada um aponta
+o outro na nota.
+
+**O argumento mais interessante do gráfico é sobre o eixo cortado.** O
+ponto codifica POSIÇÃO, então cortar é legítimo (como no
+`dot_plot_denso`). Mas a BARRA entre os pontos é comprimento, e comprimento
+normalmente exige base zero (como no `lollipop` e no
+`barras_ranking_denso`). A exceção vale aqui, e o motivo é exato: **a
+barra representa a DIFERENÇA entre as duas medidas, e uma diferença não
+depende de onde o eixo começa.** O teste prova: num eixo cortado em
+[900, 1010], duas diferenças de 50 dão barras idênticas, e o dobro da
+diferença dá o dobro da barra. A nota explica isso em uma frase, porque é
+exatamente o tipo de coisa que o leitor atento vai querer conferir — e,
+sem a explicação, pareceria o mesmo erro que os outros gráficos da
+biblioteca denunciam.
+
+Terceira extração para `_lista_virtual/`: `montarEscala` e
+`calcularDiferenca` saíram do `dot_plot_denso` para a base, que agora é a
+família "lista com trilho". Os 20 testes do dot plot passam sem alteração.
+
+Detalhes com teste: pontas coincidentes NÃO viram barra (uma barra de
+largura mínima afirmaria uma diferença que não existe); ordenar pela
+diferença percentual manda para o fim quem começou em zero (não tem
+percentual calculável); e "menor é melhor" inverte a cor sem mexer em
+NENHUMA posição — o teste compara ponto a ponto nos dois modos.
+
+Números: 53 gráficos construídos; 1.255/1.255 testes passando; checagem de
+segurança sem violação em 143 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 53: criar `src/charts/dumbbell/` ("Halteres"): duas medidas
-por categoria, ligadas por uma barra — o gráfico de "antes e depois" por
-item.
+TIER 5, item 54: criar `src/charts/marimekko/` ("Marimekko") — **o último
+da lista**.
 
-É o primo do `slope_chart` (dois períodos, uma linha por item) com os
-eixos trocados: aqui as categorias ficam empilhadas e a comparação é
-horizontal, o que acomoda muito mais itens e nomes longos. A nota de cada
-um deve apontar o outro, como já fazem bump×slope.
+Barras empilhadas em que a LARGURA de cada coluna também é proporcional a
+um total: duas dimensões codificadas em área. Serve para "este segmento é
+grande, e dentro dele a composição é esta".
 
-Pontos de atenção: (a) reaproveitar `_lista_virtual/` quando houver muitas
-categorias (o `dot_plot_denso` já tem quase tudo — **se o código do par de
-pontos ligados for o mesmo, é o segundo da família e vale extrair**);
-(b) **o eixo pode ser cortado aqui** (é posição, como no dot plot), mas a
-BARRA entre os dois pontos é comprimento e representa a DIFERENÇA — e isso
-é legítimo mesmo com eixo cortado, porque a diferença não depende da
-origem; dizer isso na nota evita a dúvida; (c) ordenar por qualquer uma
-das pontas ou pela diferença (absoluta ou percentual), declarando;
-(d) cor por direção (subiu/desceu) com a mesma ressalva do `kpi_vivo`:
-precisa da opção "menor é melhor"; (e) quando as duas pontas coincidem, o
-haltere vira um ponto só — desenhar assim e não fingir uma barra de
-largura mínima.
+Pontos de atenção: (a) **a área de cada retângulo é o produto de duas
+proporções** — e é isso que torna o gráfico poderoso e perigoso: o olho
+compara áreas mal quando as formas têm proporções diferentes (um retângulo
+alto e fino contra um baixo e largo). Dizer na nota que a comparação
+confiável é dentro da mesma coluna (altura) ou entre larguras de colunas,
+não entre áreas de retângulos distantes; (b) conservação: a soma das
+larguras é 100% e, dentro de cada coluna, a soma das alturas é 100% —
+duas conservações para testar, como no `parallel_sets` e no `waffle`;
+(c) rótulos: a coluna estreita não comporta texto — desbastar e declarar;
+(d) valores negativos não cabem num empilhamento proporcional: recusar com
+explicação, como o `waffle`; (e) reaproveitar o corte em "Outros"
+preservando o total nas DUAS dimensões.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/dumbbell.test.mjs` (a barra liga exatamente os dois pontos; o
-comprimento é proporcional à diferença mesmo com eixo cortado; a cor
-acompanha a direção e "menor é melhor" inverte só a cor; **e todo laço
-afirma que a lista não é vazia**), `npm test`, `npm run seguranca`, marcar
-em TAREFAS.md, commitar e seguir para o item 54 (`marimekko`), que FECHA a
-lista.
+`test/marimekko.test.mjs` (as duas conservações; a área de um retângulo é
+o produto das duas proporções vezes a área total; nada se sobrepõe; **e
+todo laço afirma que a lista não é vazia**), `npm test`,
+`npm run seguranca`, marcar em TAREFAS.md, commitar.
+
+**Depois do item 54 a lista acaba.** Então, antes de responder ao usuário,
+fazer o que a seção 10 do PROMPT_AGENTE pede e ainda está pendente:
+registrar no LOG (a) o que o harness de testes NÃO cobre, (b) os cinco
+pontos que mais merecem revisão humana, e (c) o resumo final de feito /
+bloqueado / pendente. Conferir também se `README.md` e `docs/` da
+biblioteca refletem os 54 gráficos, e fazer um commit final com isso.

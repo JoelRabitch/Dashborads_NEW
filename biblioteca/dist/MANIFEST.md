@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 19:19:35 (commit `219d394`).
+Gerado automaticamente pelo build em 2026-10-22 19:23:37 (commit `60310d4`).
 
 ## Como cadastrar no Looker
 
@@ -67,6 +67,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `radial_bar` | Barras Radiais | `dist/radial_bar.js` | (vazio) | 1 dimensao (os aneis) e 1 medida (o angulo). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/radial_bar.js` |
 | `lollipop` | Grafico de Pirulito | `dist/lollipop.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/lollipop.js` |
 | `waffle` | Waffle | `dist/waffle.js` | (vazio) | 1 dimensao (as partes) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/waffle.js` |
+| `dumbbell` | Halteres | `dist/dumbbell.js` | (vazio) | 1 dimensao (o nome) e 2 medidas (o antes e o depois). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dumbbell.js` |
 
 ## Detalhes por visualização
 
@@ -419,7 +420,7 @@ Pontos de Cleveland para muitas categorias e varias medidas por linha, com rolag
 - **Tier**: 4
 - **Explore**: 1 dimensao (o nome) e 1 ou mais medidas.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 121.6 KB
+- **Tamanho do bundle**: 121.7 KB
 
 ### Coordenadas Paralelas (`parallel_coords`)
 
@@ -537,3 +538,12 @@ Grade de quadradinhos trocando comparacao de angulos por CONTAGEM, com a unidade
 - **Explore**: 1 dimensao (as partes) e 1 medida.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 122.8 KB
+
+### Halteres (`dumbbell`)
+
+Duas medidas por categoria ligadas por uma barra, com rolagem virtualizada; o eixo pode ser cortado porque a barra representa a DIFERENCA.
+
+- **Tier**: 5
+- **Explore**: 1 dimensao (o nome) e 2 medidas (o antes e o depois).
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 123.2 KB

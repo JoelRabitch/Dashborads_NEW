@@ -784,6 +784,21 @@
         "rotulosLongos",
         "vazio"
       ]
+    },
+    {
+      "id": "dumbbell",
+      "label": "Halteres",
+      "tier": 5,
+      "pasta": "dumbbell",
+      "resumo": "Duas medidas por categoria ligadas por uma barra, com rolagem virtualizada; o eixo pode ser cortado porque a barra representa a DIFERENCA.",
+      "explore": "1 dimensao (o nome) e 2 medidas (o antes e o depois).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "semPivo",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

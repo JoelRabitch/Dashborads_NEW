@@ -731,5 +731,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as partes) e 1 medida."
+  },
+  {
+    "id": "dumbbell",
+    "label": "Halteres",
+    "tier": 5,
+    "arquivo": "../dist/dumbbell.js",
+    "existe": true,
+    "fixtures": [
+      "ohlc",
+      "semPivo",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "1 dimensao (o nome) e 2 medidas (o antes e o depois)."
   }
 ];

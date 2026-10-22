@@ -179,3 +179,69 @@ export function itemDoEvento(ev, itens) {
   if (!Number.isFinite(posicao)) return null;
   return itens[posicao - 1] || null;
 }
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * Escala do eixo.
+ *
+ * O ponto codifica POSIÇÃO, não comprimento — então cortar o eixo é
+ * legítimo, e com valores próximos é a única forma de ver diferença. O que
+ * não é legítimo é cortar em silêncio: quem chama recebe `comecaEmZero`
+ * para declarar na tela.
+ *
+ * A folga de 4% em cada lado existe para o ponto do extremo não ficar
+ * pela metade fora do trilho.
+ */
+export function montarEscala({ valores, comecarEmZero = false, folga = 0.04 }) {
+  if (!valores.length) {
+    return { minimo: 0, maximo: 1, incluiZero: true, posicao: () => 0, marcas: [] };
+  }
+
+  let minimo = Math.min(...valores);
+  let maximo = Math.max(...valores);
+
+  if (comecarEmZero) minimo = Math.min(0, minimo);
+
+  if (minimo === maximo) {
+    // Todos iguais: sem um intervalo artificial, todo ponto cairia no
+    // mesmo pixel e a divisão por zero viraria NaN.
+    const passo = Math.abs(minimo) || 1;
+    minimo -= passo / 2;
+    maximo += passo / 2;
+  } else if (!comecarEmZero) {
+    const margem = (maximo - minimo) * folga;
+    minimo -= margem;
+    maximo += margem;
+  }
+
+  const extensao = maximo - minimo || 1;
+  const posicao = (v) =>
+    v === null || !Number.isFinite(v) ? null : (v - minimo) / extensao;
+
+  return {
+    minimo,
+    maximo,
+    // O que importa para o aviso não é "começa exatamente em zero", é se o
+    // eixo está CORTADO — se o zero ficou fora dele. Com valores negativos
+    // e base em zero, o eixo começa abaixo de zero e continua honesto.
+    incluiZero: minimo <= 0 && maximo >= 0,
+    posicao,
+    marcas: [0, 0.25, 0.5, 0.75, 1].map((p) => ({ p, valor: minimo + extensao * p })),
+  };
+}
+
+/**
+ * Diferença entre a última e a primeira medida de um item.
+ *
+ * `null` quando falta alguma das pontas: tratar ausência como zero
+ * afirmaria que a diferença é conhecida e nula, que é outra coisa.
+ */
+export function calcularDiferenca(item) {
+  if (!item || !item.valores || item.valores.length < 2) return null;
+  const primeiro = item.valores[0];
+  const ultimo = item.valores[item.valores.length - 1];
+  if (primeiro === null || ultimo === null) return null;
+  if (!Number.isFinite(primeiro) || !Number.isFinite(ultimo)) return null;
+  return ultimo - primeiro;
+}
