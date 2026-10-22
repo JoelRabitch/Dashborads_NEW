@@ -99,6 +99,35 @@
         "vazio",
         "somenteNulos"
       ]
+    },
+    {
+      "id": "funil_variacoes",
+      "label": "Funis (Estilos)",
+      "tier": 1,
+      "pasta": "funil_variacoes",
+      "resumo": "Funil em cinco estilos (classico, piramide, barras centralizadas, barras a esquerda e area continua) com taxa de conversao entre etapas.",
+      "explore": "1 dimensao com as etapas e 1 medida, ou varias medidas (uma por etapa). Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "funil_comparativo",
+      "label": "Funil Comparativo",
+      "tier": 1,
+      "pasta": "funil_comparativo",
+      "resumo": "Varios funis lado a lado, um por segmento, compartilhando a mesma escala para a largura ser comparavel entre segmentos.",
+      "explore": "1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "vazio"
+      ]
     }
   ]
 }

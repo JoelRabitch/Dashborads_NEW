@@ -526,13 +526,55 @@ Duas peças de infraestrutura que faltavam e entraram agora:
 Números: 6 gráficos construídos; 108/108 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 14 — `funil_variacoes` e `funil_comparativo` (TIER 1, itens 7 e 8)
+
+Como combinado, a base comum (`src/charts/_funil/`) saiu ANTES do segundo
+gráfico, não depois: leitura das etapas, cálculo das conversões e desenho
+de um funil dentro de um retângulo.
+
+Decisões:
+
+- **As etapas vêm de dois jeitos**: uma linha por etapa (dimensão + medida)
+  ou uma medida por etapa (quando o Explore já traz "visitas, cadastros,
+  compras" como colunas). Detectado sozinho, trocável à mão.
+- **Funil que SOBE no meio gera aviso**, não erro: não é bug nosso nem dado
+  inválido, mas quase sempre significa que a consulta não está na ordem
+  certa — e o usuário tem a opção de ordenar.
+- **Nome da etapa fica FORA do funil, à esquerda.** Dentro, ele brigaria
+  com o valor justamente nas etapas mais estreitas, que são as de baixo.
+- **No estilo "área" as etapas se encostam** (espaço forçado a zero e sem
+  contorno), senão o afunilamento vira degrau.
+- No comparativo, **todos os funis compartilham a mesma escala por padrão**.
+  Normalizar cada um pelo próprio topo compara TAXAS, mas esconde que um
+  segmento é dez vezes maior que o outro. As duas formas estão disponíveis;
+  a honesta é o padrão.
+- Acima de 8 segmentos o comparativo avisa e corta, em vez de desenhar
+  dezenas de funis ilegíveis.
+
+Dois defeitos meus, pegos antes do commit:
+
+1. O comparativo chamava `lerEtapas` **sem a chave do pivô**, então todos os
+   segmentos sairiam com valores IDÊNTICOS — bonito e errado, o pior tipo.
+   Virou o primeiro teste do arquivo.
+2. A "escala comum" estava implementada como um fator por etapa que o
+   desenhista simplesmente ignorava. Trocado por um parâmetro explícito
+   (`maximoDeReferencia`) no `desenharFunil`.
+
+Também aprendi a não escrever teste que indexa elementos assumindo que
+todos os funis têm o mesmo número de etapas — com dados reais não têm. O
+teste da escala agora conta quantas etapas "enchem a caixa", o que não
+depende disso.
+
+Números: 8 gráficos construídos; 135/135 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, itens 7 e 8: criar `src/charts/funil_variacoes/` ("Funis (Estilos)":
-funil clássico, pirâmide, barras alinhadas e funil de áreas, com taxa de
-conversão entre etapas) e `src/charts/funil_comparativo/` (dois ou mais
-funis lado a lado, comparando segmentos). Como nos quadrantes, extrair a
-base comum para `src/charts/_funil/` ANTES de escrever o segundo. Usar
-`core/series.js` para as etapas e `core/eixos.js` quando houver eixo.
-Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
-`npm run seguranca`, marcar em TAREFAS.md e commitar.
+TIER 1, itens 9 e 10: criar `src/charts/gauge_variacoes/` ("Medidores
+(Estilos)": arco, semicírculo, círculo completo, barra linear e bullet
+chart, com faixas coloridas, alvo e agulha) e `src/charts/gauge_grid/`
+("Medidores em Grade": um medidor por item de uma dimensão, em grade
+responsiva). Extrair a base para `src/charts/_medidor/` antes do segundo,
+como foi feito nos quadrantes e nos funis. Depois registrar em
+`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
+marcar em TAREFAS.md e commitar.

@@ -92,5 +92,32 @@ window.REGISTRO_BL = [
       "somenteNulos"
     ],
     "explore": "1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas."
+  },
+  {
+    "id": "funil_variacoes",
+    "label": "Funis (Estilos)",
+    "tier": 1,
+    "arquivo": "../dist/funil_variacoes.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "rotulosLongos",
+      "somenteNulos",
+      "vazio"
+    ],
+    "explore": "1 dimensao com as etapas e 1 medida, ou varias medidas (uma por etapa). Nao aceita pivo."
+  },
+  {
+    "id": "funil_comparativo",
+    "label": "Funil Comparativo",
+    "tier": 1,
+    "arquivo": "../dist/funil_comparativo.js",
+    "existe": true,
+    "fixtures": [
+      "comPivo",
+      "duasDimensoes",
+      "vazio"
+    ],
+    "explore": "1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos."
   }
 ];

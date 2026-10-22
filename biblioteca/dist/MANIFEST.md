@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 02:15:22 (commit `b661cb8`).
+Gerado automaticamente pelo build em 2026-10-22 02:20:49 (commit `2e5db10`).
 
 ## Como cadastrar no Looker
 
@@ -21,6 +21,8 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `matriz_2x2` | Matriz 2x2 | `dist/matriz_2x2.js` | (vazio) | 1 dimensão (o nome do item) e 2 medidas (os dois eixos). Opcionalmente uma terceira para o tamanho. Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/matriz_2x2.js` |
 | `matriz_bcg` | Matriz BCG | `dist/matriz_bcg.js` | (vazio) | 1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/matriz_bcg.js` |
 | `theme_river` | ThemeRiver | `dist/theme_river.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/theme_river.js` |
+| `funil_variacoes` | Funis (Estilos) | `dist/funil_variacoes.js` | (vazio) | 1 dimensao com as etapas e 1 medida, ou varias medidas (uma por etapa). Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/funil_variacoes.js` |
+| `funil_comparativo` | Funil Comparativo | `dist/funil_comparativo.js` | (vazio) | 1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/funil_comparativo.js` |
 
 ## Detalhes por visualização
 
@@ -77,3 +79,21 @@ Streamgraph: areas empilhadas com base ondulada (wiggle/silhouette) mostrando co
 - **Explore**: 1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas.
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 196.2 KB
+
+### Funis (Estilos) (`funil_variacoes`)
+
+Funil em cinco estilos (classico, piramide, barras centralizadas, barras a esquerda e area continua) com taxa de conversao entre etapas.
+
+- **Tier**: 1
+- **Explore**: 1 dimensao com as etapas e 1 medida, ou varias medidas (uma por etapa). Nao aceita pivo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 118.7 KB
+
+### Funil Comparativo (`funil_comparativo`)
+
+Varios funis lado a lado, um por segmento, compartilhando a mesma escala para a largura ser comparavel entre segmentos.
+
+- **Tier**: 1
+- **Explore**: 1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos.
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 130.7 KB

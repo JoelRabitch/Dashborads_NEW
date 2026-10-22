@@ -1,7 +1,7 @@
 /*!
  * ThemeRiver — visualização customizada para o Looker
  * id: theme_river
- * versão: 0.1.0 | build: 2026-10-22 02:15:22 | commit: b661cb8
+ * versão: 0.1.0 | build: 2026-10-22 02:20:49 | commit: 2e5db10
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
