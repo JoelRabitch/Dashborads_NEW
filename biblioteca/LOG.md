@@ -42,6 +42,7 @@ retomada de sessão (ver seção 11 do `PROMPT_AGENTE.md`).
 - [x] **Etapa 1** — esqueleto de `/biblioteca` (LOG, TAREFAS, PROMPT, .gitignore)
       + branch `agente/novas-viz` criado.
 - [x] **Etapa 2** — `package.json` com versões fixas conferidas e instaladas.
+- [x] **Etapa 3** — núcleo base: `dom.js`, `errors.js`, `theme.js`, `format.js`.
 
 ### Versões de build escolhidas (todas conferidas com `npm view`)
 
@@ -77,9 +78,25 @@ Decisões:
    também compatível, e são apenas ferramentas de build/teste — não entram no
    `dist/`.
 
+### Notas da etapa 3
+
+- `format.js` converte o `value_format` do Looker (sintaxe estilo Excel) para
+  `d3-format`. Testado com `#,##0`, `#,##0.00`, `$#,##0.00`, `"R$"#,##0.00`,
+  `0.0%`, `0%`, `#,##0,,"M"`, `#,##0.0,"K"`, `0.00`, vazio e lixo — todos
+  caem num resultado sensato (o que não reconhece usa o padrão).
+- **Bug encontrado e corrigido no próprio teste:** `new Date('2026-03-05')` é
+  interpretado como meia-noite UTC e, num fuso negativo (Brasil, UTC-3),
+  exibia 04/03. Agora datas sem fuso explícito são montadas componente a
+  componente (hora local). Ordenação temporal conferida.
+- Decisão: a exibição de célula prefere SEMPRE o texto já renderizado pelo
+  Looker (`rendered`); nossa formatação só entra em números que a própria
+  viz calcula (totais, médias, diferenças). Isso evita divergir da conta.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 3 (Tier 0): escrever os primeiros arquivos do núcleo em
-`src/core/`: `dom.js` (helpers seguros de DOM/SVG), `errors.js` (mensagens em
-português), `theme.js` (tokens de tema e paletas) e `format.js` (formatação de
-números/datas respeitando `value_format`).
+Etapa 4 (Tier 0): escrever `src/core/looker-adapter.js` — ÚNICO arquivo que
+toca `looker.*` e `LookerCharts.*`. Precisa expor `registrarVisualizacao`,
+`limparErros`, `mostrarErro`, `registrarOpcoes`, `atualizarConfig`,
+`textoDaCelula`, `htmlDaCelula`, `abrirDrill`, `abrirUrl` e `crossfilter`,
+cada um com detecção de recurso (`typeof`) e fallback com aviso no console.
+Registrar cada método usado em `docs/COMPAT.md` na etapa 13.
