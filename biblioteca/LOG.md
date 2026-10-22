@@ -46,6 +46,8 @@ retomada de sessão (ver seção 11 do `PROMPT_AGENTE.md`).
 - [x] **Etapa 4** — `looker-adapter.js` + `data-model.js` + `test/fixtures/`.
 - [x] **Etapa 5** — resto do núcleo: `options-kit`, `define-viz`, `scales`,
       `shapes`, `animate`, `tooltip`, `legend`, `interaction`.
+- [x] **Etapa 6** — `_template`, `config/charts.json`, `build/build.mjs` e
+      `build/checagem-seguranca.mjs`.
 
 ### Versões de build escolhidas (todas conferidas com `npm view`)
 
@@ -144,9 +146,22 @@ Desempenho conferido: modelo + extração de série com **50.000 linhas em
   arraste com `mousemove` solto trava quando o cursor sai da área).
 - Núcleo inteiro confere no import: 14 módulos carregam limpos.
 
+### Notas da etapa 6
+
+- Build conferido com o `_template`: bundle IIFE de 136 KB, **sem `require`
+  nem `import` externo**, com d3-scale e d3-scale-chromatic **embutidos**
+  (confirmado procurando `function ordinal(` e o hex `4e79a7` da paleta
+  Tableau no arquivo final). Ou seja: Dependencies do Looker fica VAZIO.
+- `build/checagem-seguranca.mjs` distingue CÓDIGO de COMENTÁRIO (tem um
+  mini-parser de strings/comentários). Assim o próprio arquivo que
+  *documenta* a lista de proibições não se auto-acusa, e os namespaces
+  `http://www.w3.org/...` do SVG são permitidos por serem identificadores
+  XML, não endereços buscados na rede.
+- Núcleo passou na checagem: 15 arquivos, 0 violações.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 6 (Tier 0): criar `src/charts/_template/index.js` (modelo de gráfico
-novo), `config/charts.json` (registro de gráficos) e `build/build.mjs`
-(esbuild → `dist/<id>.js` em IIFE não-minificado, com cabeçalho de id,
-label, versão, data e hash do commit, + `dist/MANIFEST.md`).
+Etapa 7 (Tier 0): criar `test/harness.html` (simulador do Looker com
+seletor de gráfico + seletor de fixture + editor de config) e
+`test/smoke.test.mjs` (carrega cada `dist/*.js` em jsdom e renderiza com as
+fixtures, conferindo que não há exceção e que `done()` é chamado).

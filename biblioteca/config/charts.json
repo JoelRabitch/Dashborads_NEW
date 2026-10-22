@@ -1,0 +1,15 @@
+{
+  "descricao": "Registro dos gráficos da biblioteca. Usado pelo build (gera dist/<id>.js e dist/MANIFEST.md), pelo harness e pelos testes. Para adicionar um gráfico novo, veja docs/COMO_ADICIONAR_GRAFICO.md.",
+  "graficos": [
+    {
+      "id": "tabela_completa",
+      "label": "Tabela Completa",
+      "tier": 1,
+      "pasta": "tabela_completa",
+      "resumo": "Tabela com pivôs agrupados, agrupamento de linhas, formatação condicional, tipos de célula (barras, sparklines, badges) e campos animados.",
+      "explore": "1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis).",
+      "aceitaPivo": true,
+      "fixtures": ["semPivo", "duasDimensoes", "comPivo", "temporal", "vazio", "somenteNulos", "rotulosLongos", "grande5k"]
+    }
+  ]
+}
