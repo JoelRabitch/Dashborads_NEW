@@ -217,13 +217,64 @@ export function regressaoLinear(pontos) {
   const intercepto = mediaY - inclinacao * mediaX;
   const r2 = syy === 0 ? 1 : (sxy * sxy) / (sxx * syy);
 
+  // Soma dos quadrados dos resíduos, pela identidade SQE = Syy − b·Sxy.
+  // O `max(0)` existe só por causa de erro de ponto flutuante quando o
+  // ajuste é perfeito: a conta pode dar −1e−12 e a raiz viraria NaN.
+  const sqe = Math.max(0, syy - inclinacao * sxy);
+  // Com n = 2 a reta passa exatamente pelos dois pontos e não sobra grau
+  // de liberdade para estimar o erro. Dizer isso é melhor que devolver 0,
+  // que seria lido como "ajuste perfeito e preciso".
+  const erroResidual = n > 2 ? Math.sqrt(sqe / (n - 2)) : null;
+
   return {
     n,
     inclinacao,
     intercepto,
     r2: Math.max(0, Math.min(1, r2)),
+    mediaX,
+    mediaY,
+    sxx,
+    syy,
+    sxy,
+    sqe,
+    erroResidual,
+    grausDeLiberdade: n - 2,
     previsto: (x) => intercepto + inclinacao * x,
   };
+}
+
+/**
+ * Quantil da distribuição t de Student, pela expansão de Cornish-Fisher
+ * sobre o quantil normal.
+ *
+ * A precisão é excelente de ν ≈ 5 para cima (erro < 0,1%) e se degrada nos
+ * graus de liberdade muito baixos: em ν = 2 o erro é de ~0,8%. Como
+ * qualquer gráfico que use isto já precisa avisar que n pequeno não
+ * sustenta inferência, a aproximação não é o elo fraco da corrente.
+ *
+ * @param {number} p de 0 a 1
+ * @param {number} gl graus de liberdade (> 0)
+ */
+export function quantilT(p, gl) {
+  if (!(p > 0 && p < 1) || !(gl > 0)) return null;
+  const z = quantilNormalPadrao(p);
+  if (z === null) return null;
+  if (gl > 1000) return z;
+
+  const z2 = z * z;
+  const z3 = z2 * z;
+  const z5 = z3 * z2;
+  const z7 = z5 * z2;
+  const z9 = z7 * z2;
+  const v = gl;
+
+  return (
+    z +
+    (z3 + z) / (4 * v) +
+    (5 * z5 + 16 * z3 + 3 * z) / (96 * v * v) +
+    (3 * z7 + 19 * z5 + 17 * z3 - 15 * z) / (384 * v * v * v) +
+    (79 * z9 + 776 * z7 + 1482 * z5 - 1920 * z3 - 945 * z) / (92160 * v * v * v * v)
+  );
 }
 
 /** Correlação de Pearson, de −1 a 1. */

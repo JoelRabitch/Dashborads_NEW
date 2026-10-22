@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 14:34:33 (commit `7499e9d`).
+Gerado automaticamente pelo build em 2026-10-22 14:44:09 (commit `0381f7b`).
 
 ## Como cadastrar no Looker
 
@@ -43,6 +43,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `ridgeline` | Ridgeline | `dist/ridgeline.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ridgeline.js` |
 | `beeswarm` | Beeswarm | `dist/beeswarm.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/beeswarm.js` |
 | `grafico_controle` | Grafico de Controle | `dist/grafico_controle.js` | (vazio) | 1 dimensao temporal (os periodos, em ordem) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/grafico_controle.js` |
+| `dispersao_regressao` | Dispersao com Regressao | `dist/dispersao_regressao.js` | (vazio) | 2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dispersao_regressao.js` |
 
 ## Detalhes por visualização
 
@@ -297,3 +298,12 @@ Linha central e limites de controle (Shewhart) com as regras de Nelson: separa v
 - **Explore**: 1 dimensao temporal (os periodos, em ordem) e 1 medida.
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 191.5 KB
+
+### Dispersao com Regressao (`dispersao_regressao`)
+
+Nuvem de pontos com reta ajustada, R2, equacao e banda de incerteza nomeada (da reta ou de predicao).
+
+- **Tier**: 3
+- **Explore**: 2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 168.7 KB

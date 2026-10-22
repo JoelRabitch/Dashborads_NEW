@@ -396,5 +396,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao temporal (os periodos, em ordem) e 1 medida."
+  },
+  {
+    "id": "dispersao_regressao",
+    "label": "Dispersao com Regressao",
+    "tier": 3,
+    "arquivo": "../dist/dispersao_regressao.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "grande5k",
+      "ohlc",
+      "vazio"
+    ],
+    "explore": "2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto."
   }
 ];

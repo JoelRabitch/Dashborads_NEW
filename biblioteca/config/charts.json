@@ -425,6 +425,21 @@
         "semPivo",
         "vazio"
       ]
+    },
+    {
+      "id": "dispersao_regressao",
+      "label": "Dispersao com Regressao",
+      "tier": 3,
+      "pasta": "dispersao_regressao",
+      "resumo": "Nuvem de pontos com reta ajustada, R2, equacao e banda de incerteza nomeada (da reta ou de predicao).",
+      "explore": "2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "grande5k",
+        "ohlc",
+        "vazio"
+      ]
     }
   ]
 }

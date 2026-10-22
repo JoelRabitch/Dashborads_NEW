@@ -1270,24 +1270,81 @@ sinal onde não há treina o usuário a ignorar o vermelho.
 Números: 28 gráficos construídos; 537/537 testes passando; checagem de
 segurança sem violação em 89 arquivos.
 
+### Etapa 33 — `dispersao_regressao` (TIER 3, item 29)
+
+Nuvem de pontos, reta por mínimos quadrados, R², equação e banda de
+incerteza. É o gráfico da biblioteca com mais maneiras de mentir, e cada
+uma ganhou tratamento próprio.
+
+**1. Reta sobre relação curva.** O desenho fica plausível, o R² pode até
+ser alto, e a reta está errada em toda a faixa. Os resíduos agora passam
+por um teste de corridas (Wald-Wolfowitz): ordenados por x, os sinais dos
+resíduos deveriam alternar ao acaso; numa relação curva eles se agrupam em
+trechos inteiros acima e abaixo da reta. Poucas corridas demais (z < −2) é
+exatamente essa assinatura — e é o tipo de coisa que o olho não pega
+quando o R² está alto. Testes nos dois sentidos: a parábola é denunciada
+(z ≈ −6), a reta com ruído não é. Abaixo de 20 pontos a aproximação normal
+do número de corridas não vale e o teste devolve `null` em vez de inventar
+sinal.
+
+**2. Banda da RETA confundida com banda de PREDIÇÃO.** A diferença entre
+`ŷ ± t·s·√(1/n + (x−x̄)²/Sxx)` e `ŷ ± t·s·√(1 + 1/n + …)` é aquele `1` — e
+ele muda tudo: a primeira encolhe quando n cresce, a segunda não, porque a
+variação individual não some por mais dados que se colete. São lidas como a
+mesma coisa o tempo todo, então a banda desenhada é sempre nomeada na nota,
+com a ressalva inteira ("onde a média está, não onde o próximo ponto cai").
+
+**3. R² alto com poucos pontos.** Com n = 4, R² = 0,9 é rotina em dados sem
+relação nenhuma. Abaixo de 10 pontos o gráfico avisa.
+
+E a de sempre, escrita na nota em toda renderização: correlação não é
+causalidade.
+
+Acréscimos em `core/estatistica.js`, ambos com teste próprio:
+- `regressaoLinear` passou a devolver `mediaX`, `sxx`, `syy`, `sxy`, `sqe`,
+  `erroResidual` e `grausDeLiberdade` — tudo o que a banda precisa. Com
+  n = 2 o `erroResidual` é `null`, não zero: a reta passa exatamente pelos
+  dois pontos e não sobra grau de liberdade; devolver zero seria lido como
+  "ajuste perfeito e preciso", que é o oposto da verdade. Sem ele, a banda
+  simplesmente não é desenhada.
+- `quantilT(p, gl)` pela expansão de Cornish-Fisher sobre o quantil normal.
+  Conferido contra seis pontos da tabela de t (erro < 0,005 de ν = 5 a 120)
+  e contra a convergência para 1,96 em ν grande.
+
+Opção de reta forçada pela origem, nunca padrão, com R² definido em torno
+da MÉDIA para continuar comparável com o do ajuste livre — a definição
+alternativa (em torno de zero) infla o número e faria a reta presa parecer
+melhor que a livre, o que é impossível. Há teste exigindo que a presa nunca
+ajuste melhor.
+
+Erro meu, pego pelo teste: `calcularBanda` com `passos: 0` fazia `i/passos`
+virar NaN e a banda inteira sumia sem erro nenhum. Agora o número de
+divisões tem piso 1.
+
+Números: 29 gráficos construídos; 571/571 testes passando; checagem de
+segurança sem violação em 91 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 29: criar `src/charts/dispersao_regressao/` ("Dispersão com
-Regressão"): nuvem de pontos com reta ajustada, R², equação e banda de
-confiança.
+TIER 3, item 30: criar `src/charts/qq_plot/` ("Q-Q Plot"): quantis
+observados contra quantis teóricos, com a reta de referência — o gráfico
+que responde "esses dados são normais?" melhor do que qualquer teste de
+hipótese, porque mostra ONDE eles deixam de ser.
 
-Pontos de atenção: (a) `core/estatistica.js` já tem `regressaoLinear` e
-`correlacaoDePearson` — reaproveitar, não reescrever; (b) o gráfico PRECISA
-dizer que correlação não é causalidade e que o R² alto com poucos pontos
-não significa nada (n < 10 merece aviso); (c) a banda de confiança da reta
-(±t·EP(ŷ)) é diferente da banda de predição — se desenhar uma, dizer qual,
-porque confundi-las é o erro mais comum do gráfico; (d) com mais de ~2.000
-pontos, canvas (reaproveitar o caminho do `beeswarm`/`quadrant_scatter`);
-(e) oferecer ajuste por mínimos quadrados e também a opção de não desenhar
-reta nenhuma, porque relação não-linear com reta em cima é desinformação.
+Pontos de atenção: (a) `core/estatistica.js` já tem `quantilNormalPadrao`
+(Acklam) e `quantil` (tipo 7) — reaproveitar; (b) a posição de plotagem
+importa e é escolha de método: usar `(i − 0,5)/n` (Hazen) ou
+`(i − 3/8)/(n + 1/4)` (Blom, melhor para normal) e DECLARAR qual, porque
+métodos diferentes movem as caudas; (c) a reta de referência pode ser pela
+média/desvio ou robusta pelos quartis — a segunda é melhor quando há
+outliers, e a diferença entre elas é informativa; (d) o gráfico precisa
+nomear o que a forma mostra: curva em S = caudas pesadas, curva em C =
+assimetria — sem isso o usuário vê pontos tortos e não sabe o que concluir;
+(e) oferecer também Q-Q contra uniforme/exponencial seria escopo demais
+agora: ficar na normal e dizer que é a normal.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/dispersao_regressao.test.mjs` (conferir coeficientes contra valores
-calculados à mão — uma reta exata deve dar R² = 1 e inclinação exata),
-`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
-para o item 30 (`qq_plot`).
+`test/qq_plot.test.mjs` (dados normais devem ficar quase na reta; dados
+exponenciais devem desviar de forma detectável — conferir contra os
+quantis teóricos, não contra "desenhou"), `npm test`, `npm run seguranca`,
+marcar em TAREFAS.md, commitar e seguir para o item 31 (`densidade_ecdf`).
