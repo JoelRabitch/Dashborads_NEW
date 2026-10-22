@@ -56,11 +56,24 @@ defineViz({
     blocoAvancado()
   ),
 
-  // Formato de dados exigido (validado pelo define-viz antes do render).
+  /**
+   * Formato de dados exigido (validado pelo define-viz ANTES do render).
+   *
+   * Este modelo declara `aceitaPivo: false` de propósito: ele lê valores
+   * com `modelo.extrairSerie()`, que só funciona sem pivô. Se o SEU gráfico
+   * aceitar pivô, mude para `true` e leia assim:
+   *
+   *   for (const pivo of modelo.pivotsDeDados) {
+   *     const v = modelo.valorNumerico(linha, medida.nome, pivo.chave);
+   *     // pivo.rotulo já vem pronto para a legenda
+   *   }
+   *   // e o total de linha calculado pelo Looker (quando existir):
+   *   const total = modelo.totalDaLinha(linha, medida.nome);
+   */
   exigencia: {
     dimensoesMin: 1,
     medidasMin: 1,
-    aceitaPivo: true,
+    aceitaPivo: false,
   },
 
   render(ctx) {

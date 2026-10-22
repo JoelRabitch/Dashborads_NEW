@@ -144,6 +144,49 @@ function gerarManifest(graficos, resultados, meta) {
   console.log('  [ok] MANIFEST.md');
 }
 
+/**
+ * Gera os arquivos auxiliares que o harness precisa.
+ *
+ * Por que isto existe: o harness roda por `file://`, e aí o navegador
+ * bloqueia tanto `fetch` quanto `import` de módulos ES. Então as fixtures e
+ * o registro de gráficos viram scripts clássicos com variável global, que
+ * o harness carrega com `<script src>`.
+ */
+async function gerarApoioDoHarness(graficos) {
+  const dirGerado = join(RAIZ, 'test', 'gerado');
+  if (!existsSync(dirGerado)) mkdirSync(dirGerado, { recursive: true });
+
+  // Fixtures como script clássico (window.FIXTURES_BL).
+  await build({
+    entryPoints: [join(RAIZ, 'test', 'fixtures', 'index.mjs')],
+    outfile: join(dirGerado, 'fixtures.js'),
+    bundle: true,
+    format: 'iife',
+    globalName: 'FIXTURES_BL',
+    platform: 'browser',
+    target: ['es2018'],
+    minify: false,
+    logLevel: 'warning',
+  });
+
+  // Registro de gráficos como script clássico (window.REGISTRO_BL).
+  const registro = graficos.map((g) => ({
+    id: g.id,
+    label: g.label,
+    tier: g.tier,
+    arquivo: `../dist/${g.id}.js`,
+    existe: existsSync(join(DIR_DIST, `${g.id}.js`)),
+    fixtures: g.fixtures || [],
+    explore: g.explore || '',
+  }));
+  writeFileSync(
+    join(dirGerado, 'registro.js'),
+    `/* Gerado por build.mjs — não edite à mão. */\nwindow.REGISTRO_BL = ${JSON.stringify(registro, null, 2)};\n`,
+    'utf8'
+  );
+  console.log('  [ok] test/gerado/fixtures.js e registro.js');
+}
+
 async function principal() {
   if (!existsSync(DIR_DIST)) mkdirSync(DIR_DIST, { recursive: true });
 
@@ -168,6 +211,7 @@ async function principal() {
   }
 
   gerarManifest(lerRegistro(), resultados, meta);
+  await gerarApoioDoHarness(lerRegistro());
 
   const construidos = resultados.filter((r) => r.construido).length;
   console.log(`Pronto: ${construidos}/${graficos.length} construído(s).`);

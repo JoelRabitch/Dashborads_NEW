@@ -48,6 +48,8 @@ retomada de sessão (ver seção 11 do `PROMPT_AGENTE.md`).
       `shapes`, `animate`, `tooltip`, `legend`, `interaction`.
 - [x] **Etapa 6** — `_template`, `config/charts.json`, `build/build.mjs` e
       `build/checagem-seguranca.mjs`.
+- [x] **Etapa 7** — `test/harness.html` + `test/smoke.test.mjs` (+ geração de
+      `test/gerado/fixtures.js` e `registro.js` pelo build).
 
 ### Versões de build escolhidas (todas conferidas com `npm view`)
 
@@ -159,9 +161,32 @@ Desempenho conferido: modelo + extração de série com **50.000 linhas em
   XML, não endereços buscados na rede.
 - Núcleo passou na checagem: 15 arquivos, 0 violações.
 
+### Notas da etapa 7
+
+- **Pipeline validado de ponta a ponta** com o `_template`: bundle gerado
+  pelo esbuild, carregado no jsdom como o Looker carregaria, registrado via
+  `looker.plugins.visualizations.add`, com **72 opções** compostas pelo kit,
+  renderizando sem exceção em 6 fixtures e chamando `done()` em todas.
+- O harness roda por `file://`, e aí o navegador bloqueia `fetch` e `import`
+  de módulo ES. Por isso o build gera `test/gerado/fixtures.js` e
+  `test/gerado/registro.js` como scripts clássicos com variável global.
+- O harness e o smoke test simulam `registerOptions` **substituindo** o
+  painel inteiro (igual ao Looker real), de propósito: assim um gráfico que
+  esqueça de mandar as opções estáticas junto quebra AQUI, não em produção.
+- O smoke test também simula `LookerCharts.Utils` **sem** `toggleCrossfilter`,
+  para exercitar o caminho "recurso não existe" do adapter.
+- `canvas` nativo está disponível nesta máquina, então gráficos em canvas são
+  testados com contexto 2D real.
+- Ajuste no `_template`: ele declarava `aceitaPivo: true` mas lia os dados com
+  `extrairSerie()`, que não entende pivô — com dados pivotados caía no estado
+  vazio silenciosamente. Passou a declarar `aceitaPivo: false` e ganhou um
+  comentário mostrando como ler pivô de verdade (`modelo.pivotsDeDados` +
+  `chaveDoPivo`), para não ensinar o padrão errado.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 7 (Tier 0): criar `test/harness.html` (simulador do Looker com
-seletor de gráfico + seletor de fixture + editor de config) e
-`test/smoke.test.mjs` (carrega cada `dist/*.js` em jsdom e renderiza com as
-fixtures, conferindo que não há exceção e que `done()` é chamado).
+Etapa 8 (Tier 0, última): escrever `docs/ARQUITETURA.md`, `docs/COMPAT.md`
+(com a tabela de cada método da API do Looker usado + o checklist "se a
+versão do Looker mudar"), `docs/COMO_ADICIONAR_GRAFICO.md`,
+`docs/CHANGELOG.md`, o `README.md` da biblioteca e o aviso no fim do
+`README.md` da raiz. Depois disso, começar o Tier 1 pelo `tabela_completa`.
