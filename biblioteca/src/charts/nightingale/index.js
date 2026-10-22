@@ -22,8 +22,13 @@ import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
 import { geradorDeArco } from '../../core/shapes.js';
 import { coresDaPaleta, comOpacidade, textoLegivelSobre } from '../../core/theme.js';
-import { formatadorDeValueFormat, formatarPercentual, formatarData, truncar } from '../../core/format.js';
+import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core/format.js';
 import { criarTooltip } from '../../core/tooltip.js';
+import { raioDoValor, areaDoSetor, lerFatias } from '../_polar/index.js';
+
+// A família polar mora em `_polar/`; estes nomes continuam saindo daqui
+// porque são a superfície pública testada do gráfico.
+export { raioDoValor, areaDoSetor, lerFatias } from '../_polar/index.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -386,74 +391,4 @@ function nomeDaOrdem(modo) {
   if (modo === 'valorAsc') return 'pelo valor (menor primeiro)';
   if (modo === 'alfabetica') return 'alfabética';
   return 'da consulta';
-}
-
-/**
- * Raio de uma fatia.
- *
- * - `area`: `r = √(r₀² + (R² − r₀²)·f)`. Com ângulos iguais, a área do
- *   setor é `θ(r² − r₀²)/2`, que sai proporcional a `f` — e `f` é o valor.
- *   É a conta que corrige o defeito do gráfico original.
- * - `raio`: `r = r₀ + (R − r₀)·f`. É o original, e a área cresce com o
- *   quadrado: dobrar o valor quadruplica a tinta. Existe como opção
- *   declarada, nunca como padrão.
- *
- * Valores negativos viram zero: num gráfico polar não existe raio
- * negativo, e desenhá-lo "para dentro" produziria uma fatia que parece
- * pequena em vez de parecer contrária.
- */
-export function raioDoValor({ valor, maior, raioMaximo, raioInterno = 0, modo = 'area' }) {
-  const r0 = Math.max(0, Math.min(raioInterno, raioMaximo));
-  if (!(maior > 0) || valor === null || !Number.isFinite(valor) || valor <= 0) return r0;
-
-  const f = Math.max(0, Math.min(1, valor / maior));
-  if (modo === 'raio') return r0 + (raioMaximo - r0) * f;
-  return Math.sqrt(r0 * r0 + (raioMaximo * raioMaximo - r0 * r0) * f);
-}
-
-/** Área do setor entre dois raios, para o ângulo dado. */
-export function areaDoSetor({ raio, raioInterno = 0, angulo }) {
-  return (angulo * (raio * raio - raioInterno * raioInterno)) / 2;
-}
-
-/**
- * Lê as fatias, somando as linhas de cada categoria.
- *
- * A ordem padrão é a da CONSULTA, e isso é deliberado: com meses ou dias
- * da semana, reordenar por valor destrói a leitura — a rosa deixa de ser
- * um calendário e vira um ranking circular, que é outro gráfico.
- */
-export function lerFatias({ modelo, medida, campoDaCategoria, config = {} }) {
-  const porChave = new Map();
-
-  for (let i = 0; i < modelo.linhas.length; i++) {
-    const linha = modelo.linhas[i];
-    const chave = String(modelo.valorBruto(linha, campoDaCategoria.nome));
-    if (!porChave.has(chave)) {
-      porChave.set(chave, {
-        chave,
-        rotulo: campoDaCategoria.ehData
-          ? formatarData(modelo.valorBruto(linha, campoDaCategoria.nome), config.formatoDeData || 'auto')
-          : modelo.texto(linha, campoDaCategoria.nome, undefined, '∅'),
-        valorBruto: 0,
-        indiceDaLinha: i,
-      });
-    }
-    const v = modelo.valorNumerico(linha, medida.nome);
-    if (v !== null && Number.isFinite(v)) porChave.get(chave).valorBruto += v;
-  }
-
-  const fatias = Array.from(porChave.values()).map((f) => ({
-    ...f,
-    // O valor DESENHADO nunca é negativo; o bruto fica para o tooltip e
-    // para o aviso.
-    valor: Math.max(0, f.valorBruto),
-  }));
-
-  const modo = config.ordem || 'consulta';
-  if (modo === 'valorDesc') fatias.sort((a, b) => b.valor - a.valor);
-  else if (modo === 'valorAsc') fatias.sort((a, b) => a.valor - b.valor);
-  else if (modo === 'alfabetica') fatias.sort((a, b) => a.rotulo.localeCompare(b.rotulo, 'pt-BR'));
-
-  return fatias;
 }

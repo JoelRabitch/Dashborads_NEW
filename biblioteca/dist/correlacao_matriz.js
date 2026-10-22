@@ -1,7 +1,7 @@
 /*!
  * Matriz de Correlacao — visualização customizada para o Looker
  * id: correlacao_matriz
- * versão: 0.1.0 | build: 2026-10-22 19:04:18 | commit: 6d8fc02
+ * versão: 0.1.0 | build: 2026-10-22 19:09:18 | commit: 7e9652d
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

@@ -690,5 +690,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as fatias) e 1 medida (o raio)."
+  },
+  {
+    "id": "radial_bar",
+    "label": "Barras Radiais",
+    "tier": 5,
+    "arquivo": "../dist/radial_bar.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "rotulosLongos",
+      "temporal",
+      "vazio"
+    ],
+    "explore": "1 dimensao (os aneis) e 1 medida (o angulo)."
   }
 ];

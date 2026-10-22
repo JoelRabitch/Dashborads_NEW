@@ -2285,31 +2285,69 @@ lado — sem negativos, o aviso NÃO pode aparecer (mesmo padrão do
 Números: 49 gráficos construídos; 1.152/1.152 testes passando; checagem de
 segurança sem violação em 134 arquivos.
 
+### Etapa 54 — base `_polar/` + `radial_bar` (TIER 5, item 50)
+
+**Extração, e desta vez por um motivo novo.** Eu tinha escrito o
+`radial_bar` importando `lerFatias` direto de `../nightingale/index.js` —
+e isso teria embutido a ROSA INTEIRA no bundle da barra radial, incluindo
+o `defineViz` dela: dois gráficos se registrando no mesmo arquivo, um
+deles sem ninguém ter pedido. Nenhum teste existente pegaria isso de
+imediato; o sintoma apareceria no Looker como uma visualização duplicada
+no menu. Daí `src/charts/_polar/`, com a leitura das fatias e as quatro
+funções de geometria circular. Os 16 testes do `nightingale` passam sem
+alteração.
+
+**Lição que vale para o resto da biblioteca:** um gráfico nunca importa de
+outro gráfico. Se o código é compartilhado, ele é de uma base `_`. Os
+arquivos registrados são folhas.
+
+**A barra radial é o avesso honesto da rosa.** Lá o risco era a ÁREA
+crescer com o quadrado do raio; aqui é o COMPRIMENTO: o arco mede
+`raio × ângulo`, então duas barras de mesmo valor em anéis diferentes têm
+tamanhos diferentes — a de fora parece maior, sempre. É estrutural e não
+tem conserto.
+
+O que dá para fazer, e foi feito: (a) o valor é codificado pelo ÂNGULO
+varrido, não pelo comprimento, e **todas as barras partem do mesmo zero**
+(mesma regra da base zero nas barras lineares, testada lendo o primeiro
+ponto de cada caminho); (b) a nota declara a distorção em toda
+renderização. E o teste PROVA que a distorção existe: mesmo valor,
+comprimento 157 no anel de raio 100 e 314 no de raio 200 — enquanto o
+ângulo é idêntico nos dois.
+
+Decisão registrada: o ângulo máximo padrão é 300°, não 360°. Com o círculo
+fechado, a maior barra encosta no próprio início e o olho não distingue
+fim de começo.
+
+Números: 50 gráficos construídos; 1.178/1.178 testes passando; checagem de
+segurança sem violação em 137 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 50: criar `src/charts/radial_bar/` ("Barras Radiais"):
-barras enroladas num círculo — cada categoria é um arco de raio fixo e
-ângulo (ou comprimento) proporcional ao valor.
+TIER 5, item 51: criar `src/charts/lollipop/` ("Gráfico de Pirulito"):
+uma haste fina até um círculo — a barra com menos tinta, de Tufte.
 
-**E a honestidade aqui é o avesso da do `nightingale`:** na barra radial o
-comprimento do arco depende do RAIO em que ele está. Duas barras do mesmo
-valor, em anéis diferentes, têm comprimentos diferentes — a de fora parece
-maior. É o defeito estrutural do gráfico e não tem conserto; o que dá para
-fazer é (a) usar ÂNGULO como medida (todas as barras começam no mesmo
-ângulo e o ângulo varrido é o valor, o que é comparável), e (b) dizer na
-nota que comprimentos em anéis diferentes não se comparam.
+É o mais simples dos que faltam, e a decisão honesta é pequena mas real:
+**o círculo marca o VALOR, e a haste parte do zero.** Muita implementação
+por aí desenha a haste a partir do mínimo dos dados (fica mais bonito) — e
+aí o pirulito vira um dot plot com um rabo decorativo, com a proporção
+distorcida como numa barra truncada. Se a haste existe, ela é
+comprimento; se é comprimento, começa no zero. A alternativa legítima é
+não ter haste (e aí é o `dot_plot_denso`, que já existe).
 
-Pontos de atenção: (a) reaproveitar `geradorDeArco` como no `nightingale`,
-agora com raio fixo por categoria e ângulo variável; (b) o ângulo máximo é
-uma decisão: 360° fecha o círculo e faz o maior valor encostar no próprio
-início (confunde); ~300° é o usual — oferecer e declarar; (c) rótulos no
-início de cada arco, dentro do "miolo" vazio; (d) escala angular: começar
-em zero é obrigatório pelo mesmo motivo das barras lineares; (e) acima de
-~25 categorias os anéis ficam mais finos que o rótulo — cortar com aviso.
+Pontos de atenção: (a) reaproveitar `_lista_virtual/` se houver muitas
+categorias, e `escalaDeBanda` se forem poucas; (b) orientação horizontal e
+vertical; (c) ordenação por valor com a opção de preservar a ordem da
+consulta (meses!); (d) comparação com uma segunda medida vira dois
+círculos ligados — mas isso é o `dumbbell` (item 53): aqui deixar só UMA
+medida e apontar o dumbbell na nota; (e) o tamanho do círculo é fixo, NÃO
+proporcional ao valor: a posição já codifica o valor, e codificar duas
+vezes com grandezas diferentes (posição e área) é o erro que faz o leitor
+somar as duas.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/radial_bar.test.mjs` (o ângulo varrido é proporcional ao valor e
-todas as barras começam no mesmo ângulo; o raio de cada anel é constante;
-a nota declara a ressalva do comprimento; **e todo laço afirma que a lista
-não é vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md,
-commitar e seguir para o item 51 (`lollipop`).
+`test/lollipop.test.mjs` (a haste vai do zero ao valor — teste de
+proporção como no `barras_ranking_denso`; o círculo está exatamente na
+ponta da haste; todos os círculos têm o mesmo tamanho; **e todo laço
+afirma que a lista não é vazia**), `npm test`, `npm run seguranca`, marcar
+em TAREFAS.md, commitar e seguir para o item 52 (`waffle`).

@@ -1,7 +1,7 @@
 /*!
  * Rosa de Nightingale — visualização customizada para o Looker
  * id: nightingale
- * versão: 0.1.0 | build: 2026-10-22 19:04:18 | commit: 6d8fc02
+ * versão: 0.1.0 | build: 2026-10-22 19:09:18 | commit: 7e9652d
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3373,6 +3373,46 @@
     };
   }
 
+  // src/charts/_polar/index.js
+  function raioDoValor({ valor, maior, raioMaximo, raioInterno = 0, modo = "area" }) {
+    const r0 = Math.max(0, Math.min(raioInterno, raioMaximo));
+    if (!(maior > 0) || valor === null || !Number.isFinite(valor) || valor <= 0) return r0;
+    const f = Math.max(0, Math.min(1, valor / maior));
+    if (modo === "raio") return r0 + (raioMaximo - r0) * f;
+    return Math.sqrt(r0 * r0 + (raioMaximo * raioMaximo - r0 * r0) * f);
+  }
+  function areaDoSetor({ raio, raioInterno = 0, angulo }) {
+    return angulo * (raio * raio - raioInterno * raioInterno) / 2;
+  }
+  function lerFatias({ modelo, medida, campoDaCategoria, config = {} }) {
+    const porChave = /* @__PURE__ */ new Map();
+    for (let i = 0; i < modelo.linhas.length; i++) {
+      const linha = modelo.linhas[i];
+      const chave = String(modelo.valorBruto(linha, campoDaCategoria.nome));
+      if (!porChave.has(chave)) {
+        porChave.set(chave, {
+          chave,
+          rotulo: campoDaCategoria.ehData ? formatarData(modelo.valorBruto(linha, campoDaCategoria.nome), config.formatoDeData || "auto") : modelo.texto(linha, campoDaCategoria.nome, void 0, "\u2205"),
+          valorBruto: 0,
+          indiceDaLinha: i
+        });
+      }
+      const v = modelo.valorNumerico(linha, medida.nome);
+      if (v !== null && Number.isFinite(v)) porChave.get(chave).valorBruto += v;
+    }
+    const fatias = Array.from(porChave.values()).map((f) => ({
+      ...f,
+      // O valor DESENHADO nunca é negativo; o bruto fica para o tooltip e
+      // para o aviso.
+      valor: Math.max(0, f.valorBruto)
+    }));
+    const modo = config.ordem || "consulta";
+    if (modo === "valorDesc") fatias.sort((a, b) => b.valor - a.valor);
+    else if (modo === "valorAsc") fatias.sort((a, b) => a.valor - b.valor);
+    else if (modo === "alfabetica") fatias.sort((a, b) => a.rotulo.localeCompare(b.rotulo, "pt-BR"));
+    return fatias;
+  }
+
   // src/charts/nightingale/index.js
   var CSS = `
 .ng-area{position:relative;width:100%;height:100%;overflow:hidden;}
@@ -3670,43 +3710,5 @@
     if (modo === "valorAsc") return "pelo valor (menor primeiro)";
     if (modo === "alfabetica") return "alfab\xE9tica";
     return "da consulta";
-  }
-  function raioDoValor({ valor, maior, raioMaximo, raioInterno = 0, modo = "area" }) {
-    const r0 = Math.max(0, Math.min(raioInterno, raioMaximo));
-    if (!(maior > 0) || valor === null || !Number.isFinite(valor) || valor <= 0) return r0;
-    const f = Math.max(0, Math.min(1, valor / maior));
-    if (modo === "raio") return r0 + (raioMaximo - r0) * f;
-    return Math.sqrt(r0 * r0 + (raioMaximo * raioMaximo - r0 * r0) * f);
-  }
-  function areaDoSetor({ raio, raioInterno = 0, angulo }) {
-    return angulo * (raio * raio - raioInterno * raioInterno) / 2;
-  }
-  function lerFatias({ modelo, medida, campoDaCategoria, config = {} }) {
-    const porChave = /* @__PURE__ */ new Map();
-    for (let i = 0; i < modelo.linhas.length; i++) {
-      const linha = modelo.linhas[i];
-      const chave = String(modelo.valorBruto(linha, campoDaCategoria.nome));
-      if (!porChave.has(chave)) {
-        porChave.set(chave, {
-          chave,
-          rotulo: campoDaCategoria.ehData ? formatarData(modelo.valorBruto(linha, campoDaCategoria.nome), config.formatoDeData || "auto") : modelo.texto(linha, campoDaCategoria.nome, void 0, "\u2205"),
-          valorBruto: 0,
-          indiceDaLinha: i
-        });
-      }
-      const v = modelo.valorNumerico(linha, medida.nome);
-      if (v !== null && Number.isFinite(v)) porChave.get(chave).valorBruto += v;
-    }
-    const fatias = Array.from(porChave.values()).map((f) => ({
-      ...f,
-      // O valor DESENHADO nunca é negativo; o bruto fica para o tooltip e
-      // para o aviso.
-      valor: Math.max(0, f.valorBruto)
-    }));
-    const modo = config.ordem || "consulta";
-    if (modo === "valorDesc") fatias.sort((a, b) => b.valor - a.valor);
-    else if (modo === "valorAsc") fatias.sort((a, b) => a.valor - b.valor);
-    else if (modo === "alfabetica") fatias.sort((a, b) => a.rotulo.localeCompare(b.rotulo, "pt-BR"));
-    return fatias;
   }
 })();

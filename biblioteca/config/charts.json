@@ -740,6 +740,21 @@
         "rotulosLongos",
         "vazio"
       ]
+    },
+    {
+      "id": "radial_bar",
+      "label": "Barras Radiais",
+      "tier": 5,
+      "pasta": "radial_bar",
+      "resumo": "Barras enroladas num circulo: o valor e o ANGULO varrido (nao o comprimento do arco, que depende do raio — e isso vai declarado).",
+      "explore": "1 dimensao (os aneis) e 1 medida (o angulo).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "temporal",
+        "vazio"
+      ]
     }
   ]
 }

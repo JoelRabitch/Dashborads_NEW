@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 19:04:18 (commit `6d8fc02`).
+Gerado automaticamente pelo build em 2026-10-22 19:09:18 (commit `7e9652d`).
 
 ## Como cadastrar no Looker
 
@@ -64,6 +64,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `parallel_sets` | Conjuntos Paralelos | `dist/parallel_sets.js` | (vazio) | 2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/parallel_sets.js` |
 | `arc_diagram` | Diagrama de Arcos | `dist/arc_diagram.js` | (vazio) | 2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arc_diagram.js` |
 | `nightingale` | Rosa de Nightingale | `dist/nightingale.js` | (vazio) | 1 dimensao (as fatias) e 1 medida (o raio). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/nightingale.js` |
+| `radial_bar` | Barras Radiais | `dist/radial_bar.js` | (vazio) | 1 dimensao (os aneis) e 1 medida (o angulo). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/radial_bar.js` |
 
 ## Detalhes por visualização
 
@@ -506,4 +507,13 @@ Fatias de angulo igual e raio variavel, com AREA proporcional ao valor por padra
 - **Tier**: 5
 - **Explore**: 1 dimensao (as fatias) e 1 medida (o raio).
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 140.5 KB
+- **Tamanho do bundle**: 140.6 KB
+
+### Barras Radiais (`radial_bar`)
+
+Barras enroladas num circulo: o valor e o ANGULO varrido (nao o comprimento do arco, que depende do raio — e isso vai declarado).
+
+- **Tier**: 5
+- **Explore**: 1 dimensao (os aneis) e 1 medida (o angulo).
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 140.6 KB
