@@ -1944,34 +1944,77 @@ passo 127,5 px.
 Números: 41 gráficos construídos; 925/925 testes passando; checagem de
 segurança sem violação em 117 arquivos.
 
+### Etapa 46 — `slope_chart` (TIER 4, item 42)
+
+Dois períodos, uma linha por item ligando os dois. O gráfico de Tufte para
+"o que mudou entre A e B".
+
+**A diferença para o `bump_chart` é a razão de os dois existirem.** Lá o
+eixo é a POSIÇÃO e a pergunta é "quem passou quem"; aqui o eixo é o VALOR,
+a inclinação É a variação, e a pergunta é "quanto mudou". Um item pode
+subir muito sem trocar de posição; outro pode trocar de lugar por uma
+diferença mínima. A nota de cada um aponta o outro — a biblioteca ganha
+mais ao ensinar a escolher do que ao ter os dois.
+
+**A anti-colisão dos rótulos preserva a ORDEM, e esse é o ponto.** Um
+algoritmo que procura o espaço livre mais próximo resolve a sobreposição
+trocando dois nomes de lugar — e aí o leitor liga o nome à linha errada
+sem ter como perceber. É um erro pior do que a sobreposição que se queria
+resolver. `resolverColisoes` faz três passadas (empurra para baixo, puxa de
+volta quem estourou o rodapé, prende no topo) e **nunca** inverte dois
+vizinhos; quando não há pixels para todos, o resultado fica comprimido e
+sobreposto, mas na ordem. Testado em três cenários apertados, inclusive
+com rótulos empilhados nas bordas.
+
+Testes que fecham o laço entre dado e desenho:
+- **A contagem da nota bate com o desenho.** A nota diz "3 subiram, 2
+  caíram"; o teste conta as linhas com `y2 < y1` e `y2 > y1` no SVG e exige
+  os mesmos números. Uma nota que descrevesse outro desenho seria pior que
+  nenhuma.
+- **A cor concorda com a geometria.** Quem sobe tem uma cor só, quem desce
+  tem outra, e as duas são diferentes. Se discordassem, metade dos leitores
+  leria a cor e metade leria a inclinação.
+- **A altura corresponde ao VALOR.** Como os rótulos trazem o valor
+  formatado, dá para conferir ponta a ponta: ordenando os rótulos de um
+  lado pela altura, os valores saem em ordem decrescente. É a diferença
+  estrutural para o bump chart, verificada no DOM — e, de quebra, confirma
+  que a anti-colisão não embaralhou nada.
+
+Decisões menores declaradas na tela: com mais de dois períodos, o gráfico
+usa o primeiro e o último e DIZ quantos ficaram de fora (ele some com tudo
+que está no meio); variação percentual sobre base zero não existe e as
+séries nessa situação aparecem sem percentual, com aviso; o estado do eixo
+(inclui o zero ou não) vai na nota, como no `dot_plot_denso`.
+
+Números: 42 gráficos construídos; 950/950 testes passando; checagem de
+segurança sem violação em 119 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 42: criar `src/charts/slope_chart/` ("Slope Chart"): dois
-períodos (ou dois cenários), uma linha por item ligando os dois — o
-gráfico de Tufte para "o que mudou entre A e B".
+TIER 4, item 43: criar `src/charts/horizon_chart/` ("Horizon Chart") — o
+último do TIER 4.
 
-É o irmão simples do `bump_chart`, e com uma diferença que é o ponto:
-**aqui o eixo é o VALOR, não a posição.** A inclinação da linha é a
-variação real, e é por isso que o slope responde "quanto mudou" onde o
-bump só responde "quem passou quem". Os dois juntos, na mesma biblioteca,
-dão ao usuário a escolha certa — e a nota de cada um deve apontar o outro.
+É a resposta de Heer/Kong/Agrawala para "como caber 30 séries temporais
+numa tela": a área é DOBRADA em faixas de mesma altura, e cada dobra ganha
+uma cor mais forte. Uma série que normalmente precisaria de 200 px cabe em
+25 px com a mesma leitura de pico e vale.
 
-Pontos de atenção: (a) com N itens, os rótulos nas duas pontas colidem —
-resolver com anti-colisão por empurrão vertical (algoritmo simples:
-ordenar por y, empurrar para baixo quem invade o anterior, depois
-re-centralizar o bloco), e não só desbastar; (b) destacar as linhas que
-SOBEM e as que DESCEM com cores diferentes é mais informativo do que uma
-cor por item; (c) ordenar/filtrar pelas maiores variações (absoluta ou
-percentual — e são perguntas diferentes: +1 sobre 2 é +50%, +1 sobre 1.000
-é +0,1%; oferecer as duas e declarar qual está em uso); (d) escala: aqui
-NÃO começar em zero é defensável (o foco é a variação), mas é preciso
-declarar, como no `dot_plot_denso`; (e) mais de ~2 períodos na consulta:
-usar o primeiro e o último e DIZER que foi isso que se fez.
+Pontos de atenção: (a) reaproveitar `_serie_temporal/` (leitura e hover) e
+`extrairMatriz`; (b) **o número de dobras é a decisão central** — 2 ou 3 é
+o recomendado pela pesquisa; acima de 4 a leitura piora, e isso deve estar
+na opção; (c) valores NEGATIVOS são espelhados para cima com outra cor
+(essa é a convenção), e é preciso declarar que o que parece um pico pode
+ser um vale profundo — sem isso o gráfico mente para quem não o conhece;
+(d) **todas as faixas compartilham a escala**, como no `small_multiples`,
+senão as alturas não se comparam; (e) a leitura é "quanto mais escuro,
+maior" — a legenda precisa mostrar as faixas e seus intervalos de valor,
+senão a cor não tem significado declarado; (f) canvas quando
+séries × períodos passar de ~20.000 células.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/slope_chart.test.mjs` (a inclinação corresponde à variação real; a
-anti-colisão não deixa dois rótulos se sobreporem E preserva a ORDEM
-vertical dos itens — empurrar sem preservar a ordem trocaria os nomes de
-lugar, que é pior que sobrepor; **e todo laço afirma que a lista não é
-vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar
-e seguir para o item 43 (`horizon_chart`), que fecha o TIER 4.
+`test/horizon_chart.test.mjs` (o valor dobrado cai na faixa certa — um
+valor de 2,5 bandas com 3 dobras produz as faixas 1, 2 e 3 com alturas
+previsíveis; negativo usa a cor espelhada; a escala é compartilhada entre
+as séries; **e todo laço afirma que a lista não é vazia**), `npm test`,
+`npm run seguranca`, marcar em TAREFAS.md, commitar. **Isso fecha o
+TIER 4** — em seguida, abrir o TIER 5 pelo item 44 (`bar_race`).

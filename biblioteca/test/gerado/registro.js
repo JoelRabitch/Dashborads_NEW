@@ -579,5 +579,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas)."
+  },
+  {
+    "id": "slope_chart",
+    "label": "Slope Chart",
+    "tier": 4,
+    "arquivo": "../dist/slope_chart.js",
+    "existe": true,
+    "fixtures": [
+      "comPivo",
+      "duasDimensoes",
+      "temporal",
+      "vazio"
+    ],
+    "explore": "1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas)."
   }
 ];

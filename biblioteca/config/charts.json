@@ -621,6 +621,21 @@
         "temporal",
         "vazio"
       ]
+    },
+    {
+      "id": "slope_chart",
+      "label": "Slope Chart",
+      "tier": 4,
+      "pasta": "slope_chart",
+      "resumo": "Dois periodos ligados por uma linha por item: o eixo e o VALOR, entao a inclinacao e a variacao real. Rotulos com anti-colisao que preserva a ordem.",
+      "explore": "1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:22:29 (commit `ed8812d`).
+Gerado automaticamente pelo build em 2026-10-22 18:27:33 (commit `2f3b5ad`).
 
 ## Como cadastrar no Looker
 
@@ -56,6 +56,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `dot_plot_denso` | Dot Plot Denso | `dist/dot_plot_denso.js` | (vazio) | 1 dimensao (o nome) e 1 ou mais medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dot_plot_denso.js` |
 | `parallel_coords` | Coordenadas Paralelas | `dist/parallel_coords.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/parallel_coords.js` |
 | `bump_chart` | Bump Chart | `dist/bump_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bump_chart.js` |
+| `slope_chart` | Slope Chart | `dist/slope_chart.js` | (vazio) | 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/slope_chart.js` |
 
 ## Detalhes por visualização
 
@@ -427,3 +428,12 @@ Evolucao do ranking ao longo do tempo: o eixo Y e a posicao, nao o valor — e o
 - **Explore**: 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 151.7 KB
+
+### Slope Chart (`slope_chart`)
+
+Dois periodos ligados por uma linha por item: o eixo e o VALOR, entao a inclinacao e a variacao real. Rotulos com anti-colisao que preserva a ordem.
+
+- **Tier**: 4
+- **Explore**: 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas).
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 145.3 KB

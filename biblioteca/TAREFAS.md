@@ -64,7 +64,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 
 - [x] 36. `heatmap_denso` · [x] 37. `small_multiples` · [x] 38. `barras_ranking_denso`
 - [x] 39. `dot_plot_denso` · [x] 40. `parallel_coords` · [x] 41. `bump_chart`
-- [ ] 42. `slope_chart` · [ ] 43. `horizon_chart`
+- [x] 42. `slope_chart` · [ ] 43. `horizon_chart`
 
 ## TIER 5 — demais
 

@@ -1,7 +1,7 @@
 /*!
  * Dispersao com Regressao — visualização customizada para o Looker
  * id: dispersao_regressao
- * versão: 0.1.0 | build: 2026-10-22 18:22:29 | commit: ed8812d
+ * versão: 0.1.0 | build: 2026-10-22 18:27:33 | commit: 2f3b5ad
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
