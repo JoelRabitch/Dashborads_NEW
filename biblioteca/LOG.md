@@ -803,17 +803,57 @@ padrão silenciosamente e não fazia nada. Corrigido nos dois gráficos.
 Números: 16 gráficos construídos; 267/267 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 21 — `drawdown` + `_serie_temporal` (TIER 2, item 17)
+
+Como combinado, a base saiu no SEGUNDO gráfico da família:
+**`src/charts/_serie_temporal/`** reúne a cena que `linha_bandas`,
+`drawdown`, `retorno_acumulado` e `fluxo_caixa` montam igual — eixo de
+categorias com rótulo de data, escalas, guia vertical no hover e tooltip que
+fala do PERÍODO inteiro, não de uma marca solta.
+
+O drawdown mostra quanto a série está abaixo do próprio máximo histórico. É
+o gráfico que responde "qual foi o pior tombo e quanto tempo levou para
+voltar" — duas perguntas que uma linha de valor absoluto esconde.
+
+Decisões:
+
+- **Topo não positivo não vira percentual.** A conta `valor / topo - 1`
+  exige topo positivo; com topo zero ou negativo o período sai NULO, em vez
+  de produzir um número plausível e inventado. Em valor absoluto a conta
+  continua valendo, e os dois casos têm teste.
+- **O zero está sempre no domínio do eixo**: ele é a linha do topo
+  histórico, a referência contra a qual todo o resto é lido.
+- **Períodos fora de ordem geram aviso.** O drawdown é cumulativo: um erro
+  de ordem contamina todos os períodos seguintes e o desenho continua
+  plausível. Só dá para checar quando a dimensão é de data — com categorias
+  de texto não existe "ordem certa".
+- **Com várias séries, a nota da pior queda diz de QUAL série fala.** A pior
+  queda é a pior entre todas, e costuma ser a de maior amplitude (volume,
+  por exemplo), não a principal. Sem o nome, o leitor atribui à série
+  errada — foi o que vi acontecer na fixture `ohlc`.
+- Série que nunca recuperou não ganha data de recuperação inventada.
+
+Defeito corrigido na base: sem legenda, ninguém limpava a raiz antes de
+desenhar (com legenda, quem limpa é o `criarLayoutComLegenda`). A ordem
+também importa — limpar DEPOIS de injetar o estilo levaria junto o `<style>`
+recém-criado.
+
+Dois erros meus nos testes, ambos pegos pela suíte: uma expectativa de
+drawdown absoluto escrita errada (`2 - 0` no lugar de `0`, num período que
+estabelece topo novo).
+
+Números: 17 gráficos construídos; 287/287 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 17: criar `src/charts/drawdown/` (queda acumulada desde o
-último topo: a série vira "quanto estou abaixo do máximo histórico", sempre
-≤ 0, desenhada como área vermelha para baixo, com o maior drawdown
-destacado e a duração da recuperação).
+TIER 2, item 18: criar `src/charts/retorno_acumulado/` ("Retorno Acumulado
+(Base 100)": cada série é reescalada para começar em 100 — ou no valor que o
+usuário escolher — e o gráfico passa a comparar CRESCIMENTO RELATIVO entre
+séries de magnitudes diferentes). Reaproveitar `_serie_temporal/`.
 
-Como combinado no TIER 1, **extrair `src/charts/_serie_temporal/` AGORA**,
-no segundo gráfico da família, com o que `linha_bandas` e `drawdown`
-compartilham: montagem do eixo de categorias com rótulo de data, escalas,
-guia vertical no hover e o tooltip por período. Os itens 18
-(`retorno_acumulado`) e 19 (`fluxo_caixa`) virão em cima dessa base.
-Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
-`npm run seguranca`, marcar em TAREFAS.md e commitar.
+Cuidados que já sei que vão aparecer: a base precisa ser o primeiro valor
+NÃO NULO de cada série (senão a série inteira vira nula), e primeiro valor
+zero ou negativo impede a normalização — nesse caso avisar em vez de
+dividir. Depois registrar em `config/charts.json`, buildar, rodar
+`npm test` e `npm run seguranca`, marcar em TAREFAS.md e commitar.

@@ -249,6 +249,21 @@
         "semPivo",
         "vazio"
       ]
+    },
+    {
+      "id": "drawdown",
+      "label": "Drawdown",
+      "tier": 2,
+      "pasta": "drawdown",
+      "resumo": "Quanto a serie esta abaixo do proprio maximo historico, periodo a periodo, com a pior queda destacada e a duracao da recuperacao.",
+      "explore": "1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "ohlc",
+        "temporal",
+        "comPivo",
+        "vazio"
+      ]
     }
   ]
 }

@@ -232,5 +232,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela."
+  },
+  {
+    "id": "drawdown",
+    "label": "Drawdown",
+    "tier": 2,
+    "arquivo": "../dist/drawdown.js",
+    "existe": true,
+    "fixtures": [
+      "ohlc",
+      "temporal",
+      "comPivo",
+      "vazio"
+    ],
+    "explore": "1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie)."
   }
 ];

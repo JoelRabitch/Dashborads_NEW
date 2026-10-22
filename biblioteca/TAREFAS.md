@@ -44,7 +44,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 
 - [x] 15. `candlestick_ohlc` — "Candlestick / OHLC"
 - [x] 16. `linha_bandas` — "Linha com Bandas"
-- [ ] 17. `drawdown` — "Drawdown"
+- [x] 17. `drawdown` — "Drawdown"
 - [ ] 18. `retorno_acumulado` — "Retorno Acumulado (Base 100)"
 - [ ] 19. `fluxo_caixa` — "Fluxo de Caixa"
 - [ ] 20. `pareto` — "Pareto"

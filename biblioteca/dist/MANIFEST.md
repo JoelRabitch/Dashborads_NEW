@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 12:44:29 (commit `aae872e`).
+Gerado automaticamente pelo build em 2026-10-22 12:49:06 (commit `6304a0d`).
 
 ## Como cadastrar no Looker
 
@@ -31,6 +31,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `upset_plot` | UpSet Plot | `dist/upset_plot.js` | (vazio) | Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/upset_plot.js` |
 | `candlestick_ohlc` | Candlestick / OHLC | `dist/candlestick_ohlc.js` | (vazio) | 1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/candlestick_ohlc.js` |
 | `linha_bandas` | Linha com Bandas | `dist/linha_bandas.js` | (vazio) | 1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/linha_bandas.js` |
+| `drawdown` | Drawdown | `dist/drawdown.js` | (vazio) | 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/drawdown.js` |
 
 ## Detalhes por visualização
 
@@ -177,3 +178,12 @@ Linha central com faixa de incerteza em volta, vinda de tres medidas, de um perc
 - **Explore**: 1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela.
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 200.2 KB
+
+### Drawdown (`drawdown`)
+
+Quanto a serie esta abaixo do proprio maximo historico, periodo a periodo, com a pior queda destacada e a duracao da recuperacao.
+
+- **Tier**: 2
+- **Explore**: 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie).
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 193.4 KB
