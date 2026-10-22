@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 02:46:08 (commit `d84eb5b`).
+Gerado automaticamente pelo build em 2026-10-22 12:44:29 (commit `aae872e`).
 
 ## Como cadastrar no Looker
 
@@ -30,6 +30,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `org_chart` | Organograma | `dist/org_chart.js` | (vazio) | Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/org_chart.js` |
 | `upset_plot` | UpSet Plot | `dist/upset_plot.js` | (vazio) | Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/upset_plot.js` |
 | `candlestick_ohlc` | Candlestick / OHLC | `dist/candlestick_ohlc.js` | (vazio) | 1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/candlestick_ohlc.js` |
+| `linha_bandas` | Linha com Bandas | `dist/linha_bandas.js` | (vazio) | 1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/linha_bandas.js` |
 
 ## Detalhes por visualização
 
@@ -167,3 +168,12 @@ Velas japonesas ou barras OHLC por periodo, com cores de alta e baixa, media mov
 - **Explore**: 1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 139.0 KB
+
+### Linha com Bandas (`linha_bandas`)
+
+Linha central com faixa de incerteza em volta, vinda de tres medidas, de um percentual fixo, do desvio padrao da serie ou do minimo/maximo entre as series do pivo.
+
+- **Tier**: 2
+- **Explore**: 1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela.
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 200.2 KB

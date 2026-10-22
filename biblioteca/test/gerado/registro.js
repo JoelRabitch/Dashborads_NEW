@@ -217,5 +217,20 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume."
+  },
+  {
+    "id": "linha_bandas",
+    "label": "Linha com Bandas",
+    "tier": 2,
+    "arquivo": "../dist/linha_bandas.js",
+    "existe": true,
+    "fixtures": [
+      "ohlc",
+      "temporal",
+      "comPivo",
+      "semPivo",
+      "vazio"
+    ],
+    "explore": "1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela."
   }
 ];

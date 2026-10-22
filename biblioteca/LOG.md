@@ -771,16 +771,49 @@ porque não distingue "desenhou pouco" de "desenhou o que devia".
 Números: 15 gráficos construídos; 249/249 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 20 — `linha_bandas` (TIER 2, item 16)
+
+Linha central com faixa de incerteza em volta. A banda vem de quatro
+lugares, e a diferença entre eles muda o que o gráfico AFIRMA:
+
+- **três medidas** da consulta — único modo em que a banda é um dado;
+- **percentual fixo** (±X%) — ilustração, não medição;
+- **desvio padrão** da própria série — cálculo nosso;
+- **mín/máx entre as séries do pivô**, com a linha sendo a média delas.
+
+Decisão que considero a mais importante deste gráfico: **quando a banda é
+calculada e não medida, o gráfico diz isso na tela**, numa nota no canto.
+Uma faixa de ±10% desenhada sem ressalva passa por intervalo de confiança —
+e aí o gráfico está afirmando uma precisão que ninguém mediu. Tem teste
+exigindo a nota nos modos "percentual" e "desvio", e exigindo a AUSÊNCIA
+dela quando a banda vem de três medidas.
+
+- **Limite inferior acima do superior**: os dois são trocados, a banda
+  continua saindo e o usuário é avisado. Escolher os campos ao contrário é
+  fácil; desenhar uma banda invertida em silêncio é que não pode.
+- **O padrão automático ordena as três medidas pela MÉDIA**, em vez de
+  pegá-las por posição. Por posição, a fixture `ohlc` (abertura, máxima,
+  mínima) sairia com a banda invertida já na primeira renderização,
+  recebendo o usuário com um aviso de erro que era nosso, não dele.
+
+Defeito achado de raspão: `theme_river` oferecia a curva `catmullRom`, mas o
+nome registrado em `core/shapes.js` é `catmull` — então a opção caía no
+padrão silenciosamente e não fazia nada. Corrigido nos dois gráficos.
+
+Números: 16 gráficos construídos; 267/267 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 16: criar `src/charts/linha_bandas/` ("Linha com Bandas":
-uma linha central com uma faixa de mínimo/máximo ou de intervalo em volta,
-lendo três medidas — inferior, central e superior). Usar `core/eixos.js`,
-`core/series.js` e `core/shapes.js` (`geradorDeArea`).
+TIER 2, item 17: criar `src/charts/drawdown/` (queda acumulada desde o
+último topo: a série vira "quanto estou abaixo do máximo histórico", sempre
+≤ 0, desenhada como área vermelha para baixo, com o maior drawdown
+destacado e a duração da recuperação).
 
-Ao escrever o item 17 (`drawdown`), extrair `src/charts/_serie_temporal/`
-com o que `linha_bandas`, `drawdown`, `retorno_acumulado` e `fluxo_caixa`
-compartilham — o padrão de extrair a base no SEGUNDO gráfico da família foi
-o que mais rendeu no TIER 1. Depois registrar em `config/charts.json`,
-buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
-commitar.
+Como combinado no TIER 1, **extrair `src/charts/_serie_temporal/` AGORA**,
+no segundo gráfico da família, com o que `linha_bandas` e `drawdown`
+compartilham: montagem do eixo de categorias com rótulo de data, escalas,
+guia vertical no hover e o tooltip por período. Os itens 18
+(`retorno_acumulado`) e 19 (`fluxo_caixa`) virão em cima dessa base.
+Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
+`npm run seguranca`, marcar em TAREFAS.md e commitar.

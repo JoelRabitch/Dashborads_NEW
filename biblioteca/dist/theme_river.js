@@ -1,7 +1,7 @@
 /*!
  * ThemeRiver — visualização customizada para o Looker
  * id: theme_river
- * versão: 0.1.0 | build: 2026-10-22 02:46:08 | commit: d84eb5b
+ * versão: 0.1.0 | build: 2026-10-22 12:44:29 | commit: aae872e
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -5170,7 +5170,7 @@
             values: listaDeValores([
               { rotulo: "Bem suave (basis)", valor: "basis" },
               { rotulo: "Suave sem ultrapassar (monotone)", valor: "monotone" },
-              { rotulo: "Catmull-Rom", valor: "catmullRom" },
+              { rotulo: "Catmull-Rom", valor: "catmull" },
               { rotulo: "Reta", valor: "linear" }
             ])
           },

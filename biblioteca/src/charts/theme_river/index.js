@@ -101,7 +101,7 @@ export default defineViz({
           values: listaDeValores([
             { rotulo: 'Bem suave (basis)', valor: 'basis' },
             { rotulo: 'Suave sem ultrapassar (monotone)', valor: 'monotone' },
-            { rotulo: 'Catmull-Rom', valor: 'catmullRom' },
+            { rotulo: 'Catmull-Rom', valor: 'catmull' },
             { rotulo: 'Reta', valor: 'linear' },
           ]),
         },

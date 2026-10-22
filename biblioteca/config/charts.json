@@ -233,6 +233,22 @@
         "ohlc",
         "vazio"
       ]
+    },
+    {
+      "id": "linha_bandas",
+      "label": "Linha com Bandas",
+      "tier": 2,
+      "pasta": "linha_bandas",
+      "resumo": "Linha central com faixa de incerteza em volta, vinda de tres medidas, de um percentual fixo, do desvio padrao da serie ou do minimo/maximo entre as series do pivo.",
+      "explore": "1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "ohlc",
+        "temporal",
+        "comPivo",
+        "semPivo",
+        "vazio"
+      ]
     }
   ]
 }

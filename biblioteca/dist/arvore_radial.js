@@ -1,7 +1,7 @@
 /*!
  * Árvore Radial — visualização customizada para o Looker
  * id: arvore_radial
- * versão: 0.1.0 | build: 2026-10-22 02:46:08 | commit: d84eb5b
+ * versão: 0.1.0 | build: 2026-10-22 12:44:29 | commit: aae872e
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

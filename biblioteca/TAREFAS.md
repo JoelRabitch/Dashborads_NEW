@@ -43,7 +43,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 ## TIER 2 — financeiros
 
 - [x] 15. `candlestick_ohlc` — "Candlestick / OHLC"
-- [ ] 16. `linha_bandas` — "Linha com Bandas"
+- [x] 16. `linha_bandas` — "Linha com Bandas"
 - [ ] 17. `drawdown` — "Drawdown"
 - [ ] 18. `retorno_acumulado` — "Retorno Acumulado (Base 100)"
 - [ ] 19. `fluxo_caixa` — "Fluxo de Caixa"
