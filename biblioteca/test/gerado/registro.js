@@ -522,5 +522,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas)."
+  },
+  {
+    "id": "barras_ranking_denso",
+    "label": "Barras de Ranking Denso",
+    "tier": 4,
+    "arquivo": "../dist/barras_ranking_denso.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "grande5k",
+      "rotulosLongos",
+      "vazio"
+    ],
+    "explore": "1 dimensao (o nome) e 1 medida (a barra)."
   }
 ];

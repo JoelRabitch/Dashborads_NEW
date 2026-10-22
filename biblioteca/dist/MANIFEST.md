@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 17:59:50 (commit `8a608c4`).
+Gerado automaticamente pelo build em 2026-10-22 18:05:19 (commit `35c2d09`).
 
 ## Como cadastrar no Looker
 
@@ -52,6 +52,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `boxplot_avancado` | Boxplot Avancado | `dist/boxplot_avancado.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/boxplot_avancado.js` |
 | `heatmap_denso` | Heatmap Denso | `dist/heatmap_denso.js` | (vazio) | 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/heatmap_denso.js` |
 | `small_multiples` | Small Multiples | `dist/small_multiples.js` | (vazio) | 1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/small_multiples.js` |
+| `barras_ranking_denso` | Barras de Ranking Denso | `dist/barras_ranking_denso.js` | (vazio) | 1 dimensao (o nome) e 1 medida (a barra). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/barras_ranking_denso.js` |
 
 ## Detalhes por visualização
 
@@ -387,3 +388,12 @@ Grade de mini-graficos, um por serie, todos na MESMA escala — o que torna as f
 - **Explore**: 1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 171.6 KB
+
+### Barras de Ranking Denso (`barras_ranking_denso`)
+
+Milhares de barras ordenadas com rolagem virtualizada, barra sempre a partir do zero e posicao no ranking preservada na busca.
+
+- **Tier**: 4
+- **Explore**: 1 dimensao (o nome) e 1 medida (a barra).
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 117.7 KB

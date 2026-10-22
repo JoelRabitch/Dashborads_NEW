@@ -1753,30 +1753,76 @@ no teste.
 Números: 37 gráficos construídos; 811/811 testes passando; checagem de
 segurança sem violação em 108 arquivos.
 
+### Etapa 42 — `barras_ranking_denso` (TIER 4, item 38)
+
+O "top N" quando o N é grande demais para caber: milhares de barras
+ordenadas, com rolagem virtualizada — só as visíveis existem no DOM.
+Medido: 5.000 itens, 44 linhas no DOM.
+
+**Duas regras que não são opcionais, e as duas quebram em silêncio:**
+
+1. **A barra começa em ZERO.** Com valores entre 900 e 1.000 e base
+   truncada, 1.000 parece o dobro de 950 — e o desenho continua
+   perfeitamente plausível. Não existe opção para isso. O teste mede:
+   começando em zero, 950 ocupa 95% do trilho e 1.000 ocupa 100%, que é a
+   diferença real. Quando há negativos, o zero vai para a posição
+   proporcional e as barras crescem para os dois lados — sempre a partir
+   dele.
+2. **A posição no ranking sobrevive à busca.** Renumerar o resultado
+   filtrado é o comportamento padrão da maioria das tabelas, e faz o 437º
+   virar "o 1º". Quem busca "Produto X" quer saber exatamente que ele é o
+   437º. A posição é atribuída depois de ordenar e nunca mais muda; o teste
+   busca um nome e confere que as posições voltam 42, 2688 e 3333, não
+   1, 2, 3.
+
+Terceira promessa, essa técnica: a virtualização desenha pouco, mas a
+**altura total reservada corresponde a TODOS os itens** — senão a barra de
+rolagem mente sobre quanto falta e metade da lista fica inalcançável. O
+teste confere `altura === total × alturaDaLinha` e que as linhas visíveis
+estão em sequência, sem buracos e espaçadas pela própria altura.
+
+Detalhes: rótulo dentro da barra quando cabe (com `textoLegivelSobre`, não
+com a cor do tema, senão some sobre a barra escura) e fora quando não cabe;
+busca sem resultado diz por quê em vez de ficar em branco; acima de 50 mil
+itens o gráfico recusa, porque aí a ordenação sozinha já pesa.
+
+Decisão registrada: **nenhuma fixture da biblioteca tem medida negativa.**
+Em vez de deixar o teste de "zero no meio" passar vazio (foi o erro do
+SPLOM nesta mesma sessão), o caso com negativos é testado na geometria
+pura, onde é exato, e o teste de render passou a exigir o OUTRO lado: sem
+negativos, nenhuma barra começa deslocada e o aviso de escala simétrica
+NÃO pode aparecer. Vale como padrão para o resto do TIER 4 — quando a
+fixture não alcança um caminho, testar a função pura e, no render, provar
+que o caminho não foi tomado por engano.
+
+Números: 38 gráficos construídos; 836/836 testes passando; checagem de
+segurança sem violação em 110 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 38: criar `src/charts/barras_ranking_denso/` ("Barras de
-Ranking Denso"): centenas ou milhares de barras ordenadas, com rolagem
-virtualizada — o "top N" quando o N é grande demais para caber.
+TIER 4, item 39: criar `src/charts/dot_plot_denso/` ("Dot Plot Denso"):
+pontos em vez de barras, para comparar MUITAS categorias — e, o caso mais
+útil, duas ou três medidas por categoria no mesmo eixo.
 
-Pontos de atenção: (a) **virtualização**, como em `tabela_completa`: só as
-barras visíveis existem no DOM, com espaçadores em cima e embaixo; o
-`tabela_completa` já resolveu isso — ler como ele faz antes de escrever
-(`src/charts/tabela_completa/`); (b) a barra tem de começar em ZERO, sempre
-— num ranking, barra truncada inverte a percepção de proporção, e isso não
-pode ser opcional; (c) rótulo dentro da barra quando cabe, fora quando não,
-com cor de texto legível sobre o fundo (`textoLegivelSobre` já existe);
-(d) destacar posições: top N, o item buscado, e os que cruzam uma
-referência (média, meta); (e) campo de busca filtrando por nome, com
-`criarFiltroDeBusca` de `core/interaction.js`, mantendo a POSIÇÃO original
-no ranking visível (quem busca "Produto X" quer saber que ele é o 437º, não
-o 1º da lista filtrada — esconder isso seria a mentira deste gráfico);
-(f) acima de ~50 mil barras, recusar com explicação.
+Por que pontos: com 300 categorias, barras viram uma mancha de tinta e a
+diferença entre elas some; um ponto por valor mantém a leitura e deixa
+espaço para várias medidas na mesma linha. É o gráfico de Cleveland.
+
+Pontos de atenção: (a) reaproveitar a virtualização recém-escrita no
+`barras_ranking_denso` — se o código for o mesmo, **extrair para
+`_lista_virtual/`** agora (é o segundo da família, e a regra já se pagou
+várias vezes); (b) **aqui a escala NÃO precisa começar em zero**, e isso é
+o contrário da regra do item 38: um ponto codifica POSIÇÃO, não
+comprimento, então cortar o eixo é legítimo e muitas vezes necessário —
+mas precisa ser declarado, porque o leitor treinado em barras lê distância
+da borda; (c) linha de conexão entre os pontos da mesma categoria quando há
+2+ medidas (vira um dumbbell, item 53 — deixar a base pronta); (d) ordenar
+por qualquer uma das medidas, ou pela diferença entre duas, declarando por
+qual; (e) busca com posição preservada, como no item 38.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/barras_ranking_denso.test.mjs` (a virtualização mostra só o visível
-mas a ALTURA TOTAL do conteúdo corresponde a todas as barras; a largura da
-barra é proporcional ao valor a partir de zero; a posição no ranking
-sobrevive ao filtro; **e todo laço afirma que a lista não é vazia**),
-`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
-para o item 39 (`dot_plot_denso`).
+`test/dot_plot_denso.test.mjs` (a posição do ponto corresponde ao valor na
+escala declarada; com eixo cortado, o aviso aparece; a ordenação por
+diferença ordena mesmo pela diferença; **e todo laço afirma que a lista não
+é vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar
+e seguir para o item 40 (`parallel_coords`).

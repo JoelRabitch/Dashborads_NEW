@@ -560,6 +560,21 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "barras_ranking_denso",
+      "label": "Barras de Ranking Denso",
+      "tier": 4,
+      "pasta": "barras_ranking_denso",
+      "resumo": "Milhares de barras ordenadas com rolagem virtualizada, barra sempre a partir do zero e posicao no ranking preservada na busca.",
+      "explore": "1 dimensao (o nome) e 1 medida (a barra).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "grande5k",
+        "rotulosLongos",
+        "vazio"
+      ]
     }
   ]
 }
