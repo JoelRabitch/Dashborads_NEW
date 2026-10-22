@@ -40,7 +40,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
   );
   assert.ok(chamouDone, 'done() precisa ser chamado sempre');
 
-  const rotulos = Array.from(palco.querySelectorAll('.qs-rotulo-quadrante')).map((t) => t.textContent);
+  const rotulos = Array.from(palco.querySelectorAll('.qd-rotulo-quadrante')).map((t) => t.textContent);
   const contagens = rotulos
     .map((t) => /\((\d+)\)\s*$/.exec(t))
     .filter(Boolean)
@@ -135,7 +135,7 @@ test('quadrant_scatter — eixos e pontos chegam ao DOM', (t) => {
     assert.ok(r.palco.querySelectorAll('.bl-eixos text').length >= 4, 'faltaram rótulos nos eixos');
     assert.ok(r.palco.querySelector('canvas'), 'os pontos precisam de um canvas');
     assert.ok(
-      r.palco.querySelectorAll('.qs-rotulo-ponto').length > 0,
+      r.palco.querySelectorAll('.qd-rotulo-ponto').length > 0,
       'os pontos mais distantes do cruzamento precisam vir rotulados'
     );
   } finally {

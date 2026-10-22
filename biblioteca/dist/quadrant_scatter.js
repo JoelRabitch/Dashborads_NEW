@@ -1,7 +1,7 @@
 /*!
  * Dispersão com Quadrantes — visualização customizada para o Looker
  * id: quadrant_scatter
- * versão: 0.1.0 | build: 2026-10-22 02:02:48 | commit: 1333097
+ * versão: 0.1.0 | build: 2026-10-22 02:10:47 | commit: dc22bb8
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -575,7 +575,7 @@
     cacheDeFormatadores.set(chave, fn);
     return fn;
   }
-  function criarFormatadorNumerico(opcoes2 = {}) {
+  function criarFormatadorNumerico(opcoes = {}) {
     const {
       estilo = "auto",
       casas = 2,
@@ -583,7 +583,7 @@
       sufixo = "",
       separadorDeMilhar = true,
       simboloDaMoeda = "R$ "
-    } = opcoes2;
+    } = opcoes;
     const sep = separadorDeMilhar ? "," : "";
     const casasSeguras = Math.max(0, Math.min(10, Number(casas) || 0));
     let base;
@@ -790,13 +790,13 @@
       const c = valorDoCampo[CHAVE_TOTAL_DE_LINHA];
       return c ? numeroOuNulo(c.value) : null;
     }
-    function extrairSerie(opcoes2 = {}) {
+    function extrairSerie(opcoes = {}) {
       const {
         dimensao = dimensoes[0] && dimensoes[0].nome,
         medida = medidas[0] && medidas[0].nome,
         limite = Infinity,
         tratamentoDeNulos = "omitir"
-      } = opcoes2;
+      } = opcoes;
       const itens = [];
       let nulosIgnorados = 0;
       for (let i = 0; i < linhas.length && itens.length < limite; i++) {
@@ -1814,7 +1814,7 @@
     }
     return saida;
   }
-  function blocoDeCores(opcoes2 = {}) {
+  function blocoDeCores(opcoes = {}) {
     const {
       comPaleta = true,
       comEscalaPorValor = true,
@@ -1822,7 +1822,7 @@
       comContorno = true,
       opacidadePadrao = 1,
       secao = "Cores"
-    } = opcoes2;
+    } = opcoes;
     const bloco = {};
     if (comPaleta) {
       bloco.paleta = {
@@ -1970,8 +1970,8 @@
     }
     return bloco;
   }
-  function blocoDeEixos(opcoes2 = {}) {
-    const { secao = "Eixos", eixos = ["x", "y"], comEixoSecundario = false } = opcoes2;
+  function blocoDeEixos(opcoes = {}) {
+    const { secao = "Eixos", eixos = ["x", "y"], comEixoSecundario = false } = opcoes;
     const bloco = {};
     const nomes = { x: "X (horizontal)", y: "Y (vertical)" };
     for (const eixo of eixos) {
@@ -2071,8 +2071,8 @@
     };
     return bloco;
   }
-  function blocoDeRotulos(opcoes2 = {}) {
-    const { secao = "R\xF3tulos", padraoVisivel = true, comPosicao = true, comValor = true } = opcoes2;
+  function blocoDeRotulos(opcoes = {}) {
+    const { secao = "R\xF3tulos", padraoVisivel = true, comPosicao = true, comValor = true } = opcoes;
     const bloco = {
       mostrarRotulos: {
         type: "boolean",
@@ -2183,8 +2183,8 @@
     }
     return bloco;
   }
-  function blocoDeTooltip(opcoes2 = {}) {
-    const { secao = "Intera\xE7\xE3o" } = opcoes2;
+  function blocoDeTooltip(opcoes = {}) {
+    const { secao = "Intera\xE7\xE3o" } = opcoes;
     return {
       mostrarTooltip: { type: "boolean", label: "Mostrar tooltip", section: secao, default: true },
       tooltipPersonalizado: {
@@ -2214,8 +2214,8 @@
       }
     };
   }
-  function blocoDeTema(opcoes2 = {}) {
-    const { secao = "Tema" } = opcoes2;
+  function blocoDeTema(opcoes = {}) {
+    const { secao = "Tema" } = opcoes;
     return {
       tema: {
         type: "string",
@@ -2293,8 +2293,8 @@
       }
     };
   }
-  function blocoAvancado(opcoes2 = {}) {
-    const { secao = "Avan\xE7ado" } = opcoes2;
+  function blocoAvancado(opcoes = {}) {
+    const { secao = "Avan\xE7ado" } = opcoes;
     return {
       modoDebug: {
         type: "boolean",
@@ -2317,8 +2317,8 @@
       }
     };
   }
-  function opcaoDeEscolhaDeCampo(chave, rotulo, campos, opcoes2 = {}) {
-    const { secao = "Dados", incluirNenhum = false, padrao = null } = opcoes2;
+  function opcaoDeEscolhaDeCampo(chave, rotulo, campos, opcoes = {}) {
+    const { secao = "Dados", incluirNenhum = false, padrao = null } = opcoes;
     const valores = [];
     if (incluirNenhum) valores.push({ "(nenhum)": "" });
     for (const campo of campos) valores.push({ [campo.rotulo]: campo.nome });
@@ -2379,22 +2379,22 @@
     }
     return el;
   }
-  function criarEl(tag, opcoes2 = {}) {
+  function criarEl(tag, opcoes = {}) {
     const el = document.createElement(tag);
-    if (opcoes2.classe) el.className = opcoes2.classe;
-    if (opcoes2.texto !== void 0) definirTexto(el, opcoes2.texto);
-    if (opcoes2.estilos) aplicarEstilos(el, opcoes2.estilos);
-    if (opcoes2.atributos) aplicarAtributos(el, opcoes2.atributos);
-    if (opcoes2.pai) opcoes2.pai.appendChild(el);
+    if (opcoes.classe) el.className = opcoes.classe;
+    if (opcoes.texto !== void 0) definirTexto(el, opcoes.texto);
+    if (opcoes.estilos) aplicarEstilos(el, opcoes.estilos);
+    if (opcoes.atributos) aplicarAtributos(el, opcoes.atributos);
+    if (opcoes.pai) opcoes.pai.appendChild(el);
     return el;
   }
-  function criarSvgEl(tag, opcoes2 = {}) {
+  function criarSvgEl(tag, opcoes = {}) {
     const el = document.createElementNS(NS_SVG, tag);
-    if (opcoes2.classe) el.setAttribute("class", opcoes2.classe);
-    if (opcoes2.texto !== void 0) definirTexto(el, opcoes2.texto);
-    if (opcoes2.estilos) aplicarEstilos(el, opcoes2.estilos);
-    if (opcoes2.atributos) aplicarAtributos(el, opcoes2.atributos);
-    if (opcoes2.pai) opcoes2.pai.appendChild(el);
+    if (opcoes.classe) el.setAttribute("class", opcoes.classe);
+    if (opcoes.texto !== void 0) definirTexto(el, opcoes.texto);
+    if (opcoes.estilos) aplicarEstilos(el, opcoes.estilos);
+    if (opcoes.atributos) aplicarAtributos(el, opcoes.atributos);
+    if (opcoes.pai) opcoes.pai.appendChild(el);
     return el;
   }
   function prepararCanvas(canvas, largura, altura) {
@@ -2451,10 +2451,10 @@
   function criarGerenciadorDeEventos() {
     const registros = [];
     return {
-      on(alvo, tipo, handler, opcoes2) {
+      on(alvo, tipo, handler, opcoes) {
         if (!alvo || !alvo.addEventListener) return;
-        alvo.addEventListener(tipo, handler, opcoes2);
-        registros.push({ alvo, tipo, handler, opcoes: opcoes2 });
+        alvo.addEventListener(tipo, handler, opcoes);
+        registros.push({ alvo, tipo, handler, opcoes });
       },
       limpar() {
         for (const r of registros) {
@@ -2490,7 +2490,7 @@
     const {
       id,
       label,
-      opcoes: opcoes2 = {},
+      opcoes = {},
       exigencia = {},
       opcoesDinamicas = null,
       render,
@@ -2502,7 +2502,7 @@
     const definicao = {
       id,
       label,
-      options: opcoes2,
+      options: opcoes,
       create(element, _config) {
         limpar(element);
         injetarEstilo(element, CSS_BASE, "bl-base");
@@ -2541,7 +2541,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes: opcoes2, exigencia, opcoesDinamicas, render, aoDestruir },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir },
             data,
             element,
             config,
@@ -2550,7 +2550,7 @@
           });
         } catch (erro) {
           try {
-            const ponte = criarPonte(this, opcoes2);
+            const ponte = criarPonte(this, opcoes);
             const titulo = erro && erro.titulo || "Erro na visualiza\xE7\xE3o";
             const mensagem = erro && (erro.mensagem || erro.message) || String(erro);
             ponte.mostrarErro(titulo, mensagem);
@@ -2585,8 +2585,8 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes: opcoes2, exigencia, opcoesDinamicas, render } = declaracao;
-    const ponte = criarPonte(this, opcoes2);
+    const { id, opcoes, exigencia, opcoesDinamicas, render } = declaracao;
+    const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
       definicaoCreateManual.call(this, element);
@@ -3468,10 +3468,10 @@
       const maior = rotulosY.reduce((a, t) => Math.max(a, larguraAproximada(t, fonte)), 0);
       esquerda = Math.min(140, Math.max(28, maior + 14));
     }
-    if (config.tituloDoEixoY) esquerda += fonte + 6;
+    if (config.tituloEixoY) esquerda += fonte + 6;
     let baixo = 8;
     if (mostrarX) {
-      const girar = Number(config.rotacaoDosRotulosX) || 0;
+      const girar = Number(config.rotacaoRotuloEixoX) || 0;
       if (girar) {
         const maior = rotulosX.reduce((a, t) => Math.max(a, larguraAproximada(t, fonte)), 0);
         const radianos = Math.abs(girar) * Math.PI / 180;
@@ -3480,7 +3480,7 @@
         baixo = fonte + 16;
       }
     }
-    if (config.tituloDoEixoX) baixo += fonte + 6;
+    if (config.tituloEixoX) baixo += fonte + 6;
     const direita = mostrarX ? Math.max(10, larguraAproximada(rotulosX[rotulosX.length - 1] || "", fonte) / 2) : 10;
     return { esquerda, direita: Math.min(60, direita), cima: 12, baixo, fonte };
   }
@@ -3489,9 +3489,9 @@
     const fonte = Math.max(8, tema && tema.tamanhoBase || 12) - 1;
     const corDoTexto = tema.textoSuave;
     const corDaGrade = tema.grade;
-    const ticksX = rotulosDeBanda || ticksDoEixo(escalaX, Number(config.quantidadeDeTicksX) || 6);
-    const ticksY = ticksDoEixo(escalaY, Number(config.quantidadeDeTicksY) || 5);
-    if (config.mostrarGradeHorizontal !== false) {
+    const ticksX = rotulosDeBanda || ticksDoEixo(escalaX, Number(config.ticksEixoX) || 6);
+    const ticksY = ticksDoEixo(escalaY, Number(config.ticksEixoY) || 5);
+    if (config.gradeEixoY !== false) {
       for (const t of ticksY) {
         const y = escalaY(t);
         if (!Number.isFinite(y)) continue;
@@ -3508,7 +3508,7 @@
         });
       }
     }
-    if (config.mostrarGradeVertical) {
+    if (config.gradeEixoX) {
       for (const t of ticksX) {
         const x = posicaoNoEixo(escalaX, t, rotulosDeBanda);
         if (!Number.isFinite(x)) continue;
@@ -3567,7 +3567,7 @@
           "stroke-width": 1
         }
       });
-      const girar = Number(config.rotacaoDosRotulosX) || 0;
+      const girar = Number(config.rotacaoRotuloEixoX) || 0;
       for (const t of ticksX) {
         const x = posicaoNoEixo(escalaX, t, rotulosDeBanda);
         if (!Number.isFinite(x)) continue;
@@ -3585,7 +3585,7 @@
         definirTexto(texto, formatarX ? formatarX(t) : String(t));
       }
     }
-    if (config.tituloDoEixoY) {
+    if (config.tituloEixoY) {
       const x = 10;
       const y = area.cima + area.altura / 2;
       const texto = criarSvgEl("text", {
@@ -3599,9 +3599,9 @@
           transform: `rotate(-90 ${x} ${y})`
         }
       });
-      definirTexto(texto, config.tituloDoEixoY);
+      definirTexto(texto, config.tituloEixoY);
     }
-    if (config.tituloDoEixoX) {
+    if (config.tituloEixoX) {
       const texto = criarSvgEl("text", {
         pai: grupo,
         atributos: {
@@ -3612,7 +3612,7 @@
           fill: corDoTexto
         }
       });
-      definirTexto(texto, config.tituloDoEixoX);
+      definirTexto(texto, config.tituloEixoX);
     }
     return { grupo };
   }
@@ -4256,420 +4256,209 @@
     return melhor;
   }
 
-  // src/charts/quadrant_scatter/index.js
-  var CSS = `
-.qs-area{position:relative;width:100%;height:100%;}
-.qs-canvas{position:absolute;left:0;top:0;}
-.qs-svg{position:absolute;left:0;top:0;pointer-events:none;}
-.qs-rotulo-quadrante{font-weight:600;opacity:.75;}
-.qs-rotulo-ponto{pointer-events:none;}
+  // src/charts/_quadrantes/index.js
+  var CSS_QUADRANTES = `
+.qd-area{position:relative;width:100%;height:100%;}
+.qd-canvas{position:absolute;left:0;top:0;}
+.qd-svg{position:absolute;left:0;top:0;pointer-events:none;}
+.qd-rotulo-quadrante{font-weight:600;opacity:.8;}
+.qd-rotulo-ponto{pointer-events:none;}
 `;
   var MODOS_DE_DIVISORIA = [
     { rotulo: "M\xE9dia", valor: "media" },
     { rotulo: "Mediana", valor: "mediana" },
     { rotulo: "Ponto m\xE9dio entre m\xEDnimo e m\xE1ximo", valor: "meio" },
     { rotulo: "Zero", valor: "zero" },
+    { rotulo: "Um (para participa\xE7\xE3o relativa)", valor: "um" },
     { rotulo: "Valor fixo", valor: "fixo" },
     { rotulo: "N\xE3o mostrar", valor: "nenhum" }
   ];
   var QUADRANTES = [
-    { chave: "superiorDireito", rotuloPadrao: "Alto / Alto", x: 1, y: 1 },
-    { chave: "inferiorDireito", rotuloPadrao: "Alto / Baixo", x: 1, y: 0 },
-    { chave: "inferiorEsquerdo", rotuloPadrao: "Baixo / Baixo", x: 0, y: 0 },
-    { chave: "superiorEsquerdo", rotuloPadrao: "Baixo / Alto", x: 0, y: 1 }
+    { chave: "superiorDireito", x: 1, y: 1 },
+    { chave: "inferiorDireito", x: 1, y: 0 },
+    { chave: "inferiorEsquerdo", x: 0, y: 0 },
+    { chave: "superiorEsquerdo", x: 0, y: 1 }
   ];
-  function opcoes() {
-    const porQuadrante = {};
+  function opcoesDeQuadrantes(nomesPadrao, secao = "Quadrantes") {
+    const saida = {};
     for (const q of QUADRANTES) {
-      porQuadrante[`rotulo_${q.chave}`] = {
+      const padrao = nomesPadrao[q.chave] || "";
+      saida[`rotulo_${q.chave}`] = {
         type: "string",
-        label: `Nome do quadrante ${q.rotuloPadrao}`,
-        section: "Quadrantes",
+        label: `Nome do quadrante "${padrao}"`,
+        section: secao,
         default: "",
-        placeholder: q.rotuloPadrao
+        placeholder: padrao
       };
-      porQuadrante[`cor_${q.chave}`] = {
+      saida[`cor_${q.chave}`] = {
         type: "string",
-        label: `Fundo do quadrante ${q.rotuloPadrao}`,
-        section: "Quadrantes",
+        label: `Cor do quadrante "${padrao}"`,
+        section: secao,
         display: "color",
         default: "",
         display_size: "half"
       };
     }
-    return montarOpcoes(
-      blocoDeCores(),
-      blocoDeEixos(),
-      blocoDeRotulos(),
-      blocoDeTooltip(),
-      blocoDeTema(),
-      blocoAvancado(),
-      {
-        divisoriaX: {
-          type: "string",
-          label: "Linha divis\xF3ria vertical (eixo X)",
-          section: "Quadrantes",
-          display: "select",
-          default: "media",
-          values: listaDeValores(MODOS_DE_DIVISORIA)
-        },
-        valorDaDivisoriaX: {
-          type: "string",
-          label: "Valor fixo da divis\xF3ria X",
-          section: "Quadrantes",
-          default: "",
-          display_size: "half"
-        },
-        divisoriaY: {
-          type: "string",
-          label: "Linha divis\xF3ria horizontal (eixo Y)",
-          section: "Quadrantes",
-          display: "select",
-          default: "media",
-          values: listaDeValores(MODOS_DE_DIVISORIA)
-        },
-        valorDaDivisoriaY: {
-          type: "string",
-          label: "Valor fixo da divis\xF3ria Y",
-          section: "Quadrantes",
-          default: "",
-          display_size: "half"
-        },
-        corDasDivisorias: {
-          type: "string",
-          label: "Cor das divis\xF3rias",
-          section: "Quadrantes",
-          display: "color",
-          default: ""
-        },
-        pintarQuadrantes: {
-          type: "boolean",
-          label: "Pintar o fundo dos quadrantes",
-          section: "Quadrantes",
-          default: true
-        },
-        mostrarContagemPorQuadrante: {
-          type: "boolean",
-          label: "Mostrar quantos pontos h\xE1 em cada quadrante",
-          section: "Quadrantes",
-          default: true
-        },
-        ...porQuadrante,
-        tamanhoDoPonto: {
-          type: "number",
-          label: "Tamanho do ponto",
-          section: "Pontos",
-          display: "range",
-          min: 1,
-          max: 30,
-          step: 1,
-          default: 7
-        },
-        tamanhoMaximoDoPonto: {
-          type: "number",
-          label: "Tamanho m\xE1ximo (quando o tamanho vem de uma medida)",
-          section: "Pontos",
-          display: "range",
-          min: 4,
-          max: 60,
-          step: 1,
-          default: 26
-        },
-        formaDoPonto: {
-          type: "string",
-          label: "Forma",
-          section: "Pontos",
-          display: "select",
-          default: "circulo",
-          values: listaDeValores([
-            { rotulo: "C\xEDrculo", valor: "circulo" },
-            { rotulo: "Quadrado", valor: "quadrado" },
-            { rotulo: "Losango", valor: "losango" },
-            { rotulo: "Tri\xE2ngulo", valor: "triangulo" },
-            { rotulo: "Cruz", valor: "cruz" }
-          ])
-        },
-        opacidadeDoPonto: {
-          type: "number",
-          label: "Opacidade",
-          section: "Pontos",
-          display: "range",
-          min: 0.05,
-          max: 1,
-          step: 0.05,
-          default: 0.8
-        },
-        contornoDoPonto: {
-          type: "boolean",
-          label: "Contorno branco no ponto",
-          section: "Pontos",
-          default: true
-        },
-        colorirPor: {
-          type: "string",
-          label: "Cor dos pontos",
-          section: "Pontos",
-          display: "select",
-          default: "quadrante",
-          values: listaDeValores([
-            { rotulo: "Pelo quadrante", valor: "quadrante" },
-            { rotulo: "Cor \xFAnica", valor: "unica" },
-            { rotulo: "Por uma medida (escala cont\xEDnua)", valor: "medida" }
-          ])
-        },
-        quantosRotulosDePonto: {
-          type: "number",
-          label: "Quantos pontos recebem r\xF3tulo (os maiores primeiro)",
-          section: "R\xF3tulos",
-          display: "range",
-          min: 0,
-          max: 60,
-          step: 1,
-          default: 12
-        }
-      }
-    );
+    return saida;
   }
-  var index_default = defineViz({
-    id: "quadrant_scatter",
-    label: "Dispers\xE3o com Quadrantes",
-    opcoes: opcoes(),
-    exigencia: { dimensoesMin: 1, medidasMin: 2, aceitaPivo: false, exigeLinhas: true },
-    opcoesDinamicas({ modelo }) {
-      const medidas = modelo.medidas.map((m) => ({ nome: m.nome, rotulo: m.rotuloCurto }));
-      if (!medidas.length) return {};
-      return {
-        ...opcaoDeEscolhaDeCampo("campoDoX", "Medida do eixo X", medidas, {
+  function opcoesDeDivisorias({ cortePadraoX = "media", cortePadraoY = "media", secao = "Quadrantes" } = {}) {
+    return {
+      divisoriaX: {
+        type: "string",
+        label: "Linha divis\xF3ria vertical (eixo X)",
+        section: secao,
+        display: "select",
+        default: cortePadraoX,
+        values: listaDeValores(MODOS_DE_DIVISORIA)
+      },
+      valorDaDivisoriaX: {
+        type: "string",
+        label: "Valor fixo da divis\xF3ria X",
+        section: secao,
+        default: "",
+        display_size: "half"
+      },
+      divisoriaY: {
+        type: "string",
+        label: "Linha divis\xF3ria horizontal (eixo Y)",
+        section: secao,
+        display: "select",
+        default: cortePadraoY,
+        values: listaDeValores(MODOS_DE_DIVISORIA)
+      },
+      valorDaDivisoriaY: {
+        type: "string",
+        label: "Valor fixo da divis\xF3ria Y",
+        section: secao,
+        default: "",
+        display_size: "half"
+      },
+      corDasDivisorias: {
+        type: "string",
+        label: "Cor das divis\xF3rias",
+        section: secao,
+        display: "color",
+        default: ""
+      },
+      pintarQuadrantes: {
+        type: "boolean",
+        label: "Pintar o fundo dos quadrantes",
+        section: secao,
+        default: true
+      },
+      mostrarContagemPorQuadrante: {
+        type: "boolean",
+        label: "Mostrar quantos pontos h\xE1 em cada quadrante",
+        section: secao,
+        default: true
+      }
+    };
+  }
+  function opcoesDePontos({ tamanhoPadrao = 7, secao = "Pontos" } = {}) {
+    return {
+      tamanhoDoPonto: {
+        type: "number",
+        label: "Tamanho do ponto",
+        section: secao,
+        display: "range",
+        min: 1,
+        max: 40,
+        step: 1,
+        default: tamanhoPadrao
+      },
+      tamanhoMaximoDoPonto: {
+        type: "number",
+        label: "Tamanho m\xE1ximo (quando o tamanho vem de uma medida)",
+        section: secao,
+        display: "range",
+        min: 4,
+        max: 90,
+        step: 1,
+        default: 30
+      },
+      formaDoPonto: {
+        type: "string",
+        label: "Forma",
+        section: secao,
+        display: "select",
+        default: "circulo",
+        values: listaDeValores([
+          { rotulo: "C\xEDrculo", valor: "circulo" },
+          { rotulo: "Quadrado", valor: "quadrado" },
+          { rotulo: "Losango", valor: "losango" },
+          { rotulo: "Tri\xE2ngulo", valor: "triangulo" },
+          { rotulo: "Cruz", valor: "cruz" }
+        ])
+      },
+      opacidadeDoPonto: {
+        type: "number",
+        label: "Opacidade",
+        section: secao,
+        display: "range",
+        min: 0.05,
+        max: 1,
+        step: 0.05,
+        default: 0.8
+      },
+      contornoDoPonto: { type: "boolean", label: "Contorno no ponto", section: secao, default: true },
+      colorirPor: {
+        type: "string",
+        label: "Cor dos pontos",
+        section: secao,
+        display: "select",
+        default: "quadrante",
+        values: listaDeValores([
+          { rotulo: "Pelo quadrante", valor: "quadrante" },
+          { rotulo: "Cor \xFAnica", valor: "unica" },
+          { rotulo: "Por uma medida (escala cont\xEDnua)", valor: "medida" }
+        ])
+      },
+      quantosRotulosDePonto: {
+        type: "number",
+        label: "Quantos pontos recebem r\xF3tulo (0 = nenhum, 999 = todos)",
+        section: "R\xF3tulos",
+        display: "range",
+        min: 0,
+        max: 200,
+        step: 1,
+        default: 12
+      }
+    };
+  }
+  function opcoesDinamicasDeCampos(modelo, { comTamanho = true, comCor = true, tamanhoObrigatorio = false } = {}) {
+    const medidas = modelo.medidas.map((m) => ({ nome: m.nome, rotulo: m.rotuloCurto }));
+    if (!medidas.length) return {};
+    const saida = {
+      ...opcaoDeEscolhaDeCampo("campoDoX", "Medida do eixo X", medidas, {
+        secao: "Dados",
+        padrao: medidas[0].nome
+      }),
+      ...opcaoDeEscolhaDeCampo("campoDoY", "Medida do eixo Y", medidas, {
+        secao: "Dados",
+        padrao: (medidas[1] || medidas[0]).nome
+      })
+    };
+    if (comTamanho) {
+      Object.assign(
+        saida,
+        opcaoDeEscolhaDeCampo("campoDoTamanho", "Medida do tamanho do ponto", medidas, {
           secao: "Dados",
-          padrao: medidas[0].nome
-        }),
-        ...opcaoDeEscolhaDeCampo("campoDoY", "Medida do eixo Y", medidas, {
-          secao: "Dados",
-          padrao: (medidas[1] || medidas[0]).nome
-        }),
-        ...opcaoDeEscolhaDeCampo("campoDoTamanho", "Medida do tamanho do ponto", medidas, {
-          secao: "Dados",
-          incluirNenhum: true,
-          padrao: ""
-        }),
-        ...opcaoDeEscolhaDeCampo("campoDaCor", "Medida da cor do ponto", medidas, {
+          incluirNenhum: !tamanhoObrigatorio,
+          padrao: tamanhoObrigatorio ? (medidas[2] || medidas[medidas.length - 1]).nome : ""
+        })
+      );
+    }
+    if (comCor) {
+      Object.assign(
+        saida,
+        opcaoDeEscolhaDeCampo("campoDaCor", "Medida da cor do ponto", medidas, {
           secao: "Dados",
           incluirNenhum: true,
           padrao: ""
         })
-      };
-    },
-    render(ctx) {
-      const { modelo, config, tema, raiz, largura, altura } = ctx;
-      const campoX = escolherMedida(modelo, config.campoDoX, 0);
-      const campoY = escolherMedida(modelo, config.campoDoY, 1);
-      const campoTamanho = config.campoDoTamanho ? escolherMedida(modelo, config.campoDoTamanho, -1) : null;
-      const campoCor = config.campoDaCor ? escolherMedida(modelo, config.campoDaCor, -1) : null;
-      const campoRotulo = modelo.dimensoes[0];
-      if (!campoX || !campoY || campoX.nome === campoY.nome) {
-        ctx.mostrarVazio("Escolha duas medidas diferentes para os eixos X e Y na se\xE7\xE3o Dados.");
-        return;
-      }
-      const pontos = [];
-      for (let i = 0; i < modelo.linhas.length; i++) {
-        const linha = modelo.linhas[i];
-        const x = modelo.valorNumerico(linha, campoX.nome);
-        const y = modelo.valorNumerico(linha, campoY.nome);
-        if (x === null || y === null) continue;
-        pontos.push({
-          indice: i,
-          x,
-          y,
-          tamanho: campoTamanho ? modelo.valorNumerico(linha, campoTamanho.nome) : null,
-          valorDaCor: campoCor ? modelo.valorNumerico(linha, campoCor.nome) : null,
-          rotulo: campoRotulo ? modelo.texto(linha, campoRotulo.nome, void 0, "") : `#${i + 1}`
-        });
-      }
-      if (!pontos.length) {
-        ctx.mostrarVazio("Nenhuma linha tem valor nas duas medidas escolhidas.");
-        return;
-      }
-      const descartadas = modelo.linhas.length - pontos.length;
-      if (descartadas > 0) {
-        ctx.avisar(`${descartadas} linha(s) sem valor em X ou Y ficaram de fora.`);
-      }
-      ctx.limparRaiz();
-      injetarEstilo(raiz, CSS, "qs");
-      const area = criarEl("div", { classe: "qs-area", pai: raiz });
-      const casas = Number(config.casasDecimaisDoRotulo);
-      const formatarX = formatadorDeValueFormat(campoX.valueFormat, { casas: Number.isFinite(casas) ? casas : 1 });
-      const formatarY = formatadorDeValueFormat(campoY.valueFormat, { casas: Number.isFinite(casas) ? casas : 1 });
-      const valoresX = pontos.map((p) => p.x);
-      const valoresY = pontos.map((p) => p.y);
-      const margens = calcularMargens({
-        rotulosY: valoresY.map(formatarY),
-        rotulosX: valoresX.map(formatarX),
-        config,
-        tema
-      });
-      const retangulo = areaDeDesenho(largura, altura, margens);
-      const escalaX = escalaNumerica({
-        valores: valoresX,
-        intervalo: [retangulo.esquerda, retangulo.esquerda + retangulo.largura],
-        config,
-        eixo: "X"
-      });
-      const escalaY = escalaNumerica({
-        valores: valoresY,
-        intervalo: [retangulo.cima + retangulo.altura, retangulo.cima],
-        config,
-        eixo: "Y"
-      });
-      const corteX = calcularCorte(config.divisoriaX, config.valorDaDivisoriaX, valoresX);
-      const corteY = calcularCorte(config.divisoriaY, config.valorDaDivisoriaY, valoresY);
-      for (const ponto of pontos) {
-        ponto.px = escalaX(ponto.x);
-        ponto.py = escalaY(ponto.y);
-        ponto.quadrante = quadranteDoPonto(ponto, corteX, corteY);
-      }
-      const paleta = coresDaPaleta(config.paleta);
-      const corDoQuadrante = new Map(QUADRANTES.map((q, i) => [q.chave, config[`cor_${q.chave}`] || paleta[i % paleta.length]]));
-      const svg = criarSvgEl("svg", {
-        pai: area,
-        classe: "qs-svg",
-        atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` }
-      });
-      const svgFundo = criarSvgEl("svg", {
-        pai: area,
-        classe: "qs-svg",
-        atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` }
-      });
-      area.insertBefore(svgFundo, area.firstChild);
-      if (config.pintarQuadrantes !== false && corteX !== null && corteY !== null) {
-        desenharFundoDosQuadrantes({
-          svg: svgFundo,
-          retangulo,
-          xDoCorte: escalaX(corteX),
-          yDoCorte: escalaY(corteY),
-          corDoQuadrante
-        });
-      }
-      desenharEixos({
-        svg,
-        escalaX,
-        escalaY,
-        area: retangulo,
-        config,
-        tema,
-        formatarX,
-        formatarY
-      });
-      const corDasDivisorias = config.corDasDivisorias || tema.bordaForte;
-      if (corteX !== null) {
-        desenharDivisoria(svg, escalaX(corteX), retangulo.cima, escalaX(corteX), retangulo.cima + retangulo.altura, corDasDivisorias);
-      }
-      if (corteY !== null) {
-        desenharDivisoria(svg, retangulo.esquerda, escalaY(corteY), retangulo.esquerda + retangulo.largura, escalaY(corteY), corDasDivisorias);
-      }
-      const canvas = criarEl("canvas", { classe: "qs-canvas" });
-      area.insertBefore(canvas, svg);
-      const { ctx: pincel } = prepararCanvas(canvas, largura, altura);
-      const escalaDeTamanho = montarEscalaDeTamanho(pontos, config);
-      const escalaDeCor = montarEscalaDeCor(pontos, config, campoCor);
-      const corFixa = config.corUnica || paleta[0];
-      for (const ponto of pontos) {
-        ponto.raio = escalaDeTamanho(ponto.tamanho);
-        ponto.cor = config.colorirPor === "medida" && escalaDeCor ? escalaDeCor(ponto.valorDaCor) : config.colorirPor === "unica" ? corFixa : corDoQuadrante.get(ponto.quadrante) || corFixa;
-      }
-      if (pincel) {
-        desenharPontos(pincel, pontos, config, tema);
-      } else {
-        ctx.avisar("O navegador n\xE3o forneceu contexto 2D; os pontos n\xE3o foram desenhados.");
-      }
-      if (corteX !== null && corteY !== null) {
-        desenharRotulosDosQuadrantes({
-          svg,
-          retangulo,
-          xDoCorte: escalaX(corteX),
-          yDoCorte: escalaY(corteY),
-          pontos,
-          config,
-          tema
-        });
-      }
-      const quantos = Number(config.quantosRotulosDePonto) || 0;
-      if (quantos > 0 && campoRotulo) {
-        const destaque = pontos.slice().sort((a, b) => distanciaDoCorte(b, corteX, corteY) - distanciaDoCorte(a, corteX, corteY)).slice(0, quantos);
-        for (const ponto of destaque) {
-          const texto = criarSvgEl("text", {
-            pai: svg,
-            classe: "qs-rotulo-ponto",
-            atributos: {
-              x: ponto.px + ponto.raio / 2 + 3,
-              y: ponto.py,
-              "dominant-baseline": "central",
-              "font-size": Number(config.tamanhoDoRotulo) || Math.max(8, tema.tamanhoBase - 2),
-              fill: config.corDoRotulo || tema.texto
-            }
-          });
-          definirTexto(texto, truncar(ponto.rotulo, Number(config.truncarRotulo) || 18));
-        }
-      }
-      const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-      ctx.estado.tooltip = tooltip;
-      ctx.eventos.on(area, "pointermove", (ev) => {
-        const caixa = area.getBoundingClientRect();
-        const alvo = acharMaisProximo({
-          itens: pontos,
-          x: ev.clientX - caixa.left,
-          y: ev.clientY - caixa.top,
-          raio: 14,
-          obterX: (p) => p.px,
-          obterY: (p) => p.py
-        });
-        if (!alvo) {
-          if (tooltip) tooltip.esconder();
-          area.style.cursor = "default";
-          return;
-        }
-        area.style.cursor = "pointer";
-        if (!tooltip) return;
-        const linhas = [
-          { rotulo: campoX.rotuloCurto, valor: formatarX(alvo.x) },
-          { rotulo: campoY.rotuloCurto, valor: formatarY(alvo.y) }
-        ];
-        if (campoTamanho && alvo.tamanho !== null) {
-          linhas.push({ rotulo: campoTamanho.rotuloCurto, valor: String(alvo.tamanho) });
-        }
-        if (campoCor && alvo.valorDaCor !== null) {
-          linhas.push({ rotulo: campoCor.rotuloCurto, valor: String(alvo.valorDaCor) });
-        }
-        linhas.push({ rotulo: "Quadrante", valor: nomeDoQuadrante(alvo.quadrante, config) });
-        tooltip.mostrar({ titulo: alvo.rotulo, linhas }, ev.clientX, ev.clientY);
-      });
-      ctx.eventos.on(area, "pointerleave", () => {
-        if (tooltip) tooltip.esconder();
-      });
-      ctx.eventos.on(area, "click", (ev) => {
-        const caixa = area.getBoundingClientRect();
-        const alvo = acharMaisProximo({
-          itens: pontos,
-          x: ev.clientX - caixa.left,
-          y: ev.clientY - caixa.top,
-          raio: 14,
-          obterX: (p) => p.px,
-          obterY: (p) => p.py
-        });
-        if (!alvo || !campoRotulo) return;
-        const celula = modelo.celula(modelo.linhas[alvo.indice], campoRotulo.nome);
-        if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
-      });
-    },
-    aoDestruir({ estado }) {
-      if (estado && estado.tooltip) estado.tooltip.destruir();
+      );
     }
-  });
-  function escolherMedida(modelo, nomeEscolhido, posicaoPadrao) {
-    if (nomeEscolhido) {
-      const achado = modelo.medidas.find((m) => m.nome === nomeEscolhido);
-      if (achado) return achado;
-    }
-    return posicaoPadrao >= 0 ? modelo.medidas[posicaoPadrao] || null : null;
+    return saida;
   }
   function calcularCorte(modo, valorFixo, valores) {
     switch (modo) {
@@ -4677,6 +4466,8 @@
         return null;
       case "zero":
         return 0;
+      case "um":
+        return 1;
       case "fixo": {
         const n = Number(String(valorFixo).replace(",", "."));
         return Number.isFinite(n) ? n : null;
@@ -4693,23 +4484,211 @@
         return estatisticas.media(valores);
     }
   }
-  function quadranteDoPonto(ponto, corteX, corteY) {
-    if (corteX === null || corteY === null) return "superiorDireito";
-    const direita = ponto.x >= corteX;
-    const cima = ponto.y >= corteY;
+  function quadranteDaPosicao(px, py, xDoCorte, yDoCorte) {
+    if (xDoCorte === null || yDoCorte === null) return null;
+    const direita = px >= xDoCorte;
+    const cima = py <= yDoCorte;
     if (direita && cima) return "superiorDireito";
     if (direita && !cima) return "inferiorDireito";
     if (!direita && !cima) return "inferiorEsquerdo";
     return "superiorEsquerdo";
   }
-  function distanciaDoCorte(ponto, corteX, corteY) {
-    if (corteX === null || corteY === null) return Math.hypot(ponto.x, ponto.y);
-    return Math.hypot(ponto.x - corteX, ponto.y - corteY);
+  function nomeDoQuadrante(chave, config, nomesPadrao) {
+    if (!chave) return "";
+    return config[`rotulo_${chave}`] || nomesPadrao[chave] || "";
   }
-  function nomeDoQuadrante(chave, config) {
-    const q = QUADRANTES.find((item) => item.chave === chave);
-    if (!q) return "";
-    return config[`rotulo_${chave}`] || q.rotuloPadrao;
+  function renderizarQuadrantes(ctx, perfil) {
+    const { modelo, config, tema, raiz, largura, altura } = ctx;
+    const nomesPadrao = perfil.nomesPadrao;
+    const campoX = escolherMedida(modelo, config.campoDoX, 0);
+    const campoY = escolherMedida(modelo, config.campoDoY, 1);
+    const campoTamanho = config.campoDoTamanho ? escolherMedida(modelo, config.campoDoTamanho, -1) : null;
+    const campoCor = config.campoDaCor ? escolherMedida(modelo, config.campoDaCor, -1) : null;
+    const campoRotulo = modelo.dimensoes[0];
+    if (!campoX || !campoY || campoX.nome === campoY.nome) {
+      ctx.mostrarVazio("Escolha duas medidas diferentes para os eixos X e Y na se\xE7\xE3o Dados.");
+      return null;
+    }
+    let pontos = [];
+    for (let i = 0; i < modelo.linhas.length; i++) {
+      const linha = modelo.linhas[i];
+      const x = modelo.valorNumerico(linha, campoX.nome);
+      const y = modelo.valorNumerico(linha, campoY.nome);
+      if (x === null || y === null) continue;
+      pontos.push({
+        indice: i,
+        x,
+        y,
+        tamanho: campoTamanho ? modelo.valorNumerico(linha, campoTamanho.nome) : null,
+        valorDaCor: campoCor ? modelo.valorNumerico(linha, campoCor.nome) : null,
+        rotulo: campoRotulo ? modelo.texto(linha, campoRotulo.nome, void 0, "") : `#${i + 1}`
+      });
+    }
+    if (typeof perfil.ajustarPontos === "function") {
+      pontos = perfil.ajustarPontos(pontos, { config, modelo, ctx }) || pontos;
+    }
+    if (typeof perfil.ajustarConfig === "function") {
+      perfil.ajustarConfig(config, pontos, ctx);
+    }
+    if (!pontos.length) {
+      ctx.mostrarVazio("Nenhuma linha tem valor nas duas medidas escolhidas.");
+      return null;
+    }
+    const descartadas = modelo.linhas.length - pontos.length;
+    if (descartadas > 0) ctx.avisar(`${descartadas} linha(s) sem valor em X ou Y ficaram de fora.`);
+    ctx.limparRaiz();
+    injetarEstilo(raiz, CSS_QUADRANTES, "qd");
+    const area = criarEl("div", { classe: "qd-area", pai: raiz });
+    const casas = Number(config.casasDecimaisDoRotulo);
+    const casasSeguras = Number.isFinite(casas) ? casas : 1;
+    const formatarX = perfil.formatarX || formatadorDeValueFormat(campoX.valueFormat, { casas: casasSeguras });
+    const formatarY = perfil.formatarY || formatadorDeValueFormat(campoY.valueFormat, { casas: casasSeguras });
+    const valoresX = pontos.map((p) => p.x);
+    const valoresY = pontos.map((p) => p.y);
+    const margens = calcularMargens({
+      rotulosY: valoresY.map(formatarY),
+      rotulosX: valoresX.map(formatarX),
+      config,
+      tema
+    });
+    const retangulo = areaDeDesenho(largura, altura, margens);
+    const escalaX = escalaNumerica({
+      valores: valoresX,
+      intervalo: [retangulo.esquerda, retangulo.esquerda + retangulo.largura],
+      config,
+      eixo: "X"
+    });
+    const escalaY = escalaNumerica({
+      valores: valoresY,
+      intervalo: [retangulo.cima + retangulo.altura, retangulo.cima],
+      config,
+      eixo: "Y"
+    });
+    const corteX = calcularCorte(config.divisoriaX, config.valorDaDivisoriaX, valoresX);
+    const corteY = calcularCorte(config.divisoriaY, config.valorDaDivisoriaY, valoresY);
+    const xDoCorte = corteX === null ? null : escalaX(corteX);
+    const yDoCorte = corteY === null ? null : escalaY(corteY);
+    for (const ponto of pontos) {
+      ponto.px = escalaX(ponto.x);
+      ponto.py = escalaY(ponto.y);
+      ponto.quadrante = quadranteDaPosicao(ponto.px, ponto.py, xDoCorte, yDoCorte);
+    }
+    const paleta = coresDaPaleta(config.paleta);
+    const corDoQuadrante = new Map(
+      QUADRANTES.map((q, i) => [q.chave, config[`cor_${q.chave}`] || paleta[i % paleta.length]])
+    );
+    const svgFundo = criarSvgEl("svg", {
+      pai: area,
+      classe: "qd-svg",
+      atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` }
+    });
+    const canvas = criarEl("canvas", { classe: "qd-canvas", pai: area });
+    const svg = criarSvgEl("svg", {
+      pai: area,
+      classe: "qd-svg",
+      atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` }
+    });
+    if (config.pintarQuadrantes !== false && xDoCorte !== null && yDoCorte !== null) {
+      desenharFundoDosQuadrantes({ svg: svgFundo, retangulo, xDoCorte, yDoCorte, corDoQuadrante });
+    }
+    desenharEixos({ svg, escalaX, escalaY, area: retangulo, config, tema, formatarX, formatarY });
+    const corDasDivisorias = config.corDasDivisorias || tema.bordaForte;
+    if (xDoCorte !== null) {
+      desenharDivisoria(svg, xDoCorte, retangulo.cima, xDoCorte, retangulo.cima + retangulo.altura, corDasDivisorias);
+    }
+    if (yDoCorte !== null) {
+      desenharDivisoria(
+        svg,
+        retangulo.esquerda,
+        yDoCorte,
+        retangulo.esquerda + retangulo.largura,
+        yDoCorte,
+        corDasDivisorias
+      );
+    }
+    const { ctx: pincel } = prepararCanvas(canvas, largura, altura);
+    const escalaDeTamanho = montarEscalaDeTamanho(pontos, config);
+    const escalaDeCor = montarEscalaDeCor(pontos, config, campoCor);
+    const corFixa = config.corUnica || paleta[0];
+    for (const ponto of pontos) {
+      ponto.raio = escalaDeTamanho(ponto.tamanho);
+      ponto.cor = config.colorirPor === "medida" && escalaDeCor ? escalaDeCor(ponto.valorDaCor) : config.colorirPor === "unica" ? corFixa : corDoQuadrante.get(ponto.quadrante) || corFixa;
+    }
+    if (pincel) {
+      desenharPontos(pincel, pontos, config, tema);
+    } else {
+      ctx.avisar("O navegador n\xE3o forneceu contexto 2D; os pontos n\xE3o foram desenhados.");
+    }
+    if (xDoCorte !== null && yDoCorte !== null) {
+      desenharRotulosDosQuadrantes({
+        svg,
+        retangulo,
+        xDoCorte,
+        yDoCorte,
+        pontos,
+        config,
+        tema,
+        nomesPadrao,
+        corDoQuadrante
+      });
+    }
+    desenharRotulosDosPontos({ svg, pontos, config, tema, corteX, corteY, temRotulo: !!campoRotulo });
+    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
+    ctx.estado.tooltip = tooltip;
+    const acharPonto = (ev) => {
+      const caixa = area.getBoundingClientRect();
+      return acharMaisProximo({
+        itens: pontos,
+        x: ev.clientX - caixa.left,
+        y: ev.clientY - caixa.top,
+        raio: 16,
+        obterX: (p) => p.px,
+        obterY: (p) => p.py
+      });
+    };
+    ctx.eventos.on(area, "pointermove", (ev) => {
+      const alvo = acharPonto(ev);
+      if (!alvo) {
+        if (tooltip) tooltip.esconder();
+        area.style.cursor = "default";
+        return;
+      }
+      area.style.cursor = "pointer";
+      if (!tooltip) return;
+      const linhas = [
+        { rotulo: campoX.rotuloCurto, valor: formatarX(alvo.x) },
+        { rotulo: campoY.rotuloCurto, valor: formatarY(alvo.y) }
+      ];
+      if (campoTamanho && alvo.tamanho !== null) {
+        linhas.push({ rotulo: campoTamanho.rotuloCurto, valor: String(alvo.tamanho) });
+      }
+      if (campoCor && alvo.valorDaCor !== null) {
+        linhas.push({ rotulo: campoCor.rotuloCurto, valor: String(alvo.valorDaCor) });
+      }
+      const nome = nomeDoQuadrante(alvo.quadrante, config, nomesPadrao);
+      if (nome) linhas.push({ rotulo: "Quadrante", valor: nome, cor: alvo.cor });
+      tooltip.mostrar({ titulo: alvo.rotulo, linhas }, ev.clientX, ev.clientY);
+    });
+    ctx.eventos.on(area, "pointerleave", () => {
+      if (tooltip) tooltip.esconder();
+    });
+    ctx.eventos.on(area, "click", (ev) => {
+      const alvo = acharPonto(ev);
+      if (!alvo || !campoRotulo) return;
+      const celula = modelo.celula(modelo.linhas[alvo.indice], campoRotulo.nome);
+      if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+    });
+    return { pontos, corteX, corteY, escalaX, escalaY, retangulo };
+  }
+  function destruirQuadrantes({ estado }) {
+    if (estado && estado.tooltip) estado.tooltip.destruir();
+  }
+  function escolherMedida(modelo, nomeEscolhido, posicaoPadrao) {
+    if (nomeEscolhido) {
+      const achado = modelo.medidas.find((m) => m.nome === nomeEscolhido);
+      if (achado) return achado;
+    }
+    return posicaoPadrao >= 0 ? modelo.medidas[posicaoPadrao] || null : null;
   }
   function desenharDivisoria(svg, x1, y1, x2, y2, cor) {
     criarSvgEl("line", {
@@ -4722,21 +4701,33 @@
     const direita = retangulo.esquerda + retangulo.largura;
     const cima = retangulo.cima;
     const baixo = retangulo.cima + retangulo.altura;
+    const xc = Math.max(esquerda, Math.min(direita, xDoCorte));
+    const yc = Math.max(cima, Math.min(baixo, yDoCorte));
     const caixas = {
-      superiorDireito: [xDoCorte, cima, direita - xDoCorte, yDoCorte - cima],
-      inferiorDireito: [xDoCorte, yDoCorte, direita - xDoCorte, baixo - yDoCorte],
-      inferiorEsquerdo: [esquerda, yDoCorte, xDoCorte - esquerda, baixo - yDoCorte],
-      superiorEsquerdo: [esquerda, cima, xDoCorte - esquerda, yDoCorte - cima]
+      superiorDireito: [xc, cima, direita - xc, yc - cima],
+      inferiorDireito: [xc, yc, direita - xc, baixo - yc],
+      inferiorEsquerdo: [esquerda, yc, xc - esquerda, baixo - yc],
+      superiorEsquerdo: [esquerda, cima, xc - esquerda, yc - cima]
     };
     for (const [chave, [x, y, w, h]] of Object.entries(caixas)) {
       if (!(w > 0) || !(h > 0)) continue;
       criarSvgEl("rect", {
         pai: svg,
-        atributos: { x, y, width: w, height: h, fill: comOpacidade(corDoQuadrante.get(chave), 0.08) }
+        atributos: { x, y, width: w, height: h, fill: comOpacidade(corDoQuadrante.get(chave), 0.1) }
       });
     }
   }
-  function desenharRotulosDosQuadrantes({ svg, retangulo, xDoCorte, yDoCorte, pontos, config, tema }) {
+  function desenharRotulosDosQuadrantes({
+    svg,
+    retangulo,
+    xDoCorte,
+    yDoCorte,
+    pontos,
+    config,
+    tema,
+    nomesPadrao,
+    corDoQuadrante
+  }) {
     const contagem = /* @__PURE__ */ new Map();
     for (const p of pontos) contagem.set(p.quadrante, (contagem.get(p.quadrante) || 0) + 1);
     const esquerda = retangulo.esquerda;
@@ -4751,27 +4742,49 @@
       superiorEsquerdo: { x: esquerda + margem, y: cima + margem, ancora: "start", base: "hanging" }
     };
     for (const q of QUADRANTES) {
-      const posicao = posicoes[q.chave];
-      if (q.x === 1 && direita - xDoCorte < 40) continue;
-      if (q.x === 0 && xDoCorte - esquerda < 40) continue;
-      if (q.y === 1 && yDoCorte - cima < 20) continue;
-      if (q.y === 0 && baixo - yDoCorte < 20) continue;
-      const nome = config[`rotulo_${q.chave}`] || q.rotuloPadrao;
+      if (q.x === 1 && direita - xDoCorte < 44) continue;
+      if (q.x === 0 && xDoCorte - esquerda < 44) continue;
+      if (q.y === 1 && yDoCorte - cima < 18) continue;
+      if (q.y === 0 && baixo - yDoCorte < 18) continue;
+      const nome = nomeDoQuadrante(q.chave, config, nomesPadrao);
+      if (!nome) continue;
       const quantos = contagem.get(q.chave) || 0;
       const texto = config.mostrarContagemPorQuadrante !== false ? `${nome} (${quantos})` : nome;
+      const posicao = posicoes[q.chave];
       const el = criarSvgEl("text", {
         pai: svg,
-        classe: "qs-rotulo-quadrante",
+        classe: "qd-rotulo-quadrante",
         atributos: {
           x: posicao.x,
           y: posicao.y,
           "text-anchor": posicao.ancora,
           "dominant-baseline": posicao.base,
-          "font-size": Math.max(9, tema.tamanhoBase - 1),
-          fill: tema.textoSuave
+          "font-size": Math.max(9, tema.tamanhoBase),
+          fill: config.pintarQuadrantes !== false ? corDoQuadrante.get(q.chave) : tema.textoSuave
         }
       });
       definirTexto(el, texto);
+    }
+  }
+  function desenharRotulosDosPontos({ svg, pontos, config, tema, corteX, corteY, temRotulo }) {
+    const quantos = Number(config.quantosRotulosDePonto) || 0;
+    if (quantos <= 0 || !temRotulo || config.mostrarRotulos === false) return;
+    const distancia = (p) => corteX === null || corteY === null ? Math.hypot(p.x, p.y) : Math.hypot(p.x - corteX, p.y - corteY);
+    const destaque = pontos.slice().sort((a, b) => distancia(b) - distancia(a)).slice(0, quantos);
+    const limite = Number(config.truncarRotulo) || 18;
+    for (const ponto of destaque) {
+      const texto = criarSvgEl("text", {
+        pai: svg,
+        classe: "qd-rotulo-ponto",
+        atributos: {
+          x: ponto.px + ponto.raio / 2 + 3,
+          y: ponto.py,
+          "dominant-baseline": "central",
+          "font-size": Number(config.tamanhoDoRotulo) || Math.max(8, tema.tamanhoBase - 2),
+          fill: config.corDoRotulo || tema.texto
+        }
+      });
+      definirTexto(texto, truncar(ponto.rotulo, limite));
     }
   }
   function montarEscalaDeTamanho(pontos, config) {
@@ -4781,7 +4794,7 @@
     const valores = comTamanho.map((p) => p.tamanho);
     const minimo = Math.min(...valores);
     const maximo = Math.max(...valores);
-    const maior = Number(config.tamanhoMaximoDoPonto) || 26;
+    const maior = Number(config.tamanhoMaximoDoPonto) || 30;
     if (maximo === minimo) return () => padrao;
     return (valor) => {
       if (valor === null || !Number.isFinite(valor)) return padrao;
@@ -4803,11 +4816,12 @@
     };
   }
   function desenharPontos(pincel, pontos, config, tema) {
-    const opacidade = Number(config.opacidadeDoPonto);
-    pincel.globalAlpha = Number.isFinite(opacidade) ? opacidade : 0.8;
+    const opacidade = Number.isFinite(Number(config.opacidadeDoPonto)) ? Number(config.opacidadeDoPonto) : 0.8;
     const forma = config.formaDoPonto || "circulo";
     const contorno = config.contornoDoPonto !== false;
-    for (const ponto of pontos) {
+    const ordenados = pontos.slice().sort((a, b) => b.raio - a.raio);
+    for (const ponto of ordenados) {
+      pincel.globalAlpha = opacidade;
       pincel.fillStyle = ponto.cor;
       desenharSimboloNoCanvas(pincel, forma, ponto.px, ponto.py, ponto.raio);
       pincel.fill();
@@ -4816,9 +4830,39 @@
         pincel.strokeStyle = tema.fundo;
         pincel.lineWidth = 1;
         pincel.stroke();
-        pincel.globalAlpha = Number.isFinite(opacidade) ? opacidade : 0.8;
       }
     }
     pincel.globalAlpha = 1;
   }
+
+  // src/charts/quadrant_scatter/index.js
+  var NOMES_PADRAO = {
+    superiorDireito: "Alto / Alto",
+    inferiorDireito: "Alto / Baixo",
+    inferiorEsquerdo: "Baixo / Baixo",
+    superiorEsquerdo: "Baixo / Alto"
+  };
+  var index_default = defineViz({
+    id: "quadrant_scatter",
+    label: "Dispers\xE3o com Quadrantes",
+    opcoes: montarOpcoes(
+      blocoDeCores(),
+      blocoDeEixos(),
+      blocoDeRotulos(),
+      blocoDeTooltip(),
+      blocoDeTema(),
+      blocoAvancado(),
+      opcoesDeDivisorias({ cortePadraoX: "media", cortePadraoY: "media" }),
+      opcoesDeQuadrantes(NOMES_PADRAO),
+      opcoesDePontos({ tamanhoPadrao: 7 })
+    ),
+    exigencia: { dimensoesMin: 1, medidasMin: 2, aceitaPivo: false, exigeLinhas: true },
+    opcoesDinamicas({ modelo }) {
+      return opcoesDinamicasDeCampos(modelo, { comTamanho: true, comCor: true });
+    },
+    render(ctx) {
+      renderizarQuadrantes(ctx, { nomesPadrao: NOMES_PADRAO });
+    },
+    aoDestruir: destruirQuadrantes
+  });
 })();

@@ -40,11 +40,11 @@ export function calcularMargens({ rotulosY = [], rotulosX = [], config = {}, tem
     const maior = rotulosY.reduce((a, t) => Math.max(a, larguraAproximada(t, fonte)), 0);
     esquerda = Math.min(140, Math.max(28, maior + 14));
   }
-  if (config.tituloDoEixoY) esquerda += fonte + 6;
+  if (config.tituloEixoY) esquerda += fonte + 6;
 
   let baixo = 8;
   if (mostrarX) {
-    const girar = Number(config.rotacaoDosRotulosX) || 0;
+    const girar = Number(config.rotacaoRotuloEixoX) || 0;
     if (girar) {
       const maior = rotulosX.reduce((a, t) => Math.max(a, larguraAproximada(t, fonte)), 0);
       const radianos = (Math.abs(girar) * Math.PI) / 180;
@@ -53,7 +53,7 @@ export function calcularMargens({ rotulosY = [], rotulosX = [], config = {}, tem
       baixo = fonte + 16;
     }
   }
-  if (config.tituloDoEixoX) baixo += fonte + 6;
+  if (config.tituloEixoX) baixo += fonte + 6;
 
   // À direita e em cima sobra espaço para o último rótulo não ser cortado.
   const direita = mostrarX ? Math.max(10, larguraAproximada(rotulosX[rotulosX.length - 1] || '', fonte) / 2) : 10;
@@ -72,11 +72,11 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
   const corDoTexto = tema.textoSuave;
   const corDaGrade = tema.grade;
 
-  const ticksX = rotulosDeBanda || ticksDoEixo(escalaX, Number(config.quantidadeDeTicksX) || 6);
-  const ticksY = ticksDoEixo(escalaY, Number(config.quantidadeDeTicksY) || 5);
+  const ticksX = rotulosDeBanda || ticksDoEixo(escalaX, Number(config.ticksEixoX) || 6);
+  const ticksY = ticksDoEixo(escalaY, Number(config.ticksEixoY) || 5);
 
   // --- Grade ---
-  if (config.mostrarGradeHorizontal !== false) {
+  if (config.gradeEixoY !== false) {
     for (const t of ticksY) {
       const y = escalaY(t);
       if (!Number.isFinite(y)) continue;
@@ -89,7 +89,7 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
       });
     }
   }
-  if (config.mostrarGradeVertical) {
+  if (config.gradeEixoX) {
     for (const t of ticksX) {
       const x = posicaoNoEixo(escalaX, t, rotulosDeBanda);
       if (!Number.isFinite(x)) continue;
@@ -137,7 +137,7 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
       },
     });
 
-    const girar = Number(config.rotacaoDosRotulosX) || 0;
+    const girar = Number(config.rotacaoRotuloEixoX) || 0;
     for (const t of ticksX) {
       const x = posicaoNoEixo(escalaX, t, rotulosDeBanda);
       if (!Number.isFinite(x)) continue;
@@ -155,7 +155,7 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
   }
 
   // --- Títulos ---
-  if (config.tituloDoEixoY) {
+  if (config.tituloEixoY) {
     const x = 10;
     const y = area.cima + area.altura / 2;
     const texto = criarSvgEl('text', {
@@ -165,9 +165,9 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
         transform: `rotate(-90 ${x} ${y})`,
       },
     });
-    definirTexto(texto, config.tituloDoEixoY);
+    definirTexto(texto, config.tituloEixoY);
   }
-  if (config.tituloDoEixoX) {
+  if (config.tituloEixoX) {
     const texto = criarSvgEl('text', {
       pai: grupo,
       atributos: {
@@ -176,7 +176,7 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
         'text-anchor': 'middle', 'font-size': fonte, fill: corDoTexto,
       },
     });
-    definirTexto(texto, config.tituloDoEixoX);
+    definirTexto(texto, config.tituloEixoX);
   }
 
   return { grupo };

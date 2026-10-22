@@ -28,8 +28,8 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 1. `tabela_completa` — "Tabela Completa" (seção 8 do prompt)
 - [x] 2. `diagrama_venn` — "Diagrama de Venn"
 - [x] 3. `quadrant_scatter` — "Dispersão com Quadrantes"
-- [ ] 4. `matriz_2x2` — "Matriz 2x2"
-- [ ] 5. `matriz_bcg` — "Matriz BCG"
+- [x] 4. `matriz_2x2` — "Matriz 2x2"
+- [x] 5. `matriz_bcg` — "Matriz BCG"
 - [ ] 6. `theme_river` — "ThemeRiver"
 - [ ] 7. `funil_variacoes` — "Funis (Estilos)"
 - [ ] 8. `funil_comparativo` — "Funil Comparativo"

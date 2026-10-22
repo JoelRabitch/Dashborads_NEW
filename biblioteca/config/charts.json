@@ -52,6 +52,36 @@
         "somenteNulos",
         "vazio"
       ]
+    },
+    {
+      "id": "matriz_2x2",
+      "label": "Matriz 2x2",
+      "tier": 1,
+      "pasta": "matriz_2x2",
+      "resumo": "Matriz de decisão 2x2: duas medidas nos eixos, corte no ponto médio, quadrantes nomeáveis e todos os itens rotulados.",
+      "explore": "1 dimensão (o nome do item) e 2 medidas (os dois eixos). Opcionalmente uma terceira para o tamanho. Não aceita pivô.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "matriz_bcg",
+      "label": "Matriz BCG",
+      "tier": 1,
+      "pasta": "matriz_bcg",
+      "resumo": "Matriz crescimento x participação do BCG: eixo X em log e invertido (participação alta à esquerda), corte em 1, bolhas por receita e os quatro nomes clássicos.",
+      "explore": "1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "somenteNulos",
+        "vazio"
+      ]
     }
   ]
 }

@@ -1192,6 +1192,28 @@ export function opcaoDeEscolhaDeCampo(chave, rotulo, campos, opcoes = {}) {
   };
 }
 
+/**
+ * Troca o `default` de opções já montadas.
+ *
+ * Serve para um gráfico reaproveitar um bloco do kit mudando só o valor
+ * inicial — uma matriz 2x2 quer o corte no ponto médio, a BCG quer o eixo X
+ * em log e invertido. Mexer no bloco original quebraria os outros gráficos.
+ * Avisa no console se a chave não existe, que é sempre erro de digitação.
+ */
+export function comDefaults(opcoes, novosPadroes) {
+  const saida = Object.assign({}, opcoes);
+  for (const [chave, valor] of Object.entries(novosPadroes)) {
+    if (!saida[chave]) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn(`comDefaults: a opção "${chave}" não existe neste gráfico.`);
+      }
+      continue;
+    }
+    saida[chave] = Object.assign({}, saida[chave], { default: valor });
+  }
+  return saida;
+}
+
 /** Normaliza uma chave para usar em nome de opção (sem espaço/acento). */
 export function sanitizarChave(texto) {
   return String(texto)

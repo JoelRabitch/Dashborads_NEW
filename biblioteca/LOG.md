@@ -439,12 +439,62 @@ outras, pode recusar, desde que o erro tenha título e mensagem explicativa.
 Números: bundle 172,6 KB; 61/61 testes passando; checagem de segurança sem
 violação.
 
+### Etapa 12 — `matriz_2x2` e `matriz_bcg` (TIER 1, itens 4 e 5) — concluídas
+
+Antes de escrever os dois, o desenho do `quadrant_scatter` foi extraído para
+**`src/charts/_quadrantes/`** (prefixo `_` pela mesma convenção de
+`_template`: código compartilhado, não gráfico registrado). Os três gráficos
+são o mesmo desenho com convenções diferentes, e três cópias quase iguais
+iriam divergindo a cada correção. Depois do refactor, `quadrant_scatter`
+caiu para ~65 linhas e os 61 testes continuaram passando sem nenhuma
+alteração de comportamento.
+
+Cada gráfico entrega só o seu PERFIL: nomes padrão dos quadrantes, cortes
+padrão e ganchos opcionais (`ajustarPontos`, `ajustarConfig`).
+
+- `matriz_2x2`: corte no PONTO MÉDIO (e não na média) — numa matriz de
+  decisão o leitor espera "metade da escala", não "acima da média do
+  grupo". Bolhas maiores e TODOS os itens nomeados.
+- `matriz_bcg`: eixo X em log e invertido (participação alta à esquerda,
+  como na matriz original), corte em 1, nomes clássicos.
+
+Decisão importante da base: **o quadrante é decidido pela posição em PIXEL,
+não pelo valor**. É isso que faz os nomes da BCG caírem nos lugares certos
+mesmo com o eixo invertido — sem nenhum caso especial.
+
+Três defeitos reais encontrados ao montar as matrizes:
+
+1. **`src/core/eixos.js` lia nomes de opção que o options-kit não cria**
+   (`tituloDoEixoX`, `mostrarGradeHorizontal`, `rotacaoDosRotulosX`). Ou
+   seja: título dos eixos e grade do painel eram silenciosamente ignorados
+   em qualquer gráfico cartesiano. Os nomes certos são `tituloEixoX`,
+   `gradeEixoY`, `rotacaoRotuloEixoX`.
+   Quem pegou isso foi o `comDefaults()` novo, que AVISA no console quando a
+   opção não existe — valeu a pena ter escrito esse aviso.
+2. **A participação relativa da BCG estava dividindo pelo maior valor**, o
+   que põe o líder exatamente em 1,0 — colado na divisória — e deixa o lado
+   "participação alta" VAZIO. A definição do BCG é "minha fatia ÷ fatia do
+   MAIOR CONCORRENTE": o líder divide pelo segundo colocado e fica acima de
+   1; todo o resto divide pelo líder e fica abaixo.
+3. **Com escala log, 1 só cai no meio se o domínio for [1/k, k]**. Sem isso
+   a divisória encostava na borda e dois dos quatro quadrantes nem eram
+   rotulados (o rótulo é suprimido de propósito quando a faixa é estreita
+   demais, para não escrever por cima do eixo). A BCG agora monta esse
+   domínio simétrico sozinha, e o usuário pode desligar.
+
+`comDefaults(opcoes, novosPadroes)` entrou no options-kit: deixa um gráfico
+reaproveitar um bloco mudando só o valor inicial, sem mexer no bloco
+original (o que quebraria os outros gráficos).
+
+Números: 5 gráficos construídos; 90/90 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, itens 4 e 5: criar `src/charts/matriz_2x2/` e `src/charts/matriz_bcg/`.
-Os dois são primos do `quadrant_scatter` (duas medidas, plano partido em
-quatro), então a primeira coisa a fazer é extrair o que dá para reaproveitar
-— cálculo do corte, classificação por quadrante e desenho do fundo/rótulos —
-para um módulo compartilhado, em vez de copiar código. Depois registrar em
+TIER 1, item 6: criar `src/charts/theme_river/` ("ThemeRiver": áreas
+empilhadas com deslocamento `wiggle`/`silhouette`, uma dimensão temporal no
+eixo X, uma dimensão de série e uma medida; aceita pivô, com cada valor do
+pivô virando uma faixa). Usar `core/eixos.js`, `core/shapes.js`
+(`criarEmpilhador`, `geradorDeArea`) e `core/legend.js`. Depois registrar em
 `config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
 marcar em TAREFAS.md e commitar.
