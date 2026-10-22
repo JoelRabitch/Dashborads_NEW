@@ -370,5 +370,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
+  },
+  {
+    "id": "beeswarm",
+    "label": "Beeswarm",
+    "tier": 3,
+    "arquivo": "../dist/beeswarm.js",
+    "existe": true,
+    "fixtures": [
+      "grande5k",
+      "conjuntosPorItem",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
   }
 ];

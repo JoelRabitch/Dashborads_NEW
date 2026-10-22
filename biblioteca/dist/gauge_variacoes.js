@@ -1,7 +1,7 @@
 /*!
  * Medidores (Estilos) — visualização customizada para o Looker
  * id: gauge_variacoes
- * versão: 0.1.0 | build: 2026-10-22 13:36:11 | commit: 81154d9
+ * versão: 0.1.0 | build: 2026-10-22 14:30:00 | commit: 9a77a24
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

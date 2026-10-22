@@ -397,6 +397,20 @@
         "conjuntosPorItem",
         "vazio"
       ]
+    },
+    {
+      "id": "beeswarm",
+      "label": "Beeswarm",
+      "tier": 3,
+      "pasta": "beeswarm",
+      "resumo": "Um ponto por observacao, espalhado perpendicularmente ao eixo para nao se cobrirem: a distribuicao sem nada estimado.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
     }
   ]
 }

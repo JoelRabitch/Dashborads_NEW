@@ -1176,17 +1176,70 @@ comentado. **Vale para qualquer teste de caminho SVG daqui para a frente.**
 Números: 26 gráficos construídos; 478/478 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 31 — `beeswarm` (TIER 3, item 27)
+
+O terceiro gráfico sobre `_distribuicao/`, e o primeiro que **não estima
+nada**: um ponto por observação, deslocado perpendicularmente ao eixo só o
+bastante para não cobrir o vizinho. Violino e ridgeline mostram a forma
+estimada; o beeswarm mostra os pontos que existem.
+
+O problema interessante é o empacotamento. O caminho ingênuo compara cada
+ponto com todos os já colocados — O(n²), 12,5 milhões de comparações para
+5.000 pontos. A observação que resolve: só os vizinhos a menos de um
+DIÂMETRO no eixo podem colidir. Percorrendo em ordem de valor, uma janela
+deslizante mantém esses vizinhos à mão; cada um proíbe um intervalo de
+deslocamentos de meia largura `√(d² − dx²)` (Pitágoras), e escolhemos o
+deslocamento válido mais perto de zero. Os candidatos ótimos são sempre as
+BORDAS dos intervalos: se zero está livre é ele, senão a solução encosta em
+algum vizinho. Resultado medido: 5.000 pontos em ~450 ms, e um teste
+trava se passar de 3 s.
+
+Acima de 2.000 pontos o desenho cai para canvas (mesmo motivo do
+`quadrant_scatter`: 5.000 `<circle>` engasgam o navegador). Acima de 20.000
+observações o gráfico se recusa e manda usar o Violin Plot — um beeswarm de
+20 mil pontos é uma mancha, e fingir o contrário seria pior do que recusar.
+
+**A mentira que este gráfico podia contar.** Quando o enxame fica mais
+largo que a faixa da categoria, os pontos que não cabem são presos na
+borda — e aí eles se cobrem. O desenho continua perfeitamente plausível e
+passa a mostrar MENOS observações do que existem, que é exatamente o que um
+beeswarm promete não fazer. Então `empacotar()` devolve quantos ficaram
+presos e o gráfico avisa, sugerindo ponto menor, menos categorias ou o
+violino. Mesma regra de sempre: o gráfico declara o que não dá para ver.
+
+Decisão de layout: `desenharEixos` só sabe desenhar banda no eixo X. Em vez
+de duplicar o desenho do eixo para a orientação horizontal, entrego uma
+função de escala que se comporta como numérica (tem `ticks()` e devolve o
+CENTRO da faixa). Três linhas, nenhum código repetido.
+
+Os testes medem a promessa, não a aparência: contagem de pontos igual à
+contagem declarada na nota, menor distância entre QUALQUER par ≥ diâmetro
+(varredura ordenada, não O(n²) ingênuo), simetria do enxame em torno do
+centro (escolher sempre o primeiro lugar livre produziria uma escada), e o
+aviso de estouro aparecendo quando forçamos ponto de 16 px em 5.000
+observações.
+
+Números: 27 gráficos construídos; 502/502 testes passando; checagem de
+segurança sem violação em 87 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 27: criar `src/charts/beeswarm/` ("Beeswarm"): um ponto por
-observação, espalhados perpendicularmente ao eixo para não se cobrirem,
-mostrando a distribuição SEM estimar densidade — é o gráfico para quando o
-n é pequeno e cada observação importa.
+TIER 3, item 28: criar `src/charts/grafico_controle/` ("Gráfico de
+Controle"): série temporal com linha central (média) e limites de controle
+em ±3σ, marcando os pontos fora de controle. É o gráfico que separa
+variação comum de variação especial — a pergunta "isso é sinal ou é ruído?".
 
-Reaproveitar `_distribuicao/` (preparo, corte, ordenação, tooltip). O
-algoritmo de empacotamento precisa ser O(n log n), não O(n²): ordenar por
-valor e procurar a faixa livre mais próxima do centro com uma lista de
-intervalos ocupados por faixa. Acima de ~2.000 pontos, cair para canvas
-como no `quadrant_scatter`. Depois registrar em `config/charts.json`,
-buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
-commitar.
+Pontos de atenção: (a) os limites precisam vir de um método declarado —
+usar o desvio-padrão amostral simples é defensável, mas o gráfico tem de
+dizer qual foi; (b) com poucos pontos os limites são instáveis e isso
+precisa ser avisado (reaproveitar `MINIMO_CONFIAVEL` de `_distribuicao`);
+(c) as regras de Nelson (8 pontos do mesmo lado, tendência de 6) valem como
+opção, mas cada uma precisa ser nomeada no tooltip, não só colorida; (d)
+reaproveitar `_serie_temporal/` para leitura da série, ordem dos períodos e
+guia de hover — inclusive `avisarSeForaDeOrdem`, porque limite de controle
+em série fora de ordem não significa nada.
+
+Depois: registrar em `config/charts.json`, `npm run build`, escrever
+`test/grafico_controle.test.mjs` (conferir os limites contra valores
+calculados à mão, não só "desenhou"), `npm test`, `npm run seguranca`,
+marcar em TAREFAS.md, commitar e seguir para o item 29.
