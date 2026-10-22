@@ -2429,37 +2429,65 @@ NENHUMA posição — o teste compara ponto a ponto nos dois modos.
 Números: 53 gráficos construídos; 1.255/1.255 testes passando; checagem de
 segurança sem violação em 143 arquivos.
 
+## Sessão retomada em 2026-10-24
+
+Ponto de partida: branch `agente/novas-viz`, commit `8660be6` (`dumbbell`,
+TIER 5 item 53). `origin/main` sem novidades. Havia trabalho não commitado:
+`src/charts/marimekko/index.js`, completo (572 linhas, com as funções
+exportadas e os comentários), mas ainda sem registro em `charts.json`, sem
+bundle e sem teste — exatamente o estado previsto pela "PRÓXIMA AÇÃO
+EXATA". Continuado, não descartado.
+
+### Etapa 58 — `marimekko` (TIER 5, item 54) — **LISTA COMPLETA**
+
+Barras empilhadas em que a LARGURA da coluna também é proporcional: duas
+dimensões codificadas em área.
+
+**A ressalva perceptual é a razão de o gráfico precisar de cuidado.** A
+área de cada bloco é o PRODUTO de duas proporções, e o olho compara áreas
+muito mal quando as formas têm proporções diferentes — um retângulo alto e
+fino contra um baixo e largo de mesma área são lidos como tamanhos
+diferentes. Então a nota diz o que É confiável comparar: alturas DENTRO da
+mesma coluna, larguras ENTRE colunas, e **não** áreas de blocos distantes.
+
+**Duas conservações, testadas nos dados e no desenho:**
+- a soma das larguras é o total (e a soma das séries também);
+- dentro de cada coluna, as alturas somam 100% — conferido no SVG exigindo
+  que o topo de cada bloco seja exatamente a base do anterior, sem buraco
+  nem sobreposição.
+
+Mais três propriedades que quebram em silêncio e agora têm teste: todas as
+colunas têm a MESMA altura total (colunas de alturas diferentes
+misturariam as duas codificações); a largura de cada coluna é proporcional
+ao seu total, conferida contra os dados; e a mesma série tem a mesma cor em
+todas as colunas (cor é a identidade da série — variá-la por coluna faria
+o empilhamento deixar de ser legível de uma coluna para a outra).
+
+`areaRelativa` existe exportada justamente porque a leitura humana da área
+não é confiável: o teste confere que a soma das áreas de todos os blocos é
+exatamente 1, isto é, que o gráfico cobre o retângulo inteiro sem sobra
+nem estouro.
+
+Valores negativos são recusados: num empilhamento proporcional uma parte
+negativa faria a coluna passar de 100% e a altura deixaria de significar
+proporção. O corte em "Outros" acontece nas DUAS dimensões, preservando os
+totais — e o teste confere que, depois do corte, cada coluna continua
+fechando.
+
+**Os 54 gráficos estão construídos.** 1.286/1.286 testes passando;
+checagem de segurança sem violação em 145 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 54: criar `src/charts/marimekko/` ("Marimekko") — **o último
-da lista**.
+A lista de gráficos acabou. Falta o fechamento que a seção 10 do
+`PROMPT_AGENTE.md` pede e que ainda não foi feito:
 
-Barras empilhadas em que a LARGURA de cada coluna também é proporcional a
-um total: duas dimensões codificadas em área. Serve para "este segmento é
-grande, e dentro dele a composição é esta".
-
-Pontos de atenção: (a) **a área de cada retângulo é o produto de duas
-proporções** — e é isso que torna o gráfico poderoso e perigoso: o olho
-compara áreas mal quando as formas têm proporções diferentes (um retângulo
-alto e fino contra um baixo e largo). Dizer na nota que a comparação
-confiável é dentro da mesma coluna (altura) ou entre larguras de colunas,
-não entre áreas de retângulos distantes; (b) conservação: a soma das
-larguras é 100% e, dentro de cada coluna, a soma das alturas é 100% —
-duas conservações para testar, como no `parallel_sets` e no `waffle`;
-(c) rótulos: a coluna estreita não comporta texto — desbastar e declarar;
-(d) valores negativos não cabem num empilhamento proporcional: recusar com
-explicação, como o `waffle`; (e) reaproveitar o corte em "Outros"
-preservando o total nas DUAS dimensões.
-
-Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/marimekko.test.mjs` (as duas conservações; a área de um retângulo é
-o produto das duas proporções vezes a área total; nada se sobrepõe; **e
-todo laço afirma que a lista não é vazia**), `npm test`,
-`npm run seguranca`, marcar em TAREFAS.md, commitar.
-
-**Depois do item 54 a lista acaba.** Então, antes de responder ao usuário,
-fazer o que a seção 10 do PROMPT_AGENTE pede e ainda está pendente:
-registrar no LOG (a) o que o harness de testes NÃO cobre, (b) os cinco
-pontos que mais merecem revisão humana, e (c) o resumo final de feito /
-bloqueado / pendente. Conferir também se `README.md` e `docs/` da
-biblioteca refletem os 54 gráficos, e fazer um commit final com isso.
+1. Registrar no LOG **o que o harness de testes NÃO cobre** (jsdom não faz
+   layout, canvas sem contexto 2D, nada de teste visual, nenhum teste
+   dentro do Looker de verdade, interações de toque, impressão/PDF).
+2. Registrar **os cinco pontos que mais merecem revisão humana**.
+3. Escrever o **resumo final**: feito, bloqueado, pendente.
+4. Conferir se `README.md` e `docs/` da biblioteca refletem os 54 gráficos
+   (o `MANIFEST.md` é gerado pelo build e já está atualizado) e, se
+   faltar, atualizar.
+5. Commit e push finais; só então responder ao usuário.

@@ -71,4 +71,4 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 44. `bar_race` · [x] 45. `motion_bubbles` · [x] 46. `kpi_vivo`
 - [x] 47. `parallel_sets` · [x] 48. `arc_diagram` · [x] 49. `nightingale`
 - [x] 50. `radial_bar` · [x] 51. `lollipop` · [x] 52. `waffle`
-- [x] 53. `dumbbell` · [ ] 54. `marimekko`
+- [x] 53. `dumbbell` · [x] 54. `marimekko`

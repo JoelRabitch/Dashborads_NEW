@@ -799,6 +799,21 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "marimekko",
+      "label": "Marimekko",
+      "tier": 5,
+      "pasta": "marimekko",
+      "resumo": "Barras empilhadas com a LARGURA da coluna tambem proporcional: duas dimensoes em area, com as duas conservacoes (larguras 100%, alturas 100% por coluna).",
+      "explore": "2 dimensoes (as colunas e o empilhamento) e 1 medida.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "duasDimensoes",
+        "hierarquia",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

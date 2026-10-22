@@ -745,5 +745,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (o nome) e 2 medidas (o antes e o depois)."
+  },
+  {
+    "id": "marimekko",
+    "label": "Marimekko",
+    "tier": 5,
+    "arquivo": "../dist/marimekko.js",
+    "existe": true,
+    "fixtures": [
+      "duasDimensoes",
+      "hierarquia",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "2 dimensoes (as colunas e o empilhamento) e 1 medida."
   }
 ];

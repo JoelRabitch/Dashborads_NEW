@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 19:23:37 (commit `60310d4`).
+Gerado automaticamente pelo build em 2026-10-22 22:53:46 (commit `8660be6`).
 
 ## Como cadastrar no Looker
 
@@ -68,6 +68,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `lollipop` | Grafico de Pirulito | `dist/lollipop.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/lollipop.js` |
 | `waffle` | Waffle | `dist/waffle.js` | (vazio) | 1 dimensao (as partes) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/waffle.js` |
 | `dumbbell` | Halteres | `dist/dumbbell.js` | (vazio) | 1 dimensao (o nome) e 2 medidas (o antes e o depois). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dumbbell.js` |
+| `marimekko` | Marimekko | `dist/marimekko.js` | (vazio) | 2 dimensoes (as colunas e o empilhamento) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/marimekko.js` |
 
 ## Detalhes por visualização
 
@@ -547,3 +548,12 @@ Duas medidas por categoria ligadas por uma barra, com rolagem virtualizada; o ei
 - **Explore**: 1 dimensao (o nome) e 2 medidas (o antes e o depois).
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 123.2 KB
+
+### Marimekko (`marimekko`)
+
+Barras empilhadas com a LARGURA da coluna tambem proporcional: duas dimensoes em area, com as duas conservacoes (larguras 100%, alturas 100% por coluna).
+
+- **Tier**: 5
+- **Explore**: 2 dimensoes (as colunas e o empilhamento) e 1 medida.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 124.3 KB
