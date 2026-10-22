@@ -1,7 +1,7 @@
 /*!
  * Conjuntos Paralelos — visualização customizada para o Looker
  * id: parallel_sets
- * versão: 0.1.0 | build: 2026-10-22 19:13:34 | commit: 29e4238
+ * versão: 0.1.0 | build: 2026-10-22 19:19:35 | commit: 219d394
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

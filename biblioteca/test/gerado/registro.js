@@ -718,5 +718,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida."
+  },
+  {
+    "id": "waffle",
+    "label": "Waffle",
+    "tier": 5,
+    "arquivo": "../dist/waffle.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "rotulosLongos",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as partes) e 1 medida."
   }
 ];

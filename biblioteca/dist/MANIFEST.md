@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 19:13:34 (commit `29e4238`).
+Gerado automaticamente pelo build em 2026-10-22 19:19:35 (commit `219d394`).
 
 ## Como cadastrar no Looker
 
@@ -66,6 +66,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `nightingale` | Rosa de Nightingale | `dist/nightingale.js` | (vazio) | 1 dimensao (as fatias) e 1 medida (o raio). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/nightingale.js` |
 | `radial_bar` | Barras Radiais | `dist/radial_bar.js` | (vazio) | 1 dimensao (os aneis) e 1 medida (o angulo). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/radial_bar.js` |
 | `lollipop` | Grafico de Pirulito | `dist/lollipop.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/lollipop.js` |
+| `waffle` | Waffle | `dist/waffle.js` | (vazio) | 1 dimensao (as partes) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/waffle.js` |
 
 ## Detalhes por visualização
 
@@ -527,3 +528,12 @@ A barra de Tufte com menos tinta: haste a partir do ZERO (porque haste e comprim
 - **Explore**: 1 dimensao (as categorias) e 1 medida.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 153.1 KB
+
+### Waffle (`waffle`)
+
+Grade de quadradinhos trocando comparacao de angulos por CONTAGEM, com a unidade de cada celula declarada e sobras repartidas pelo maior resto.
+
+- **Tier**: 5
+- **Explore**: 1 dimensao (as partes) e 1 medida.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 122.8 KB

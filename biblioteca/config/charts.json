@@ -770,6 +770,20 @@
         "rotulosLongos",
         "vazio"
       ]
+    },
+    {
+      "id": "waffle",
+      "label": "Waffle",
+      "tier": 5,
+      "pasta": "waffle",
+      "resumo": "Grade de quadradinhos trocando comparacao de angulos por CONTAGEM, com a unidade de cada celula declarada e sobras repartidas pelo maior resto.",
+      "explore": "1 dimensao (as partes) e 1 medida.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "vazio"
+      ]
     }
   ]
 }

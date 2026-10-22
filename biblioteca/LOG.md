@@ -2354,33 +2354,75 @@ deslocá-lo marcaria um valor diferente do que a haste mede.
 Números: 51 gráficos construídos; 1.201/1.201 testes passando; checagem de
 segurança sem violação em 139 arquivos.
 
+### Etapa 56 — `waffle` (TIER 5, item 52)
+
+Uma grade de quadradinhos: o gráfico de pizza que a gente consegue ler. A
+pizza pede comparação de ÂNGULOS, que o olho faz mal; o waffle troca isso
+por CONTAGEM, que o olho faz bem.
+
+As duas honestidades são sobre o mesmo ponto — o waffle DISCRETIZA um dado
+contínuo:
+
+**1. Quanto vale cada quadradinho.** Numa grade de 100 células com total
+de R$ 350.892, cada célula vale R$ 3.508,92. Sem isso escrito, o leitor
+conta células achando que conta unidades. Vai na nota, sempre.
+
+**2. O arredondamento.** 37,6 células não existem. Arredondar cada
+categoria por conta própria faz a soma dar 99 ou 101 numa grade de 100 —
+e a grade aparece com buraco ou estoura, sem nada explicando. O reparto é
+pelo **maior resto** (Hamilton), o mesmo método de repartir cadeiras no
+parlamento e pelo mesmo motivo: o total é fixo e tem de fechar. O teste
+roda seis cenários (incluindo `[1,1,1]` em 100 e `[5]×7` em 36) e exige
+soma exata em todos. Quando uma categoria fica a mais de meia célula do
+valor real, o gráfico avisa — e o tooltip diz quantas células o valor
+exato daria.
+
+**Um limite que eu tinha escrito e nunca poderia disparar.** Havia um teto
+de 2.500 células; como as opções vão no máximo a 50 × 50, o teto era
+exatamente o limite e nunca era atingido: código morto com cara de
+proteção. Pior, a justificativa dele era "a célula fica menor que 3 px" —
+o que depende do ESPAÇO, não da quantidade: 2.500 células numa tela cheia
+dão ~9 px e se leem bem; as mesmas num tile pequeno dariam 2 px. Troquei
+por um aviso sobre o tamanho medido da célula, que é a condição real, com
+teste nos dois sentidos (não dispara numa grade folgada, dispara numa
+apertada). **Limite que não pode ser atingido é pior que limite nenhum:
+ele dá a impressão de que o caso está tratado.**
+
+Outro teste que vale citar: **as células de uma categoria são contíguas.**
+Espalhá-las pela grade destruiria a contagem, que é a única vantagem do
+waffle sobre a pizza — e o desenho continuaria colorido e plausível.
+
+Números: 52 gráficos construídos; 1.228/1.228 testes passando; checagem de
+segurança sem violação em 141 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 52: criar `src/charts/waffle/` ("Waffle"): uma grade de
-quadradinhos onde cada um vale N unidades — o gráfico de pizza que a gente
-consegue ler.
+TIER 5, item 53: criar `src/charts/dumbbell/` ("Halteres"): duas medidas
+por categoria, ligadas por uma barra — o gráfico de "antes e depois" por
+item.
 
-Por que ele existe: a pizza pede comparação de ÂNGULOS, que o olho faz
-mal; o waffle troca isso por CONTAGEM, que o olho faz bem. "37 de 100
-quadradinhos" é lido direto, sem estimativa.
+É o primo do `slope_chart` (dois períodos, uma linha por item) com os
+eixos trocados: aqui as categorias ficam empilhadas e a comparação é
+horizontal, o que acomoda muito mais itens e nomes longos. A nota de cada
+um deve apontar o outro, como já fazem bump×slope.
 
-Pontos de atenção: (a) **a unidade de cada quadradinho precisa estar
-declarada** — num waffle de 100 células com total de 4.300, cada célula
-vale 43, e sem isso o leitor acha que está contando unidades; (b) o
-arredondamento é a armadilha: 37,6 células não existem, e arredondar cada
-categoria separadamente faz a soma dar 99 ou 101 células. Usar o método do
-maior resto (Hamilton) para que a soma feche exatamente no número de
-células, **e avisar quando o arredondamento desloca alguma categoria em
-mais de meia célula**; (c) grade quadrada por padrão (10×10 é o mais
-legível), preenchimento por coluna ou por linha, declarado; (d) categorias
-pequenas demais para uma célula inteira: agrupar em "Outros" preservando o
-total, ou mostrar com célula parcial — escolher UMA e declarar;
-(e) tooltip por categoria, não por célula.
+Pontos de atenção: (a) reaproveitar `_lista_virtual/` quando houver muitas
+categorias (o `dot_plot_denso` já tem quase tudo — **se o código do par de
+pontos ligados for o mesmo, é o segundo da família e vale extrair**);
+(b) **o eixo pode ser cortado aqui** (é posição, como no dot plot), mas a
+BARRA entre os dois pontos é comprimento e representa a DIFERENÇA — e isso
+é legítimo mesmo com eixo cortado, porque a diferença não depende da
+origem; dizer isso na nota evita a dúvida; (c) ordenar por qualquer uma
+das pontas ou pela diferença (absoluta ou percentual), declarando;
+(d) cor por direção (subiu/desceu) com a mesma ressalva do `kpi_vivo`:
+precisa da opção "menor é melhor"; (e) quando as duas pontas coincidem, o
+haltere vira um ponto só — desenhar assim e não fingir uma barra de
+largura mínima.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/waffle.test.mjs` (**a soma das células é exatamente o número de
-células da grade** — é a conservação, como no `parallel_sets`; o maior
-resto distribui as sobras para quem tem mais direito; a unidade declarada
-bate com total ÷ células; **e todo laço afirma que a lista não é vazia**),
-`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
-para o item 53 (`dumbbell`).
+`test/dumbbell.test.mjs` (a barra liga exatamente os dois pontos; o
+comprimento é proporcional à diferença mesmo com eixo cortado; a cor
+acompanha a direção e "menor é melhor" inverte só a cor; **e todo laço
+afirma que a lista não é vazia**), `npm test`, `npm run seguranca`, marcar
+em TAREFAS.md, commitar e seguir para o item 54 (`marimekko`), que FECHA a
+lista.
