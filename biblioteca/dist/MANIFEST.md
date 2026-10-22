@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:27:33 (commit `2f3b5ad`).
+Gerado automaticamente pelo build em 2026-10-22 18:32:41 (commit `e09598e`).
 
 ## Como cadastrar no Looker
 
@@ -57,6 +57,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `parallel_coords` | Coordenadas Paralelas | `dist/parallel_coords.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/parallel_coords.js` |
 | `bump_chart` | Bump Chart | `dist/bump_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bump_chart.js` |
 | `slope_chart` | Slope Chart | `dist/slope_chart.js` | (vazio) | 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/slope_chart.js` |
+| `horizon_chart` | Horizon Chart | `dist/horizon_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/horizon_chart.js` |
 
 ## Detalhes por visualização
 
@@ -437,3 +438,12 @@ Dois periodos ligados por uma linha por item: o eixo e o VALOR, entao a inclinac
 - **Explore**: 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 145.3 KB
+
+### Horizon Chart (`horizon_chart`)
+
+Series temporais empilhadas com a area DOBRADA em faixas de mesma altura: cabe trinta series numa tela mantendo a leitura de pico e vale.
+
+- **Tier**: 4
+- **Explore**: 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 150.4 KB

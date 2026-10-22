@@ -636,6 +636,21 @@
         "temporal",
         "vazio"
       ]
+    },
+    {
+      "id": "horizon_chart",
+      "label": "Horizon Chart",
+      "tier": 4,
+      "pasta": "horizon_chart",
+      "resumo": "Series temporais empilhadas com a area DOBRADA em faixas de mesma altura: cabe trinta series numa tela mantendo a leitura de pico e vale.",
+      "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
     }
   ]
 }

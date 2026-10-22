@@ -1989,32 +1989,83 @@ séries nessa situação aparecem sem percentual, com aviso; o estado do eixo
 Números: 42 gráficos construídos; 950/950 testes passando; checagem de
 segurança sem violação em 119 arquivos.
 
+### Etapa 47 — `horizon_chart` (TIER 4, item 43) — **TIER 4 COMPLETO**
+
+A resposta de Heer, Kong e Agrawala para "como caber trinta séries
+temporais numa tela": em vez de encolher a área até virar um fio, ela é
+**dobrada** em faixas de mesma altura, e cada dobra ganha uma cor mais
+forte. Uma série que precisaria de 200 px cabe em 25 px mantendo a leitura
+de pico e de vale.
+
+A conta que define o gráfico está em `fracaoDaDobra`, e o teste usa o
+exemplo canônico: com banda 100 e 3 dobras, o valor 250 preenche a dobra 1
+inteira, a dobra 2 inteira e metade da dobra 3. Há também um teste de
+invariante: **somar as dobras reconstrói o valor** — é o que garante que
+nada se perde nem se duplica no empilhamento, conferido em sete valores.
+Se a conta estivesse errada, o gráfico continuaria uma textura agradável
+descrevendo outros dados, e como quase ninguém conhece a construção,
+ninguém perceberia.
+
+**O sinal é o segundo ponto.** Negativos sobem com cor própria (é a
+convenção) e NÃO podem contribuir para as camadas positivas — se
+contribuíssem, o espelhamento viraria soma. Testado nos dois sentidos. E,
+como esse é exatamente o lugar onde quem não conhece o gráfico se engana,
+a nota avisa: *"valores negativos sobem com cor própria — o que parece
+pico pode ser vale"*.
+
+Teste que eu não esperava precisar e acabou sendo um dos melhores: **a
+dobra mais alta tem de ser a cor mais forte.** "Mais escuro = maior" é a
+chave de leitura inteira; se a ordem das cores se invertesse, o gráfico
+continuaria bonito e diria o contrário dos dados. O teste lê as cores do
+SVG, calcula a luminância de cada uma e exige que caia dobra a dobra
+(147 → 93 → 44). Também me fez notar um detalhe de implementação: as
+dobras usam só a metade mais forte da paleta, porque a parte clara some
+sobre o fundo branco e a primeira dobra não apareceria.
+
+Acima de 4 dobras o gráfico avisa e repete a recomendação da pesquisa
+original (2 ou 3): permitir mais sem avisar deixaria o usuário degradar a
+leitura achando que está melhorando. A legenda com os intervalos de cada
+dobra é obrigatória por padrão — sem ela, a cor é só uma cor.
+
+**TIER 4 fechado: 8 gráficos de volume (itens 36 a 43).** O tier inteiro
+girou em torno de uma troca: o que se perde ao fazer caber, e como dizer o
+que se perdeu. Heatmap denso declara a escala e as colisões; small
+multiples declara a escala compartilhada; ranking declara que a barra sai
+do zero; dot plot declara que o eixo foi cortado; coordenadas paralelas
+declaram que só os vizinhos se comparam; bump declara que o ranking apaga
+a magnitude; slope declara o que ficou no meio; horizon declara que a área
+foi dobrada.
+
+Números: 43 gráficos construídos; 976/976 testes passando; checagem de
+segurança sem violação em 121 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 43: criar `src/charts/horizon_chart/` ("Horizon Chart") — o
-último do TIER 4.
+TIER 5, item 44: criar `src/charts/bar_race/` ("Bar Chart Race"): barras
+ordenadas que se reordenam ao longo do tempo, com animação.
 
-É a resposta de Heer/Kong/Agrawala para "como caber 30 séries temporais
-numa tela": a área é DOBRADA em faixas de mesma altura, e cada dobra ganha
-uma cor mais forte. Uma série que normalmente precisaria de 200 px cabe em
-25 px com a mesma leitura de pico e vale.
+Primeiro do TIER 5, que é o tier dos gráficos "demais" — e este abre com um
+problema honesto: **o bar race é um gráfico de entretenimento que as
+pessoas usam para analisar.** A animação prende a atenção e esconde que só
+o quadro final tem informação comparável; o caminho até lá é impossível de
+reter. Vale construir bem e dizer isso: oferecer controle manual
+(barra de tempo, pausa) tão proeminente quanto o play, porque parar e
+comparar é o que torna o gráfico utilizável.
 
-Pontos de atenção: (a) reaproveitar `_serie_temporal/` (leitura e hover) e
-`extrairMatriz`; (b) **o número de dobras é a decisão central** — 2 ou 3 é
-o recomendado pela pesquisa; acima de 4 a leitura piora, e isso deve estar
-na opção; (c) valores NEGATIVOS são espelhados para cima com outra cor
-(essa é a convenção), e é preciso declarar que o que parece um pico pode
-ser um vale profundo — sem isso o gráfico mente para quem não o conhece;
-(d) **todas as faixas compartilham a escala**, como no `small_multiples`,
-senão as alturas não se comparam; (e) a leitura é "quanto mais escuro,
-maior" — a legenda precisa mostrar as faixas e seus intervalos de valor,
-senão a cor não tem significado declarado; (f) canvas quando
-séries × períodos passar de ~20.000 células.
+Pontos de atenção: (a) reaproveitar `extrairMatriz` e a interpolação entre
+períodos (o movimento suave exige quadros intermediários — interpolar
+valor E posição); (b) `agendarQuadro` e `agendarTimer` já existem em
+`defineViz`, e `preferindoMenosMovimento()` em `core/dom.js` **deve
+desligar a animação** quando o usuário pede menos movimento — acessibilidade
+não é opcional; (c) o relógio precisa parar quando a viz é destruída, senão
+sobra timer rodando sobre DOM morto (o `aoDestruir` tem de limpar);
+(d) mostrar sempre o período corrente em destaque e o valor de cada barra;
+(e) teto de barras visíveis (top N) com aviso, porque o resto não cabe.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/horizon_chart.test.mjs` (o valor dobrado cai na faixa certa — um
-valor de 2,5 bandas com 3 dobras produz as faixas 1, 2 e 3 com alturas
-previsíveis; negativo usa a cor espelhada; a escala é compartilhada entre
-as séries; **e todo laço afirma que a lista não é vazia**), `npm test`,
-`npm run seguranca`, marcar em TAREFAS.md, commitar. **Isso fecha o
-TIER 4** — em seguida, abrir o TIER 5 pelo item 44 (`bar_race`).
+`test/bar_race.test.mjs` (a interpolação entre dois períodos devolve
+valores intermediários corretos e as posições nunca se cruzam
+"teletransportando"; com `preferindoMenosMovimento` a animação não começa;
+`aoDestruir` para o relógio; **e todo laço afirma que a lista não é
+vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e
+seguir para o item 45 (`motion_bubbles`).
