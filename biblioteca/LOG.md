@@ -944,17 +944,48 @@ dos dados — porque aí o problema não é a ordem, é o recorte.
 Números: 20 gráficos construídos; 345/345 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 25 — `lorenz_gini` (TIER 2, item 21)
+
+Curva de Lorenz com a linha de igualdade e o coeficiente de Gini em
+destaque. Usa os mesmos dados do Pareto com duas diferenças: a ordenação é
+CRESCENTE (o Pareto é decrescente) e o que interessa é a forma da curva
+inteira, não as primeiras barras.
+
+Decisões:
+
+- **Gini por TRAPÉZIOS sobre a curva, em O(n).** A fórmula de pares
+  (`Σ|xi − xj|`) dá o mesmo número mas é O(n²) e travaria com 5.000
+  categorias. Medido: 2.000 categorias em 20 ms.
+- **Os dois eixos vão de 0 a 1**, sempre. A curva de Lorenz vive num
+  quadrado unitário; qualquer outro domínio distorce a leitura da diagonal,
+  que é a referência do gráfico.
+- **Negativos ficam de fora, com aviso.** Com eles a curva deixa de ser
+  monótona e a área entre curva e diagonal perde significado.
+- **O número vem acompanhado de leitura em palavras** ("concentração
+  moderada") e dos marcos práticos ("os 10% maiores concentram 22,8%").
+  Gini é um índice que pouca gente converte em intuição sozinha.
+
+Sobre os testes: um Gini errado produz um número plausível, então conferir
+"desenhou alguma coisa" não serviria. Os testes usam os VALORES TEÓRICOS
+conhecidos — igualdade perfeita dá 0; concentração total em n categorias dá
+exatamente `1 − 1/n`; a sequência 1..n dá `(n−1)/(3n)`; o par [1,3] dá
+0,25. Todos conferidos, inclusive o teto discreto para n = 4, 10 e 50.
+
+Números: 21 gráficos construídos; 364/364 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 21: criar `src/charts/lorenz_gini/` ("Curva de Lorenz /
-Gini"): eixo X com o percentual acumulado da POPULAÇÃO (categorias
-ordenadas da menor para a maior) e eixo Y com o percentual acumulado do
-VALOR, mais a linha de igualdade perfeita na diagonal e o coeficiente de
-Gini calculado pela área entre as duas curvas.
+TIER 2, item 22: criar `src/charts/treemap_carteira/` ("Treemap de
+Carteira"): retângulos proporcionais ao valor, agrupados por hierarquia,
+coloridos por uma SEGUNDA medida (variação, margem, risco) numa escala
+divergente centrada em zero.
 
-Cuidados conhecidos: a ordenação do Lorenz é CRESCENTE (o oposto do
-Pareto), valores negativos invalidam o índice (mesmo aviso do Pareto vale
-aqui), e o Gini deve ser calculado por trapézios sobre a curva — não pela
-fórmula de pares, que é O(n²) e trava com 5.000 linhas. Depois registrar em
+Reaproveitar `core/hierarquia.js` (que já lê dimensões aninhadas e pares
+id/pai) e usar `d3-hierarchy` (`treemap`, já nas devDependencies). Cuidados
+conhecidos: o treemap exige valores não negativos (mesmo aviso do Pareto e
+do Lorenz — vale avaliar se esse aviso merece subir para um helper comum,
+já que é o terceiro gráfico a precisar dele); e rótulo só cabe em retângulo
+acima de um tamanho mínimo, como no Venn. Depois registrar em
 `config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
 marcar em TAREFAS.md e commitar.

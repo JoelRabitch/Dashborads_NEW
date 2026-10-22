@@ -288,5 +288,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida. Nao aceita pivo."
+  },
+  {
+    "id": "lorenz_gini",
+    "label": "Curva de Lorenz / Gini",
+    "tier": 2,
+    "arquivo": "../dist/lorenz_gini.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "grande5k",
+      "rotulosLongos",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo."
   }
 ];

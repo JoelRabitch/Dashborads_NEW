@@ -309,6 +309,21 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "lorenz_gini",
+      "label": "Curva de Lorenz / Gini",
+      "tier": 2,
+      "pasta": "lorenz_gini",
+      "resumo": "Curva de Lorenz com a linha de igualdade e o coeficiente de Gini em destaque, medindo o quanto o total esta concentrado em poucas categorias.",
+      "explore": "1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "grande5k",
+        "rotulosLongos",
+        "vazio"
+      ]
     }
   ]
 }
