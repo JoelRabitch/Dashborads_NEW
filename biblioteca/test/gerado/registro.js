@@ -246,5 +246,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie)."
+  },
+  {
+    "id": "retorno_acumulado",
+    "label": "Retorno Acumulado (Base 100)",
+    "tier": 2,
+    "arquivo": "../dist/retorno_acumulado.js",
+    "existe": true,
+    "fixtures": [
+      "temporal",
+      "comPivo",
+      "ohlc",
+      "vazio"
+    ],
+    "explore": "1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie)."
   }
 ];

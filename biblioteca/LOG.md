@@ -845,15 +845,49 @@ estabelece topo novo).
 Números: 17 gráficos construídos; 287/287 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 22 — `retorno_acumulado` (TIER 2, item 18)
+
+Cada série é reescalada para começar no mesmo ponto (100, por padrão). A
+partir daí o gráfico deixa de comparar VALORES e passa a comparar
+CRESCIMENTO: uma loja que fatura 5 mil e outra que fatura 5 milhões ficam
+lado a lado, e o que se lê é quem cresceu mais.
+
+Reescalar é fácil de fazer errado de um jeito que continua bonito — a série
+sai com números plausíveis e sem sentido. As três armadilhas, todas com
+teste:
+
+1. **A base é o primeiro valor NÃO NULO** de cada série. Usar o primeiro
+   período cru faria a série inteira virar nula quando ele falta.
+2. **Base zero ou negativa impede a normalização.** Dividir por ela produz
+   um índice sem significado, então a série fica de fora COM aviso dizendo
+   quais sumiram — em vez de aparecer com valor falso.
+3. **Séries que começam em períodos diferentes não são comparáveis sem
+   ressalva.** Partir do mesmo VALOR em momentos diferentes não é a mesma
+   coisa que partir do mesmo ponto. O gráfico avisa quando isso acontece e
+   oferece o modo "primeiro período em que TODAS têm valor", que alinha de
+   verdade.
+
+Detalhe de desenho: o rótulo no fim de cada linha empurra para baixo quando
+colidiria com outro já posicionado. Com várias séries terminando perto, os
+textos se sobrepõem e nenhum fica legível.
+
+Erro meu no teste, pego pela suíte: comparei floats com `deepEqual`, e
+`1100/1000*100` dá `110.00000000000001`. A asserção reprovava a conta certa.
+Virou comparação com tolerância — vale para qualquer teste numérico daqui
+para a frente.
+
+Números: 18 gráficos construídos; 307/307 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 18: criar `src/charts/retorno_acumulado/` ("Retorno Acumulado
-(Base 100)": cada série é reescalada para começar em 100 — ou no valor que o
-usuário escolher — e o gráfico passa a comparar CRESCIMENTO RELATIVO entre
-séries de magnitudes diferentes). Reaproveitar `_serie_temporal/`.
+TIER 2, item 19: criar `src/charts/fluxo_caixa/` ("Fluxo de Caixa"): barras
+de entradas (positivas) e saídas (negativas) por período, com a linha do
+saldo ACUMULADO por cima e destaque para os períodos em que o saldo fica
+negativo. Reaproveitar `_serie_temporal/` para o eixo, a guia e o tooltip.
 
-Cuidados que já sei que vão aparecer: a base precisa ser o primeiro valor
-NÃO NULO de cada série (senão a série inteira vira nula), e primeiro valor
-zero ou negativo impede a normalização — nesse caso avisar em vez de
-dividir. Depois registrar em `config/charts.json`, buildar, rodar
-`npm test` e `npm run seguranca`, marcar em TAREFAS.md e commitar.
+Cuidado conhecido: o saldo acumulado é cumulativo como o drawdown, então
+vale o mesmo aviso de ordem dos períodos — a função `avisarSeForaDeOrdem`
+do `drawdown` deve subir para `_serie_temporal/` em vez de ser copiada.
+Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
+`npm run seguranca`, marcar em TAREFAS.md e commitar.

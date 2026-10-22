@@ -264,6 +264,21 @@
         "comPivo",
         "vazio"
       ]
+    },
+    {
+      "id": "retorno_acumulado",
+      "label": "Retorno Acumulado (Base 100)",
+      "tier": 2,
+      "pasta": "retorno_acumulado",
+      "resumo": "Cada serie reescalada para comecar no mesmo ponto (100 por padrao), passando a comparar crescimento relativo em vez de valores absolutos.",
+      "explore": "1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "temporal",
+        "comPivo",
+        "ohlc",
+        "vazio"
+      ]
     }
   ]
 }
