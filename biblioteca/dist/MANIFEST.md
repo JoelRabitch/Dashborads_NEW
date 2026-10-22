@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 01:01:44 (commit `64d280f`).
+Gerado automaticamente pelo build em 2026-10-22 01:06:24 (commit `c5025a5`).
 
 ## Como cadastrar no Looker
 
