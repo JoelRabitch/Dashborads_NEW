@@ -1,7 +1,7 @@
 /*!
  * Matriz BCG — visualização customizada para o Looker
  * id: matriz_bcg
- * versão: 0.1.0 | build: 2026-10-22 13:26:42 | commit: 7417705
+ * versão: 0.1.0 | build: 2026-10-22 13:36:11 | commit: 81154d9
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

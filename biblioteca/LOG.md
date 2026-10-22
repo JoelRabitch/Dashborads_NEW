@@ -1134,14 +1134,59 @@ violinos**, todos com largura zero. Faltavam o limite de categorias (agora
 Números: 25 gráficos construídos; 456/456 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 30 — `ridgeline` + base `_distribuicao` (TIER 3, item 26)
+
+A base saiu no segundo gráfico da família, como no TIER 1 e no TIER 2:
+**`src/charts/_distribuicao/`** resolve o que `violin`, `ridgeline`,
+`beeswarm` e `boxplot_avancado` fazem igual antes de desenhar — achar a
+dimensão e a medida, agrupar, resumir, cortar o excesso de categorias e
+explicar quando a consulta não tem distribuição nenhuma.
+
+Decisão que vale para a família inteira: **"sem dados" num gráfico de
+distribuição quase nunca significa consulta vazia — significa consulta
+agregada demais**. Por isso o estado vazio diz o que mudar no Explore, em
+vez de só constatar a ausência.
+
+O corte de categorias fica com as de MAIOR n, não com as primeiras da
+consulta: são elas que têm distribuição para mostrar.
+
+Dois defeitos reais de layout, achados pelos testes:
+
+1. **Com sobreposição > 0, a última faixa saía por baixo da área.** A conta
+   antiga derivava o espaçamento de `n − sobreposição`, e a soma passava da
+   altura disponível.
+2. **Com 90% de sobreposição, a primeira curva saía pelo TOPO** — sumia da
+   tela sem erro nenhum. A sobreposição multiplica a altura da curva por
+   `1/(1−s)`, ou seja, dez vezes o espaçamento nesse caso.
+
+A correção trata os dois: a sobreposição NÃO mexe no espaçamento das linhas
+de base (ela aumenta a altura das curvas), e o espaçamento sai de
+`altura ÷ (n + fator − 1)`, reservando a folga que a primeira curva precisa
+acima da própria base. Com isso a área é preenchida exatamente, em qualquer
+nível de sobreposição. Há teste conferindo 0%, 55% e 90%.
+
+Erro meu nos testes, que custou duas rodadas: eu extraía as coordenadas Y
+dos caminhos com um regex de `,numero`. O d3 emite curvas como
+`C x1,y1,x2,y2,x,y`, com vírgula entre TODOS os seis números — metade do
+que vem depois de vírgula é X. A medição acusava faixas fora da área que
+estavam dentro, e escondia as que estavam de fato fora. Virou um auxiliar
+`coordenadasY()` que pega os números de índice ímpar, com o motivo
+comentado. **Vale para qualquer teste de caminho SVG daqui para a frente.**
+
+Números: 26 gráficos construídos; 478/478 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 26: criar `src/charts/ridgeline/` ("Ridgeline"): uma curva de
-densidade por categoria, empilhadas verticalmente com sobreposição
-parcial, compartilhando o mesmo eixo X. Reaproveitar `densidadePorKernel` e
-`agruparValores` do `core/estatistica.js`, e o limite de categorias e a
-marcação de grupos pequenos do `violin` — avaliar extrair
-`src/charts/_distribuicao/` com o que os dois compartilham, já que
-`beeswarm` e `boxplot_avancado` virão em seguida e precisam do mesmo.
-Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
-`npm run seguranca`, marcar em TAREFAS.md e commitar.
+TIER 3, item 27: criar `src/charts/beeswarm/` ("Beeswarm"): um ponto por
+observação, espalhados perpendicularmente ao eixo para não se cobrirem,
+mostrando a distribuição SEM estimar densidade — é o gráfico para quando o
+n é pequeno e cada observação importa.
+
+Reaproveitar `_distribuicao/` (preparo, corte, ordenação, tooltip). O
+algoritmo de empacotamento precisa ser O(n log n), não O(n²): ordenar por
+valor e procurar a faixa livre mais próxima do centro com uma lista de
+intervalos ocupados por faixa. Acima de ~2.000 pontos, cair para canvas
+como no `quadrant_scatter`. Depois registrar em `config/charts.json`,
+buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
+commitar.

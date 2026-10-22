@@ -383,6 +383,20 @@
         "conjuntosPorItem",
         "vazio"
       ]
+    },
+    {
+      "id": "ridgeline",
+      "label": "Ridgeline",
+      "tier": 3,
+      "pasta": "ridgeline",
+      "resumo": "Uma curva de densidade por categoria, empilhadas com sobreposicao parcial e compartilhando o mesmo eixo X.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
     }
   ]
 }

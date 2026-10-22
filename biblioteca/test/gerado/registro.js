@@ -357,5 +357,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo."
+  },
+  {
+    "id": "ridgeline",
+    "label": "Ridgeline",
+    "tier": 3,
+    "arquivo": "../dist/ridgeline.js",
+    "existe": true,
+    "fixtures": [
+      "grande5k",
+      "conjuntosPorItem",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
   }
 ];

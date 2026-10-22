@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 13:26:42 (commit `7417705`).
+Gerado automaticamente pelo build em 2026-10-22 13:36:11 (commit `81154d9`).
 
 ## Como cadastrar no Looker
 
@@ -40,6 +40,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `ponte_variacao` | Ponte de Variação | `dist/ponte_variacao.js` | (vazio) | 1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ponte_variacao.js` |
 | `risco_retorno` | Risco x Retorno | `dist/risco_retorno.js` | (vazio) | 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/risco_retorno.js` |
 | `violin` | Violin Plot | `dist/violin.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/violin.js` |
+| `ridgeline` | Ridgeline | `dist/ridgeline.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ridgeline.js` |
 
 ## Detalhes por visualização
 
@@ -267,3 +268,12 @@ Densidade da distribuicao espelhada nos dois lados de um eixo, uma por categoria
 - **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 168.6 KB
+
+### Ridgeline (`ridgeline`)
+
+Uma curva de densidade por categoria, empilhadas com sobreposicao parcial e compartilhando o mesmo eixo X.
+
+- **Tier**: 3
+- **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 174.5 KB
