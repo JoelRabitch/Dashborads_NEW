@@ -1571,3 +1571,15 @@ diagonal; Spearman de uma relação monótona não-linear tem de dar 1 enquanto
 Pearson dá menos; **e todo laço precisa afirmar que a lista não é vazia**),
 `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
 para o item 35 (`boxplot_avancado`), que fecha o TIER 3.
+
+---
+
+**Correção de registro (2026-10-23).** Os itens 29, 30, 32 e 33 estavam
+construídos, testados e commitados, mas continuavam `[ ]` no TAREFAS.md: eu
+vinha marcando com `sed -i 's/- \[ \] 29\. .../'`, e o `- ` só existe no
+PRIMEIRO item de cada linha — os itens 2º e 3º da mesma linha vêm depois de
+`· `. O comando não casava e **não reclamava**, porque `sed` sem match sai
+com código 0. Marcados agora, e daqui em diante a marcação é feita por um
+script que IMPRIME se trocou ou não. É o mesmo gênero de erro do teste com
+laço vazio desta mesma sessão: a ferramenta diz "sucesso" sem ter feito
+nada.
