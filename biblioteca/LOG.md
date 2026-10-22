@@ -2322,32 +2322,65 @@ fim de começo.
 Números: 50 gráficos construídos; 1.178/1.178 testes passando; checagem de
 segurança sem violação em 137 arquivos.
 
+### Etapa 55 — `lollipop` (TIER 5, item 51)
+
+A barra de Tufte com menos tinta: uma haste fina até um círculo. Com
+muitas categorias, a mancha da barra cheia domina a tela; o pirulito
+mantém a leitura usando uma fração da área.
+
+**A decisão honesta é pequena e costuma ser ignorada: a haste parte do
+ZERO.** Muita implementação por aí começa a haste no mínimo dos dados
+porque fica mais bonito — e aí o pirulito vira um dot plot com um rabo
+decorativo, com a proporção distorcida exatamente como numa barra
+truncada. A regra é curta: se existe haste, ela é COMPRIMENTO; se é
+comprimento, começa no zero. Quem quer eixo cortado tem o
+`dot_plot_denso`, onde o ponto codifica POSIÇÃO e o corte é legítimo — e a
+nota aponta para lá. É o terceiro par da biblioteca em que dois gráficos
+vizinhos têm regras opostas pelo mesmo motivo de fundo (o que a marca
+codifica), junto com ranking×dot plot e rosa×barra radial.
+
+O teste mede no SVG: todas as hastes partem do mesmo x, e a razão de
+comprimentos é a razão dos valores (lidos dos próprios rótulos
+desenhados). Numa haste truncada, essa segunda igualdade quebraria e nada
+na tela denunciaria.
+
+**O círculo tem tamanho FIXO.** Dimensioná-lo pelo valor codificaria o
+mesmo dado duas vezes — posição e área — e o leitor somaria as duas,
+exagerando a diferença. Teste: um raio só para todos os círculos.
+
+E o círculo fica exatamente na PONTA da haste, conferido ponto a ponto:
+deslocá-lo marcaria um valor diferente do que a haste mede.
+
+Números: 51 gráficos construídos; 1.201/1.201 testes passando; checagem de
+segurança sem violação em 139 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 51: criar `src/charts/lollipop/` ("Gráfico de Pirulito"):
-uma haste fina até um círculo — a barra com menos tinta, de Tufte.
+TIER 5, item 52: criar `src/charts/waffle/` ("Waffle"): uma grade de
+quadradinhos onde cada um vale N unidades — o gráfico de pizza que a gente
+consegue ler.
 
-É o mais simples dos que faltam, e a decisão honesta é pequena mas real:
-**o círculo marca o VALOR, e a haste parte do zero.** Muita implementação
-por aí desenha a haste a partir do mínimo dos dados (fica mais bonito) — e
-aí o pirulito vira um dot plot com um rabo decorativo, com a proporção
-distorcida como numa barra truncada. Se a haste existe, ela é
-comprimento; se é comprimento, começa no zero. A alternativa legítima é
-não ter haste (e aí é o `dot_plot_denso`, que já existe).
+Por que ele existe: a pizza pede comparação de ÂNGULOS, que o olho faz
+mal; o waffle troca isso por CONTAGEM, que o olho faz bem. "37 de 100
+quadradinhos" é lido direto, sem estimativa.
 
-Pontos de atenção: (a) reaproveitar `_lista_virtual/` se houver muitas
-categorias, e `escalaDeBanda` se forem poucas; (b) orientação horizontal e
-vertical; (c) ordenação por valor com a opção de preservar a ordem da
-consulta (meses!); (d) comparação com uma segunda medida vira dois
-círculos ligados — mas isso é o `dumbbell` (item 53): aqui deixar só UMA
-medida e apontar o dumbbell na nota; (e) o tamanho do círculo é fixo, NÃO
-proporcional ao valor: a posição já codifica o valor, e codificar duas
-vezes com grandezas diferentes (posição e área) é o erro que faz o leitor
-somar as duas.
+Pontos de atenção: (a) **a unidade de cada quadradinho precisa estar
+declarada** — num waffle de 100 células com total de 4.300, cada célula
+vale 43, e sem isso o leitor acha que está contando unidades; (b) o
+arredondamento é a armadilha: 37,6 células não existem, e arredondar cada
+categoria separadamente faz a soma dar 99 ou 101 células. Usar o método do
+maior resto (Hamilton) para que a soma feche exatamente no número de
+células, **e avisar quando o arredondamento desloca alguma categoria em
+mais de meia célula**; (c) grade quadrada por padrão (10×10 é o mais
+legível), preenchimento por coluna ou por linha, declarado; (d) categorias
+pequenas demais para uma célula inteira: agrupar em "Outros" preservando o
+total, ou mostrar com célula parcial — escolher UMA e declarar;
+(e) tooltip por categoria, não por célula.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/lollipop.test.mjs` (a haste vai do zero ao valor — teste de
-proporção como no `barras_ranking_denso`; o círculo está exatamente na
-ponta da haste; todos os círculos têm o mesmo tamanho; **e todo laço
-afirma que a lista não é vazia**), `npm test`, `npm run seguranca`, marcar
-em TAREFAS.md, commitar e seguir para o item 52 (`waffle`).
+`test/waffle.test.mjs` (**a soma das células é exatamente o número de
+células da grade** — é a conservação, como no `parallel_sets`; o maior
+resto distribui as sobras para quem tem mais direito; a unidade declarada
+bate com total ÷ células; **e todo laço afirma que a lista não é vazia**),
+`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
+para o item 53 (`dumbbell`).

@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 19:09:18 (commit `7e9652d`).
+Gerado automaticamente pelo build em 2026-10-22 19:13:34 (commit `29e4238`).
 
 ## Como cadastrar no Looker
 
@@ -65,6 +65,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `arc_diagram` | Diagrama de Arcos | `dist/arc_diagram.js` | (vazio) | 2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arc_diagram.js` |
 | `nightingale` | Rosa de Nightingale | `dist/nightingale.js` | (vazio) | 1 dimensao (as fatias) e 1 medida (o raio). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/nightingale.js` |
 | `radial_bar` | Barras Radiais | `dist/radial_bar.js` | (vazio) | 1 dimensao (os aneis) e 1 medida (o angulo). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/radial_bar.js` |
+| `lollipop` | Grafico de Pirulito | `dist/lollipop.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/lollipop.js` |
 
 ## Detalhes por visualização
 
@@ -517,3 +518,12 @@ Barras enroladas num circulo: o valor e o ANGULO varrido (nao o comprimento do a
 - **Explore**: 1 dimensao (os aneis) e 1 medida (o angulo).
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 140.6 KB
+
+### Grafico de Pirulito (`lollipop`)
+
+A barra de Tufte com menos tinta: haste a partir do ZERO (porque haste e comprimento) e circulo de tamanho fixo marcando o valor.
+
+- **Tier**: 5
+- **Explore**: 1 dimensao (as categorias) e 1 medida.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 153.1 KB

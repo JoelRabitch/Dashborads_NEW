@@ -704,5 +704,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (os aneis) e 1 medida (o angulo)."
+  },
+  {
+    "id": "lollipop",
+    "label": "Grafico de Pirulito",
+    "tier": 5,
+    "arquivo": "../dist/lollipop.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "temporal",
+      "rotulosLongos",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as categorias) e 1 medida."
   }
 ];

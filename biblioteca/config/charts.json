@@ -755,6 +755,21 @@
         "temporal",
         "vazio"
       ]
+    },
+    {
+      "id": "lollipop",
+      "label": "Grafico de Pirulito",
+      "tier": 5,
+      "pasta": "lollipop",
+      "resumo": "A barra de Tufte com menos tinta: haste a partir do ZERO (porque haste e comprimento) e circulo de tamanho fixo marcando o valor.",
+      "explore": "1 dimensao (as categorias) e 1 medida.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "temporal",
+        "rotulosLongos",
+        "vazio"
+      ]
     }
   ]
 }
