@@ -13,6 +13,10 @@
 
 import { defineViz } from '../../core/define-viz.js';
 import { definirTexto, criarEl } from '../../core/dom.js';
+import { misturarCores } from '../../core/scales.js';
+import { textoLegivelSobre } from '../../core/theme.js';
+import { prepararRegras, avaliarRegras, posicaoNaColuna } from './regras.js';
+import { desenhistaDoTipo, TIPOS_QUE_PRECISAM_DA_COLUNA } from './celulas.js';
 import { opcoesEstaticas, opcoesPorColuna, MAXIMO_DE_COLUNAS_CONFIGURAVEIS } from './opcoes.js';
 import { construirColunas, colunasNumericasParaOpcoes, resumoDeColunas } from './colunas.js';
 import {
@@ -60,28 +64,88 @@ function textoParaNulo(config) {
 }
 
 /**
- * Pinta o conteúdo de uma célula.
- * Nesta parte 1 tratamos texto, número (com prefixo/sufixo e cores fixas por
- * coluna) e o clique de drill. Os tipos ricos chegam na parte 2.
+ * Pinta o conteúdo de uma célula: tipo de célula escolhido, escala de cor,
+ * regras de formatação condicional e drill.
  */
-function criarPintorDeCelula(ctx, nulo) {
-  const { config, ponte } = ctx;
+function criarPintorDeCelula(ctx, nulo, contextos, porId) {
+  const { config, ponte, modelo } = ctx;
 
   return function pintarCelula({ td, coluna, linha }) {
+    const estatistica = contextos.get(coluna.id) || null;
+
+    // 1) Cores fixas da coluna (base, antes das regras).
     if (coluna.corDoTexto) td.style.color = coluna.corDoTexto;
     if (coluna.corDeFundo) td.style.background = coluna.corDeFundo;
 
-    const texto = coluna.texto(linha, nulo);
-    // Prefixo/sufixo não entram em célula vazia (ficaria "R$ " sozinho).
-    const comAfixos = texto === '' ? '' : `${coluna.prefixo}${texto}${coluna.sufixo}`;
-    definirTexto(td, comAfixos);
-    td.title = comAfixos;
+    // 2) Escala de cor (mapa de calor) da coluna.
+    if (coluna.escalaDeCor && estatistica) {
+      const posicao = posicaoNaColuna(coluna.valorNumerico(linha), estatistica);
+      if (posicao !== null) {
+        const fundo = misturarCores(coluna.escalaCorMin, coluna.escalaCorMax, posicao);
+        td.style.background = fundo;
+        td.style.color = textoLegivelSobre(fundo, ctx.tema);
+      }
+    }
 
-    if (config.permitirDrill === false) return;
+    const textoBase = coluna.texto(linha, nulo);
+    // Prefixo/sufixo não entram em célula vazia (ficaria "R$ " sozinho).
+    const texto = textoBase === '' ? '' : `${coluna.prefixo}${textoBase}${coluna.sufixo}`;
+
+    // 3) Regras de formatação condicional.
+    const efeito = avaliarRegras({ coluna, linha, contextos, porId, textoDaCelula: textoBase });
+
+    // 4) Conteúdo: tipo de célula rico ou texto puro. A ação "Badge" de uma
+    // regra transforma a célula em badge mesmo que a coluna seja de texto.
+    const desenhista =
+      desenhistaDoTipo(coluna.tipoDeCelula) || (efeito && efeito.badge ? desenhistaDoTipo('badge') : null);
+    let textoEquivalente = texto;
+    if (desenhista) {
+      textoEquivalente = desenhista({
+        td,
+        coluna,
+        linha,
+        texto,
+        visual: ctx.visualDaTabela,
+        config,
+        modelo,
+        ponte,
+        eventos: ctx.eventos,
+        estatistica,
+        corDoBadge: efeito && efeito.badge,
+        // Saída de emergência de qualquer desenhista: escreve o texto puro.
+        comoTexto: () => {
+          definirTexto(td, texto);
+          return texto;
+        },
+      });
+    } else {
+      definirTexto(td, texto);
+    }
+    td.title = textoEquivalente;
+
+    // 5) Efeitos das regras por cima do conteúdo.
+    if (efeito) {
+      if (efeito.fundo) td.style.background = efeito.fundo;
+      if (efeito.cor) td.style.color = efeito.cor;
+      if (efeito.negrito) td.style.fontWeight = '700';
+      if (efeito.bordaEsquerda) td.style.borderLeft = `3px solid ${efeito.bordaEsquerda}`;
+      if (efeito.piscar) td.classList.add('tc-piscando');
+      if (efeito.icone) {
+        const icone = criarEl('span', { classe: 'tc-icone', texto: `${efeito.icone} ` });
+        icone.style.color = efeito.corDoIcone || '';
+        td.insertBefore(icone, td.firstChild);
+      }
+      if (efeito.linhaInteira && td.parentNode) {
+        if (efeito.linhaInteira.fundo) td.parentNode.style.background = efeito.linhaInteira.fundo;
+        if (efeito.linhaInteira.cor) td.parentNode.style.color = efeito.linhaInteira.cor;
+      }
+    }
+
+    // 6) Drill. O tipo "link" já cuida do próprio clique.
+    if (config.permitirDrill === false || coluna.tipoDeCelula === 'link') return;
     const celula = coluna.celula(linha);
     if (celula && ponte.temDrill(celula)) {
       td.style.cursor = 'pointer';
-      td.style.textDecoration = 'underline dotted';
       ctx.eventos.on(td, 'click', (ev) => {
         ev.stopPropagation();
         ponte.abrirDrill(celula, ev);
@@ -146,8 +210,9 @@ export default defineViz({
     prepararEstado(estado, config, colunas);
 
     const visual = resolverVisual(config, tema);
+    ctx.visualDaTabela = visual;
     const nulo = textoParaNulo(config);
-    const pintarCelula = criarPintorDeCelula(ctx, nulo);
+    const porId = new Map(colunas.map((c) => [c.id, c]));
 
     // Índices de linha depois de busca + ordenação. Recalculado a cada
     // interação; a virtualização cuida de não transformar isso em DOM.
@@ -159,8 +224,14 @@ export default defineViz({
 
     let indicesVisiveis = calcularIndices();
 
+    // Top N, percentil, média, escalas de cor e os tipos de célula que
+    // comparam com a coluna inteira: calculado uma vez por renderização.
+    const estatisticas = () => prepararRegras(colunas, indicesVisiveis, modelo, TIPOS_QUE_PRECISAM_DA_COLUNA);
+    let pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId);
+
     function redesenhar() {
       indicesVisiveis = calcularIndices();
+      pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId);
       desenhar();
     }
 

@@ -162,6 +162,20 @@ export function opcoesEstaticas() {
         ]),
       },
       textoParaNulo: { type: 'string', label: 'Texto para valor nulo', section: 'Dados', default: '∅' },
+      estiloDeData: {
+        type: 'string',
+        label: 'Formato das colunas com tipo de célula "Data"',
+        section: 'Dados',
+        display: 'select',
+        default: 'auto',
+        values: listaDeValores([
+          { rotulo: 'Dia/mês/ano', valor: 'auto' },
+          { rotulo: 'Dia/mês', valor: 'diaMes' },
+          { rotulo: 'Mês/ano', valor: 'mesAno' },
+          { rotulo: 'Ano', valor: 'ano' },
+          { rotulo: 'Data e hora', valor: 'completo' },
+        ]),
+      },
 
       // ---------- Formato / layout ----------
       densidade: {

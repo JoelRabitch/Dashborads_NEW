@@ -6,7 +6,7 @@
   "description": "Biblioteca de visualizacoes customizadas para o Looker. Cada grafico vira um dist/<id>.js autocontido, sem nenhuma dependencia em tempo de execucao (campo Dependencies do Looker fica VAZIO).",
   "scripts": {
     "build": "node build/build.mjs",
-    "test": "node --test test/smoke.test.mjs",
+    "test": "node --test test/*.test.mjs",
     "seguranca": "node build/checagem-seguranca.mjs"
   },
   "devDependencies": {

@@ -274,12 +274,56 @@ de 5.000, totais por coluna de pivô e por total de linha.
 Números: bundle 115,1 KB; 5.000 linhas renderizadas em ~120 ms; 12/12 testes
 passando; checagem de segurança sem violação.
 
+#### Parte 2 — concluída
+
+Arquivos novos: `regras.js` (motor de formatação condicional) e `celulas.js`
+(19 tipos de célula). `index.js` passou a compor os dois no `pintarCelula`.
+
+Decisões desta parte:
+
+- **Estatísticas da coluna calculadas uma vez por renderização**, não por
+  célula. Top N, Bottom N, percentil, acima/abaixo da média, escala de cor,
+  barra de dados, medidor, semáforo e estrelas precisam do mínimo/máximo/
+  média da coluna inteira. Fazer isso por célula seria O(n²).
+- **Sparkline, mini barras e mini área leem a série do PIVÔ**: os valores da
+  mesma medida nas várias colunas do pivô daquela linha. Sem pivô não existe
+  série nenhuma e a célula cai para o texto normal — é o comportamento mais
+  honesto, porque a alternativa (inventar uma série) seria mentira.
+- **Toda desistência de um desenhista escreve o texto puro** (`comoTexto()`).
+  Sem isso a célula ficava em branco, que foi exatamente o defeito achado.
+- **Cores dos avatares em hex**, não `hsl()`: os utilitários de cor do núcleo
+  (`corParaRgb`, `comOpacidade`, `textoLegivelSobre`) só entendem hex e rgb,
+  e com `hsl` o texto do avatar saía ilegível.
+- **A ação "Badge" de uma regra transforma a célula em badge** mesmo quando a
+  coluna é de texto comum. Antes ela só tinha efeito se o tipo da coluna já
+  fosse badge, ou seja: não fazia nada.
+
+Infraestrutura de teste: o "Looker de mentira" do jsdom saiu de dentro de
+`smoke.test.mjs` para `test/ambiente.mjs`, e entrou
+`test/tabela_completa.test.mjs` com testes dirigidos — os 19 tipos de célula,
+as 18 condições, as 8 ações, ordenar/buscar/selecionar de verdade (eventos
+despachados no DOM), virtualização e cabeçalho de dois níveis. `npm test`
+agora roda `test/*.test.mjs`.
+
+Defeitos achados e corrigidos antes do commit:
+
+1. `medidor`, `booleano`, `imagem` e `estrelas` desenhavam **célula vazia**
+   quando desistiam: devolviam o texto sem nunca escrevê-lo no `<td>`.
+2. `barraDeDados`, `medidor`, `semáforo` e `estrelas` não recebiam as
+   estatísticas da coluna (só colunas COM regra as ganhavam), então a barra
+   saía sempre cheia, o medidor vazio e as estrelas zeradas.
+3. O tipo "Data" estava na lista de opções mas não tinha desenhista: a
+   coluna simplesmente ignorava a escolha.
+4. A ação "Badge" das regras não fazia nada fora de colunas do tipo badge.
+
+Números: bundle 155,6 KB; 18/18 testes passando; checagem de segurança sem
+violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 9, parte 2: criar `src/charts/tabela_completa/celulas.js` (tipos de
-célula ricos: barra de dados, progresso, anel, medidor, sparkline, mini
-barras, mini área, badge, semáforo, seta de variação, estrelas, booleano,
-avatar, imagem, link e data) e `regras.js` (motor das 19 condições de
-formatação condicional, incluindo Top N, percentil e comparação com outra
-coluna), ligar os dois no `pintarCelula` do `index.js`, buildar, testar,
-rodar a checagem de segurança e commitar.
+Etapa 9, parte 3: agrupamento de linhas com expandir/recolher e subtotais
+(opções `agruparPor`, `gruposComecamAbertos`, `mostrarSubtotais`), filtros
+por coluna, copiar seleção, menu de contexto e as animações da tabela
+(`animarEntradaDasLinhas`, `animarMudancaDeValor` com as cores de subida e
+descida). Depois buildar, rodar `npm test` e `npm run seguranca`, marcar o
+item 1 do TIER 1 como `[x]` em TAREFAS.md e commitar.

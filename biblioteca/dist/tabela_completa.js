@@ -1,7 +1,7 @@
 /*!
  * Tabela Completa — visualização customizada para o Looker
  * id: tabela_completa
- * versão: 0.1.0 | build: 2026-10-22 01:29:15 | commit: 5687ece
+ * versão: 0.1.0 | build: 2026-10-22 01:40:00 | commit: 3d30453
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -631,6 +631,27 @@
     const d = new Date(texto);
     return Number.isNaN(d.getTime()) ? null : d;
   }
+  var MESES_CURTOS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  function formatarData(valor, estilo = "auto") {
+    const d = paraData(valor);
+    if (!d) return valor === null || valor === void 0 ? "" : String(valor);
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const ano = d.getFullYear();
+    switch (estilo) {
+      case "ano":
+        return String(ano);
+      case "mesAno":
+        return `${MESES_CURTOS[d.getMonth()]}/${String(ano).slice(2)}`;
+      case "diaMes":
+        return `${dia}/${mes}`;
+      case "completo":
+        return `${dia}/${mes}/${ano} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+      case "auto":
+      default:
+        return `${dia}/${mes}/${ano}`;
+    }
+  }
 
   // src/core/data-model.js
   var CHAVE_TOTAL_DE_LINHA = "$$$_row_total_$$$";
@@ -909,6 +930,440 @@
   // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
   var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
 
+  // node_modules/d3-color/src/define.js
+  function define_default(constructor, factory, prototype) {
+    constructor.prototype = factory.prototype = prototype;
+    prototype.constructor = constructor;
+  }
+  function extend(parent, definition) {
+    var prototype = Object.create(parent.prototype);
+    for (var key in definition) prototype[key] = definition[key];
+    return prototype;
+  }
+
+  // node_modules/d3-color/src/color.js
+  function Color() {
+  }
+  var darker = 0.7;
+  var brighter = 1 / darker;
+  var reI = "\\s*([+-]?\\d+)\\s*";
+  var reN = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)\\s*";
+  var reP = "\\s*([+-]?(?:\\d*\\.)?\\d+(?:[eE][+-]?\\d+)?)%\\s*";
+  var reHex = /^#([0-9a-f]{3,8})$/;
+  var reRgbInteger = new RegExp(`^rgb\\(${reI},${reI},${reI}\\)$`);
+  var reRgbPercent = new RegExp(`^rgb\\(${reP},${reP},${reP}\\)$`);
+  var reRgbaInteger = new RegExp(`^rgba\\(${reI},${reI},${reI},${reN}\\)$`);
+  var reRgbaPercent = new RegExp(`^rgba\\(${reP},${reP},${reP},${reN}\\)$`);
+  var reHslPercent = new RegExp(`^hsl\\(${reN},${reP},${reP}\\)$`);
+  var reHslaPercent = new RegExp(`^hsla\\(${reN},${reP},${reP},${reN}\\)$`);
+  var named = {
+    aliceblue: 15792383,
+    antiquewhite: 16444375,
+    aqua: 65535,
+    aquamarine: 8388564,
+    azure: 15794175,
+    beige: 16119260,
+    bisque: 16770244,
+    black: 0,
+    blanchedalmond: 16772045,
+    blue: 255,
+    blueviolet: 9055202,
+    brown: 10824234,
+    burlywood: 14596231,
+    cadetblue: 6266528,
+    chartreuse: 8388352,
+    chocolate: 13789470,
+    coral: 16744272,
+    cornflowerblue: 6591981,
+    cornsilk: 16775388,
+    crimson: 14423100,
+    cyan: 65535,
+    darkblue: 139,
+    darkcyan: 35723,
+    darkgoldenrod: 12092939,
+    darkgray: 11119017,
+    darkgreen: 25600,
+    darkgrey: 11119017,
+    darkkhaki: 12433259,
+    darkmagenta: 9109643,
+    darkolivegreen: 5597999,
+    darkorange: 16747520,
+    darkorchid: 10040012,
+    darkred: 9109504,
+    darksalmon: 15308410,
+    darkseagreen: 9419919,
+    darkslateblue: 4734347,
+    darkslategray: 3100495,
+    darkslategrey: 3100495,
+    darkturquoise: 52945,
+    darkviolet: 9699539,
+    deeppink: 16716947,
+    deepskyblue: 49151,
+    dimgray: 6908265,
+    dimgrey: 6908265,
+    dodgerblue: 2003199,
+    firebrick: 11674146,
+    floralwhite: 16775920,
+    forestgreen: 2263842,
+    fuchsia: 16711935,
+    gainsboro: 14474460,
+    ghostwhite: 16316671,
+    gold: 16766720,
+    goldenrod: 14329120,
+    gray: 8421504,
+    green: 32768,
+    greenyellow: 11403055,
+    grey: 8421504,
+    honeydew: 15794160,
+    hotpink: 16738740,
+    indianred: 13458524,
+    indigo: 4915330,
+    ivory: 16777200,
+    khaki: 15787660,
+    lavender: 15132410,
+    lavenderblush: 16773365,
+    lawngreen: 8190976,
+    lemonchiffon: 16775885,
+    lightblue: 11393254,
+    lightcoral: 15761536,
+    lightcyan: 14745599,
+    lightgoldenrodyellow: 16448210,
+    lightgray: 13882323,
+    lightgreen: 9498256,
+    lightgrey: 13882323,
+    lightpink: 16758465,
+    lightsalmon: 16752762,
+    lightseagreen: 2142890,
+    lightskyblue: 8900346,
+    lightslategray: 7833753,
+    lightslategrey: 7833753,
+    lightsteelblue: 11584734,
+    lightyellow: 16777184,
+    lime: 65280,
+    limegreen: 3329330,
+    linen: 16445670,
+    magenta: 16711935,
+    maroon: 8388608,
+    mediumaquamarine: 6737322,
+    mediumblue: 205,
+    mediumorchid: 12211667,
+    mediumpurple: 9662683,
+    mediumseagreen: 3978097,
+    mediumslateblue: 8087790,
+    mediumspringgreen: 64154,
+    mediumturquoise: 4772300,
+    mediumvioletred: 13047173,
+    midnightblue: 1644912,
+    mintcream: 16121850,
+    mistyrose: 16770273,
+    moccasin: 16770229,
+    navajowhite: 16768685,
+    navy: 128,
+    oldlace: 16643558,
+    olive: 8421376,
+    olivedrab: 7048739,
+    orange: 16753920,
+    orangered: 16729344,
+    orchid: 14315734,
+    palegoldenrod: 15657130,
+    palegreen: 10025880,
+    paleturquoise: 11529966,
+    palevioletred: 14381203,
+    papayawhip: 16773077,
+    peachpuff: 16767673,
+    peru: 13468991,
+    pink: 16761035,
+    plum: 14524637,
+    powderblue: 11591910,
+    purple: 8388736,
+    rebeccapurple: 6697881,
+    red: 16711680,
+    rosybrown: 12357519,
+    royalblue: 4286945,
+    saddlebrown: 9127187,
+    salmon: 16416882,
+    sandybrown: 16032864,
+    seagreen: 3050327,
+    seashell: 16774638,
+    sienna: 10506797,
+    silver: 12632256,
+    skyblue: 8900331,
+    slateblue: 6970061,
+    slategray: 7372944,
+    slategrey: 7372944,
+    snow: 16775930,
+    springgreen: 65407,
+    steelblue: 4620980,
+    tan: 13808780,
+    teal: 32896,
+    thistle: 14204888,
+    tomato: 16737095,
+    turquoise: 4251856,
+    violet: 15631086,
+    wheat: 16113331,
+    white: 16777215,
+    whitesmoke: 16119285,
+    yellow: 16776960,
+    yellowgreen: 10145074
+  };
+  define_default(Color, color, {
+    copy(channels) {
+      return Object.assign(new this.constructor(), this, channels);
+    },
+    displayable() {
+      return this.rgb().displayable();
+    },
+    hex: color_formatHex,
+    // Deprecated! Use color.formatHex.
+    formatHex: color_formatHex,
+    formatHex8: color_formatHex8,
+    formatHsl: color_formatHsl,
+    formatRgb: color_formatRgb,
+    toString: color_formatRgb
+  });
+  function color_formatHex() {
+    return this.rgb().formatHex();
+  }
+  function color_formatHex8() {
+    return this.rgb().formatHex8();
+  }
+  function color_formatHsl() {
+    return hslConvert(this).formatHsl();
+  }
+  function color_formatRgb() {
+    return this.rgb().formatRgb();
+  }
+  function color(format2) {
+    var m, l;
+    format2 = (format2 + "").trim().toLowerCase();
+    return (m = reHex.exec(format2)) ? (l = m[1].length, m = parseInt(m[1], 16), l === 6 ? rgbn(m) : l === 3 ? new Rgb(m >> 8 & 15 | m >> 4 & 240, m >> 4 & 15 | m & 240, (m & 15) << 4 | m & 15, 1) : l === 8 ? rgba(m >> 24 & 255, m >> 16 & 255, m >> 8 & 255, (m & 255) / 255) : l === 4 ? rgba(m >> 12 & 15 | m >> 8 & 240, m >> 8 & 15 | m >> 4 & 240, m >> 4 & 15 | m & 240, ((m & 15) << 4 | m & 15) / 255) : null) : (m = reRgbInteger.exec(format2)) ? new Rgb(m[1], m[2], m[3], 1) : (m = reRgbPercent.exec(format2)) ? new Rgb(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, 1) : (m = reRgbaInteger.exec(format2)) ? rgba(m[1], m[2], m[3], m[4]) : (m = reRgbaPercent.exec(format2)) ? rgba(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, m[4]) : (m = reHslPercent.exec(format2)) ? hsla(m[1], m[2] / 100, m[3] / 100, 1) : (m = reHslaPercent.exec(format2)) ? hsla(m[1], m[2] / 100, m[3] / 100, m[4]) : named.hasOwnProperty(format2) ? rgbn(named[format2]) : format2 === "transparent" ? new Rgb(NaN, NaN, NaN, 0) : null;
+  }
+  function rgbn(n) {
+    return new Rgb(n >> 16 & 255, n >> 8 & 255, n & 255, 1);
+  }
+  function rgba(r, g, b, a) {
+    if (a <= 0) r = g = b = NaN;
+    return new Rgb(r, g, b, a);
+  }
+  function rgbConvert(o) {
+    if (!(o instanceof Color)) o = color(o);
+    if (!o) return new Rgb();
+    o = o.rgb();
+    return new Rgb(o.r, o.g, o.b, o.opacity);
+  }
+  function rgb(r, g, b, opacity) {
+    return arguments.length === 1 ? rgbConvert(r) : new Rgb(r, g, b, opacity == null ? 1 : opacity);
+  }
+  function Rgb(r, g, b, opacity) {
+    this.r = +r;
+    this.g = +g;
+    this.b = +b;
+    this.opacity = +opacity;
+  }
+  define_default(Rgb, rgb, extend(Color, {
+    brighter(k) {
+      k = k == null ? brighter : Math.pow(brighter, k);
+      return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity);
+    },
+    darker(k) {
+      k = k == null ? darker : Math.pow(darker, k);
+      return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity);
+    },
+    rgb() {
+      return this;
+    },
+    clamp() {
+      return new Rgb(clampi(this.r), clampi(this.g), clampi(this.b), clampa(this.opacity));
+    },
+    displayable() {
+      return -0.5 <= this.r && this.r < 255.5 && (-0.5 <= this.g && this.g < 255.5) && (-0.5 <= this.b && this.b < 255.5) && (0 <= this.opacity && this.opacity <= 1);
+    },
+    hex: rgb_formatHex,
+    // Deprecated! Use color.formatHex.
+    formatHex: rgb_formatHex,
+    formatHex8: rgb_formatHex8,
+    formatRgb: rgb_formatRgb,
+    toString: rgb_formatRgb
+  }));
+  function rgb_formatHex() {
+    return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}`;
+  }
+  function rgb_formatHex8() {
+    return `#${hex(this.r)}${hex(this.g)}${hex(this.b)}${hex((isNaN(this.opacity) ? 1 : this.opacity) * 255)}`;
+  }
+  function rgb_formatRgb() {
+    const a = clampa(this.opacity);
+    return `${a === 1 ? "rgb(" : "rgba("}${clampi(this.r)}, ${clampi(this.g)}, ${clampi(this.b)}${a === 1 ? ")" : `, ${a})`}`;
+  }
+  function clampa(opacity) {
+    return isNaN(opacity) ? 1 : Math.max(0, Math.min(1, opacity));
+  }
+  function clampi(value) {
+    return Math.max(0, Math.min(255, Math.round(value) || 0));
+  }
+  function hex(value) {
+    value = clampi(value);
+    return (value < 16 ? "0" : "") + value.toString(16);
+  }
+  function hsla(h, s, l, a) {
+    if (a <= 0) h = s = l = NaN;
+    else if (l <= 0 || l >= 1) h = s = NaN;
+    else if (s <= 0) h = NaN;
+    return new Hsl(h, s, l, a);
+  }
+  function hslConvert(o) {
+    if (o instanceof Hsl) return new Hsl(o.h, o.s, o.l, o.opacity);
+    if (!(o instanceof Color)) o = color(o);
+    if (!o) return new Hsl();
+    if (o instanceof Hsl) return o;
+    o = o.rgb();
+    var r = o.r / 255, g = o.g / 255, b = o.b / 255, min = Math.min(r, g, b), max = Math.max(r, g, b), h = NaN, s = max - min, l = (max + min) / 2;
+    if (s) {
+      if (r === max) h = (g - b) / s + (g < b) * 6;
+      else if (g === max) h = (b - r) / s + 2;
+      else h = (r - g) / s + 4;
+      s /= l < 0.5 ? max + min : 2 - max - min;
+      h *= 60;
+    } else {
+      s = l > 0 && l < 1 ? 0 : h;
+    }
+    return new Hsl(h, s, l, o.opacity);
+  }
+  function hsl(h, s, l, opacity) {
+    return arguments.length === 1 ? hslConvert(h) : new Hsl(h, s, l, opacity == null ? 1 : opacity);
+  }
+  function Hsl(h, s, l, opacity) {
+    this.h = +h;
+    this.s = +s;
+    this.l = +l;
+    this.opacity = +opacity;
+  }
+  define_default(Hsl, hsl, extend(Color, {
+    brighter(k) {
+      k = k == null ? brighter : Math.pow(brighter, k);
+      return new Hsl(this.h, this.s, this.l * k, this.opacity);
+    },
+    darker(k) {
+      k = k == null ? darker : Math.pow(darker, k);
+      return new Hsl(this.h, this.s, this.l * k, this.opacity);
+    },
+    rgb() {
+      var h = this.h % 360 + (this.h < 0) * 360, s = isNaN(h) || isNaN(this.s) ? 0 : this.s, l = this.l, m2 = l + (l < 0.5 ? l : 1 - l) * s, m1 = 2 * l - m2;
+      return new Rgb(
+        hsl2rgb(h >= 240 ? h - 240 : h + 120, m1, m2),
+        hsl2rgb(h, m1, m2),
+        hsl2rgb(h < 120 ? h + 240 : h - 120, m1, m2),
+        this.opacity
+      );
+    },
+    clamp() {
+      return new Hsl(clamph(this.h), clampt(this.s), clampt(this.l), clampa(this.opacity));
+    },
+    displayable() {
+      return (0 <= this.s && this.s <= 1 || isNaN(this.s)) && (0 <= this.l && this.l <= 1) && (0 <= this.opacity && this.opacity <= 1);
+    },
+    formatHsl() {
+      const a = clampa(this.opacity);
+      return `${a === 1 ? "hsl(" : "hsla("}${clamph(this.h)}, ${clampt(this.s) * 100}%, ${clampt(this.l) * 100}%${a === 1 ? ")" : `, ${a})`}`;
+    }
+  }));
+  function clamph(value) {
+    value = (value || 0) % 360;
+    return value < 0 ? value + 360 : value;
+  }
+  function clampt(value) {
+    return Math.max(0, Math.min(1, value || 0));
+  }
+  function hsl2rgb(h, m1, m2) {
+    return (h < 60 ? m1 + (m2 - m1) * h / 60 : h < 180 ? m2 : h < 240 ? m1 + (m2 - m1) * (240 - h) / 60 : m1) * 255;
+  }
+
+  // node_modules/d3-interpolate/src/basis.js
+  function basis(t1, v0, v1, v2, v3) {
+    var t2 = t1 * t1, t3 = t2 * t1;
+    return ((1 - 3 * t1 + 3 * t2 - t3) * v0 + (4 - 6 * t2 + 3 * t3) * v1 + (1 + 3 * t1 + 3 * t2 - 3 * t3) * v2 + t3 * v3) / 6;
+  }
+  function basis_default(values) {
+    var n = values.length - 1;
+    return function(t) {
+      var i = t <= 0 ? t = 0 : t >= 1 ? (t = 1, n - 1) : Math.floor(t * n), v1 = values[i], v2 = values[i + 1], v0 = i > 0 ? values[i - 1] : 2 * v1 - v2, v3 = i < n - 1 ? values[i + 2] : 2 * v2 - v1;
+      return basis((t - i / n) * n, v0, v1, v2, v3);
+    };
+  }
+
+  // node_modules/d3-interpolate/src/basisClosed.js
+  function basisClosed_default(values) {
+    var n = values.length;
+    return function(t) {
+      var i = Math.floor(((t %= 1) < 0 ? ++t : t) * n), v0 = values[(i + n - 1) % n], v1 = values[i % n], v2 = values[(i + 1) % n], v3 = values[(i + 2) % n];
+      return basis((t - i / n) * n, v0, v1, v2, v3);
+    };
+  }
+
+  // node_modules/d3-interpolate/src/constant.js
+  var constant_default = (x) => () => x;
+
+  // node_modules/d3-interpolate/src/color.js
+  function linear(a, d) {
+    return function(t) {
+      return a + t * d;
+    };
+  }
+  function exponential(a, b, y) {
+    return a = Math.pow(a, y), b = Math.pow(b, y) - a, y = 1 / y, function(t) {
+      return Math.pow(a + t * b, y);
+    };
+  }
+  function gamma(y) {
+    return (y = +y) === 1 ? nogamma : function(a, b) {
+      return b - a ? exponential(a, b, y) : constant_default(isNaN(a) ? b : a);
+    };
+  }
+  function nogamma(a, b) {
+    var d = b - a;
+    return d ? linear(a, d) : constant_default(isNaN(a) ? b : a);
+  }
+
+  // node_modules/d3-interpolate/src/rgb.js
+  var rgb_default = (function rgbGamma(y) {
+    var color2 = gamma(y);
+    function rgb2(start, end) {
+      var r = color2((start = rgb(start)).r, (end = rgb(end)).r), g = color2(start.g, end.g), b = color2(start.b, end.b), opacity = nogamma(start.opacity, end.opacity);
+      return function(t) {
+        start.r = r(t);
+        start.g = g(t);
+        start.b = b(t);
+        start.opacity = opacity(t);
+        return start + "";
+      };
+    }
+    rgb2.gamma = rgbGamma;
+    return rgb2;
+  })(1);
+  function rgbSpline(spline) {
+    return function(colors) {
+      var n = colors.length, r = new Array(n), g = new Array(n), b = new Array(n), i, color2;
+      for (i = 0; i < n; ++i) {
+        color2 = rgb(colors[i]);
+        r[i] = color2.r || 0;
+        g[i] = color2.g || 0;
+        b[i] = color2.b || 0;
+      }
+      r = spline(r);
+      g = spline(g);
+      b = spline(b);
+      color2.opacity = 1;
+      return function(t) {
+        color2.r = r(t);
+        color2.g = g(t);
+        color2.b = b(t);
+        return color2 + "";
+      };
+    };
+  }
+  var rgbBasis = rgbSpline(basis_default);
+  var rgbBasisClosed = rgbSpline(basisClosed_default);
+
   // src/core/theme.js
   var FAMILIAS_DE_FONTE = {
     sistema: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -1021,6 +1476,35 @@
     tema.tamanhoBase = Number(config.tamanhoDaFonte) || METRICAS.fonte.md;
     tema.metricas = METRICAS;
     return tema;
+  }
+  function textoLegivelSobre(corDeFundo, tema) {
+    const rgb2 = corParaRgb(corDeFundo);
+    if (!rgb2) return tema ? tema.texto : "#1F2937";
+    const lum = (0.2126 * rgb2[0] + 0.7152 * rgb2[1] + 0.0722 * rgb2[2]) / 255;
+    return lum > 0.58 ? "#111827" : "#FFFFFF";
+  }
+  function corParaRgb(cor) {
+    if (typeof cor !== "string") return null;
+    const t = cor.trim();
+    let m = /^#([0-9a-f]{3})$/i.exec(t);
+    if (m) {
+      const h = m[1];
+      return [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)];
+    }
+    m = /^#([0-9a-f]{6})$/i.exec(t);
+    if (m) {
+      const h = m[1];
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+    m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(t);
+    if (m) return [Number(m[1]), Number(m[2]), Number(m[3])];
+    return null;
+  }
+  function comOpacidade(cor, opacidade) {
+    const rgb2 = corParaRgb(cor);
+    if (!rgb2) return cor;
+    const a = Math.max(0, Math.min(1, Number(opacidade)));
+    return `rgba(${rgb2[0]},${rgb2[1]},${rgb2[2]},${a})`;
   }
 
   // src/core/options-kit.js
@@ -1178,6 +1662,7 @@
   }
 
   // src/core/dom.js
+  var NS_SVG = "http://www.w3.org/2000/svg";
   function limpar(no) {
     if (!no) return no;
     while (no.firstChild) no.removeChild(no.firstChild);
@@ -1216,6 +1701,15 @@
     if (opcoes.pai) opcoes.pai.appendChild(el);
     return el;
   }
+  function criarSvgEl(tag, opcoes = {}) {
+    const el = document.createElementNS(NS_SVG, tag);
+    if (opcoes.classe) el.setAttribute("class", opcoes.classe);
+    if (opcoes.texto !== void 0) definirTexto(el, opcoes.texto);
+    if (opcoes.estilos) aplicarEstilos(el, opcoes.estilos);
+    if (opcoes.atributos) aplicarAtributos(el, opcoes.atributos);
+    if (opcoes.pai) opcoes.pai.appendChild(el);
+    return el;
+  }
   function medir(el, minimo = { largura: 160, altura: 120 }) {
     const largura = el && el.clientWidth || minimo.largura;
     const altura = el && el.clientHeight || minimo.altura;
@@ -1246,6 +1740,13 @@
     style.textContent = css;
     hospedeiro.appendChild(style);
     return style;
+  }
+  function urlDeImagemSegura(valor, { permitirExternas = true } = {}) {
+    if (typeof valor !== "string") return null;
+    const limpo = valor.trim();
+    if (/^data:image\//i.test(limpo)) return limpo;
+    if (/^https?:\/\//i.test(limpo)) return permitirExternas ? limpo : null;
+    return null;
   }
   function criarGerenciadorDeEventos() {
     const registros = [];
@@ -1541,6 +2042,553 @@
     });
   }
 
+  // src/core/scales.js
+  function misturarCores(a, b, t) {
+    return rgb_default(a, b)(Math.max(0, Math.min(1, t)));
+  }
+
+  // src/charts/tabela_completa/regras.js
+  var ICONES = {
+    subiu: "\u25B2",
+    desceu: "\u25BC",
+    bolinha: "\u25CF",
+    estrela: "\u2605",
+    atencao: "\u26A0",
+    ok: "\u2713",
+    erro: "\u2717"
+  };
+  function numeroOuNulo2(valor) {
+    if (valor === null || valor === void 0 || valor === "") return null;
+    const n = Number(String(valor).replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  }
+  var PRECISA_DE_ESTATISTICA = /* @__PURE__ */ new Set([
+    "topN",
+    "bottomN",
+    "acimaDaMedia",
+    "abaixoDaMedia",
+    "acimaDoPercentil"
+  ]);
+  function prepararRegras(colunas, indices, modelo, tiposQuePrecisamDaColuna = /* @__PURE__ */ new Set()) {
+    const contextos = /* @__PURE__ */ new Map();
+    for (const coluna of colunas) {
+      const tipoPrecisa = tiposQuePrecisamDaColuna.has(coluna.tipoDeCelula);
+      if (!coluna.regras.length && !coluna.escalaDeCor && !tipoPrecisa) continue;
+      const precisaDeValores = coluna.escalaDeCor || tipoPrecisa || coluna.regras.some((r) => PRECISA_DE_ESTATISTICA.has(r.condicao));
+      const ctx = { minimo: null, maximo: null, media: null, corteTopN: /* @__PURE__ */ new Map(), percentis: /* @__PURE__ */ new Map() };
+      if (precisaDeValores) {
+        const valores = [];
+        for (const i of indices) {
+          const v = coluna.valorNumerico(modelo.linhas[i]);
+          if (v !== null && Number.isFinite(v)) valores.push(v);
+        }
+        if (valores.length) {
+          const ordenados = valores.slice().sort((a, b) => a - b);
+          ctx.minimo = ordenados[0];
+          ctx.maximo = ordenados[ordenados.length - 1];
+          ctx.media = valores.reduce((a, b) => a + b, 0) / valores.length;
+          ctx.ordenados = ordenados;
+        }
+      }
+      for (const regra of coluna.regras) {
+        if (!ctx.ordenados) break;
+        const n = numeroOuNulo2(regra.valor);
+        if (n === null || n <= 0) continue;
+        const ord = ctx.ordenados;
+        if (regra.condicao === "topN") {
+          ctx.corteTopN.set(regra, ord[Math.max(0, ord.length - Math.min(n, ord.length))]);
+        } else if (regra.condicao === "bottomN") {
+          ctx.corteTopN.set(regra, ord[Math.min(ord.length, n) - 1]);
+        } else if (regra.condicao === "acimaDoPercentil") {
+          const p = Math.min(100, Math.max(0, n)) / 100;
+          ctx.percentis.set(regra, ord[Math.min(ord.length - 1, Math.floor(p * (ord.length - 1)))]);
+        }
+      }
+      contextos.set(coluna.id, ctx);
+    }
+    return contextos;
+  }
+  function regraBate(regra, { valorNumerico, texto, coluna, linha, porId, ctx }) {
+    const alvo = numeroOuNulo2(regra.valor);
+    const alvo2 = numeroOuNulo2(regra.valor2);
+    switch (regra.condicao) {
+      case "nulo":
+        return valorNumerico === null && !texto;
+      case "contem":
+        return !!regra.valor && texto.toLowerCase().includes(String(regra.valor).toLowerCase());
+      case "comecaCom":
+        return !!regra.valor && texto.toLowerCase().startsWith(String(regra.valor).toLowerCase());
+      case "igual":
+        return alvo !== null ? valorNumerico === alvo : texto === String(regra.valor);
+      case "diferente":
+        return alvo !== null ? valorNumerico !== alvo : texto !== String(regra.valor);
+      default:
+        break;
+    }
+    if (valorNumerico === null) return false;
+    switch (regra.condicao) {
+      case "maior":
+        return alvo !== null && valorNumerico > alvo;
+      case "maiorIgual":
+        return alvo !== null && valorNumerico >= alvo;
+      case "menor":
+        return alvo !== null && valorNumerico < alvo;
+      case "menorIgual":
+        return alvo !== null && valorNumerico <= alvo;
+      case "entre":
+        return alvo !== null && alvo2 !== null && valorNumerico >= Math.min(alvo, alvo2) && valorNumerico <= Math.max(alvo, alvo2);
+      case "fora":
+        return alvo !== null && alvo2 !== null && (valorNumerico < Math.min(alvo, alvo2) || valorNumerico > Math.max(alvo, alvo2));
+      case "acimaDaMedia":
+        return ctx.media !== null && valorNumerico > ctx.media;
+      case "abaixoDaMedia":
+        return ctx.media !== null && valorNumerico < ctx.media;
+      case "topN": {
+        const corte = ctx.corteTopN.get(regra);
+        return corte !== void 0 && valorNumerico >= corte;
+      }
+      case "bottomN": {
+        const corte = ctx.corteTopN.get(regra);
+        return corte !== void 0 && valorNumerico <= corte;
+      }
+      case "acimaDoPercentil": {
+        const corte = ctx.percentis.get(regra);
+        return corte !== void 0 && valorNumerico > corte;
+      }
+      case "maiorQueColuna":
+      case "menorQueColuna": {
+        const outra = porId.get(regra.colunaComparada);
+        if (!outra || outra.id === coluna.id) return false;
+        const v = outra.valorNumerico(linha);
+        if (v === null) return false;
+        return regra.condicao === "maiorQueColuna" ? valorNumerico > v : valorNumerico < v;
+      }
+      default:
+        return false;
+    }
+  }
+  function avaliarRegras({ coluna, linha, contextos, porId, textoDaCelula }) {
+    if (!coluna.regras.length) return null;
+    const ctx = contextos.get(coluna.id);
+    if (!ctx) return null;
+    const valorNumerico = coluna.valorNumerico(linha);
+    const texto = textoDaCelula === void 0 ? coluna.texto(linha, "") : textoDaCelula;
+    let efeito = null;
+    for (const regra of coluna.regras) {
+      if (!regraBate(regra, { valorNumerico, texto, coluna, linha, porId, ctx })) continue;
+      if (!efeito) efeito = {};
+      switch (regra.acao) {
+        case "texto":
+          efeito.cor = regra.cor;
+          break;
+        case "negrito":
+          efeito.negrito = true;
+          break;
+        case "fundoETexto":
+          efeito.fundo = regra.cor;
+          efeito.cor = "#FFFFFF";
+          break;
+        case "icone":
+          efeito.icone = ICONES[regra.icone] || ICONES.bolinha;
+          efeito.corDoIcone = regra.cor;
+          break;
+        case "badge":
+          efeito.badge = regra.cor;
+          break;
+        case "borda":
+          efeito.bordaEsquerda = regra.cor;
+          break;
+        case "piscar":
+          efeito.piscar = true;
+          efeito.cor = regra.cor;
+          break;
+        case "fundo":
+        default:
+          efeito.fundo = regra.cor;
+          break;
+      }
+      if (regra.linhaInteira) {
+        efeito.linhaInteira = {
+          fundo: regra.acao === "texto" ? void 0 : regra.cor,
+          cor: regra.acao === "texto" || regra.acao === "fundoETexto" ? regra.cor : void 0
+        };
+      }
+    }
+    return efeito;
+  }
+  function posicaoNaColuna(valor, ctx) {
+    if (valor === null || !ctx || ctx.minimo === null) return null;
+    if (ctx.maximo === ctx.minimo) return 1;
+    return (valor - ctx.minimo) / (ctx.maximo - ctx.minimo);
+  }
+
+  // src/charts/tabela_completa/celulas.js
+  var CSS = `
+.tc-barra-fundo{position:relative;display:block;width:100%;height:60%;border-radius:3px;overflow:hidden;}
+.tc-barra-valor{position:absolute;top:0;bottom:0;border-radius:3px;}
+.tc-barra-texto{position:relative;padding:0 4px;font-variant-numeric:tabular-nums;}
+.tc-pilha{display:flex;align-items:center;gap:6px;height:100%;}
+.tc-badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:.85em;font-weight:600;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.tc-semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+.tc-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:50%;font-size:10px;font-weight:700;flex:0 0 auto;}
+.tc-img{height:80%;max-width:100%;object-fit:contain;display:block;}
+.tc-link{text-decoration:underline;cursor:pointer;}
+.tc-icone{flex:0 0 auto;}
+@keyframes tc-piscar{0%,100%{opacity:1}50%{opacity:.35}}
+.tc-piscando{animation:tc-piscar 1.1s ease-in-out infinite;}
+@media (prefers-reduced-motion: reduce){.tc-piscando{animation:none;}}
+`;
+  function cssDasCelulas() {
+    return CSS;
+  }
+  var CORES_DE_FAIXA = ["#DC2626", "#F59E0B", "#16A34A"];
+  function pilha(td, alinhamento) {
+    const caixa = criarEl("div", { classe: "tc-pilha", pai: td });
+    caixa.style.justifyContent = alinhamento === "right" ? "flex-end" : alinhamento === "center" ? "center" : "flex-start";
+    return caixa;
+  }
+  function serieDaLinha(coluna, linha, modelo) {
+    if (!modelo.temPivo || !coluna.ehMedida) return [];
+    const saida = [];
+    for (const p of modelo.pivotsDeDados) {
+      saida.push(modelo.valorNumerico(linha, coluna.campo.nome, p.chave));
+    }
+    return saida;
+  }
+  function miniCaminho(valores, largura, altura, fechar) {
+    const limpos = valores.map((v) => v === null || !Number.isFinite(v) ? null : v);
+    const existentes = limpos.filter((v) => v !== null);
+    if (existentes.length < 2) return null;
+    const minimo = Math.min(...existentes);
+    const maximo = Math.max(...existentes);
+    const amplitude = maximo - minimo || 1;
+    const passo = limpos.length > 1 ? largura / (limpos.length - 1) : largura;
+    let d = "";
+    let comecou = false;
+    limpos.forEach((v, i) => {
+      if (v === null) return;
+      const x = i * passo;
+      const y = altura - (v - minimo) / amplitude * altura;
+      d += `${comecou ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`;
+      comecou = true;
+    });
+    if (fechar) d += `L${largura.toFixed(2)},${altura}L0,${altura}Z`;
+    return d;
+  }
+  var DESENHISTAS = {
+    barraDeDados(ctx) {
+      var _a, _b;
+      const { td, coluna, linha, visual, estatistica } = ctx;
+      const valor = coluna.valorNumerico(linha);
+      const texto = ctx.texto;
+      if (valor === null) return ctx.comoTexto();
+      const fundo = criarEl("div", { classe: "tc-barra-fundo", pai: td });
+      fundo.style.background = comOpacidade(coluna.corDaBarra, 0.14);
+      const minimo = Math.min(0, estatistica ? (_a = estatistica.minimo) != null ? _a : 0 : 0);
+      const maximo = Math.max(0, estatistica ? (_b = estatistica.maximo) != null ? _b : valor : valor);
+      const amplitude = maximo - minimo || 1;
+      const zero = (0 - minimo) / amplitude * 100;
+      const posicao = (valor - minimo) / amplitude * 100;
+      const barra = criarEl("div", { classe: "tc-barra-valor", pai: fundo });
+      barra.style.background = coluna.corDaBarra;
+      barra.style.left = `${Math.min(zero, posicao)}%`;
+      barra.style.width = `${Math.abs(posicao - zero)}%`;
+      const rotulo = criarEl("span", { classe: "tc-barra-texto", pai: fundo });
+      definirTexto(rotulo, texto);
+      rotulo.style.color = visual.texto;
+      rotulo.style.lineHeight = `${Math.round(visual.alturaLinha * 0.6)}px`;
+      return texto;
+    },
+    progresso(ctx) {
+      const { td, coluna, linha, visual } = ctx;
+      const valor = coluna.valorNumerico(linha);
+      if (valor === null) return ctx.comoTexto();
+      const fracao = Math.max(0, Math.min(1, valor > 1.5 ? valor / 100 : valor));
+      const caixa = pilha(td, "left");
+      const trilho = criarEl("div", { pai: caixa });
+      trilho.style.flex = "1 1 auto";
+      trilho.style.height = "8px";
+      trilho.style.borderRadius = "999px";
+      trilho.style.background = comOpacidade(coluna.corDaBarra, 0.18);
+      trilho.style.overflow = "hidden";
+      const preenchido = criarEl("div", { pai: trilho });
+      preenchido.style.width = `${fracao * 100}%`;
+      preenchido.style.height = "100%";
+      preenchido.style.background = coluna.corDaBarra;
+      const texto = `${Math.round(fracao * 100)}%`;
+      const rotulo = criarEl("span", { pai: caixa, texto });
+      rotulo.style.flex = "0 0 auto";
+      rotulo.style.color = visual.texto;
+      return texto;
+    },
+    anel(ctx) {
+      const { td, coluna, linha, visual } = ctx;
+      const valor = coluna.valorNumerico(linha);
+      if (valor === null) return ctx.comoTexto();
+      const fracao = Math.max(0, Math.min(1, valor > 1.5 ? valor / 100 : valor));
+      const lado = Math.max(14, Math.round(visual.alturaLinha * 0.7));
+      const raio = lado / 2 - 2;
+      const circunferencia = 2 * Math.PI * raio;
+      const caixa = pilha(td, coluna.alinhamento);
+      const svg = criarSvgEl("svg", { pai: caixa, atributos: { width: lado, height: lado } });
+      criarSvgEl("circle", {
+        pai: svg,
+        atributos: {
+          cx: lado / 2,
+          cy: lado / 2,
+          r: raio,
+          fill: "none",
+          stroke: comOpacidade(coluna.corDaBarra, 0.2),
+          "stroke-width": 3
+        }
+      });
+      criarSvgEl("circle", {
+        pai: svg,
+        atributos: {
+          cx: lado / 2,
+          cy: lado / 2,
+          r: raio,
+          fill: "none",
+          stroke: coluna.corDaBarra,
+          "stroke-width": 3,
+          "stroke-linecap": "round",
+          "stroke-dasharray": `${circunferencia * fracao} ${circunferencia}`,
+          transform: `rotate(-90 ${lado / 2} ${lado / 2})`
+        }
+      });
+      const texto = `${Math.round(fracao * 100)}%`;
+      const rotulo = criarEl("span", { pai: caixa, texto });
+      rotulo.style.color = visual.texto;
+      return texto;
+    },
+    medidor(ctx) {
+      const { td, coluna, linha, visual, estatistica } = ctx;
+      const valor = coluna.valorNumerico(linha);
+      if (valor === null) return ctx.comoTexto();
+      const fracao = posicaoNaColuna(valor, estatistica);
+      if (fracao === null) return ctx.comoTexto();
+      const largura = Math.max(34, Math.round(visual.alturaLinha * 1.6));
+      const altura = Math.max(14, Math.round(visual.alturaLinha * 0.48));
+      const caixa = pilha(td, coluna.alinhamento);
+      const svg = criarSvgEl("svg", { pai: caixa, atributos: { width: largura, height: altura } });
+      const raio = Math.min(largura / 2, altura) - 2;
+      const cx = largura / 2;
+      const cy = altura - 1;
+      const arco = (de, ate, cor, espessura) => {
+        const p0 = [cx + raio * Math.cos(Math.PI * (1 - de)), cy - raio * Math.sin(Math.PI * (1 - de))];
+        const p1 = [cx + raio * Math.cos(Math.PI * (1 - ate)), cy - raio * Math.sin(Math.PI * (1 - ate))];
+        criarSvgEl("path", {
+          pai: svg,
+          atributos: {
+            d: `M${p0[0].toFixed(2)},${p0[1].toFixed(2)}A${raio},${raio} 0 0 1 ${p1[0].toFixed(2)},${p1[1].toFixed(2)}`,
+            fill: "none",
+            stroke: cor,
+            "stroke-width": espessura,
+            "stroke-linecap": "round"
+          }
+        });
+      };
+      arco(0, 1, comOpacidade(coluna.corDaBarra, 0.18), 4);
+      if (fracao > 0.01) arco(0, fracao, coluna.corDaBarra, 4);
+      const rotulo = criarEl("span", { pai: caixa, texto: ctx.texto });
+      rotulo.style.color = visual.texto;
+      return ctx.texto;
+    },
+    sparkline(ctx) {
+      return desenharMini(ctx, "linha");
+    },
+    miniArea(ctx) {
+      return desenharMini(ctx, "area");
+    },
+    miniBarras(ctx) {
+      const { td, coluna, linha, visual, modelo } = ctx;
+      const valores = serieDaLinha(coluna, linha, modelo);
+      if (valores.filter((v) => v !== null).length < 2) return ctx.comoTexto();
+      const largura = Math.max(40, Math.round(visual.alturaLinha * 2.4));
+      const altura = Math.max(12, Math.round(visual.alturaLinha * 0.62));
+      const existentes = valores.filter((v) => v !== null && Number.isFinite(v));
+      const maximo = Math.max(...existentes.map(Math.abs)) || 1;
+      const largoDaBarra = largura / valores.length;
+      const caixa = pilha(td, coluna.alinhamento);
+      const svg = criarSvgEl("svg", { pai: caixa, atributos: { width: largura, height: altura } });
+      valores.forEach((v, i) => {
+        if (v === null || !Number.isFinite(v)) return;
+        const h = Math.max(1, Math.abs(v) / maximo * altura);
+        criarSvgEl("rect", {
+          pai: svg,
+          atributos: {
+            x: (i * largoDaBarra + largoDaBarra * 0.15).toFixed(2),
+            y: (altura - h).toFixed(2),
+            width: Math.max(1, largoDaBarra * 0.7).toFixed(2),
+            height: h.toFixed(2),
+            fill: v < 0 ? "#DC2626" : coluna.corDaBarra,
+            rx: 1
+          }
+        });
+      });
+      return ctx.texto;
+    },
+    badge(ctx) {
+      const { td, coluna, visual } = ctx;
+      const caixa = pilha(td, coluna.alinhamento);
+      const cor = ctx.corDoBadge || coluna.corDaBarra;
+      const badge = criarEl("span", { classe: "tc-badge", pai: caixa, texto: ctx.texto });
+      badge.style.background = comOpacidade(cor, visual.escuro ? 0.3 : 0.18);
+      badge.style.color = visual.escuro ? "#FFFFFF" : cor;
+      return ctx.texto;
+    },
+    semaforo(ctx) {
+      const { td, coluna, linha, visual, estatistica } = ctx;
+      const valor = coluna.valorNumerico(linha);
+      const caixa = pilha(td, coluna.alinhamento);
+      const fracao = posicaoNaColuna(valor, estatistica);
+      const cor = fracao === null ? visual.borda : CORES_DE_FAIXA[Math.min(2, Math.floor(fracao * 3))];
+      const bola = criarEl("span", { classe: "tc-semaforo", pai: caixa });
+      bola.style.background = cor;
+      const rotulo = criarEl("span", { pai: caixa, texto: ctx.texto });
+      rotulo.style.color = visual.texto;
+      rotulo.style.overflow = "hidden";
+      rotulo.style.textOverflow = "ellipsis";
+      return ctx.texto;
+    },
+    seta(ctx) {
+      const { td, coluna, linha, config, visual } = ctx;
+      const valor = coluna.valorNumerico(linha);
+      const caixa = pilha(td, coluna.alinhamento);
+      if (valor !== null && valor !== 0) {
+        const seta = criarEl("span", { classe: "tc-icone", pai: caixa, texto: valor > 0 ? "\u25B2" : "\u25BC" });
+        seta.style.color = valor > 0 ? config.corDeSubida || "#16A34A" : config.corDeDescida || "#DC2626";
+      }
+      const rotulo = criarEl("span", { pai: caixa, texto: ctx.texto });
+      rotulo.style.color = visual.texto;
+      return ctx.texto;
+    },
+    estrelas(ctx) {
+      var _a;
+      const { td, coluna, linha, visual, estatistica } = ctx;
+      const valor = coluna.valorNumerico(linha);
+      if (valor === null) return ctx.comoTexto();
+      const fracao = valor <= 5 ? valor / 5 : (_a = posicaoNaColuna(valor, estatistica)) != null ? _a : 0;
+      const cheias = Math.round(Math.max(0, Math.min(1, fracao)) * 5);
+      const caixa = pilha(td, coluna.alinhamento);
+      for (let i = 0; i < 5; i++) {
+        const estrela = criarEl("span", { pai: caixa, texto: i < cheias ? "\u2605" : "\u2606" });
+        estrela.style.color = i < cheias ? coluna.corDaBarra : visual.borda;
+        estrela.style.marginRight = "-3px";
+      }
+      return `${cheias}/5`;
+    },
+    booleano(ctx) {
+      const { td, coluna } = ctx;
+      const bruto = ctx.texto.trim().toLowerCase();
+      const verdadeiro = ["sim", "yes", "true", "1", "verdadeiro", "ativo"].includes(bruto);
+      const falso = ["n\xE3o", "nao", "no", "false", "0", "falso", "inativo"].includes(bruto);
+      if (!verdadeiro && !falso) return ctx.comoTexto();
+      const caixa = pilha(td, coluna.alinhamento || "center");
+      const marca = criarEl("span", { pai: caixa, texto: verdadeiro ? "\u2713" : "\u2717" });
+      marca.style.color = verdadeiro ? "#16A34A" : "#DC2626";
+      marca.style.fontWeight = "700";
+      return verdadeiro ? "\u2713" : "\u2717";
+    },
+    avatar(ctx) {
+      const { td, coluna, visual } = ctx;
+      const texto = ctx.texto;
+      const iniciais = texto.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join("");
+      const caixa = pilha(td, coluna.alinhamento);
+      const bolha = criarEl("div", { classe: "tc-avatar", pai: caixa, texto: iniciais });
+      const cor = corEstavel(texto);
+      bolha.style.background = cor;
+      bolha.style.color = textoLegivelSobre(cor, visual);
+      const rotulo = criarEl("span", { pai: caixa, texto });
+      rotulo.style.color = visual.texto;
+      rotulo.style.overflow = "hidden";
+      rotulo.style.textOverflow = "ellipsis";
+      return texto;
+    },
+    imagem(ctx) {
+      const { td, coluna, linha } = ctx;
+      const bruto = coluna.celula(linha);
+      const url = urlDeImagemSegura(bruto && bruto.value);
+      if (!url) return ctx.comoTexto();
+      const img = criarEl("img", { classe: "tc-img", pai: td });
+      img.src = url;
+      img.alt = ctx.texto;
+      return ctx.texto;
+    },
+    data(ctx) {
+      const { td, coluna, linha, config } = ctx;
+      const bruto = coluna.celula(linha);
+      const texto = formatarData(bruto && bruto.value, config.estiloDeData || "auto");
+      if (!texto) return ctx.comoTexto();
+      definirTexto(td, texto);
+      return texto;
+    },
+    link(ctx) {
+      const { td, coluna, linha, ponte, visual } = ctx;
+      const celula = coluna.celula(linha);
+      const span = criarEl("span", { classe: "tc-link", pai: td, texto: ctx.texto });
+      span.style.color = visual.escuro ? "#93C5FD" : "#1D4ED8";
+      if (celula && ponte.temDrill(celula)) {
+        ctx.eventos.on(span, "click", (ev) => {
+          ev.stopPropagation();
+          ponte.abrirDrill(celula, ev);
+        });
+      }
+      return ctx.texto;
+    }
+  };
+  function desenharMini(ctx, estilo) {
+    const { td, coluna, linha, visual, modelo } = ctx;
+    const valores = serieDaLinha(coluna, linha, modelo);
+    if (valores.filter((v) => v !== null).length < 2) return ctx.comoTexto();
+    const largura = Math.max(40, Math.round(visual.alturaLinha * 2.4));
+    const altura = Math.max(12, Math.round(visual.alturaLinha * 0.62));
+    const d = miniCaminho(valores, largura, altura, estilo === "area");
+    if (!d) return ctx.comoTexto();
+    const caixa = pilha(td, coluna.alinhamento);
+    const svg = criarSvgEl("svg", { pai: caixa, atributos: { width: largura, height: altura } });
+    criarSvgEl("path", {
+      pai: svg,
+      atributos: {
+        d,
+        fill: estilo === "area" ? comOpacidade(coluna.corDaBarra, 0.25) : "none",
+        stroke: coluna.corDaBarra,
+        "stroke-width": 1.5,
+        "stroke-linejoin": "round",
+        "stroke-linecap": "round"
+      }
+    });
+    return ctx.texto;
+  }
+  var CORES_DE_AVATAR = [
+    "#BFDBFE",
+    "#BBF7D0",
+    "#FED7AA",
+    "#FBCFE8",
+    "#DDD6FE",
+    "#A5F3FC",
+    "#FDE68A",
+    "#C7D2FE",
+    "#FECACA",
+    "#D9F99D"
+  ];
+  function corEstavel(texto) {
+    let soma = 0;
+    for (let i = 0; i < texto.length; i++) soma = (soma * 31 + texto.charCodeAt(i)) % 9973;
+    return CORES_DE_AVATAR[soma % CORES_DE_AVATAR.length];
+  }
+  function desenhistaDoTipo(tipo) {
+    return DESENHISTAS[tipo] || null;
+  }
+  var TIPOS_QUE_PRECISAM_DA_COLUNA = /* @__PURE__ */ new Set([
+    "barraDeDados",
+    "medidor",
+    "semaforo",
+    "estrelas"
+  ]);
+
   // src/charts/tabela_completa/opcoes.js
   var REGRAS_POR_COLUNA = 3;
   var MAXIMO_DE_COLUNAS_CONFIGURAVEIS = 20;
@@ -1675,6 +2723,20 @@
           ])
         },
         textoParaNulo: { type: "string", label: "Texto para valor nulo", section: "Dados", default: "\u2205" },
+        estiloDeData: {
+          type: "string",
+          label: 'Formato das colunas com tipo de c\xE9lula "Data"',
+          section: "Dados",
+          display: "select",
+          default: "auto",
+          values: listaDeValores([
+            { rotulo: "Dia/m\xEAs/ano", valor: "auto" },
+            { rotulo: "Dia/m\xEAs", valor: "diaMes" },
+            { rotulo: "M\xEAs/ano", valor: "mesAno" },
+            { rotulo: "Ano", valor: "ano" },
+            { rotulo: "Data e hora", valor: "completo" }
+          ])
+        },
         // ---------- Formato / layout ----------
         densidade: {
           type: "string",
@@ -2272,7 +3334,7 @@
   }
 
   // src/charts/tabela_completa/render.js
-  var CSS = `
+  var CSS2 = `
 .tc-raiz{display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;}
 .tc-barra{display:flex;gap:8px;align-items:center;padding:4px 6px;flex:0 0 auto;flex-wrap:wrap;}
 .tc-barra input[type=search]{flex:1 1 140px;min-width:100px;padding:3px 7px;border-radius:4px;border:1px solid;font:inherit;}
@@ -2432,7 +3494,7 @@
       pintarCelula
     } = params;
     const { modelo, config, tema, raiz } = ctx;
-    injetarEstilo(raiz, CSS, "tc");
+    injetarEstilo(raiz, CSS2 + cssDasCelulas(), "tc");
     limpar(raiz);
     const container = criarEl("div", { classe: "tc-raiz", pai: raiz });
     container.style.background = visual.fundo;
@@ -2853,20 +3915,68 @@
     if (config.tratamentoDeNulos === "zero") return "0";
     return config.textoParaNulo || "\u2205";
   }
-  function criarPintorDeCelula(ctx, nulo) {
-    const { config, ponte } = ctx;
+  function criarPintorDeCelula(ctx, nulo, contextos, porId) {
+    const { config, ponte, modelo } = ctx;
     return function pintarCelula({ td, coluna, linha }) {
+      const estatistica = contextos.get(coluna.id) || null;
       if (coluna.corDoTexto) td.style.color = coluna.corDoTexto;
       if (coluna.corDeFundo) td.style.background = coluna.corDeFundo;
-      const texto = coluna.texto(linha, nulo);
-      const comAfixos = texto === "" ? "" : `${coluna.prefixo}${texto}${coluna.sufixo}`;
-      definirTexto(td, comAfixos);
-      td.title = comAfixos;
-      if (config.permitirDrill === false) return;
+      if (coluna.escalaDeCor && estatistica) {
+        const posicao = posicaoNaColuna(coluna.valorNumerico(linha), estatistica);
+        if (posicao !== null) {
+          const fundo = misturarCores(coluna.escalaCorMin, coluna.escalaCorMax, posicao);
+          td.style.background = fundo;
+          td.style.color = textoLegivelSobre(fundo, ctx.tema);
+        }
+      }
+      const textoBase = coluna.texto(linha, nulo);
+      const texto = textoBase === "" ? "" : `${coluna.prefixo}${textoBase}${coluna.sufixo}`;
+      const efeito = avaliarRegras({ coluna, linha, contextos, porId, textoDaCelula: textoBase });
+      const desenhista = desenhistaDoTipo(coluna.tipoDeCelula) || (efeito && efeito.badge ? desenhistaDoTipo("badge") : null);
+      let textoEquivalente = texto;
+      if (desenhista) {
+        textoEquivalente = desenhista({
+          td,
+          coluna,
+          linha,
+          texto,
+          visual: ctx.visualDaTabela,
+          config,
+          modelo,
+          ponte,
+          eventos: ctx.eventos,
+          estatistica,
+          corDoBadge: efeito && efeito.badge,
+          // Saída de emergência de qualquer desenhista: escreve o texto puro.
+          comoTexto: () => {
+            definirTexto(td, texto);
+            return texto;
+          }
+        });
+      } else {
+        definirTexto(td, texto);
+      }
+      td.title = textoEquivalente;
+      if (efeito) {
+        if (efeito.fundo) td.style.background = efeito.fundo;
+        if (efeito.cor) td.style.color = efeito.cor;
+        if (efeito.negrito) td.style.fontWeight = "700";
+        if (efeito.bordaEsquerda) td.style.borderLeft = `3px solid ${efeito.bordaEsquerda}`;
+        if (efeito.piscar) td.classList.add("tc-piscando");
+        if (efeito.icone) {
+          const icone = criarEl("span", { classe: "tc-icone", texto: `${efeito.icone} ` });
+          icone.style.color = efeito.corDoIcone || "";
+          td.insertBefore(icone, td.firstChild);
+        }
+        if (efeito.linhaInteira && td.parentNode) {
+          if (efeito.linhaInteira.fundo) td.parentNode.style.background = efeito.linhaInteira.fundo;
+          if (efeito.linhaInteira.cor) td.parentNode.style.color = efeito.linhaInteira.cor;
+        }
+      }
+      if (config.permitirDrill === false || coluna.tipoDeCelula === "link") return;
       const celula = coluna.celula(linha);
       if (celula && ponte.temDrill(celula)) {
         td.style.cursor = "pointer";
-        td.style.textDecoration = "underline dotted";
         ctx.eventos.on(td, "click", (ev) => {
           ev.stopPropagation();
           ponte.abrirDrill(celula, ev);
@@ -2919,16 +4029,20 @@
       }
       prepararEstado(estado, config, colunas);
       const visual = resolverVisual(config, tema);
+      ctx.visualDaTabela = visual;
       const nulo = textoParaNulo(config);
-      const pintarCelula = criarPintorDeCelula(ctx, nulo);
+      const porId = new Map(colunas.map((c) => [c.id, c]));
       function calcularIndices() {
         const todos = modelo.linhas.map((_, i) => i);
         const filtrados = filtrarIndices(todos, colunasVisiveis, estado.busca, modelo);
         return ordenarIndices(filtrados, colunas, estado.ordenacao, modelo);
       }
       let indicesVisiveis = calcularIndices();
+      const estatisticas = () => prepararRegras(colunas, indicesVisiveis, modelo, TIPOS_QUE_PRECISAM_DA_COLUNA);
+      let pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId);
       function redesenhar() {
         indicesVisiveis = calcularIndices();
+        pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId);
         desenhar();
       }
       function desenhar() {

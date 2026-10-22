@@ -14,6 +14,7 @@
 import { criarEl, limpar, definirTexto, injetarEstilo } from '../../core/dom.js';
 import { criarFiltroDeBusca } from '../../core/interaction.js';
 import { criarFormatadorNumerico } from '../../core/format.js';
+import { cssDasCelulas } from './celulas.js';
 
 const CSS = `
 .tc-raiz{display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;}
@@ -207,7 +208,7 @@ export function desenharTabela(params) {
   } = params;
   const { modelo, config, tema, raiz } = ctx;
 
-  injetarEstilo(raiz, CSS, 'tc');
+  injetarEstilo(raiz, CSS + cssDasCelulas(), 'tc');
   limpar(raiz);
 
   const container = criarEl('div', { classe: 'tc-raiz', pai: raiz });

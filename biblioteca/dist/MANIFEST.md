@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 01:29:15 (commit `5687ece`).
+Gerado automaticamente pelo build em 2026-10-22 01:40:00 (commit `3d30453`).
 
 ## Como cadastrar no Looker
 
@@ -26,4 +26,4 @@ Tabela com pivôs agrupados, agrupamento de linhas, formatação condicional, ti
 - **Tier**: 1
 - **Explore**: 1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 115.1 KB
+- **Tamanho do bundle**: 156.7 KB
