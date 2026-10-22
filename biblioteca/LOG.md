@@ -2242,33 +2242,74 @@ auto-ligação vira um laço, não um arco de largura zero.
 Números: 48 gráficos construídos; 1.126/1.126 testes passando; checagem de
 segurança sem violação em 132 arquivos.
 
+### Etapa 53 — `nightingale` (TIER 5, item 49)
+
+Fatias de ângulo igual e raio variável — e o gráfico que mais me
+interessou escrever nesta sessão, porque o defeito dele **vem com
+credencial**.
+
+No diagrama original de Florence Nightingale o raio é proporcional ao
+valor. Como a área de um setor cresce com o QUADRADO do raio, um valor 2×
+maior ocupa 4× mais tinta, e um 3× maior ocupa 9×. O gráfico é citado em
+toda parte como exemplo de boa visualização, o que torna o erro
+duplamente perigoso: quem o copia acha que está copiando o melhor.
+
+Aqui o padrão é **área proporcional**, com `r = √(valor)` escalado. O modo
+original existe — alguém pode querer reproduzir o histórico — e o modo em
+uso vai declarado na tela, com a consequência por extenso: *"a ÁREA cresce
+com o QUADRADO, então o dobro vira quatro vezes mais tinta"*. Os dois
+testes medem exatamente isso: no padrão, a razão de áreas é 2; no
+original, é 4.
+
+**A rosca não quebra a proporcionalidade.** Com raio interno, a conta vira
+`r = √(r₀² + (R² − r₀²)·f)`, e a ÁREA DO ANEL continua proporcional ao
+valor — testado com r₀ = 40. Era o caminho fácil para um defeito silencioso:
+somar o raio interno linearmente teria parecido certo e estaria errado.
+
+**Os anéis de escala ficam em valores redondos, não em raios iguais.** Com
+área proporcional, raios igualmente espaçados corresponderiam a valores
+desiguais — o oposto do que uma escala deve fazer. O teste confere que os
+passos de raio ENCOLHEM para fora (124, 176, 215), que é a assinatura da
+raiz quadrada. E sem anéis, a nota diz que o raio perdeu a referência.
+
+A ordem padrão é a da CONSULTA, deliberadamente: com meses ou dias da
+semana, reordenar por valor destrói a leitura — a rosa deixa de ser um
+calendário e vira um ranking circular, que é outro gráfico.
+
+Valor negativo não existe em coordenada polar: vira zero no desenho, fica
+preservado no bruto para o tooltip, e o gráfico avisa sugerindo barras.
+Como nenhuma fixture tem medida negativa, o teste de render exige o outro
+lado — sem negativos, o aviso NÃO pode aparecer (mesmo padrão do
+`barras_ranking_denso`).
+
+Números: 49 gráficos construídos; 1.152/1.152 testes passando; checagem de
+segurança sem violação em 134 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 49: criar `src/charts/nightingale/` ("Rosa de Nightingale"):
-o gráfico polar de áreas — fatias de ângulo igual e raio variável.
+TIER 5, item 50: criar `src/charts/radial_bar/` ("Barras Radiais"):
+barras enroladas num círculo — cada categoria é um arco de raio fixo e
+ângulo (ou comprimento) proporcional ao valor.
 
-**E este abre com uma armadilha que é a razão de ele existir na
-biblioteca:** na versão ingênua, o raio é proporcional ao valor, e como a
-área de um setor cresce com o QUADRADO do raio, um valor 2× maior ocupa 4×
-mais tinta. O gráfico original de Florence Nightingale tem exatamente esse
-problema e é citado como exemplo de boa visualização — o que o torna
-duplamente perigoso. Aqui: **raio por √valor é o padrão** (área
-proporcional), a opção de raio direto existe para quem quer reproduzir o
-original, e **o modo escolhido vai declarado na tela**, com a consequência
-escrita.
+**E a honestidade aqui é o avesso da do `nightingale`:** na barra radial o
+comprimento do arco depende do RAIO em que ele está. Duas barras do mesmo
+valor, em anéis diferentes, têm comprimentos diferentes — a de fora parece
+maior. É o defeito estrutural do gráfico e não tem conserto; o que dá para
+fazer é (a) usar ÂNGULO como medida (todas as barras começam no mesmo
+ângulo e o ângulo varrido é o valor, o que é comparável), e (b) dizer na
+nota que comprimentos em anéis diferentes não se comparam.
 
-Pontos de atenção: (a) reaproveitar `geradorDeArco` de `core/shapes.js`;
-(b) o setor começa no CENTRO: raio interno > 0 vira rosca e aí a área deixa
-de ser proporcional de novo — se oferecer, declarar; (c) ângulo igual para
-todas as categorias é o que define a rosa (o que varia é o raio); (d)
-ordenação por valor ou pela ordem natural (meses!) — e a ordem natural é o
-padrão quando a dimensão é temporal, porque girar os meses destrói a
-leitura; (e) rótulos em volta, com a mesma anti-colisão do `slope_chart` se
-couber.
+Pontos de atenção: (a) reaproveitar `geradorDeArco` como no `nightingale`,
+agora com raio fixo por categoria e ângulo variável; (b) o ângulo máximo é
+uma decisão: 360° fecha o círculo e faz o maior valor encostar no próprio
+início (confunde); ~300° é o usual — oferecer e declarar; (c) rótulos no
+início de cada arco, dentro do "miolo" vazio; (d) escala angular: começar
+em zero é obrigatório pelo mesmo motivo das barras lineares; (e) acima de
+~25 categorias os anéis ficam mais finos que o rótulo — cortar com aviso.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/nightingale.test.mjs` (**a área do setor é proporcional ao valor no
-modo padrão** — dobrar o valor dobra a área, não o raio; no modo "raio
-direto" a distorção existe e é declarada; os ângulos são iguais; **e todo
-laço afirma que a lista não é vazia**), `npm test`, `npm run seguranca`,
-marcar em TAREFAS.md, commitar e seguir para o item 50 (`radial_bar`).
+`test/radial_bar.test.mjs` (o ângulo varrido é proporcional ao valor e
+todas as barras começam no mesmo ângulo; o raio de cada anel é constante;
+a nota declara a ressalva do comprimento; **e todo laço afirma que a lista
+não é vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md,
+commitar e seguir para o item 51 (`lollipop`).

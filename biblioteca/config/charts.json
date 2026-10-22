@@ -725,6 +725,21 @@
         "hierarquia",
         "vazio"
       ]
+    },
+    {
+      "id": "nightingale",
+      "label": "Rosa de Nightingale",
+      "tier": 5,
+      "pasta": "nightingale",
+      "resumo": "Fatias de angulo igual e raio variavel, com AREA proporcional ao valor por padrao (o original exagera, e o modo em uso vai declarado).",
+      "explore": "1 dimensao (as fatias) e 1 medida (o raio).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "temporal",
+        "rotulosLongos",
+        "vazio"
+      ]
     }
   ]
 }

@@ -1,7 +1,7 @@
 /*!
  * Slope Chart — visualização customizada para o Looker
  * id: slope_chart
- * versão: 0.1.0 | build: 2026-10-22 18:59:12 | commit: 2193742
+ * versão: 0.1.0 | build: 2026-10-22 19:04:18 | commit: 6d8fc02
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

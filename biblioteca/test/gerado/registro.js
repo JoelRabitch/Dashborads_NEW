@@ -676,5 +676,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao."
+  },
+  {
+    "id": "nightingale",
+    "label": "Rosa de Nightingale",
+    "tier": 5,
+    "arquivo": "../dist/nightingale.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "temporal",
+      "rotulosLongos",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as fatias) e 1 medida (o raio)."
   }
 ];

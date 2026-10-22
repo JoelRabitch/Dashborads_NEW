@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:59:12 (commit `2193742`).
+Gerado automaticamente pelo build em 2026-10-22 19:04:18 (commit `6d8fc02`).
 
 ## Como cadastrar no Looker
 
@@ -63,6 +63,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `kpi_vivo` | KPI Vivo | `dist/kpi_vivo.js` | (vazio) | 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/kpi_vivo.js` |
 | `parallel_sets` | Conjuntos Paralelos | `dist/parallel_sets.js` | (vazio) | 2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/parallel_sets.js` |
 | `arc_diagram` | Diagrama de Arcos | `dist/arc_diagram.js` | (vazio) | 2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arc_diagram.js` |
+| `nightingale` | Rosa de Nightingale | `dist/nightingale.js` | (vazio) | 1 dimensao (as fatias) e 1 medida (o raio). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/nightingale.js` |
 
 ## Detalhes por visualização
 
@@ -497,3 +498,12 @@ Nos numa linha e arcos ligando quem se relaciona, com ordenacao por vizinhanca q
 - **Explore**: 2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 117.0 KB
+
+### Rosa de Nightingale (`nightingale`)
+
+Fatias de angulo igual e raio variavel, com AREA proporcional ao valor por padrao (o original exagera, e o modo em uso vai declarado).
+
+- **Tier**: 5
+- **Explore**: 1 dimensao (as fatias) e 1 medida (o raio).
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 140.5 KB
