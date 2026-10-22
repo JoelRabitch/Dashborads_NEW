@@ -411,6 +411,20 @@
         "conjuntosPorItem",
         "vazio"
       ]
+    },
+    {
+      "id": "grafico_controle",
+      "label": "Grafico de Controle",
+      "tier": 3,
+      "pasta": "grafico_controle",
+      "resumo": "Linha central e limites de controle (Shewhart) com as regras de Nelson: separa variacao comum de variacao especial.",
+      "explore": "1 dimensao temporal (os periodos, em ordem) e 1 medida.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "temporal",
+        "semPivo",
+        "vazio"
+      ]
     }
   ]
 }

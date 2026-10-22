@@ -383,5 +383,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
+  },
+  {
+    "id": "grafico_controle",
+    "label": "Grafico de Controle",
+    "tier": 3,
+    "arquivo": "../dist/grafico_controle.js",
+    "existe": true,
+    "fixtures": [
+      "temporal",
+      "semPivo",
+      "vazio"
+    ],
+    "explore": "1 dimensao temporal (os periodos, em ordem) e 1 medida."
   }
 ];

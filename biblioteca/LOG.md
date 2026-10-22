@@ -1222,24 +1222,72 @@ observações.
 Números: 27 gráficos construídos; 502/502 testes passando; checagem de
 segurança sem violação em 87 arquivos.
 
+### Etapa 32 — `grafico_controle` (TIER 3, item 28)
+
+O gráfico que responde "isso é sinal ou é ruído?". Linha central, limites a
+±3σ e as oito regras de Nelson.
+
+**A decisão que define o gráfico é como σ é estimado.** O desvio-padrão
+amostral usa a variação TOTAL da série — inclusive as causas especiais que
+estamos tentando detectar. Resultado: um processo fora de controle alarga
+os próprios limites até caber dentro deles. O teste que escrevi mostra isso
+com o caso clássico do degrau (15 pontos em 10, 15 pontos em 30): com
+desvio amostral o LSC vai a ~50 e o gráfico declara "sob controle" um
+processo que mudou de nível na metade; com amplitude móvel ÷ d₂ (d₂ =
+1,128, que é 2/√π) o LSC fica em ~24 e o degrau inteiro aparece como sinal.
+Por isso a amplitude móvel é o padrão, e o método usado vai escrito na nota.
+
+**A segunda mentira possível, essa sem conserto:** se cada ponto da
+consulta já é a média de n observações, os limites verdadeiros são σ/√n —
+mais estreitos. A consulta não diz isso e não há como descobrir. Então o
+gráfico declara a hipótese na nota em vez de fingir que sabe.
+
+Decisões menores, cada uma com teste:
+- **Nulos interrompem as sequências, não são pulados.** "Nove pontos
+  seguidos" com um período faltando no meio não são nove pontos seguidos;
+  pular o buraco inventaria sinal.
+- **"2 de 3 além de 2σ" marca os 2, não os 3.** Pintar a janela inteira
+  acusaria de sinal um ponto que está exatamente onde deveria estar.
+- **Cada regra é NOMEADA no tooltip.** Um ponto vermelho sem nome só diz
+  "algo está errado"; "6 pontos seguidos subindo" diz o que procurar.
+- **Várias séries ⇒ aviso.** Um gráfico de controle descreve UM processo;
+  limites de um processo não valem para outro. Os limites saem da primeira
+  série e o gráfico avisa.
+- **Menos de 20 pontos ⇒ aviso.** Os limites se mexem muito a cada período
+  novo e "fora de controle" vira sorte (o número de Wheeler é 20–25).
+- **σ = 0 ⇒ aviso.** Série constante colapsa os limites na linha central.
+
+Dois erros meus nos testes, os dois de FIXTURE e não de código, os dois
+instrutivos: (a) eu quis demonstrar o σ inflado com um outlier único em vez
+de um degrau — com um só ponto fora, o desvio amostral ainda sinaliza, e a
+demonstração não existe; o degrau é que é o caso; (b) minha série "processo
+estável" tinha todos os pontos colados na média e alternando perfeitamente,
+o que dispara as regras 7 e 4. Processo estável não é processo pequeno nem
+processo regular — e esse teste (nenhum falso sinal em 20 pontos, com as
+oito regras ligadas) é o mais importante do arquivo: um gráfico que acusa
+sinal onde não há treina o usuário a ignorar o vermelho.
+
+Números: 28 gráficos construídos; 537/537 testes passando; checagem de
+segurança sem violação em 89 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 28: criar `src/charts/grafico_controle/` ("Gráfico de
-Controle"): série temporal com linha central (média) e limites de controle
-em ±3σ, marcando os pontos fora de controle. É o gráfico que separa
-variação comum de variação especial — a pergunta "isso é sinal ou é ruído?".
+TIER 3, item 29: criar `src/charts/dispersao_regressao/` ("Dispersão com
+Regressão"): nuvem de pontos com reta ajustada, R², equação e banda de
+confiança.
 
-Pontos de atenção: (a) os limites precisam vir de um método declarado —
-usar o desvio-padrão amostral simples é defensável, mas o gráfico tem de
-dizer qual foi; (b) com poucos pontos os limites são instáveis e isso
-precisa ser avisado (reaproveitar `MINIMO_CONFIAVEL` de `_distribuicao`);
-(c) as regras de Nelson (8 pontos do mesmo lado, tendência de 6) valem como
-opção, mas cada uma precisa ser nomeada no tooltip, não só colorida; (d)
-reaproveitar `_serie_temporal/` para leitura da série, ordem dos períodos e
-guia de hover — inclusive `avisarSeForaDeOrdem`, porque limite de controle
-em série fora de ordem não significa nada.
+Pontos de atenção: (a) `core/estatistica.js` já tem `regressaoLinear` e
+`correlacaoDePearson` — reaproveitar, não reescrever; (b) o gráfico PRECISA
+dizer que correlação não é causalidade e que o R² alto com poucos pontos
+não significa nada (n < 10 merece aviso); (c) a banda de confiança da reta
+(±t·EP(ŷ)) é diferente da banda de predição — se desenhar uma, dizer qual,
+porque confundi-las é o erro mais comum do gráfico; (d) com mais de ~2.000
+pontos, canvas (reaproveitar o caminho do `beeswarm`/`quadrant_scatter`);
+(e) oferecer ajuste por mínimos quadrados e também a opção de não desenhar
+reta nenhuma, porque relação não-linear com reta em cima é desinformação.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/grafico_controle.test.mjs` (conferir os limites contra valores
-calculados à mão, não só "desenhou"), `npm test`, `npm run seguranca`,
-marcar em TAREFAS.md, commitar e seguir para o item 29.
+`test/dispersao_regressao.test.mjs` (conferir coeficientes contra valores
+calculados à mão — uma reta exata deve dar R² = 1 e inclinação exata),
+`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
+para o item 30 (`qq_plot`).

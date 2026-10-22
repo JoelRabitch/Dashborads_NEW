@@ -1,7 +1,7 @@
 /*!
  * Violin Plot — visualização customizada para o Looker
  * id: violin
- * versão: 0.1.0 | build: 2026-10-22 14:30:00 | commit: 9a77a24
+ * versão: 0.1.0 | build: 2026-10-22 14:34:33 | commit: 7499e9d
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

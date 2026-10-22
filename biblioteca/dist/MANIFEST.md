@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 14:30:00 (commit `9a77a24`).
+Gerado automaticamente pelo build em 2026-10-22 14:34:33 (commit `7499e9d`).
 
 ## Como cadastrar no Looker
 
@@ -42,6 +42,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `violin` | Violin Plot | `dist/violin.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/violin.js` |
 | `ridgeline` | Ridgeline | `dist/ridgeline.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ridgeline.js` |
 | `beeswarm` | Beeswarm | `dist/beeswarm.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/beeswarm.js` |
+| `grafico_controle` | Grafico de Controle | `dist/grafico_controle.js` | (vazio) | 1 dimensao temporal (os periodos, em ordem) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/grafico_controle.js` |
 
 ## Detalhes por visualização
 
@@ -287,3 +288,12 @@ Um ponto por observacao, espalhado perpendicularmente ao eixo para nao se cobrir
 - **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 174.7 KB
+
+### Grafico de Controle (`grafico_controle`)
+
+Linha central e limites de controle (Shewhart) com as regras de Nelson: separa variacao comum de variacao especial.
+
+- **Tier**: 3
+- **Explore**: 1 dimensao temporal (os periodos, em ordem) e 1 medida.
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 191.5 KB
