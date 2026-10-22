@@ -1,7 +1,7 @@
 /*!
  * Medidores em Grade — visualização customizada para o Looker
  * id: gauge_grid
- * versão: 0.1.0 | build: 2026-10-22 18:32:41 | commit: e09598e
+ * versão: 0.1.0 | build: 2026-10-22 18:37:14 | commit: e0ce0b9
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

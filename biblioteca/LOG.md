@@ -2039,33 +2039,80 @@ foi dobrada.
 Números: 43 gráficos construídos; 976/976 testes passando; checagem de
 segurança sem violação em 121 arquivos.
 
+## TIER 5 — demais
+
+### Etapa 48 — `bar_race` (TIER 5, item 44)
+
+Barras ordenadas que se reordenam ao longo do tempo.
+
+**A ressalva está no cabeçalho do arquivo, antes do código**, porque é
+sobre o próprio gráfico: o bar race é um gráfico de entretenimento que as
+pessoas usam para analisar. A animação prende a atenção e esconde um fato
+simples — **só o quadro PARADO tem informação comparável**; o caminho até
+ele passa rápido demais para ser retido, e ninguém consegue dizer depois o
+que aconteceu no meio. Isso não é motivo para não construí-lo; é motivo
+para construí-lo de um jeito que permita analisar. Daí a barra de tempo tão
+proeminente quanto o play, arrastável para qualquer período, e a nota
+dizendo que a comparação só vale com o gráfico parado.
+
+**A interpolação é o que carrega o gráfico, e o detalhe é a POSIÇÃO.**
+Interpolar só o valor e reordenar a cada quadro faz as barras se
+teletransportarem exatamente quando duas se cruzam — que é o único
+movimento que a animação tinha para mostrar. Aqui valor e posição são
+interpolados juntos: o teste percorre onze quadros entre dois períodos,
+exige que nenhum salto passe de 0,2 posição e confere que, no meio do
+cruzamento, as duas barras estão à MESMA altura. Quem entra na corrida vem
+de fora da pista (posição "logo abaixo da última"), em vez de surgir do
+nada no meio do ranking.
+
+**Acessibilidade testada como funcionalidade.** Com
+`prefers-reduced-motion`, o gráfico abre PARADO no último período — que é
+o quadro com mais informação — e diz na nota por que não se mexeu. O teste
+injeta um `matchMedia` que responde `matches: true` e exige o botão em
+"tocar", o tempo no fim e a explicação na tela. Animação involuntária é um
+gatilho real para parte dos usuários; tratar isso como opção seria errado.
+
+Duas decisões herdadas do `bump_chart`, pelo mesmo motivo: série sem valor
+num período fica de fora em vez de virar zero (zero afirmaria um valor
+quando o que se sabe é que não se sabe), e empate desempata pelo nome para
+o quadro não tremer entre renderizações.
+
+A escala móvel (padrão) acompanha o maior do período e **não** é comparável
+entre períodos — o que está declarado; a escala fixa existe como opção e
+diz que é comparável. E `aoDestruir` desliga o relógio: o `defineViz` já
+cancela quadros e timers, mas um passo em voo redesenhando sobre DOM morto
+é o jeito clássico de um gráfico animado derrubar o dashboard inteiro.
+
+Números: 44 gráficos construídos; 1.002/1.002 testes passando; checagem de
+segurança sem violação em 123 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 44: criar `src/charts/bar_race/` ("Bar Chart Race"): barras
-ordenadas que se reordenam ao longo do tempo, com animação.
+TIER 5, item 45: criar `src/charts/motion_bubbles/` ("Bolhas em
+Movimento"): o gráfico de Hans Rosling — X, Y, tamanho e cor, animados no
+tempo.
 
-Primeiro do TIER 5, que é o tier dos gráficos "demais" — e este abre com um
-problema honesto: **o bar race é um gráfico de entretenimento que as
-pessoas usam para analisar.** A animação prende a atenção e esconde que só
-o quadro final tem informação comparável; o caminho até lá é impossível de
-reter. Vale construir bem e dizer isso: oferecer controle manual
-(barra de tempo, pausa) tão proeminente quanto o play, porque parar e
-comparar é o que torna o gráfico utilizável.
+Herda do `bar_race` o aparato de animação, então **se o controle de tempo
+(play/pausa/barra, `prefers-reduced-motion`, relógio que para ao destruir)
+for o mesmo código, extrair para `_animacao/` agora** — é o segundo da
+família e a regra já se pagou cinco vezes nesta biblioteca.
 
-Pontos de atenção: (a) reaproveitar `extrairMatriz` e a interpolação entre
-períodos (o movimento suave exige quadros intermediários — interpolar
-valor E posição); (b) `agendarQuadro` e `agendarTimer` já existem em
-`defineViz`, e `preferindoMenosMovimento()` em `core/dom.js` **deve
-desligar a animação** quando o usuário pede menos movimento — acessibilidade
-não é opcional; (c) o relógio precisa parar quando a viz é destruída, senão
-sobra timer rodando sobre DOM morto (o `aoDestruir` tem de limpar);
-(d) mostrar sempre o período corrente em destaque e o valor de cada barra;
-(e) teto de barras visíveis (top N) com aviso, porque o resto não cabe.
+Pontos de atenção: (a) reaproveitar `_dispersao/` para a nuvem e a escolha
+SVG×canvas; (b) **o rastro ("trails") é o que torna o gráfico analisável**
+— sem ele o leitor só vê o instante; com ele, vê o caminho. Opção, com
+comprimento ajustável; (c) a área da bolha (não o raio) tem de ser
+proporcional ao valor, senão a diferença de tamanho é lida ao quadrado —
+é o erro clássico de bolha e precisa estar no código com comentário e
+teste; (d) eixos em log são comuns neste gráfico (renda per capita): a
+opção existe em `escalaNumerica` e precisa ser declarada na tela, porque
+num eixo log a mesma distância significa a mesma RAZÃO, não a mesma
+diferença; (e) bolhas que entram e saem ao longo do tempo: aparecer e
+sumir sem aviso faz o leitor achar que o dado mudou — melhor manter
+visível com opacidade baixa ou declarar a contagem por período.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/bar_race.test.mjs` (a interpolação entre dois períodos devolve
-valores intermediários corretos e as posições nunca se cruzam
-"teletransportando"; com `preferindoMenosMovimento` a animação não começa;
-`aoDestruir` para o relógio; **e todo laço afirma que a lista não é
-vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e
-seguir para o item 45 (`motion_bubbles`).
+`test/motion_bubbles.test.mjs` (a ÁREA é proporcional ao valor — dobrar o
+valor multiplica o raio por √2, não por 2; o rastro tem o comprimento
+pedido; com `prefers-reduced-motion` nada começa; **e todo laço afirma que
+a lista não é vazia**), `npm test`, `npm run seguranca`, marcar em
+TAREFAS.md, commitar e seguir para o item 46 (`kpi_vivo`).

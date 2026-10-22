@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:32:41 (commit `e09598e`).
+Gerado automaticamente pelo build em 2026-10-22 18:37:14 (commit `e0ce0b9`).
 
 ## Como cadastrar no Looker
 
@@ -58,6 +58,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `bump_chart` | Bump Chart | `dist/bump_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bump_chart.js` |
 | `slope_chart` | Slope Chart | `dist/slope_chart.js` | (vazio) | 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/slope_chart.js` |
 | `horizon_chart` | Horizon Chart | `dist/horizon_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/horizon_chart.js` |
+| `bar_race` | Bar Chart Race | `dist/bar_race.js` | (vazio) | 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bar_race.js` |
 
 ## Detalhes por visualização
 
@@ -447,3 +448,12 @@ Series temporais empilhadas com a area DOBRADA em faixas de mesma altura: cabe t
 - **Explore**: 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 150.4 KB
+
+### Bar Chart Race (`bar_race`)
+
+Barras que se reordenam ao longo do tempo, com barra de tempo tao proeminente quanto o play e respeito a preferencia de menos movimento.
+
+- **Tier**: 5
+- **Explore**: 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas).
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 116.8 KB

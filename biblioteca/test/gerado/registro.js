@@ -607,5 +607,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas)."
+  },
+  {
+    "id": "bar_race",
+    "label": "Bar Chart Race",
+    "tier": 5,
+    "arquivo": "../dist/bar_race.js",
+    "existe": true,
+    "fixtures": [
+      "comPivo",
+      "duasDimensoes",
+      "temporal",
+      "vazio"
+    ],
+    "explore": "1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas)."
   }
 ];

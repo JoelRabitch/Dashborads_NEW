@@ -651,6 +651,21 @@
         "temporal",
         "vazio"
       ]
+    },
+    {
+      "id": "bar_race",
+      "label": "Bar Chart Race",
+      "tier": 5,
+      "pasta": "bar_race",
+      "resumo": "Barras que se reordenam ao longo do tempo, com barra de tempo tao proeminente quanto o play e respeito a preferencia de menos movimento.",
+      "explore": "1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
     }
   ]
 }
