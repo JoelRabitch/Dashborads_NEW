@@ -217,10 +217,69 @@ com commit e push):
    seleção com soma, copiar, exportar CSV, menu de contexto) + agrupamento
    de linhas com expandir/recolher e subtotais.
 
+#### Parte 1 — concluída
+
+Arquivos: `opcoes.js` (opções estáticas + geração das opções por coluna),
+`colunas.js` (modelo de colunas a partir do modelo de dados), `render.js`
+(desenho, virtualização, cabeçalho, rodapé, CSV) e `index.js` (`defineViz`).
+
+O que entrou: colunas por dimensão/medida, cabeçalho fixo em dois níveis
+quando há pivô, coluna de total por linha, virtualização por janela com
+linhas espaçadoras, ordenação por clique (asc → desc) e múltipla com shift,
+busca global, seleção de linhas com soma, redimensionamento por arraste,
+exportação CSV, 8 estilos de tabela, 3 densidades e linha de totais.
+
+Decisões desta parte (todas pelo caminho mais simples):
+
+- **Virtualização com `<table>` de verdade**, não `div`s: duas linhas
+  espaçadoras seguram a altura total e só a janela visível vira DOM. Mantém
+  `colgroup`/`thead`/`tfoot` alinhados sem recalcular largura na mão.
+- **Limite de 20 colunas com opções próprias** (`MAXIMO_DE_COLUNAS_
+  CONFIGURAVEIS`). Com 3 regras por coluna, 60 colunas gerariam mais de mil
+  opções e o painel Edit ficaria inutilizável. As colunas além do limite
+  ainda aparecem na tabela; só não têm ajuste individual. A viz avisa na
+  faixa de aviso quando isso acontece.
+- **Formato do número**: com `formato = auto` o texto vem do `rendered` do
+  Looker (respeita o `value_format` do campo). Com formato explícito, o
+  nosso formatador vence. Sem essa distinção a opção "Compacto (K, M, B)"
+  não faria nada.
+- **Totais**: usa `totals_data` quando o Looker envia; senão calcula (soma
+  por padrão, configurável) e **avisa na tela** que o cálculo é da viz, para
+  ninguém confundir com o total do Looker.
+- **CSV sem rede**: `Blob` + `URL.createObjectURL` + `<a download>`, com BOM
+  UTF-8 para o Excel abrir acentos. Nada de `window.open` nem servidor.
+- **Estado preservado entre atualizações** em `ctx.estado`: rolagem,
+  ordenação, busca, seleção e larguras. Ordenações apontando para colunas que
+  sumiram da consulta são descartadas.
+- **Nulos**: a opção `tratamentoDeNulos` decide entre texto configurável,
+  vazio ou zero. Prefixo/sufixo não entram em célula vazia (senão sobraria
+  um "R$ " solto).
+
+Defeitos achados e corrigidos antes do commit (verificação manual no jsdom,
+além do smoke test):
+
+1. Com pivô, o cabeçalho das colunas de dimensão saía **em branco** — havia
+   um `<th>` único vazio com `colSpan` cobrindo todas elas. Agora cada
+   dimensão tem seu próprio `<th>` com `rowSpan=2`.
+2. A opção "formato do número" por coluna era ignorada (ver decisão acima).
+3. `test/smoke.test.mjs` quebrava no teardown ao tentar restaurar
+   `globalThis.navigator`, que é somente-leitura no Node atual e que a gente
+   nunca chega a sobrescrever. Removido da lista de globais salvos.
+
+Conferido à mão no jsdom: ordenação asc → desc, ordenação por medida, busca
+com resultado e sem resultado (estado vazio), seleção com soma no rodapé da
+barra, cabeçalho de dois níveis com pivô, 34 linhas no DOM para uma fixture
+de 5.000, totais por coluna de pivô e por total de linha.
+
+Números: bundle 115,1 KB; 5.000 linhas renderizadas em ~120 ms; 12/12 testes
+passando; checagem de segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 9, parte 1: criar `src/charts/tabela_completa/index.js` com a
-estrutura da tabela (colunas a partir do modelo, cabeçalho fixo em 2 níveis
-quando há pivô, virtualização por janela de linhas, ordenação, temas e
-totais no rodapé), registrar em `config/charts.json`, buildar, testar e
-commitar.
+Etapa 9, parte 2: criar `src/charts/tabela_completa/celulas.js` (tipos de
+célula ricos: barra de dados, progresso, anel, medidor, sparkline, mini
+barras, mini área, badge, semáforo, seta de variação, estrelas, booleano,
+avatar, imagem, link e data) e `regras.js` (motor das 19 condições de
+formatação condicional, incluindo Top N, percentil e comparação com outra
+coluna), ligar os dois no `pintarCelula` do `index.js`, buildar, testar,
+rodar a checagem de segurança e commitar.

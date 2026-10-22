@@ -5,7 +5,7 @@ window.REGISTRO_BL = [
     "label": "Tabela Completa",
     "tier": 1,
     "arquivo": "../dist/tabela_completa.js",
-    "existe": false,
+    "existe": true,
     "fixtures": [
       "semPivo",
       "duasDimensoes",

@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 01:06:24 (commit `c5025a5`).
+Gerado automaticamente pelo build em 2026-10-22 01:29:15 (commit `5687ece`).
 
 ## Como cadastrar no Looker
 
@@ -15,7 +15,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 
 | ID | Label | Arquivo | Dependencies | Como montar o Explore | URL para o campo Main |
 |---|---|---|---|---|---|
-| `tabela_completa` | Tabela Completa | _(ainda não construído)_ | (vazio) | 1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/tabela_completa.js` |
+| `tabela_completa` | Tabela Completa | `dist/tabela_completa.js` | (vazio) | 1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/tabela_completa.js` |
 
 ## Detalhes por visualização
 
@@ -26,3 +26,4 @@ Tabela com pivôs agrupados, agrupamento de linhas, formatação condicional, ti
 - **Tier**: 1
 - **Explore**: 1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis).
 - **Aceita pivô**: sim
+- **Tamanho do bundle**: 115.1 KB

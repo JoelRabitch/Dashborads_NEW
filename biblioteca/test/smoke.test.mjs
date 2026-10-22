@@ -83,10 +83,11 @@ function montarAmbiente() {
   };
 
   // O bundle é um IIFE que espera `window`/`document` globais.
+  // Só guardamos o que de fato sobrescrevemos abaixo. `navigator`, por
+  // exemplo, é somente-leitura no Node atual e nunca é tocado aqui.
   const globaisAntes = {
     window: globalThis.window,
     document: globalThis.document,
-    navigator: globalThis.navigator,
     requestAnimationFrame: globalThis.requestAnimationFrame,
     cancelAnimationFrame: globalThis.cancelAnimationFrame,
     ResizeObserver: globalThis.ResizeObserver,
