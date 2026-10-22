@@ -1378,31 +1378,76 @@ y (padronizar é transformação afim: a forma da nuvem não pode mudar).
 Números: 30 gráficos construídos; 603/603 testes passando; checagem de
 segurança sem violação em 93 arquivos.
 
+### Etapa 35 — `densidade_ecdf` (TIER 3, item 31)
+
+Duas vistas da MESMA distribuição, no mesmo eixo X, uma embaixo da outra.
+O par é o gráfico:
+
+- A **ECDF** é a verdade sem escolha de método: um degrau por observação,
+  nenhum parâmetro, nada a ajustar. Lê-se direto ("40% dos pedidos ficaram
+  abaixo de R$ 200").
+- A **densidade** é uma interpretação, e depende de uma largura de banda.
+
+O teste que mais me convenceu de que o par precisa existir: com duas modas
+bem separadas, banda 2 mostra DOIS picos e banda 60 mostra UM — mesmos
+dados, as duas imagens igualmente "corretas". Quem vê só a densidade não
+tem como saber qual das duas está olhando. A ECDF logo abaixo mostra o
+degrau no meio e resolve a dúvida. Por isso o padrão é "as duas", e a banda
+usada vai escrita na nota, com a frase inteira: "é ela que decide se há um
+pico ou três".
+
+**A ECDF é desenhada como ESCADA, sempre.** Entre duas observações
+consecutivas não existe informação; a reta horizontal diz exatamente isso,
+e uma curva suave inventaria valores intermediários. Há teste que lê o
+atributo `d` e falha se aparecer qualquer comando de curva (`C`, `Q`, `S`,
+`T`, `A`) ou qualquer segmento diagonal — porque suavizar a ECDF é uma
+"melhoria" que alguém sempre tenta fazer.
+
+Subamostragem: 50.000 degraus não cabem em pixels, então a escada é
+reduzida a ~1.200 passos. Como a acumulada é monótona, pegar de k em k
+preserva a forma; o primeiro e o último entram à força. O `p` de cada
+degrau mantido continua sendo o da amostra INTEIRA (ordem/n), não um
+recontado sobre a amostra reduzida — o teste confere isso explicitamente,
+porque recontar seria o erro natural e invisível.
+
+Mudança na base `_distribuicao/`: a dimensão das categorias agora oferece
+"(nenhuma)", que vale como resposta — uma distribuição única, de todas as
+linhas juntas. Antes a opção só aparecia com 2+ dimensões e nunca permitia
+"nenhuma", o que obrigava a agrupar mesmo quando o interesse era a amostra
+inteira. Beneficia também o `boxplot_avancado` (item 35).
+
+Detalhe de desempenho que teria passado: `fracaoAbaixoDe` rodava um
+`sort()` a cada movimento do mouse. Com 5.000 valores e vários grupos, isso
+travaria o gráfico sem erro nenhum aparecer. Agora recebe o
+`resumo.ordenados` que já existe e faz busca binária — conferida contra a
+contagem direta em sete limites, inclusive fora do intervalo.
+
+Números: 31 gráficos construídos; 632/632 testes passando; checagem de
+segurança sem violação em 95 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 31: criar `src/charts/densidade_ecdf/` ("Densidade e ECDF"):
-duas vistas da MESMA distribuição, alternáveis ou lado a lado — a
-densidade por kernel (suave, dependente de banda) e a função de
-distribuição acumulada empírica (exata, sem parâmetro nenhum).
+TIER 3, item 32: criar `src/charts/intervalo_confianca/` ("Intervalo de
+Confiança"): estimativa pontual por categoria com a barra de erro em volta
+— o gráfico que responde "essa diferença é real ou cabe no erro?".
 
-O par é o ponto do gráfico: a ECDF é a verdade sem escolha de método (é um
-degrau por observação), e a densidade é uma interpretação que depende da
-largura de banda. Mostrar as duas juntas deixa visível o que a suavização
-está escondendo.
-
-Pontos de atenção: (a) `core/estatistica.js` já tem `densidadePorKernel`,
-`larguraDeBandaSilverman` e `acumuladaEmpirica` — reaproveitar; (b) a
-largura de banda PRECISA ser ajustável e o valor usado precisa aparecer na
-tela, porque é ela que decide se a distribuição tem um pico ou três; (c) a
-ECDF com 5.000 pontos vira 5.000 degraus — simplificar o caminho mantendo
-os degraus visíveis (não interpolar: a ECDF é escada, desenhar como curva
-suave seria mentir sobre o que ela é); (d) reaproveitar `_distribuicao/`
-quando houver categorias (uma curva por categoria, mesma escala X);
-(e) oferecer marcar os quantis (mediana, quartis) na ECDF, onde a leitura é
-exata, em vez de na densidade, onde é visual.
+Pontos de atenção: (a) o intervalo precisa de n, e a consulta quase nunca
+traz n: oferecer (i) duas medidas extras para limite inferior/superior já
+calculados no LookML, (ii) uma medida de contagem + uma de desvio, ou (iii)
+calcular a partir das LINHAS quando a consulta vier sem agregar —
+reaproveitando `_distribuicao/`. Declarar na tela qual dos três caminhos
+foi usado, porque eles não significam a mesma coisa; (b) usar `quantilT`
+(já existe em `core/estatistica.js`) e não 1,96 fixo — com n pequeno a
+diferença é grande; (c) **a armadilha central**: intervalos que se tocam
+NÃO implicam diferença não significativa, e intervalos que não se tocam
+implicam sim. Oferecer o modo "intervalos de comparação" (barras de
+~83-84%, cuja sobreposição é que corresponde ao teste) e explicar a
+diferença na tela — sem isso o gráfico induz à conclusão errada o tempo
+todo; (d) ordenar por estimativa, e marcar a linha de referência (média
+geral ou zero) quando fizer sentido.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/densidade_ecdf.test.mjs` (a ECDF tem de ser monótona, começar perto
-de 0 e terminar em 1, e dar exatamente k/n no k-ésimo valor; a densidade
-tem de integrar ≈ 1), `npm test`, `npm run seguranca`, marcar em
-TAREFAS.md, commitar e seguir para o item 32 (`intervalo_confianca`).
+`test/intervalo_confianca.test.mjs` (o intervalo tem de bater com
+x̄ ± t·s/√n calculado à mão; n maior tem de estreitar o intervalo;
+confiança maior tem de alargá-lo), `npm test`, `npm run seguranca`, marcar
+em TAREFAS.md, commitar e seguir para o item 33 (`matriz_dispersao`).

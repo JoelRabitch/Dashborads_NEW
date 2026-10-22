@@ -63,11 +63,14 @@ export function opcoesDinamicasDeDistribuicao(modelo) {
   const medidas = modelo.medidas.map((m) => ({ nome: m.nome, rotulo: m.rotuloCurto }));
   const saida = {};
 
-  if (dimensoes.length > 1) {
+  // A escolha aparece mesmo com uma dimensão só, porque "(nenhuma)" é uma
+  // resposta legítima: uma distribuição única, de todas as linhas juntas.
+  if (dimensoes.length) {
     Object.assign(
       saida,
       opcaoDeEscolhaDeCampo('campoDaCategoria', 'Dimensão das categorias', dimensoes, {
         secao: 'Dados',
+        incluirNenhum: true,
         padrao: dimensoes[0].nome,
       })
     );
@@ -104,8 +107,13 @@ export function prepararDistribuicoes(ctx) {
     return { erro: 'Esta visualização precisa de uma medida com os valores da distribuição.' };
   }
 
+  // `''` é a opção "(nenhuma)": todas as linhas formam uma distribuição só.
   const campoDaCategoria =
-    modelo.dimensoes.find((d) => d.nome === config.campoDaCategoria) || modelo.dimensoes[0] || null;
+    config.campoDaCategoria === ''
+      ? null
+      : modelo.dimensoes.find((d) => d.nome === config.campoDaCategoria) ||
+        modelo.dimensoes[0] ||
+        null;
 
   let grupos = agruparValores({ modelo, campoDaCategoria, medida });
   if (!grupos.length) {

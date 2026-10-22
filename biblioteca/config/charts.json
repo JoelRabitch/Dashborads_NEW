@@ -455,6 +455,20 @@
         "ohlc",
         "vazio"
       ]
+    },
+    {
+      "id": "densidade_ecdf",
+      "label": "Densidade e ECDF",
+      "tier": 3,
+      "pasta": "densidade_ecdf",
+      "resumo": "Duas vistas da mesma distribuicao no mesmo eixo X: a densidade estimada (que depende da banda) e a acumulada empirica (exata, sem parametro).",
+      "explore": "1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
     }
   ]
 }

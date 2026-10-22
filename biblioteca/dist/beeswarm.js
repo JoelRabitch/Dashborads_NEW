@@ -1,7 +1,7 @@
 /*!
  * Beeswarm — visualização customizada para o Looker
  * id: beeswarm
- * versão: 0.1.0 | build: 2026-10-22 14:47:55 | commit: eeadb9f
+ * versão: 0.1.0 | build: 2026-10-22 14:53:37 | commit: 3e112d2
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -4400,11 +4400,12 @@
     const dimensoes = modelo.dimensoes.map((d) => ({ nome: d.nome, rotulo: d.rotuloCurto }));
     const medidas = modelo.medidas.map((m) => ({ nome: m.nome, rotulo: m.rotuloCurto }));
     const saida = {};
-    if (dimensoes.length > 1) {
+    if (dimensoes.length) {
       Object.assign(
         saida,
         opcaoDeEscolhaDeCampo("campoDaCategoria", "Dimens\xE3o das categorias", dimensoes, {
           secao: "Dados",
+          incluirNenhum: true,
           padrao: dimensoes[0].nome
         })
       );
@@ -4426,7 +4427,7 @@
     if (!medida) {
       return { erro: "Esta visualiza\xE7\xE3o precisa de uma medida com os valores da distribui\xE7\xE3o." };
     }
-    const campoDaCategoria = modelo.dimensoes.find((d) => d.nome === config.campoDaCategoria) || modelo.dimensoes[0] || null;
+    const campoDaCategoria = config.campoDaCategoria === "" ? null : modelo.dimensoes.find((d) => d.nome === config.campoDaCategoria) || modelo.dimensoes[0] || null;
     let grupos = agruparValores({ modelo, campoDaCategoria, medida });
     if (!grupos.length) {
       return { erro: "Nenhuma categoria tem valores num\xE9ricos na medida escolhida." };

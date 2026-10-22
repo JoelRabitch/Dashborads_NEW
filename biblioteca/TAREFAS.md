@@ -57,7 +57,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 
 - [x] 25. `violin` · [x] 26. `ridgeline` · [x] 27. `beeswarm`
 - [x] 28. `grafico_controle` · [ ] 29. `dispersao_regressao` · [ ] 30. `qq_plot`
-- [ ] 31. `densidade_ecdf` · [ ] 32. `intervalo_confianca` · [ ] 33. `matriz_dispersao`
+- [x] 31. `densidade_ecdf` · [ ] 32. `intervalo_confianca` · [ ] 33. `matriz_dispersao`
 - [ ] 34. `correlacao_matriz` · [ ] 35. `boxplot_avancado`
 
 ## TIER 4 — muitas informações (canvas/virtualizado)

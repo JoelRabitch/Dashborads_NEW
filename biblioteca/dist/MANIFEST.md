@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 14:47:55 (commit `eeadb9f`).
+Gerado automaticamente pelo build em 2026-10-22 14:53:37 (commit `3e112d2`).
 
 ## Como cadastrar no Looker
 
@@ -45,6 +45,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `grafico_controle` | Grafico de Controle | `dist/grafico_controle.js` | (vazio) | 1 dimensao temporal (os periodos, em ordem) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/grafico_controle.js` |
 | `dispersao_regressao` | Dispersao com Regressao | `dist/dispersao_regressao.js` | (vazio) | 2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dispersao_regressao.js` |
 | `qq_plot` | Q-Q Plot (Normalidade) | `dist/qq_plot.js` | (vazio) | 1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/qq_plot.js` |
+| `densidade_ecdf` | Densidade e ECDF | `dist/densidade_ecdf.js` | (vazio) | 1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/densidade_ecdf.js` |
 
 ## Detalhes por visualização
 
@@ -280,7 +281,7 @@ Uma curva de densidade por categoria, empilhadas com sobreposicao parcial e comp
 - **Tier**: 3
 - **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 174.5 KB
+- **Tamanho do bundle**: 174.6 KB
 
 ### Beeswarm (`beeswarm`)
 
@@ -289,7 +290,7 @@ Um ponto por observacao, espalhado perpendicularmente ao eixo para nao se cobrir
 - **Tier**: 3
 - **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 174.7 KB
+- **Tamanho do bundle**: 174.8 KB
 
 ### Grafico de Controle (`grafico_controle`)
 
@@ -317,3 +318,12 @@ Quantis observados contra quantis teoricos da normal, com reta robusta, envelope
 - **Explore**: 1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 168.5 KB
+
+### Densidade e ECDF (`densidade_ecdf`)
+
+Duas vistas da mesma distribuicao no mesmo eixo X: a densidade estimada (que depende da banda) e a acumulada empirica (exata, sem parametro).
+
+- **Tier**: 3
+- **Explore**: 1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 162.8 KB

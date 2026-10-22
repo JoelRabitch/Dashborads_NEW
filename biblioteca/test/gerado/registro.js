@@ -424,5 +424,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto."
+  },
+  {
+    "id": "densidade_ecdf",
+    "label": "Densidade e ECDF",
+    "tier": 3,
+    "arquivo": "../dist/densidade_ecdf.js",
+    "existe": true,
+    "fixtures": [
+      "grande5k",
+      "conjuntosPorItem",
+      "vazio"
+    ],
+    "explore": "1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes."
   }
 ];
