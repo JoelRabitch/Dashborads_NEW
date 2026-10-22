@@ -44,6 +44,8 @@ retomada de sessão (ver seção 11 do `PROMPT_AGENTE.md`).
 - [x] **Etapa 2** — `package.json` com versões fixas conferidas e instaladas.
 - [x] **Etapa 3** — núcleo base: `dom.js`, `errors.js`, `theme.js`, `format.js`.
 - [x] **Etapa 4** — `looker-adapter.js` + `data-model.js` + `test/fixtures/`.
+- [x] **Etapa 5** — resto do núcleo: `options-kit`, `define-viz`, `scales`,
+      `shapes`, `animate`, `tooltip`, `legend`, `interaction`.
 
 ### Versões de build escolhidas (todas conferidas com `npm view`)
 
@@ -124,9 +126,27 @@ Decisões:
 Desempenho conferido: modelo + extração de série com **50.000 linhas em
 ~50 ms**.
 
+### Notas da etapa 5
+
+- `options-kit.js` traz 14 blocos reutilizáveis (Cores, Formato/rotação,
+  barras, pontos e linhas, Pivô, Dados, Eixos, Rótulos, Legenda,
+  Referências, Tooltip, Animação, Interação, Tema, Avançado) + geradores de
+  opção dinâmica por campo/série. `montarOpcoes()` numera automaticamente a
+  `order` de cada opção por faixa de seção, para o painel Edit sair sempre
+  na mesma ordem lógica em todos os gráficos.
+- `define-viz.js` centraliza o que nenhum gráfico deve repetir: `done()`
+  sempre (inclusive em erro), montagem do modelo, validação, tema, JSON de
+  configuração, cabeçalho (título/subtítulo), faixa de avisos, estado vazio,
+  limpeza de listeners/timers/quadros entre atualizações e redesenho no
+  resize. O gráfico só implementa `render(ctx)`.
+- `interaction.js` já nasce com a correção de arraste por Pointer Events +
+  `setPointerCapture` (lição de um bug real: dentro do iframe do Looker, o
+  arraste com `mousemove` solto trava quando o cursor sai da área).
+- Núcleo inteiro confere no import: 14 módulos carregam limpos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 5 (Tier 0): escrever `src/core/options-kit.js` com os blocos de opções
-reutilizáveis da seção 6 do prompt (cores, rotação, barras, pontos, pivô,
-dados, eixos, rótulos, legenda, referências, tooltip, animação, interação,
-tema, avançado) e o registro dinâmico por campo/série.
+Etapa 6 (Tier 0): criar `src/charts/_template/index.js` (modelo de gráfico
+novo), `config/charts.json` (registro de gráficos) e `build/build.mjs`
+(esbuild → `dist/<id>.js` em IIFE não-minificado, com cabeçalho de id,
+label, versão, data e hash do commit, + `dist/MANIFEST.md`).
