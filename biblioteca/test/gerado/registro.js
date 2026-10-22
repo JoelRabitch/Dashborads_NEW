@@ -507,5 +507,20 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida."
+  },
+  {
+    "id": "small_multiples",
+    "label": "Small Multiples",
+    "tier": 4,
+    "arquivo": "../dist/small_multiples.js",
+    "existe": true,
+    "fixtures": [
+      "comPivo",
+      "duasDimensoes",
+      "temporal",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas)."
   }
 ];

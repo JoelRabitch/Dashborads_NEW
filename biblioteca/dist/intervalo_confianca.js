@@ -1,7 +1,7 @@
 /*!
  * Intervalo de Confianca — visualização customizada para o Looker
  * id: intervalo_confianca
- * versão: 0.1.0 | build: 2026-10-22 17:56:25 | commit: 3cc4b9e
+ * versão: 0.1.0 | build: 2026-10-22 17:59:50 | commit: 8a608c4
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

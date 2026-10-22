@@ -62,7 +62,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 
 ## TIER 4 — muitas informações (canvas/virtualizado)
 
-- [x] 36. `heatmap_denso` · [ ] 37. `small_multiples` · [ ] 38. `barras_ranking_denso`
+- [x] 36. `heatmap_denso` · [x] 37. `small_multiples` · [ ] 38. `barras_ranking_denso`
 - [ ] 39. `dot_plot_denso` · [ ] 40. `parallel_coords` · [ ] 41. `bump_chart`
 - [ ] 42. `slope_chart` · [ ] 43. `horizon_chart`
 

@@ -1708,32 +1708,75 @@ embaixo obriga a percorrer o mapa inteiro para identificá-la.
 Números: 36 gráficos construídos; 785/785 testes passando; checagem de
 segurança sem violação em 106 arquivos.
 
+### Etapa 41 — `small_multiples` (TIER 4, item 37)
+
+Uma grade de mini-gráficos, um por série, **todos na mesma escala**.
+
+A escala compartilhada não é detalhe: é o gráfico inteiro. Com escalas
+independentes, cada painel usa toda a altura disponível e todos ficam
+igualmente dramáticos — a série que varia de 2 a 3 ganha a mesma amplitude
+visual da que varia de 2 a 3.000. O olho compara FORMAS, e formas de
+escalas diferentes não são comparáveis. Como permitir a comparação é a
+única razão de existir de um small multiples, a escala livre existe como
+opção mas é sempre DECLARADA ("ATENÇÃO: cada painel tem a própria escala —
+as formas NÃO são comparáveis entre si").
+
+O teste mede a propriedade em vez de confiar nela: a altura ocupada por
+cada curva dentro do próprio painel. Com escala livre, a ocupação média
+sobe (0,851 contra 0,730) **e a variação entre painéis desaparece** — e é
+essa variação que carrega a informação "esta série é menor que aquela".
+São as duas metades da mesma afirmação, e as duas são verificadas.
+
+`montarGrade` escolhe o número de colunas testando todos e ficando com o
+que deixa o painel mais próximo de um quadrado, com uma penalidade pelas
+células vazias da última fileira. `ceil(sqrt(n))` sozinho ignora a
+proporção da tela: numa visualização larga e baixa produz painéis altos e
+magros com faixas vazias dos dois lados. O teste confere que 9 painéis
+numa tela 1600×300 usam mais colunas do que numa tela 300×1600 — e que
+nenhuma configuração deixa uma fileira inteira vazia.
+
+**Erro meu no teste do limiar, e do tipo que ensina.** Escrevi que 60
+painéis numa tela de 900×560 cruzariam o limiar de 56 px. Não cruzam: dão
+90 px. O caso em que o problema acontece de verdade é o *tile* pequeno de
+dashboard (400×200), onde os mesmos 60 painéis viram 36×33 px. Eu tinha
+escolhido o cenário pela conveniência do teste, não pela realidade do uso —
+e o teste reprovava o comportamento certo. Corrigido com o motivo
+comentado, mais um teste do outro lado: com 5 painéis folgados, o aviso NÃO
+pode aparecer, porque aviso que dispara à toa treina o usuário a ignorá-lo.
+
+Decisão de escopo registrada: nenhuma fixture produz 60 séries, então o
+aviso de painel pequeno não é exercitável pelo render. Em vez de inventar
+uma fixture só para isso — o que esconderia que o teste de verdade é sobre
+a geometria —, testei `montarGrade` diretamente e deixei o motivo escrito
+no teste.
+
+Números: 37 gráficos construídos; 811/811 testes passando; checagem de
+segurança sem violação em 108 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 37: criar `src/charts/small_multiples/` ("Small Multiples"):
-uma grade de mini-gráficos, um por categoria, **todos na mesma escala**.
+TIER 4, item 38: criar `src/charts/barras_ranking_denso/` ("Barras de
+Ranking Denso"): centenas ou milhares de barras ordenadas, com rolagem
+virtualizada — o "top N" quando o N é grande demais para caber.
 
-O ponto do gráfico é exatamente esse: escalas independentes fazem cada
-painel parecer dramático e tornam a comparação impossível — que é a única
-coisa que um small multiples existe para permitir. Escala compartilhada por
-padrão, escala livre como opção explícita e **declarada na tela**, porque
-sem o aviso o leitor compara formas que não são comparáveis.
-
-Pontos de atenção: (a) reaproveitar `core/series.js` (`extrairMatriz`) para
-obter categorias × séries, e `_serie_temporal/` para a leitura quando o
-eixo for temporal — mas o desenho do painel é novo e pequeno; (b) a grade
-se ajusta ao espaço: calcular colunas por `ceil(sqrt(n))` corrigido pela
-proporção da tela, com mínimo de ~90 px por painel e corte com aviso acima
-disso; (c) eixos só nas bordas (como no SPLOM), valor máximo escrito em
-cada painel; (d) tipos de painel: linha, área e barras — o mesmo dado, e a
-escolha muda o que salta aos olhos; (e) ordenar os painéis por total,
-máximo ou alfabeticamente, declarando a ordem; (f) acima de ~60 painéis
-nada é legível: cortar e avisar.
+Pontos de atenção: (a) **virtualização**, como em `tabela_completa`: só as
+barras visíveis existem no DOM, com espaçadores em cima e embaixo; o
+`tabela_completa` já resolveu isso — ler como ele faz antes de escrever
+(`src/charts/tabela_completa/`); (b) a barra tem de começar em ZERO, sempre
+— num ranking, barra truncada inverte a percepção de proporção, e isso não
+pode ser opcional; (c) rótulo dentro da barra quando cabe, fora quando não,
+com cor de texto legível sobre o fundo (`textoLegivelSobre` já existe);
+(d) destacar posições: top N, o item buscado, e os que cruzam uma
+referência (média, meta); (e) campo de busca filtrando por nome, com
+`criarFiltroDeBusca` de `core/interaction.js`, mantendo a POSIÇÃO original
+no ranking visível (quem busca "Produto X" quer saber que ele é o 437º, não
+o 1º da lista filtrada — esconder isso seria a mentira deste gráfico);
+(f) acima de ~50 mil barras, recusar com explicação.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/small_multiples.test.mjs` (**o teste central é a escala
-compartilhada**: o mesmo valor em painéis diferentes tem de cair na mesma
-altura relativa — e com escala livre, não; a grade tem de conter todos os
-painéis sem sobreposição; e todo laço afirma que a lista não é vazia),
+`test/barras_ranking_denso.test.mjs` (a virtualização mostra só o visível
+mas a ALTURA TOTAL do conteúdo corresponde a todas as barras; a largura da
+barra é proporcional ao valor a partir de zero; a posição no ranking
+sobrevive ao filtro; **e todo laço afirma que a lista não é vazia**),
 `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
-para o item 38 (`barras_ranking_denso`).
+para o item 39 (`dot_plot_denso`).

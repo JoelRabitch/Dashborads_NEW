@@ -544,6 +544,22 @@
         "semPivo",
         "vazio"
       ]
+    },
+    {
+      "id": "small_multiples",
+      "label": "Small Multiples",
+      "tier": 4,
+      "pasta": "small_multiples",
+      "resumo": "Grade de mini-graficos, um por serie, todos na MESMA escala — o que torna as formas comparaveis. Escala livre existe como opcao e e declarada na tela.",
+      "explore": "1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 17:56:25 (commit `3cc4b9e`).
+Gerado automaticamente pelo build em 2026-10-22 17:59:50 (commit `8a608c4`).
 
 ## Como cadastrar no Looker
 
@@ -51,6 +51,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `correlacao_matriz` | Matriz de Correlacao | `dist/correlacao_matriz.js` | (vazio) | 2 ou mais medidas com VARIAS linhas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/correlacao_matriz.js` |
 | `boxplot_avancado` | Boxplot Avancado | `dist/boxplot_avancado.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/boxplot_avancado.js` |
 | `heatmap_denso` | Heatmap Denso | `dist/heatmap_denso.js` | (vazio) | 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/heatmap_denso.js` |
+| `small_multiples` | Small Multiples | `dist/small_multiples.js` | (vazio) | 1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/small_multiples.js` |
 
 ## Detalhes por visualização
 
@@ -377,3 +378,12 @@ Mapa de calor de duas dimensoes cruzadas, em canvas, com escala linear, divergen
 - **Explore**: 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida.
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 121.2 KB
+
+### Small Multiples (`small_multiples`)
+
+Grade de mini-graficos, um por serie, todos na MESMA escala — o que torna as formas comparaveis. Escala livre existe como opcao e e declarada na tela.
+
+- **Tier**: 4
+- **Explore**: 1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas).
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 171.6 KB
