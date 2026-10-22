@@ -440,6 +440,21 @@
         "ohlc",
         "vazio"
       ]
+    },
+    {
+      "id": "qq_plot",
+      "label": "Q-Q Plot (Normalidade)",
+      "tier": 3,
+      "pasta": "qq_plot",
+      "resumo": "Quantis observados contra quantis teoricos da normal, com reta robusta, envelope pontual de 95% e o nome da forma (caudas pesadas, assimetria).",
+      "explore": "1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "semPivo",
+        "ohlc",
+        "vazio"
+      ]
     }
   ]
 }

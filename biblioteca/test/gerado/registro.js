@@ -410,5 +410,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto."
+  },
+  {
+    "id": "qq_plot",
+    "label": "Q-Q Plot (Normalidade)",
+    "tier": 3,
+    "arquivo": "../dist/qq_plot.js",
+    "existe": true,
+    "fixtures": [
+      "grande5k",
+      "semPivo",
+      "ohlc",
+      "vazio"
+    ],
+    "explore": "1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto."
   }
 ];

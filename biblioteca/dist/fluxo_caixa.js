@@ -1,7 +1,7 @@
 /*!
  * Fluxo de Caixa — visualização customizada para o Looker
  * id: fluxo_caixa
- * versão: 0.1.0 | build: 2026-10-22 14:44:09 | commit: 0381f7b
+ * versão: 0.1.0 | build: 2026-10-22 14:47:55 | commit: eeadb9f
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

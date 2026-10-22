@@ -1324,27 +1324,85 @@ divisões tem piso 1.
 Números: 29 gráficos construídos; 571/571 testes passando; checagem de
 segurança sem violação em 91 arquivos.
 
+### Etapa 34 — `qq_plot` (TIER 3, item 30)
+
+Quantis observados contra quantis teóricos da normal. Responde "esses
+dados são normais?" melhor que qualquer teste de hipótese, porque mostra
+ONDE eles deixam de ser — e um p-valor não mostra.
+
+Três decisões de método, todas escritas na tela:
+
+**Posição de plotagem.** O i-ésimo de n valores ordenados não corresponde
+ao quantil i/n — isso daria p = 1 para o maior valor, cujo quantil normal é
+infinito, e o ponto sumiria. As fórmulas (Blom, Hazen, Weibull) são
+variações de `(i − a)/(n + 1 − 2a)` e discordam justamente nas CAUDAS, que
+é onde o gráfico é lido. Padrão: Blom, feita para a normal.
+
+**Reta de referência robusta por padrão.** A reta por média e desvio é
+puxada pelos outliers — exatamente os pontos cuja anormalidade queremos
+ver — e faz a nuvem inteira parecer torta. A reta pelos quartis ignora as
+pontas. O teste mostra o tamanho do estrago: uma amostra normal de σ = 10
+com um único outlier de 100.000 dá inclinação 15.602 pela média e 9,94
+pelos quartis. Quartis idênticos (metade dos valores repetidos) caem para
+os momentos, porque uma reta horizontal não serve de referência.
+
+**Envelope pontual de 95%.** O desvio que importa não é o visível, é o
+grande demais para o acaso. O erro-padrão do i-ésimo valor ordenado é
+`σ·√(p(1−p)/n) ÷ φ(z_p)` — ele divide pela densidade normal, que é pequena
+nas caudas, e por isso o envelope é uma ampulheta (teste mede: erro 0,12 no
+meio, 0,44 nas pontas). É PONTUAL, não simultâneo: com 100 pontos, ~5 fora
+é o esperado. Isso está na nota E a caixa mostra "k fora (≈m esperados por
+acaso)", porque ler envelope pontual como banda simultânea é o erro
+clássico — cada ponto fora vira "anormalidade" e a conclusão é falsa.
+
+**O que achei mais útil: o gráfico NOMEIA a forma.** "Os pontos estão
+tortos" não é conclusão; "cauda direita pesada, tente log" é. Mede-se o
+desvio médio dos 10% de cada ponta, em unidades de σ: sinais opostos
+(alta +, baixa −) = caudas pesadas, curva em S; sinais opostos invertidos =
+caudas leves; mesmo sinal nas duas pontas = assimetria, curva em C.
+
+Os testes partem de amostras cuja distribuição eu escolhi, construídas a
+partir dos próprios quantis teóricos (determinísticas, nada de
+`Math.random`): normal exata ⇒ "compatível" e desvio máximo de 0,56 em
+σ = 15; exponencial ⇒ "assimetria à direita"; uniforme ⇒ "caudas leves";
+normal com extremos nos dois lados ⇒ "caudas pesadas". Se os quantis
+teóricos estivessem errados, a normal exata não cairia na reta.
+
+Erro meu no teste da padronização: comparei os pixels crus de `cx` entre
+eixo em unidade original e eixo em σ. Trocar "1.250.000" por "2,1 σ" nos
+rótulos muda a largura da margem esquerda e portanto a área de desenho —
+os pixels mudam e está certo que mudem. O que tem de ser idêntico é a
+posição RELATIVA dentro da área, que é o que o teste mede agora, em x e em
+y (padronizar é transformação afim: a forma da nuvem não pode mudar).
+
+Números: 30 gráficos construídos; 603/603 testes passando; checagem de
+segurança sem violação em 93 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 30: criar `src/charts/qq_plot/` ("Q-Q Plot"): quantis
-observados contra quantis teóricos, com a reta de referência — o gráfico
-que responde "esses dados são normais?" melhor do que qualquer teste de
-hipótese, porque mostra ONDE eles deixam de ser.
+TIER 3, item 31: criar `src/charts/densidade_ecdf/` ("Densidade e ECDF"):
+duas vistas da MESMA distribuição, alternáveis ou lado a lado — a
+densidade por kernel (suave, dependente de banda) e a função de
+distribuição acumulada empírica (exata, sem parâmetro nenhum).
 
-Pontos de atenção: (a) `core/estatistica.js` já tem `quantilNormalPadrao`
-(Acklam) e `quantil` (tipo 7) — reaproveitar; (b) a posição de plotagem
-importa e é escolha de método: usar `(i − 0,5)/n` (Hazen) ou
-`(i − 3/8)/(n + 1/4)` (Blom, melhor para normal) e DECLARAR qual, porque
-métodos diferentes movem as caudas; (c) a reta de referência pode ser pela
-média/desvio ou robusta pelos quartis — a segunda é melhor quando há
-outliers, e a diferença entre elas é informativa; (d) o gráfico precisa
-nomear o que a forma mostra: curva em S = caudas pesadas, curva em C =
-assimetria — sem isso o usuário vê pontos tortos e não sabe o que concluir;
-(e) oferecer também Q-Q contra uniforme/exponencial seria escopo demais
-agora: ficar na normal e dizer que é a normal.
+O par é o ponto do gráfico: a ECDF é a verdade sem escolha de método (é um
+degrau por observação), e a densidade é uma interpretação que depende da
+largura de banda. Mostrar as duas juntas deixa visível o que a suavização
+está escondendo.
+
+Pontos de atenção: (a) `core/estatistica.js` já tem `densidadePorKernel`,
+`larguraDeBandaSilverman` e `acumuladaEmpirica` — reaproveitar; (b) a
+largura de banda PRECISA ser ajustável e o valor usado precisa aparecer na
+tela, porque é ela que decide se a distribuição tem um pico ou três; (c) a
+ECDF com 5.000 pontos vira 5.000 degraus — simplificar o caminho mantendo
+os degraus visíveis (não interpolar: a ECDF é escada, desenhar como curva
+suave seria mentir sobre o que ela é); (d) reaproveitar `_distribuicao/`
+quando houver categorias (uma curva por categoria, mesma escala X);
+(e) oferecer marcar os quantis (mediana, quartis) na ECDF, onde a leitura é
+exata, em vez de na densidade, onde é visual.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/qq_plot.test.mjs` (dados normais devem ficar quase na reta; dados
-exponenciais devem desviar de forma detectável — conferir contra os
-quantis teóricos, não contra "desenhou"), `npm test`, `npm run seguranca`,
-marcar em TAREFAS.md, commitar e seguir para o item 31 (`densidade_ecdf`).
+`test/densidade_ecdf.test.mjs` (a ECDF tem de ser monótona, começar perto
+de 0 e terminar em 1, e dar exatamente k/n no k-ésimo valor; a densidade
+tem de integrar ≈ 1), `npm test`, `npm run seguranca`, marcar em
+TAREFAS.md, commitar e seguir para o item 32 (`intervalo_confianca`).
