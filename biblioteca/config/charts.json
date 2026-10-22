@@ -354,6 +354,21 @@
         "rotulosLongos",
         "vazio"
       ]
+    },
+    {
+      "id": "risco_retorno",
+      "label": "Risco x Retorno",
+      "tier": 2,
+      "pasta": "risco_retorno",
+      "resumo": "Dispersao com risco no eixo X e retorno no Y, bolha pela exposicao, e a reta de Sharpe a partir da taxa livre de risco.",
+      "explore": "1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

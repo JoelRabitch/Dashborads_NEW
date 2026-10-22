@@ -1043,16 +1043,60 @@ ignorar o aviso — que é como um aviso morre.
 Números: 23 gráficos construídos; 403/403 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 28 — `risco_retorno` (TIER 2, item 24) — TIER 2 COMPLETO
+
+Dispersão com risco no X e retorno no Y, construída sobre
+`src/charts/_quadrantes/` em vez de refazer: o que muda é a semântica dos
+eixos e a reta de referência. A base passou a devolver também o `svg`, para
+quem precisar desenhar POR CIMA dos pontos.
+
+A decisão que define o gráfico: **a leitura certa é a INCLINAÇÃO, não a
+altura**. Um ativo que rendeu mais porque arriscou muito mais parece melhor
+num gráfico sem referência. Por isso a reta de Sharpe sai da taxa livre de
+risco e atravessa o gráfico inteiro: tudo acima dela tem relação melhor,
+tudo abaixo, pior.
+
+- **Risco zero ou negativo fica sem Sharpe**, com aviso: a conta divide
+  pelo risco, e inventar um número ali seria pior do que o ponto não ter
+  índice. Esses pontos continuam no gráfico, mas não disputam o "melhor".
+- **A taxa livre de risco não é detalhe de configuração**: tem teste
+  mostrando a liderança TROCANDO de ativo quando ela passa de 0 para 10%.
+
+Erro meu no teste, pego pela suíte: escrevi a asserção invertida (esperava
+B onde a conta dá A). O comentário ao lado já dizia os números certos — a
+asserção é que não os seguia. Reescrito para expressar justamente a troca
+de liderança, que é o caso interessante.
+
+**TIER 2 COMPLETO: 10 de 10 gráficos financeiros.**
+
+Números: 24 gráficos construídos; 422/422 testes passando; checagem de
+segurança sem violação.
+
+#### Balanço do TIER 2
+
+Além dos dez gráficos, o tier deixou no núcleo: `_serie_temporal/` (base
+das séries), eixo secundário em `core/eixos.js`, o aviso de ordem para
+cálculos cumulativos e o afinamento dos rótulos de eixo de banda — que
+sozinho corrigiu um defeito presente em TODOS os gráficos de categoria.
+
+O padrão que se repetiu em quase todos: **o gráfico precisa dizer o que não
+dá para ver**. Banda calculada que se declara ilustrativa, ponte que avisa
+quando não fecha, medidor que admite não ter escala, Pareto que denuncia o
+próprio limite, drawdown que exige ordem. Em todos esses casos o desenho
+continuaria plausível sem o aviso — e seria mentira.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 24 (último do tier): criar `src/charts/risco_retorno/`
-("Risco x Retorno"): dispersão com o risco (desvio padrão ou volatilidade)
-no eixo X e o retorno no Y, tamanho da bolha pela exposição, e a linha da
-fronteira eficiente ou a reta de Sharpe a partir da taxa livre de risco.
+Começar o TIER 3 (estatística) pelo item 25: criar `src/charts/violin/`
+("Violin Plot"): a densidade de uma distribuição espelhada nos dois lados
+de um eixo, uma por categoria, com a mediana e o intervalo interquartil
+marcados dentro.
 
-Avaliar reaproveitar `src/charts/_quadrantes/` (que já desenha dispersão
-com eixos, tamanho e cor por medida) em vez de refazer — o que muda é a
-semântica dos eixos e a reta de referência. Depois registrar em
-`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
-marcar em TAREFAS.md e commitar. Com isso o TIER 2 fecha e começa o TIER 3
-(estatística) pelo item 25 (`violin`).
+Antes do gráfico, criar **`src/core/estatistica.js`** com o que o TIER 3
+inteiro vai usar: quartis (com o método de interpolação explícito),
+estimativa de densidade por kernel (KDE) com largura de banda por
+Silverman, limites de outlier por 1,5×IQR, e regressão linear simples.
+Fazer isso agora evita a mesma conta aparecer em `violin`, `ridgeline`,
+`beeswarm`, `boxplot_avancado`, `densidade_ecdf` e `dispersao_regressao`.
+Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
+`npm run seguranca`, marcar em TAREFAS.md e commitar.

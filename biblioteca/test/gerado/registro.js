@@ -330,5 +330,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo."
+  },
+  {
+    "id": "risco_retorno",
+    "label": "Risco x Retorno",
+    "tier": 2,
+    "arquivo": "../dist/risco_retorno.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "ohlc",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo."
   }
 ];

@@ -531,7 +531,9 @@ export function renderizarQuadrantes(ctx, perfil) {
     if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
   });
 
-  return { pontos, corteX, corteY, escalaX, escalaY, retangulo };
+  // `svg` e `area` saem daqui para quem quiser desenhar POR CIMA dos
+  // pontos — uma reta de referência, uma fronteira, uma anotação.
+  return { pontos, corteX, corteY, escalaX, escalaY, retangulo, svg, area, tooltip };
 }
 
 /** Limpa o tooltip criado por `renderizarQuadrantes`. */

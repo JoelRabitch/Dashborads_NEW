@@ -1,7 +1,7 @@
 /*!
  * Dispersão com Quadrantes — visualização customizada para o Looker
  * id: quadrant_scatter
- * versão: 0.1.0 | build: 2026-10-22 13:16:40 | commit: 07fcaff
+ * versão: 0.1.0 | build: 2026-10-22 13:19:39 | commit: 1bff00f
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -4704,7 +4704,7 @@
       const celula = modelo.celula(modelo.linhas[alvo.indice], campoRotulo.nome);
       if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
     });
-    return { pontos, corteX, corteY, escalaX, escalaY, retangulo };
+    return { pontos, corteX, corteY, escalaX, escalaY, retangulo, svg, area, tooltip };
   }
   function destruirQuadrantes({ estado }) {
     if (estado && estado.tooltip) estado.tooltip.destruir();

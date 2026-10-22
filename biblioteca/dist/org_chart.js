@@ -1,7 +1,7 @@
 /*!
  * Organograma — visualização customizada para o Looker
  * id: org_chart
- * versão: 0.1.0 | build: 2026-10-22 13:16:40 | commit: 07fcaff
+ * versão: 0.1.0 | build: 2026-10-22 13:19:39 | commit: 1bff00f
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

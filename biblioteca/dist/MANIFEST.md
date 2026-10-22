@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 13:16:40 (commit `07fcaff`).
+Gerado automaticamente pelo build em 2026-10-22 13:19:39 (commit `1bff00f`).
 
 ## Como cadastrar no Looker
 
@@ -38,6 +38,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `lorenz_gini` | Curva de Lorenz / Gini | `dist/lorenz_gini.js` | (vazio) | 1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/lorenz_gini.js` |
 | `treemap_carteira` | Treemap de Carteira | `dist/treemap_carteira.js` | (vazio) | 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/treemap_carteira.js` |
 | `ponte_variacao` | Ponte de Variação | `dist/ponte_variacao.js` | (vazio) | 1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ponte_variacao.js` |
+| `risco_retorno` | Risco x Retorno | `dist/risco_retorno.js` | (vazio) | 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/risco_retorno.js` |
 
 ## Detalhes por visualização
 
@@ -247,3 +248,12 @@ Waterfall: barras flutuantes ligando um valor inicial a um final, com cada contr
 - **Explore**: 1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 131.9 KB
+
+### Risco x Retorno (`risco_retorno`)
+
+Dispersao com risco no eixo X e retorno no Y, bolha pela exposicao, e a reta de Sharpe a partir da taxa livre de risco.
+
+- **Tier**: 2
+- **Explore**: 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 178.7 KB

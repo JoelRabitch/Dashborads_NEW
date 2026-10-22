@@ -51,7 +51,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 21. `lorenz_gini` — "Curva de Lorenz / Gini"
 - [x] 22. `treemap_carteira` — "Treemap de Carteira"
 - [x] 23. `ponte_variacao` — "Ponte de Variação"
-- [ ] 24. `risco_retorno` — "Risco x Retorno"
+- [x] 24. `risco_retorno` — "Risco x Retorno"
 
 ## TIER 3 — estatística
 
