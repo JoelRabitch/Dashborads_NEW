@@ -356,10 +356,57 @@ TODOS os grupos e exigir que não sobre nenhuma linha de dados.
 Números: bundle 169,7 KB; 21/21 testes passando; checagem de segurança sem
 violação. `tabela_completa` marcada como `[x]` em TAREFAS.md.
 
+### Etapa 10 — `diagrama_venn` (TIER 1, item 2) — concluída
+
+Arquivos: `geometria.js` (formas e onde cabe cada rótulo), `dados.js` (os
+três formatos de entrada) e `index.js` (desenho em SVG).
+
+Decisões:
+
+- **SVG, não canvas**: são no máximo 5 formas. SVG dá de graça o hover por
+  região, texto nítido em qualquer zoom e nada de perda de qualidade.
+- **Três formatos de entrada, detectados sozinho**: (a) uma linha por região
+  com a dimensão listando os conjuntos ("A", "A,B"); (b) uma linha por item
+  e conjunto (duas dimensões); (c) uma coluna sim/não por conjunto. O
+  usuário raramente sabe qual é o "certo", então detectamos e deixamos
+  trocar à mão numa opção.
+- **Posição dos rótulos encontrada por amostragem**, não fixa por layout:
+  varremos a área numa grade, montamos a máscara de conjuntos de cada
+  célula e pegamos o ponto de maior folga até a borda. Funciona igual para
+  círculos e elipses e sobrevive a qualquer ajuste de layout.
+- **O número nunca é posicionado pelo centróide**: em regiões de lua
+  crescente o centróide cai FORA da própria região. O ponto de maior folga
+  é sempre válido e ainda é onde o texto tem mais chance de caber.
+- **Nenhum valor some**: quando o número não cabe na região (inevitável em
+  Venn de 4 e 5), ele vai para uma lista no canto com o nome da região.
+  Antes de desistir, a fonte é reduzida até 7px.
+- **Acima de 5 conjuntos a viz avisa** e desenha os 5 primeiros, em vez de
+  desenhar algo errado ou não desenhar nada.
+
+Os layouts de 4 e 5 elipses foram **conferidos numericamente**: o de 5 saiu
+com 26 das 31 regiões na primeira tentativa (uma construção de 72° que eu
+tinha montado na mão), e só fechou 31/31 com os parâmetros clássicos e o
+sinal da rotação invertido. O de 4 passou por uma busca que maximizou a
+MENOR região. Esse teste virou permanente em `test/diagrama_venn.test.mjs`,
+porque é um erro que não aparece na tela: a região some e o valor some junto.
+
+Correção no harness que vale para TODOS os gráficos: o jsdom não faz layout,
+então todo elemento mede 0×0 e `medir()` caía no piso de 160×120. Em tile
+desse tamanho nenhum rótulo cabe e as escalas degeneram — o teste deixava de
+parecer com o Looker. `test/ambiente.mjs` agora finge um tile de 900×560.
+Foi isso que revelou que o Venn só estava rotulando 1 ou 2 regiões.
+
+Também ajustado: o teste de fumaça agora aceita que um gráfico com
+`aceitaPivo: false` reporte erro na fixture `comPivo` — recusar o pivô com
+mensagem clara é a resposta certa, não uma falha.
+
+Números: bundle 131,6 KB; 43/43 testes passando; checagem de segurança sem
+violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, item 2: criar `src/charts/diagrama_venn/` (Diagrama de Venn para 2 a
-5 conjuntos, lendo as fixtures `conjuntos2` a `conjuntos5`,
-`conjuntosPorItem` e `conjuntosBooleanos`), registrar em
-`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
-marcar em TAREFAS.md e commitar.
+TIER 1, item 3: criar `src/charts/quadrant_scatter/` ("Dispersão com
+Quadrantes": duas medidas nos eixos, linhas divisórias configuráveis por
+média/mediana/valor fixo, rótulos de quadrante, tamanho e cor por medida,
+drill no ponto), registrar em `config/charts.json`, buildar, rodar
+`npm test` e `npm run seguranca`, marcar em TAREFAS.md e commitar.

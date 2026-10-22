@@ -83,8 +83,12 @@ for (const grafico of graficos) {
           assert.ok(palco.childNodes.length > 0, 'a visualização precisa colocar algo no DOM');
 
           // Fixtures com dados válidos não podem gerar erro; as inválidas
-          // (vazio / só nulos) PODEM, desde que com mensagem clara.
+          // (vazio / só nulos) PODEM, desde que com mensagem clara. Recusar
+          // um pivô também é resposta certa num gráfico que não aceita pivô.
           const fixturesQuePodemErrar = ['vazio', 'semCampos', 'somenteNulos'];
+          if (nomeFixture === 'comPivo' && grafico.aceitaPivo === false) {
+            fixturesQuePodemErrar.push('comPivo');
+          }
           if (!fixturesQuePodemErrar.includes(nomeFixture)) {
             assert.equal(
               amb.chamadasDeApi.erros.length,

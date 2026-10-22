@@ -27,6 +27,23 @@ export function montarAmbiente() {
   });
   const { window } = dom;
 
+  // O jsdom não faz layout: TODO elemento mede 0×0, e `medir()` cairia no
+  // piso de 160×120 para qualquer gráfico. Isso não é um detalhe: num tile
+  // minúsculo os rótulos não cabem, as escalas degeneram e o teste deixa de
+  // parecer com o Looker. Então fingimos um tile de tamanho realista.
+  Object.defineProperty(window.Element.prototype, 'clientWidth', {
+    get() {
+      return 900;
+    },
+    configurable: true,
+  });
+  Object.defineProperty(window.Element.prototype, 'clientHeight', {
+    get() {
+      return 560;
+    },
+    configurable: true,
+  });
+
   // Alguns navegadores/ambientes não têm ResizeObserver; o núcleo tem
   // fallback, mas aqui simulamos a existência para exercitar o caminho real.
   window.ResizeObserver = class {

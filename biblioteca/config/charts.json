@@ -10,6 +10,16 @@
       "explore": "1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis).",
       "aceitaPivo": true,
       "fixtures": ["semPivo", "duasDimensoes", "comPivo", "temporal", "vazio", "somenteNulos", "rotulosLongos", "grande5k"]
+    },
+    {
+      "id": "diagrama_venn",
+      "label": "Diagrama de Venn",
+      "tier": 1,
+      "pasta": "diagrama_venn",
+      "resumo": "Diagrama de Venn de 2 a 5 conjuntos, lendo três formatos de dados (uma linha por região, uma linha por item e conjunto, ou colunas sim/não).",
+      "explore": "Uma dimensão com os conjuntos (\"A\", \"A,B\"), ou duas dimensões (item e conjunto), ou várias colunas sim/não. Não aceita pivô.",
+      "aceitaPivo": false,
+      "fixtures": ["conjuntos2", "conjuntos3", "conjuntos4", "conjuntos5", "conjuntosPorItem", "conjuntosBooleanos"]
     }
   ]
 }

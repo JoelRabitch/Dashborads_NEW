@@ -1,7 +1,7 @@
 /*!
  * Tabela Completa — visualização customizada para o Looker
  * id: tabela_completa
- * versão: 0.1.0 | build: 2026-10-22 01:45:36 | commit: 97e7b6c
+ * versão: 0.1.0 | build: 2026-10-22 01:56:22 | commit: 9e50e5f
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
