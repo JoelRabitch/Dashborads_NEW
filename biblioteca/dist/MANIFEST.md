@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 13:07:26 (commit `004c0f8`).
+Gerado automaticamente pelo build em 2026-10-22 13:11:28 (commit `e18cfc4`).
 
 ## Como cadastrar no Looker
 
@@ -36,6 +36,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `fluxo_caixa` | Fluxo de Caixa | `dist/fluxo_caixa.js` | (vazio) | 1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/fluxo_caixa.js` |
 | `pareto` | Pareto | `dist/pareto.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/pareto.js` |
 | `lorenz_gini` | Curva de Lorenz / Gini | `dist/lorenz_gini.js` | (vazio) | 1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/lorenz_gini.js` |
+| `treemap_carteira` | Treemap de Carteira | `dist/treemap_carteira.js` | (vazio) | 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/treemap_carteira.js` |
 
 ## Detalhes por visualização
 
@@ -227,3 +228,12 @@ Curva de Lorenz com a linha de igualdade e o coeficiente de Gini em destaque, me
 - **Explore**: 1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 165.7 KB
+
+### Treemap de Carteira (`treemap_carteira`)
+
+Retangulos proporcionais ao tamanho e coloridos por uma segunda medida numa escala divergente centrada em zero: o tamanho diz quanto pesa, a cor diz como foi.
+
+- **Tier**: 2
+- **Explore**: 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 139.5 KB

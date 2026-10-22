@@ -974,18 +974,59 @@ exatamente `1 − 1/n`; a sequência 1..n dá `(n−1)/(3n)`; o par [1,3] dá
 Números: 21 gráficos construídos; 364/364 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 26 — `treemap_carteira` (TIER 2, item 22)
+
+Retângulos proporcionais ao TAMANHO e coloridos por uma SEGUNDA medida numa
+escala divergente. É o mapa de calor de carteira: o tamanho diz quanto
+pesa, a cor diz como foi.
+
+Duas escolhas de cor que mudam a leitura:
+
+- **Centrada em ZERO, não no intervalo dos dados.** Centrar na média faria
+  uma carteira inteira no vermelho aparecer metade verde — o gráfico
+  afirmaria o contrário do que os dados dizem.
+- **Limite SIMÉTRICO** (o mesmo para os dois lados). Com limite
+  assimétrico, +2% e −2% ganham intensidades diferentes e o olho compara
+  errado. Valores além do limite saturam, em vez de estourar a escala.
+
+Defeito encontrado na verificação, e bem feio: com a fixture `grande5k`
+(2.000 posições) o treemap usava **4,2% da área**. A culpa não era dos
+retângulos, era das FAIXAS DE TÍTULO: 2.000 grupos × 16px consumiam a tela
+inteira antes de sobrar espaço para o conteúdo.
+
+Duas correções:
+
+1. **Poda por número de retângulos** (150 por padrão): as maiores posições
+   aparecem e o resto vira um bloco "Outros" que preserva o total — há
+   teste garantindo que o total não muda. Depois da poda: 98,6% da área
+   ocupada.
+2. **A faixa de título só é desenhada com até 40 grupos.** Acima disso ela
+   deixa de informar e passa a ocupar.
+
+Vale registrar que esse é o **terceiro gráfico a precisar do aviso de
+valores negativos** (depois de `pareto` e `lorenz_gini`), cada um por um
+motivo diferente: aqui a área de um retângulo não pode ser negativa. Como os
+motivos e os textos divergem, mantive separados em vez de forçar um helper
+comum — anotado caso um quarto caso apareça.
+
+Erro meu nos testes: montei um modelo falso que mapeava valores por índice
+de linha de um jeito desalinhado, e o teste reprovava a conta certa.
+Trocado por um auxiliar pequeno e explícito.
+
+Números: 22 gráficos construídos; 385/385 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 22: criar `src/charts/treemap_carteira/` ("Treemap de
-Carteira"): retângulos proporcionais ao valor, agrupados por hierarquia,
-coloridos por uma SEGUNDA medida (variação, margem, risco) numa escala
-divergente centrada em zero.
+TIER 2, item 23: criar `src/charts/ponte_variacao/` ("Ponte de Variação" /
+waterfall): barras flutuantes que ligam um valor inicial a um final,
+mostrando cada contribuição positiva ou negativa no caminho, com totais
+ancorados no eixo.
 
-Reaproveitar `core/hierarquia.js` (que já lê dimensões aninhadas e pares
-id/pai) e usar `d3-hierarchy` (`treemap`, já nas devDependencies). Cuidados
-conhecidos: o treemap exige valores não negativos (mesmo aviso do Pareto e
-do Lorenz — vale avaliar se esse aviso merece subir para um helper comum,
-já que é o terceiro gráfico a precisar dele); e rótulo só cabe em retângulo
-acima de um tamanho mínimo, como no Venn. Depois registrar em
-`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
-marcar em TAREFAS.md e commitar.
+Cuidados conhecidos: as barras intermediárias flutuam (começam onde a
+anterior terminou) e as de TOTAL são ancoradas no zero — confundir as duas
+é o erro clássico do waterfall; e a soma das contribuições precisa bater
+com a diferença entre inicial e final, senão o gráfico mente. Vale calcular
+e avisar quando não bate. Depois registrar em `config/charts.json`,
+buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
+commitar.

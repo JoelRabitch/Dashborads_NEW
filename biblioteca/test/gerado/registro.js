@@ -302,5 +302,20 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo."
+  },
+  {
+    "id": "treemap_carteira",
+    "label": "Treemap de Carteira",
+    "tier": 2,
+    "arquivo": "../dist/treemap_carteira.js",
+    "existe": true,
+    "fixtures": [
+      "hierarquia",
+      "duasDimensoes",
+      "semPivo",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor."
   }
 ];
