@@ -279,6 +279,21 @@
         "ohlc",
         "vazio"
       ]
+    },
+    {
+      "id": "fluxo_caixa",
+      "label": "Fluxo de Caixa",
+      "tier": 2,
+      "pasta": "fluxo_caixa",
+      "resumo": "Barras de entradas e saidas por periodo com a linha do saldo acumulado por cima e destaque para os periodos de saldo negativo.",
+      "explore": "1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "temporal",
+        "ohlc",
+        "vazio"
+      ]
     }
   ]
 }

@@ -260,5 +260,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie)."
+  },
+  {
+    "id": "fluxo_caixa",
+    "label": "Fluxo de Caixa",
+    "tier": 2,
+    "arquivo": "../dist/fluxo_caixa.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "temporal",
+      "ohlc",
+      "vazio"
+    ],
+    "explore": "1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo."
   }
 ];

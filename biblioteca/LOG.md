@@ -879,15 +879,48 @@ para a frente.
 Números: 18 gráficos construídos; 307/307 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 23 — `fluxo_caixa` (TIER 2, item 19)
+
+Barras de entradas (para cima) e saídas (para baixo) por período, com a
+linha do saldo ACUMULADO por cima. As duas informações respondem perguntas
+diferentes: a barra diz como foi o mês, a linha diz se o caixa aguenta. Os
+períodos em que o saldo fica negativo ganham faixa de destaque e aparecem no
+resumo do rodapé — é o que o leitor realmente procura aqui.
+
+Antes de escrever o gráfico, `avisarSeForaDeOrdem` subiu do `drawdown` para
+o `_serie_temporal/`, como estava previsto no LOG. O aviso vale para todo
+cálculo cumulativo, e copiá-lo seria o começo da divergência entre os dois.
+
+Decisões sobre SINAL, que é onde este gráfico erra feio e em silêncio:
+
+- **Saídas costumam vir positivas no modelo** ("Despesas: 1.200"), e
+  desenhar para baixo exige sinal negativo. Mas inverter o que JÁ vem
+  negativo criaria uma entrada fantasma e o saldo subiria quando deveria
+  cair. Por isso a opção "a medida de saídas vem positiva" usa
+  `-Math.abs()` e o caminho contrário usa `Math.min(0, v)` — nunca uma
+  inversão cega. Tem teste para os dois casos.
+- **Modo de medida única com sinal**: positivo entra, negativo sai.
+- **Saldo inicial inválido vira zero**, não NaN — um NaN contaminaria todos
+  os períodos seguintes e a linha sumiria sem explicação.
+
+Erro meu no teste: montei um caso com UM período só, e a base de série
+temporal exige dois para montar um eixo. O teste quebrou com `null`, não o
+gráfico — a produção checa antes. Corrigido no teste.
+
+Números: 19 gráficos construídos; 326/326 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 19: criar `src/charts/fluxo_caixa/` ("Fluxo de Caixa"): barras
-de entradas (positivas) e saídas (negativas) por período, com a linha do
-saldo ACUMULADO por cima e destaque para os períodos em que o saldo fica
-negativo. Reaproveitar `_serie_temporal/` para o eixo, a guia e o tooltip.
+TIER 2, item 20: criar `src/charts/pareto/` ("Pareto"): barras ordenadas da
+maior para a menor com a linha de percentual ACUMULADO no eixo secundário,
+e a marca dos 80% (configurável) mostrando quantas categorias respondem por
+aquela fatia.
 
-Cuidado conhecido: o saldo acumulado é cumulativo como o drawdown, então
-vale o mesmo aviso de ordem dos períodos — a função `avisarSeForaDeOrdem`
-do `drawdown` deve subir para `_serie_temporal/` em vez de ser copiada.
-Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
-`npm run seguranca`, marcar em TAREFAS.md e commitar.
+Cuidados conhecidos: o eixo secundário vai de 0 a 100% e precisa de rótulo
+próprio (`core/eixos.js` hoje desenha um eixo Y só — avaliar se vale
+acrescentar suporte a eixo secundário na base, já que `pareto` e
+`fluxo_caixa` são os primeiros a pedir); e categorias com valor negativo
+quebram a leitura de Pareto, então vale avisar. Depois registrar em
+`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
+marcar em TAREFAS.md e commitar.

@@ -41,6 +41,7 @@ import {
   ligarGuiaEHover,
   drillDoPeriodo,
   destruirSerieTemporal,
+  avisarSeForaDeOrdem,
 } from '../_serie_temporal/index.js';
 
 export default defineViz({
@@ -113,7 +114,7 @@ export default defineViz({
       return;
     }
 
-    avisarSeForaDeOrdem(ctx, serie);
+    avisarSeForaDeOrdem(ctx, serie, 'O drawdown é cumulativo');
 
     const emPercentual = (config.unidadeDoDrawdown || 'percentual') === 'percentual';
     const series = tratarNulos(serie.matriz.series, config.tratamentoDeNulos || 'interpolar');
@@ -373,27 +374,4 @@ function textoDaRecuperacao(calculada, serie, nomearSerie) {
     )}, recuperada em ${nome(pior.fim)} (${periodos} período(s)).`;
   }
   return `Pior queda${deQuem}: fundo em ${nome(pior.indice)} — ainda não voltou ao topo anterior.`;
-}
-
-/**
- * O drawdown é cumulativo: fora de ordem, o número é ficção.
- *
- * Só dá para checar quando a dimensão é de data — com categorias de texto
- * não existe "ordem certa" para comparar.
- */
-function avisarSeForaDeOrdem(ctx, serie) {
-  const campo = serie.matriz.campoDaCategoria;
-  if (!campo || !campo.ehData) return;
-
-  const datas = serie.categorias.map((c) => (c.data ? c.data.getTime() : null));
-  for (let i = 1; i < datas.length; i++) {
-    if (datas[i] === null || datas[i - 1] === null) continue;
-    if (datas[i] < datas[i - 1]) {
-      ctx.avisar(
-        'Os períodos não estão em ordem crescente de data. O drawdown é cumulativo, ' +
-          'então ordene a consulta pela data no Explore — caso contrário o resultado não significa nada.'
-      );
-      return;
-    }
-  }
 }

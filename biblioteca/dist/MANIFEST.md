@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 12:52:52 (commit `b2c9f48`).
+Gerado automaticamente pelo build em 2026-10-22 12:58:09 (commit `794dafb`).
 
 ## Como cadastrar no Looker
 
@@ -33,6 +33,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `linha_bandas` | Linha com Bandas | `dist/linha_bandas.js` | (vazio) | 1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/linha_bandas.js` |
 | `drawdown` | Drawdown | `dist/drawdown.js` | (vazio) | 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/drawdown.js` |
 | `retorno_acumulado` | Retorno Acumulado (Base 100) | `dist/retorno_acumulado.js` | (vazio) | 1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/retorno_acumulado.js` |
+| `fluxo_caixa` | Fluxo de Caixa | `dist/fluxo_caixa.js` | (vazio) | 1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/fluxo_caixa.js` |
 
 ## Detalhes por visualização
 
@@ -187,7 +188,7 @@ Quanto a serie esta abaixo do proprio maximo historico, periodo a periodo, com a
 - **Tier**: 2
 - **Explore**: 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 193.4 KB
+- **Tamanho do bundle**: 193.5 KB
 
 ### Retorno Acumulado (Base 100) (`retorno_acumulado`)
 
@@ -197,3 +198,12 @@ Cada serie reescalada para comecar no mesmo ponto (100 por padrao), passando a c
 - **Explore**: 1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie).
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 190.6 KB
+
+### Fluxo de Caixa (`fluxo_caixa`)
+
+Barras de entradas e saidas por periodo com a linha do saldo acumulado por cima e destaque para os periodos de saldo negativo.
+
+- **Tier**: 2
+- **Explore**: 1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 167.8 KB

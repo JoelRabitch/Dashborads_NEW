@@ -1,7 +1,7 @@
 /*!
  * Drawdown — visualização customizada para o Looker
  * id: drawdown
- * versão: 0.1.0 | build: 2026-10-22 12:52:52 | commit: b2c9f48
+ * versão: 0.1.0 | build: 2026-10-22 12:58:09 | commit: 794dafb
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -5072,6 +5072,21 @@
     const celula = ctx.modelo.celula(linha, serie.matriz.campoDaCategoria.nome);
     if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, evento);
   }
+  function avisarSeForaDeOrdem(ctx, serie, oQueEhCumulativo = "O c\xE1lculo \xE9 cumulativo") {
+    const campo = serie.matriz.campoDaCategoria;
+    if (!campo || !campo.ehData) return false;
+    const datas = serie.categorias.map((c) => c.data ? c.data.getTime() : null);
+    for (let i = 1; i < datas.length; i++) {
+      if (datas[i] === null || datas[i - 1] === null) continue;
+      if (datas[i] < datas[i - 1]) {
+        ctx.avisar(
+          `Os per\xEDodos n\xE3o est\xE3o em ordem crescente de data. ${oQueEhCumulativo}, ent\xE3o ordene a consulta pela data no Explore \u2014 caso contr\xE1rio o resultado n\xE3o significa nada.`
+        );
+        return true;
+      }
+    }
+    return false;
+  }
   function destruirSerieTemporal({ estado }) {
     if (estado && estado.tooltip) estado.tooltip.destruir();
   }
@@ -5144,7 +5159,7 @@
         ctx.mostrarVazio("S\xE3o necess\xE1rios pelo menos dois per\xEDodos para calcular o drawdown.");
         return;
       }
-      avisarSeForaDeOrdem(ctx, serie);
+      avisarSeForaDeOrdem(ctx, serie, "O drawdown \xE9 cumulativo");
       const emPercentual = (config.unidadeDoDrawdown || "percentual") === "percentual";
       const series = tratarNulos(serie.matriz.series, config.tratamentoDeNulos || "interpolar");
       const paleta = coresDaPaleta(config.paleta);
@@ -5354,19 +5369,5 @@
       )}, recuperada em ${nome(pior.fim)} (${periodos} per\xEDodo(s)).`;
     }
     return `Pior queda${deQuem}: fundo em ${nome(pior.indice)} \u2014 ainda n\xE3o voltou ao topo anterior.`;
-  }
-  function avisarSeForaDeOrdem(ctx, serie) {
-    const campo = serie.matriz.campoDaCategoria;
-    if (!campo || !campo.ehData) return;
-    const datas = serie.categorias.map((c) => c.data ? c.data.getTime() : null);
-    for (let i = 1; i < datas.length; i++) {
-      if (datas[i] === null || datas[i - 1] === null) continue;
-      if (datas[i] < datas[i - 1]) {
-        ctx.avisar(
-          "Os per\xEDodos n\xE3o est\xE3o em ordem crescente de data. O drawdown \xE9 cumulativo, ent\xE3o ordene a consulta pela data no Explore \u2014 caso contr\xE1rio o resultado n\xE3o significa nada."
-        );
-        return;
-      }
-    }
   }
 })();

@@ -280,6 +280,34 @@ export function drillDoPeriodo(ctx, serie, indice, evento) {
   if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, evento);
 }
 
+/**
+ * Avisa quando os períodos não estão em ordem crescente de data.
+ *
+ * Vale para todo cálculo CUMULATIVO (drawdown, saldo acumulado, retorno):
+ * fora de ordem o número é ficção, e o desenho continua plausível — ou
+ * seja, o erro não aparece sozinho.
+ *
+ * Só dá para checar quando a dimensão é de data: com categorias de texto
+ * não existe "ordem certa" para comparar.
+ */
+export function avisarSeForaDeOrdem(ctx, serie, oQueEhCumulativo = 'O cálculo é cumulativo') {
+  const campo = serie.matriz.campoDaCategoria;
+  if (!campo || !campo.ehData) return false;
+
+  const datas = serie.categorias.map((c) => (c.data ? c.data.getTime() : null));
+  for (let i = 1; i < datas.length; i++) {
+    if (datas[i] === null || datas[i - 1] === null) continue;
+    if (datas[i] < datas[i - 1]) {
+      ctx.avisar(
+        `Os períodos não estão em ordem crescente de data. ${oQueEhCumulativo}, ` +
+          'então ordene a consulta pela data no Explore — caso contrário o resultado não significa nada.'
+      );
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Limpeza padrão da família. */
 export function destruirSerieTemporal({ estado }) {
   if (estado && estado.tooltip) estado.tooltip.destruir();
