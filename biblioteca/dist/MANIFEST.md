@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 13:11:28 (commit `e18cfc4`).
+Gerado automaticamente pelo build em 2026-10-22 13:16:40 (commit `07fcaff`).
 
 ## Como cadastrar no Looker
 
@@ -37,6 +37,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `pareto` | Pareto | `dist/pareto.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/pareto.js` |
 | `lorenz_gini` | Curva de Lorenz / Gini | `dist/lorenz_gini.js` | (vazio) | 1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/lorenz_gini.js` |
 | `treemap_carteira` | Treemap de Carteira | `dist/treemap_carteira.js` | (vazio) | 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/treemap_carteira.js` |
+| `ponte_variacao` | Ponte de Variação | `dist/ponte_variacao.js` | (vazio) | 1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ponte_variacao.js` |
 
 ## Detalhes por visualização
 
@@ -237,3 +238,12 @@ Retangulos proporcionais ao tamanho e coloridos por uma segunda medida numa esca
 - **Explore**: 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 139.5 KB
+
+### Ponte de Variação (`ponte_variacao`)
+
+Waterfall: barras flutuantes ligando um valor inicial a um final, com cada contribuicao no caminho e os totais ancorados no zero.
+
+- **Tier**: 2
+- **Explore**: 1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 131.9 KB

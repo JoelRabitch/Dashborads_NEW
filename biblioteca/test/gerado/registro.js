@@ -317,5 +317,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor."
+  },
+  {
+    "id": "ponte_variacao",
+    "label": "Ponte de Variação",
+    "tier": 2,
+    "arquivo": "../dist/ponte_variacao.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "rotulosLongos",
+      "vazio"
+    ],
+    "explore": "1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo."
   }
 ];

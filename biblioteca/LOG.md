@@ -1016,17 +1016,43 @@ Trocado por um auxiliar pequeno e explícito.
 Números: 22 gráficos construídos; 385/385 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 27 — `ponte_variacao` (TIER 2, item 23)
+
+Waterfall: barras flutuantes ligando um valor inicial a um final, com cada
+contribuição no caminho.
+
+O erro clássico do waterfall é tratar todas as barras igual. São dois tipos,
+e confundi-los inverte a leitura sem estragar o desenho:
+
+- **contribuições FLUTUAM** — começam onde a anterior terminou;
+- **totais são ANCORADOS no zero** — representam um nível, não uma
+  variação. Um total no meio redefine o acumulado, o que é o que permite
+  montar pontes com subtotais.
+
+A segunda decisão: **o gráfico confere se a ponte FECHA**. A soma das
+contribuições tem que bater com a diferença entre o total inicial e o
+final. Quando não bate, desenha assim mesmo — mas avisa e mostra o resíduo.
+Uma ponte que não fecha está escondendo alguma etapa, e esconder a
+inconsistência seria pior do que mostrá-la.
+
+Detalhe que evita um aviso inútil: a conferência usa **tolerância
+relativa**, não igualdade exata. Comparar floats com zero acusaria
+desencontro em qualquer consulta com centavos, e o usuário aprenderia a
+ignorar o aviso — que é como um aviso morre.
+
+Números: 23 gráficos construídos; 403/403 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 2, item 23: criar `src/charts/ponte_variacao/` ("Ponte de Variação" /
-waterfall): barras flutuantes que ligam um valor inicial a um final,
-mostrando cada contribuição positiva ou negativa no caminho, com totais
-ancorados no eixo.
+TIER 2, item 24 (último do tier): criar `src/charts/risco_retorno/`
+("Risco x Retorno"): dispersão com o risco (desvio padrão ou volatilidade)
+no eixo X e o retorno no Y, tamanho da bolha pela exposição, e a linha da
+fronteira eficiente ou a reta de Sharpe a partir da taxa livre de risco.
 
-Cuidados conhecidos: as barras intermediárias flutuam (começam onde a
-anterior terminou) e as de TOTAL são ancoradas no zero — confundir as duas
-é o erro clássico do waterfall; e a soma das contribuições precisa bater
-com a diferença entre inicial e final, senão o gráfico mente. Vale calcular
-e avisar quando não bate. Depois registrar em `config/charts.json`,
-buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
-commitar.
+Avaliar reaproveitar `src/charts/_quadrantes/` (que já desenha dispersão
+com eixos, tamanho e cor por medida) em vez de refazer — o que muda é a
+semântica dos eixos e a reta de referência. Depois registrar em
+`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
+marcar em TAREFAS.md e commitar. Com isso o TIER 2 fecha e começa o TIER 3
+(estatística) pelo item 25 (`violin`).

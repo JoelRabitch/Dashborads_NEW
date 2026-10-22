@@ -340,6 +340,20 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "ponte_variacao",
+      "label": "Ponte de Variação",
+      "tier": 2,
+      "pasta": "ponte_variacao",
+      "resumo": "Waterfall: barras flutuantes ligando um valor inicial a um final, com cada contribuicao no caminho e os totais ancorados no zero.",
+      "explore": "1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "vazio"
+      ]
     }
   ]
 }
