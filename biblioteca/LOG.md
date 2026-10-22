@@ -2477,17 +2477,134 @@ fechando.
 **Os 54 gráficos estão construídos.** 1.286/1.286 testes passando;
 checagem de segurança sem violação em 145 arquivos.
 
+## FECHAMENTO — o que o harness NÃO cobre
+
+Os 1.286 testes rodam em jsdom. Isso cobre muita coisa (contas, geometria,
+estrutura do DOM, textos de aviso, contratos de recusa) e **não cobre** o
+seguinte. Tudo aqui precisa de olho humano no Looker de verdade:
+
+1. **jsdom não faz layout.** `clientWidth`/`clientHeight` são fixados em
+   900 × 560 por stub do ambiente de teste. Então nada do que depende de
+   medida real foi exercitado: quebra de texto, `overflow`, `flex` com
+   conteúdo de tamanho imprevisível, e o comportamento em tiles pequenos
+   de dashboard. Os gráficos que mais dependem disso: `tabela_completa`,
+   `small_multiples`, `barras_ranking_denso`, `dot_plot_denso`,
+   `dumbbell`, `waffle`, `kpi_vivo`.
+2. **Canvas sem contexto 2D.** O pacote `canvas` é opcional e não está
+   instalado; `getContext('2d')` devolve `null`. Os gráficos toleram isso
+   (há teste), mas **o que é desenhado em canvas nunca foi visto por
+   teste nenhum**: `heatmap_denso`, `quadrant_scatter`, `beeswarm`,
+   `dispersao_regressao`, `qq_plot`, `matriz_dispersao`,
+   `parallel_coords`. Para estes, o teste prova que os dados estão certos
+   e que o canvas foi criado — não que a tinta caiu no lugar.
+3. **Nada de teste visual.** Não há comparação de imagem. Sobreposição de
+   rótulos, contraste real, cor em tema escuro, aparência em tela de alta
+   densidade: nada disso é verificado.
+4. **Nenhum teste dentro do Looker.** O adapter é testado contra um
+   `looker` falso. O que não foi exercitado de verdade: drill
+   (`LookerCharts.Utils.openDrillMenu`), `value_format` exótico, totais de
+   linha e coluna, campos ocultos pela visualização, tabelas calculadas,
+   e o comportamento do painel de opções quando `registerOptions` roda
+   várias vezes.
+5. **Interação de toque.** Tudo usa Pointer Events, o que deve funcionar,
+   mas nenhum teste simula toque, pinça ou rolagem por gesto. A
+   escovação do `parallel_coords` e o arraste da barra de tempo do
+   `bar_race` são os pontos mais arriscados.
+6. **Impressão e PDF.** O Looker exporta dashboards; gráficos com canvas
+   ou com rolagem virtualizada podem sair cortados ou em branco. Não
+   testado.
+7. **Desempenho real.** Os testes rodam em Node, não num iframe do Looker
+   com outros 15 tiles competindo. Os limites (5.000 linhas, 100 mil
+   células, 50 mil barras) foram escolhidos por raciocínio e medidos
+   isoladamente, não sob carga de dashboard.
+8. **Acessibilidade além do mínimo.** `prefers-reduced-motion` é
+   respeitado e testado; leitor de tela, navegação por teclado e ordem de
+   foco **não** foram implementados nem testados.
+
+## FECHAMENTO — os 5 pontos que mais merecem revisão humana
+
+Em ordem de risco, considerando "quanto dano um erro aqui causaria" e
+"quão invisível ele é":
+
+1. **`core/data-model.js` e `core/looker-adapter.js` contra o Looker real
+   da sua instância.** Tudo depende destes dois arquivos. Um erro de
+   leitura de pivô ou de `value_format` aqui contamina os 54 gráficos de
+   uma vez, e o desenho continua plausível. Confira com uma consulta
+   pivotada de verdade, com totais ligados e com uma tabela calculada.
+2. **Os gráficos em canvas, visualmente.** Ver item 2 acima: para sete
+   gráficos, o teste garante o dado e a decisão, não o pixel. Abra cada um
+   no Looker com dado real e confira se o que aparece corresponde ao que o
+   tooltip diz.
+3. **As decisões de método que viram números na tela.** Quartil tipo 7,
+   σ por amplitude móvel ÷ d₂, banda de Silverman, `quantilT` por
+   Cornish-Fisher, intervalos de comparação de 83,4%, entalhe de
+   1,58 × IQR/√n. Todos conferidos contra tabela ou fórmula fechada nos
+   testes, mas **são escolhas**: se a sua área usa outra convenção
+   (Excel para quartis, por exemplo), os números vão divergir dos de
+   outras ferramentas e isso precisa ser combinado, não descoberto numa
+   reunião.
+4. **Os limites e cortes automáticos.** Quase todo gráfico corta algo
+   (categorias, séries, linhas, nós) e soma o resto em "Outros" ou avisa.
+   Os números (20 categorias, 40 séries, 60 painéis, 2.000 pontos para
+   canvas…) foram escolhidos por raciocínio sobre pixels disponíveis.
+   Com os SEUS dados e os SEUS tamanhos de tile, alguns vão estar
+   errados — e o sintoma é um aviso aparecendo sempre (vira ruído) ou
+   nunca (vira falsa segurança).
+5. **O texto em português de avisos, notas e estados vazios.** É a parte
+   mais "opinativa" da biblioteca: cada gráfico declara o que não dá para
+   ver. Se alguma frase estiver errada, imprecisa ou condescendente para o
+   seu público, ela vai aparecer em todo dashboard que usar aquele
+   gráfico. Vale uma leitura crítica — principalmente nas notas do
+   `nightingale`, `radial_bar`, `bump_chart`, `bar_race` e
+   `intervalo_confianca`, que contrariam leituras intuitivas.
+
+## FECHAMENTO — resumo final
+
+**Prontas: 54 de 54.** Todas passam no smoke test com as fixtures
+declaradas e com as básicas (sem pivô, com pivô, duas dimensões,
+temporal, vazio, só nulos, rótulos longos), têm cabeçalho comentado,
+linha no `dist/MANIFEST.md`, teste próprio e estão commitadas e enviadas.
+
+- TIER 0 — infraestrutura: completo.
+- TIER 1 — fundamentais (itens 1–14): 14/14.
+- TIER 2 — financeiras (15–24): 10/10.
+- TIER 3 — estatísticas (25–35): 11/11.
+- TIER 4 — volume (36–43): 8/8.
+- TIER 5 — demais (44–54): 11/11.
+
+**Bloqueadas: nenhuma.** Nenhum item foi marcado `[!]`.
+
+**Pendentes: nada da lista.** O que fica em aberto não é trabalho
+pendente, é verificação que só pode ser feita com acesso ao Looker e aos
+dados reais — está nas duas seções acima.
+
+**Números finais:** 54 bundles em `dist/`, 1.286 testes passando, checagem
+de segurança sem violação em 145 arquivos de `src/` e `dist/`, 10 bases
+compartilhadas em `src/charts/_*`, 19 módulos em `src/core/`.
+
+**O princípio que organizou a biblioteca**, e que vale mais que qualquer
+gráfico específico: *em quase todo gráfico, o desenho continuaria
+plausível se estivesse errado*. Uma reta sobre uma curva, um boxplot sobre
+duas modas, um ranking que apaga a magnitude, uma rosa em que o dobro vira
+quatro vezes mais tinta, um waffle cujas células não fecham, um heatmap
+em que metade dos dados sumiu numa colisão. Nada disso aparece como erro
+— aparece como gráfico. Por isso cada visualização aqui **declara o que
+não dá para ver**, e cada teste tenta medir a propriedade, não a
+aparência.
+
+Dois hábitos saíram caros o bastante para ficarem registrados: **todo laço
+de teste afirma que a lista não está vazia** (um laço que roda zero vezes
+passa em qualquer coisa — aconteceu no SPLOM e quase de novo no dot plot),
+e **nenhum gráfico importa de outro gráfico** (importar de um arquivo
+registrado embute o `defineViz` dele e registra duas visualizações num
+bundle só).
+
 ### PRÓXIMA AÇÃO EXATA
 
-A lista de gráficos acabou. Falta o fechamento que a seção 10 do
-`PROMPT_AGENTE.md` pede e que ainda não foi feito:
+Nenhuma. A lista de 54 gráficos está completa e o fechamento pedido pela
+seção 10 do `PROMPT_AGENTE.md` está escrito acima.
 
-1. Registrar no LOG **o que o harness de testes NÃO cobre** (jsdom não faz
-   layout, canvas sem contexto 2D, nada de teste visual, nenhum teste
-   dentro do Looker de verdade, interações de toque, impressão/PDF).
-2. Registrar **os cinco pontos que mais merecem revisão humana**.
-3. Escrever o **resumo final**: feito, bloqueado, pendente.
-4. Conferir se `README.md` e `docs/` da biblioteca refletem os 54 gráficos
-   (o `MANIFEST.md` é gerado pelo build e já está atualizado) e, se
-   faltar, atualizar.
-5. Commit e push finais; só então responder ao usuário.
+Se houver uma próxima sessão, o trabalho útil é o da lista de revisão
+humana: abrir os gráficos no Looker real, começando pelos sete que
+desenham em canvas, e ajustar os limites de corte aos tamanhos de tile
+que você usa de verdade.

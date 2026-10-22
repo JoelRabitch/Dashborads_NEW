@@ -2,6 +2,70 @@
 
 Formato: mais recente primeiro. Datas em AAAA-MM-DD.
 
+## [1.0.0] — 2026-10-24
+
+Biblioteca completa: **54 visualizações**, 1.286 testes, checagem de
+segurança limpa em 145 arquivos.
+
+### Adicionado
+
+- **TIER 1 — fundamentais (14):** `tabela_completa`, `diagrama_venn`,
+  `quadrant_scatter`, `matriz_2x2`, `matriz_bcg`, `theme_river`,
+  `funil_variacoes`, `funil_comparativo`, `gauge_variacoes`, `gauge_grid`,
+  `arvore_radial`, `arvores_multiplas`, `org_chart`, `upset_plot`.
+- **TIER 2 — financeiras (10):** `candlestick_ohlc`, `linha_bandas`,
+  `drawdown`, `retorno_acumulado`, `fluxo_caixa`, `pareto`, `lorenz_gini`,
+  `treemap_carteira`, `ponte_variacao`, `risco_retorno`.
+- **TIER 3 — estatísticas (11):** `violin`, `ridgeline`, `beeswarm`,
+  `grafico_controle`, `dispersao_regressao`, `qq_plot`, `densidade_ecdf`,
+  `intervalo_confianca`, `matriz_dispersao`, `correlacao_matriz`,
+  `boxplot_avancado`.
+- **TIER 4 — volume (8):** `heatmap_denso`, `small_multiples`,
+  `barras_ranking_denso`, `dot_plot_denso`, `parallel_coords`,
+  `bump_chart`, `slope_chart`, `horizon_chart`.
+- **TIER 5 — demais (11):** `bar_race`, `motion_bubbles`, `kpi_vivo`,
+  `parallel_sets`, `arc_diagram`, `nightingale`, `radial_bar`, `lollipop`,
+  `waffle`, `dumbbell`, `marimekko`.
+
+- **Bases compartilhadas** (`src/charts/_*`), extraídas sempre ao nascer o
+  SEGUNDO gráfico de cada família: `_quadrantes`, `_funil`, `_medidor`,
+  `_arvore`, `_serie_temporal`, `_distribuicao`, `_dispersao`,
+  `_lista_virtual`, `_animacao`, `_polar`.
+- **`src/core/estatistica.js`**: quantil tipo 7, densidade por kernel,
+  Silverman robusto, regressão linear completa (com `sxx`, `sqe`,
+  `erroResidual`, graus de liberdade), `quantilT` por Cornish-Fisher,
+  `quantilNormalPadrao` (Acklam), `postos` e `correlacaoDeSpearman`.
+- **`src/core/eixos.js`**: margens, área de desenho, eixos com desbaste de
+  rótulos por largura, eixo secundário.
+- **`src/core/series.js`**: `extrairMatriz` (pivô, 2ª dimensão ou várias
+  medidas), tratamento de nulos, corte em "Outros" preservando o total.
+
+### Corrigido
+
+- `core/estatistica.js` — `correlacaoDePearson` devolvia **1** quando uma
+  das variáveis era constante (`r² = 1` por `Syy = 0`). Numa matriz de
+  correlação, uma medida zerada pelo filtro apareceria como correlação
+  perfeita com todas as outras. Agora devolve `null`.
+- `core/interaction.js` — `habilitarBrush` decidia "foi clique" com
+  `largura < 3 && altura < 3`, mas com `direcao: 'y'` a largura é sempre a
+  do alvo inteiro: o caminho de LIMPAR a seleção estava morto nas duas
+  direções, e um clique virava seleção de altura zero sem desfazer.
+- `core/eixos.js` — lia nomes de opção que o `options-kit` não cria
+  (`tituloDoEixoX`, `mostrarGradeHorizontal`, `rotacaoDosRotulosX`): títulos
+  de eixo e grades eram ignorados em silêncio em todos os cartesianos.
+- `core/eixos.js` — eixo de banda desenhava um rótulo por categoria (120
+  datas sobrepostas); agora desbasta pela largura necessária.
+- Vários gráficos: ver `LOG.md`, que registra cada defeito encontrado, a
+  causa e por que ele não aparecia no desenho.
+
+### Notas de compatibilidade
+
+- Nenhum gráfico importa de outro gráfico: código compartilhado mora numa
+  base `_`. Importar de um gráfico registrado embutiria o `defineViz` dele
+  no bundle e registraria duas visualizações num arquivo só.
+- `prefers-reduced-motion` desliga a animação em `bar_race` e
+  `motion_bubbles` (abrem parados no último período, com explicação).
+
 ## [0.1.0] — 2026-10-21
 
 Primeira versão: infraestrutura (Tier 0).
