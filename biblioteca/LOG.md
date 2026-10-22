@@ -1652,36 +1652,88 @@ Métodos declarados na tela, como no `violin`: quartil tipo 7, bigode de
 Números: 35 gráficos construídos; 753/753 testes passando; checagem de
 segurança sem violação em 104 arquivos.
 
+## TIER 4 — muitas informações
+
+A mudança de problema é nítida: até o TIER 3 a pergunta era "o que o
+desenho esconde"; daqui em diante é **"isso cabe?"**. As respostas
+continuam sendo decisões de honestidade, mas agora elas convivem com
+canvas, índices e tetos.
+
+### Etapa 40 — `heatmap_denso` (TIER 4, item 36)
+
+Mapa de calor de duas dimensões cruzadas. 500 × 200 são 100 mil células:
+em SVG, 100 mil elementos param o navegador; em canvas, 100 mil `fillRect`
+e uma passada. Acima de 4.000 células vai para canvas — **um canvas só**,
+com teste exigindo exatamente isso.
+
+**A escala de cor é a decisão central**, e são três:
+- *linear*: distância de cor = distância de valor. É a única em que
+  comparar duas células pelo tom é legítimo.
+- *divergente*: domínio **simétrico** em torno de zero. Com domínio
+  assimétrico a cor do meio deixa de ser o zero e a virada de sinal
+  aparece no lugar errado — é o erro mais comum do gênero, e o teste
+  confere que `cor(0)` é exatamente a cor central. Também avisa quando a
+  paleta escolhida não é divergente.
+- *quantil*: a cor é a POSIÇÃO na distribuição. Revela estrutura que a
+  linear esmaga e **distorce as distâncias** — no teste, 1 → 2 anda
+  exatamente tanto quanto 5 → 1.000.000. A ressalva vai escrita na tela
+  sempre que o modo está ligado, e a régua mostra os valores dos quantis
+  em vez de uma escala regular, para a distorção ficar visível.
+
+**Ausência não é zero.** A grade nasce `NaN` de propósito: zero é uma
+afirmação sobre o dado, NaN é "não sei". A célula vazia tem cor própria,
+entrada própria na régua e menção na nota. Pintá-la com a cor do mínimo
+transformaria "não sei" em "quase nada".
+
+**A grade some sozinha** abaixo de ~3 px por célula — a linha de separação
+comeria a própria célula e o mapa escureceria por inteiro. A omissão é
+declarada.
+
+**Bug real encontrado pelo teste, e dos silenciosos:** a contagem de
+células ausentes deu **−15**. Causa: eu contava uma "célula preenchida" a
+cada linha da consulta gravada, não a cada célula distinta. E aí apareceu o
+problema de verdade que estava escondido atrás disso: **quando duas linhas
+da consulta caem na mesma célula, o mapa mostra só a última e o resto some
+em silêncio** — acontece sempre que a combinação linha × coluna não é
+única, o que é comuníssimo numa consulta não agrupada. Agora as colisões
+são contadas e o gráfico avisa, mandando agrupar no Explore. Era um caso em
+que metade dos dados desaparecia sem nada na tela mudar.
+
+Detalhes de volume: busca O(1) no hover (a posição vira índice por divisão,
+não por varredura — com 100 mil células, varrer a cada movimento travaria);
+rótulos desbastados pelo mesmo princípio do eixo de banda; eixo de colunas
+no TOPO, porque num heatmap a primeira linha é a mais olhada e rótulo
+embaixo obriga a percorrer o mapa inteiro para identificá-la.
+
+Números: 36 gráficos construídos; 785/785 testes passando; checagem de
+segurança sem violação em 106 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 36: criar `src/charts/heatmap_denso/` ("Heatmap Denso") — o
-primeiro do TIER 4, que é o tier do VOLUME: a partir daqui o problema não é
-mais o que o gráfico esconde, é caber.
+TIER 4, item 37: criar `src/charts/small_multiples/` ("Small Multiples"):
+uma grade de mini-gráficos, um por categoria, **todos na mesma escala**.
 
-Heatmap de duas dimensões cruzadas (linha × coluna) com cor pela medida,
-feito para dezenas de milhares de células — 500 × 200 = 100 mil retângulos
-é o caso de uso, e isso não pode ser SVG.
+O ponto do gráfico é exatamente esse: escalas independentes fazem cada
+painel parecer dramático e tornam a comparação impossível — que é a única
+coisa que um small multiples existe para permitir. Escala compartilhada por
+padrão, escala livre como opção explícita e **declarada na tela**, porque
+sem o aviso o leitor compara formas que não são comparáveis.
 
-Pontos de atenção: (a) **canvas obrigatório** acima de ~5.000 células, com
-um `<canvas>` só e `fillRect` em laço; as linhas de grade somem sozinhas
-quando a célula fica menor que ~3 px (desenhá-las comeria a própria
-célula); (b) rótulos de eixo com desbaste por largura, como já faz
-`core/eixos.js` no eixo de banda — reaproveitar `larguraAproximada`;
-(c) a escala de cor é a decisão central: sequencial para medidas que só
-crescem, divergente centrada em zero para variações — e, como no
-`correlacao_matriz`, o domínio precisa ser declarado; oferecer também
-escala por QUANTIL (que revela estrutura quando a distribuição é muito
-assimétrica) **avisando que ela distorce as distâncias**: duas células de
-cores vizinhas podem estar a ordens de grandeza de distância;
-(d) interação por célula com busca O(1) (índice por linha/coluna a partir
-da posição do mouse, não varredura); (e) células ausentes ≠ zero — o buraco
-precisa ser visualmente distinto de um valor baixo, e isso precisa estar
-na legenda.
+Pontos de atenção: (a) reaproveitar `core/series.js` (`extrairMatriz`) para
+obter categorias × séries, e `_serie_temporal/` para a leitura quando o
+eixo for temporal — mas o desenho do painel é novo e pequeno; (b) a grade
+se ajusta ao espaço: calcular colunas por `ceil(sqrt(n))` corrigido pela
+proporção da tela, com mínimo de ~90 px por painel e corte com aviso acima
+disso; (c) eixos só nas bordas (como no SPLOM), valor máximo escrito em
+cada painel; (d) tipos de painel: linha, área e barras — o mesmo dado, e a
+escolha muda o que salta aos olhos; (e) ordenar os painéis por total,
+máximo ou alfabeticamente, declarando a ordem; (f) acima de ~60 painéis
+nada é legível: cortar e avisar.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/heatmap_denso.test.mjs` (a célula (i,j) recebe o valor de (i,j) — o
-mesmo gênero de teste do espelho do SPLOM; a escala por quantil preserva a
-ORDEM das cores mesmo mudando as distâncias; ausência é distinguível de
-zero; **e todo laço afirma que a lista não é vazia**), `npm test`,
-`npm run seguranca`, marcar em TAREFAS.md, commitar e seguir para o item 37
-(`small_multiples`).
+`test/small_multiples.test.mjs` (**o teste central é a escala
+compartilhada**: o mesmo valor em painéis diferentes tem de cair na mesma
+altura relativa — e com escala livre, não; a grade tem de conter todos os
+painéis sem sobreposição; e todo laço afirma que a lista não é vazia),
+`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
+para o item 38 (`barras_ranking_denso`).

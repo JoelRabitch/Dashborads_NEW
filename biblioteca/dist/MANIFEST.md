@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 17:49:50 (commit `7d439e2`).
+Gerado automaticamente pelo build em 2026-10-22 17:56:25 (commit `3cc4b9e`).
 
 ## Como cadastrar no Looker
 
@@ -50,6 +50,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `matriz_dispersao` | Matriz de Dispersao | `dist/matriz_dispersao.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/matriz_dispersao.js` |
 | `correlacao_matriz` | Matriz de Correlacao | `dist/correlacao_matriz.js` | (vazio) | 2 ou mais medidas com VARIAS linhas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/correlacao_matriz.js` |
 | `boxplot_avancado` | Boxplot Avancado | `dist/boxplot_avancado.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/boxplot_avancado.js` |
+| `heatmap_denso` | Heatmap Denso | `dist/heatmap_denso.js` | (vazio) | 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/heatmap_denso.js` |
 
 ## Detalhes por visualização
 
@@ -367,3 +368,12 @@ Boxplot com entalhe de confianca da mediana, largura proporcional a raiz de n, o
 - **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 164.3 KB
+
+### Heatmap Denso (`heatmap_denso`)
+
+Mapa de calor de duas dimensoes cruzadas, em canvas, com escala linear, divergente centrada em zero ou por quantil, e ausencia distinta de zero.
+
+- **Tier**: 4
+- **Explore**: 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida.
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 121.2 KB

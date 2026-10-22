@@ -1,7 +1,7 @@
 /*!
  * Matriz 2x2 — visualização customizada para o Looker
  * id: matriz_2x2
- * versão: 0.1.0 | build: 2026-10-22 17:49:50 | commit: 7d439e2
+ * versão: 0.1.0 | build: 2026-10-22 17:56:25 | commit: 3cc4b9e
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

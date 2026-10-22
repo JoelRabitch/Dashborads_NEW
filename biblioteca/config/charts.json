@@ -528,6 +528,22 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "heatmap_denso",
+      "label": "Heatmap Denso",
+      "tier": 4,
+      "pasta": "heatmap_denso",
+      "resumo": "Mapa de calor de duas dimensoes cruzadas, em canvas, com escala linear, divergente centrada em zero ou por quantil, e ausencia distinta de zero.",
+      "explore": "2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "duasDimensoes",
+        "comPivo",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
     }
   ]
 }

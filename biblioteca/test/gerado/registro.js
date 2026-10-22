@@ -492,5 +492,20 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
+  },
+  {
+    "id": "heatmap_denso",
+    "label": "Heatmap Denso",
+    "tier": 4,
+    "arquivo": "../dist/heatmap_denso.js",
+    "existe": true,
+    "fixtures": [
+      "duasDimensoes",
+      "comPivo",
+      "grande5k",
+      "semPivo",
+      "vazio"
+    ],
+    "explore": "2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida."
   }
 ];
