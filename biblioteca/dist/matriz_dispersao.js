@@ -1,7 +1,7 @@
 /*!
  * Matriz de Dispersao — visualização customizada para o Looker
  * id: matriz_dispersao
- * versão: 0.1.0 | build: 2026-10-22 17:34:38 | commit: 038cb00
+ * versão: 0.1.0 | build: 2026-10-22 17:43:10 | commit: b2fd573
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3960,6 +3960,7 @@
   function correlacaoDePearson(pontos) {
     const regressao = regressaoLinear(pontos);
     if (!regressao) return null;
+    if (!(regressao.syy > 0) || !(regressao.sxx > 0)) return null;
     const sinal = regressao.inclinacao >= 0 ? 1 : -1;
     return sinal * Math.sqrt(regressao.r2);
   }
@@ -4061,6 +4062,19 @@
     }
     pincel.globalAlpha = 1;
     return { usouCanvas: true, contexto: pincel };
+  }
+  function lerLinhasCompletas({ modelo, medidas, campoDoRotulo = null }) {
+    const linhas = [];
+    for (let i = 0; i < modelo.linhas.length; i++) {
+      const valores = medidas.map((m) => modelo.valorNumerico(modelo.linhas[i], m.nome));
+      if (valores.some((v) => v === null)) continue;
+      linhas.push({
+        indice: i,
+        valores,
+        rotulo: campoDoRotulo ? modelo.texto(modelo.linhas[i], campoDoRotulo.nome, void 0, "") : `#${i + 1}`
+      });
+    }
+    return { linhas, descartadas: modelo.linhas.length - linhas.length };
   }
 
   // src/charts/matriz_dispersao/index.js
@@ -4176,23 +4190,13 @@
       }
       const k = medidas.length;
       const campoDoRotulo = config.campoDoRotulo === "" ? null : modelo.dimensoes.find((d) => d.nome === config.campoDoRotulo) || modelo.dimensoes[0] || null;
-      const linhas = [];
-      for (let i = 0; i < modelo.linhas.length; i++) {
-        const valores = medidas.map((m) => modelo.valorNumerico(modelo.linhas[i], m.nome));
-        if (valores.some((v) => v === null)) continue;
-        linhas.push({
-          indice: i,
-          valores,
-          rotulo: campoDoRotulo ? modelo.texto(modelo.linhas[i], campoDoRotulo.nome, void 0, "") : `#${i + 1}`
-        });
-      }
+      const { linhas, descartadas } = lerLinhasCompletas({ modelo, medidas, campoDoRotulo });
       if (linhas.length < 2) {
         ctx.mostrarVazio(
           "Nenhuma linha tem valor em todas as medidas escolhidas. Reduza as medidas da matriz ou verifique os nulos no Explore."
         );
         return;
       }
-      const descartadas = modelo.linhas.length - linhas.length;
       if (descartadas > 0) {
         ctx.avisar(
           `${descartadas} linha(s) sem valor em alguma das medidas ficaram de fora de TODOS os pain\xE9is, para que todas as nuvens descrevam a mesma amostra.`

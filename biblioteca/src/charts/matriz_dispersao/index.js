@@ -32,6 +32,7 @@ import {
   MINIMO_PARA_INFERENCIA,
   opcoesDePontos,
   desenharNuvem,
+  lerLinhasCompletas,
 } from '../_dispersao/index.js';
 import {
   correlacaoDePearson,
@@ -189,16 +190,7 @@ export default defineViz({
     // Uma linha só entra se tiver valor em TODAS as medidas: um ponto que
     // aparece em alguns painéis e some em outros faria as nuvens da mesma
     // matriz descreverem amostras diferentes.
-    const linhas = [];
-    for (let i = 0; i < modelo.linhas.length; i++) {
-      const valores = medidas.map((m) => modelo.valorNumerico(modelo.linhas[i], m.nome));
-      if (valores.some((v) => v === null)) continue;
-      linhas.push({
-        indice: i,
-        valores,
-        rotulo: campoDoRotulo ? modelo.texto(modelo.linhas[i], campoDoRotulo.nome, undefined, '') : `#${i + 1}`,
-      });
-    }
+    const { linhas, descartadas } = lerLinhasCompletas({ modelo, medidas, campoDoRotulo });
 
     if (linhas.length < 2) {
       ctx.mostrarVazio(
@@ -207,7 +199,6 @@ export default defineViz({
       );
       return;
     }
-    const descartadas = modelo.linhas.length - linhas.length;
     if (descartadas > 0) {
       ctx.avisar(
         `${descartadas} linha(s) sem valor em alguma das medidas ficaram de fora de TODOS os painéis, ` +

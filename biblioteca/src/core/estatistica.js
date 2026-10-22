@@ -281,6 +281,15 @@ export function quantilT(p, gl) {
 export function correlacaoDePearson(pontos) {
   const regressao = regressaoLinear(pontos);
   if (!regressao) return null;
+
+  // Variável CONSTANTE não tem correlação com nada — nem 1, nem 0: o
+  // denominador de r é zero e o número não existe. A regressão devolve
+  // r² = 1 nesse caso (uma reta horizontal realmente ajusta um Y constante
+  // perfeitamente), e aceitar isso aqui faria uma medida constante aparecer
+  // como correlação PERFEITA com todas as outras numa matriz — o tipo de
+  // célula que ninguém questiona porque "1,0" parece um resultado.
+  if (!(regressao.syy > 0) || !(regressao.sxx > 0)) return null;
+
   const sinal = regressao.inclinacao >= 0 ? 1 : -1;
   return sinal * Math.sqrt(regressao.r2);
 }
@@ -371,4 +380,49 @@ export function agruparValores({ modelo, campoDaCategoria, medida }) {
   }
 
   return Array.from(porChave.values()).filter((g) => g.valores.length > 0);
+}
+
+/**
+ * Postos (ranks) de uma lista, com empates recebendo a média das posições
+ * que ocupariam.
+ *
+ * O tratamento dos empates não é detalhe: dar posições arbitrárias a
+ * valores iguais inventa uma ordem que não existe nos dados, e o Spearman
+ * calculado em cima disso fica maior do que deveria.
+ *
+ * @returns {number[]} postos na ordem ORIGINAL da lista
+ */
+export function postos(valores) {
+  const indices = valores
+    .map((valor, indice) => ({ valor, indice }))
+    .sort((a, b) => a.valor - b.valor);
+
+  const saida = new Array(valores.length);
+  let i = 0;
+  while (i < indices.length) {
+    let j = i;
+    while (j + 1 < indices.length && indices[j + 1].valor === indices[i].valor) j += 1;
+    // Posições de i a j (base 1) empatadas: todas recebem a média.
+    const media = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) saida[indices[k].indice] = media;
+    i = j + 1;
+  }
+  return saida;
+}
+
+/**
+ * Correlação de Spearman: o Pearson calculado sobre os POSTOS.
+ *
+ * Mede relação MONÓTONA, não linear. É a diferença que importa: numa
+ * relação monótona curva (y = x³, por exemplo) o Spearman dá 1 e o Pearson
+ * dá menos. Quando os dois discordam muito, há curvatura ou outlier — e
+ * essa discordância é informação, não ruído.
+ */
+export function correlacaoDeSpearman(pontos) {
+  const limpos = pontos.filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
+  if (limpos.length < 2) return null;
+
+  const px = postos(limpos.map((p) => p.x));
+  const py = postos(limpos.map((p) => p.y));
+  return correlacaoDePearson(px.map((x, i) => ({ x, y: py[i] })));
 }

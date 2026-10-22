@@ -293,3 +293,29 @@ export function testeDeCorridas(pontos, ajuste) {
   // superalternância, que não é sinal de relação curva.
   return { corridas, esperadas, z, n, suspeito: z < -2 };
 }
+
+/**
+ * Lê as linhas que têm valor em TODAS as medidas pedidas.
+ *
+ * O critério é deliberadamente duro. Se cada par usasse as linhas que
+ * tivesse, os painéis de uma matriz descreveriam amostras diferentes — e
+ * nada na tela diria isso: as nuvens continuariam bonitas e as
+ * correlações, comparáveis entre si na aparência e incomparáveis de fato.
+ *
+ * @returns {{linhas:Array<{indice, valores:number[], rotulo:string}>, descartadas:number}}
+ */
+export function lerLinhasCompletas({ modelo, medidas, campoDoRotulo = null }) {
+  const linhas = [];
+  for (let i = 0; i < modelo.linhas.length; i++) {
+    const valores = medidas.map((m) => modelo.valorNumerico(modelo.linhas[i], m.nome));
+    if (valores.some((v) => v === null)) continue;
+    linhas.push({
+      indice: i,
+      valores,
+      rotulo: campoDoRotulo
+        ? modelo.texto(modelo.linhas[i], campoDoRotulo.nome, undefined, '')
+        : `#${i + 1}`,
+    });
+  }
+  return { linhas, descartadas: modelo.linhas.length - linhas.length };
+}

@@ -499,6 +499,21 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "correlacao_matriz",
+      "label": "Matriz de Correlacao",
+      "tier": 3,
+      "pasta": "correlacao_matriz",
+      "resumo": "Mapa de calor de todas as medidas contra todas, com escala divergente fixa em [-1,+1], Pearson e/ou Spearman e agrupamento por similaridade.",
+      "explore": "2 ou mais medidas com VARIAS linhas.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
     }
   ]
 }

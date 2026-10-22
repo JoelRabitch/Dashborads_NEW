@@ -1538,48 +1538,92 @@ conforme o volume — o que é o caso de cinco gráficos daqui.
 Números: 33 gráficos construídos; 687/687 testes passando; checagem de
 segurança sem violação em 100 arquivos.
 
+### Etapa 38 — `correlacao_matriz` (TIER 3, item 34)
+
+O mapa de calor de todas as medidas contra todas. É o primo do
+`matriz_dispersao` sem as nuvens: cabe muito mais variável na tela (25 × 25
+é legível; um SPLOM 25 × 25 não existe) e a pergunta é outra — não "como é
+a relação deste par" e sim "que blocos de variáveis andam juntos".
+
+**Escala divergente com domínio FIXO em [−1, +1].** Duas coisas erradas
+seriam fáceis aqui: uma escala sequencial faria r = 0 parecer "médio" em
+vez de "nenhum", e uma escala ajustada aos dados faria r = 0,3 parecer
+forte numa matriz fraca e r = 0,8 parecer médio numa matriz forte. Uma cor
+de correlação precisa significar a mesma coisa em qualquer matriz. O teste
+confere que r = 0 é exatamente o fundo, que +0,6 e −0,6 ficam à mesma
+distância do fundo em cores distinguíveis, e que a intensidade cresce
+monotonicamente com |r|.
+
+**Spearman ao lado de Pearson, e a discordância como informação.**
+Acrescentei `postos()` e `correlacaoDeSpearman()` em `core/estatistica.js`.
+Empates recebem a média das posições — dar posições arbitrárias a valores
+iguais inventa uma ordem que não existe e infla o Spearman. O modo "Pearson
+abaixo, Spearman acima" deixa a matriz assimétrica DE PROPÓSITO, e é isso
+que permite ver os dois métodos num olhar. Quando discordam por mais de
+0,15, o tooltip escreve a leitura: "relação monótona mas não linear
+(curvatura ou outlier)". Testes: y = x³ dá Spearman 1,000 e Pearson 0,915;
+uma reta com um outlier dá Pearson −0,315 e Spearman 0,813.
+
+**Agrupamento por ligação média com distância `1 − |r|`.** O valor absoluto
+é a decisão: usar `1 − r` separaria pares fortemente NEGATIVOS, que são tão
+informativos quanto os positivos. Ligação média e não simples — ligação
+simples ("o par mais próximo manda") produz cadeias longas e nenhum bloco
+visível, que é exatamente o que o agrupamento deveria revelar. Como a
+ordem muda completamente a leitura, ela vai declarada na nota.
+
+**Bug real encontrado pelo teste, e dos bons:** `correlacaoDePearson`
+devolvia **1** quando uma das variáveis era CONSTANTE. A causa é legítima
+na origem — `regressaoLinear` define r² = 1 quando Syy = 0, e de fato uma
+reta horizontal ajusta um Y constante perfeitamente — mas correlação com
+uma constante não é 1 nem 0: o denominador de r é zero e o número não
+existe. Numa matriz, uma medida constante (um flag, uma medida zerada pelo
+filtro — coisa comuníssima no Looker) apareceria como correlação PERFEITA
+com todas as outras. E "1,0" é exatamente o tipo de célula que ninguém
+questiona, porque parece um resultado. Agora devolve `null` e a célula sai
+apagada. Corrigido em `core/estatistica.js`, com o porquê comentado; as
+77 asserções dos gráficos que dependem de correlação continuam passando.
+
+Mais duas ressalvas permanentes na nota: o r é um número sobre RETAS
+(quarteto de Anscombe), e com k medidas são k(k−1)/2 pares — a 5%, cerca
+de 5% deles "dão significativo" por acaso (com 20 medidas, 190 pares e ~10
+falsos positivos esperados).
+
+Também movi `lerLinhasCompletas` para `_dispersao/`: `matriz_dispersao` e
+`correlacao_matriz` precisam da mesma regra dura — uma linha só entra se
+tiver valor em TODAS as medidas, senão cada par descreveria uma amostra
+diferente sem nada na tela dizer isso.
+
+Números: 34 gráficos construídos; 720/720 testes passando; checagem de
+segurança sem violação em 102 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 34: criar `src/charts/correlacao_matriz/` ("Matriz de
-Correlação"): o mapa de calor de correlações — todas contra todas, com
-agrupamento opcional por similaridade.
+TIER 3, item 35: criar `src/charts/boxplot_avancado/` ("Boxplot
+Avançado") — o último do TIER 3.
 
-É o primo do `matriz_dispersao` sem as nuvens: cabe muito mais medida na
-tela (30 × 30 é legível, 30 medidas de SPLOM não é), e a pergunta é outra —
-não "como é a relação deste par" e sim "que blocos de variáveis andam
-juntos".
+Reaproveitar `_distribuicao/` (preparo, corte, ordenação, tooltip, resumo e
+`limitesDeOutlier`, que já param os bigodes no último valor REAL em vez do
+limite calculado).
 
-Pontos de atenção: (a) reaproveitar `correlacaoDePearson` e a leitura de
-linhas completas do `matriz_dispersao` — se o código for o mesmo, mover
-para `_dispersao/`; (b) **escala divergente obrigatória, centrada em zero**
-— uma escala sequencial num dado que vai de −1 a +1 faz correlação zero
-parecer "média" em vez de "nenhuma"; (c) oferecer Spearman além de Pearson
-(posto em vez de valor), porque Spearman pega relação monótona não-linear
-e a diferença entre os dois é informativa — quando discordam muito, há
-curvatura ou outlier; (d) agrupamento por similaridade (ordenar as
-variáveis para os blocos aparecerem) muda a leitura completamente: um
-algoritmo simples de ligação média já resolve, e a ordem usada precisa ser
-declarada; (e) escrever o número dentro da célula quando couber, e nunca
-só a cor — cor sozinha não permite ler magnitude; (f) a mesma ressalva de
-Anscombe, e mais uma: com k medidas são k(k−1)/2 correlações, e a 5% de
-significância ~5% delas passam por acaso — com 20 medidas são 190 pares e
-~10 falsos positivos esperados. Dizer isso na tela.
+Pontos de atenção: (a) o que faz este boxplot ser "avançado" é mostrar o
+que o boxplot comum esconde — oferecer o entalhe de confiança da mediana
+(±1,58 × IQR/√n, cuja NÃO sobreposição entre duas caixas é o teste
+informal, mesma família de ideia do `intervalo_confianca`), a largura da
+caixa proporcional a √n (para um grupo de 5 não parecer tão sólido quanto
+um de 5.000) e os pontos individuais sobrepostos quando n é pequeno;
+(b) **a mentira clássica do boxplot é a bimodalidade**: duas modas bem
+separadas produzem exatamente a mesma caixa que uma distribuição uniforme —
+detectar e avisar (comparar a densidade por kernel com a unimodal, ou
+simplesmente contar picos como no teste do `densidade_ecdf`, que já tem a
+conta pronta); (c) declarar o método do quartil (tipo 7) e o do bigode
+(1,5 × IQR, Tukey) na tela, como o `violin` já faz; (d) orientação
+horizontal e vertical, com o mesmo truque de escala de banda no Y usado no
+`beeswarm` e no `intervalo_confianca`.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/correlacao_matriz.test.mjs` (a matriz tem de ser simétrica e ter 1 na
-diagonal; Spearman de uma relação monótona não-linear tem de dar 1 enquanto
-Pearson dá menos; **e todo laço precisa afirmar que a lista não é vazia**),
-`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
-para o item 35 (`boxplot_avancado`), que fecha o TIER 3.
-
----
-
-**Correção de registro (2026-10-23).** Os itens 29, 30, 32 e 33 estavam
-construídos, testados e commitados, mas continuavam `[ ]` no TAREFAS.md: eu
-vinha marcando com `sed -i 's/- \[ \] 29\. .../'`, e o `- ` só existe no
-PRIMEIRO item de cada linha — os itens 2º e 3º da mesma linha vêm depois de
-`· `. O comando não casava e **não reclamava**, porque `sed` sem match sai
-com código 0. Marcados agora, e daqui em diante a marcação é feita por um
-script que IMPRIME se trocou ou não. É o mesmo gênero de erro do teste com
-laço vazio desta mesma sessão: a ferramenta diz "sucesso" sem ter feito
-nada.
+`test/boxplot_avancado.test.mjs` (os quartis contra valores calculados à
+mão; o bigode parando no último valor real; a bimodalidade sendo detectada
+numa amostra construída com duas modas e NÃO sendo acusada numa normal; e
+todo laço afirmando que a lista não é vazia), `npm test`,
+`npm run seguranca`, marcar em TAREFAS.md, commitar. **Isso fecha o
+TIER 3** — em seguida, abrir o TIER 4 pelo item 36 (`heatmap_denso`).

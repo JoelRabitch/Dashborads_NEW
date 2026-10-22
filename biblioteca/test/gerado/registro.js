@@ -465,5 +465,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha."
+  },
+  {
+    "id": "correlacao_matriz",
+    "label": "Matriz de Correlacao",
+    "tier": 3,
+    "arquivo": "../dist/correlacao_matriz.js",
+    "existe": true,
+    "fixtures": [
+      "ohlc",
+      "grande5k",
+      "semPivo",
+      "vazio"
+    ],
+    "explore": "2 ou mais medidas com VARIAS linhas."
   }
 ];

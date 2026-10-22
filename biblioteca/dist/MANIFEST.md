@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 17:34:38 (commit `038cb00`).
+Gerado automaticamente pelo build em 2026-10-22 17:43:10 (commit `b2fd573`).
 
 ## Como cadastrar no Looker
 
@@ -48,6 +48,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `densidade_ecdf` | Densidade e ECDF | `dist/densidade_ecdf.js` | (vazio) | 1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/densidade_ecdf.js` |
 | `intervalo_confianca` | Intervalo de Confianca | `dist/intervalo_confianca.js` | (vazio) | 1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/intervalo_confianca.js` |
 | `matriz_dispersao` | Matriz de Dispersao | `dist/matriz_dispersao.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/matriz_dispersao.js` |
+| `correlacao_matriz` | Matriz de Correlacao | `dist/correlacao_matriz.js` | (vazio) | 2 ou mais medidas com VARIAS linhas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/correlacao_matriz.js` |
 
 ## Detalhes por visualização
 
@@ -346,4 +347,13 @@ SPLOM: dispersao no triangulo inferior, densidade na diagonal e o r de Pearson n
 - **Tier**: 3
 - **Explore**: 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 161.1 KB
+- **Tamanho do bundle**: 161.4 KB
+
+### Matriz de Correlacao (`correlacao_matriz`)
+
+Mapa de calor de todas as medidas contra todas, com escala divergente fixa em [-1,+1], Pearson e/ou Spearman e agrupamento por similaridade.
+
+- **Tier**: 3
+- **Explore**: 2 ou mais medidas com VARIAS linhas.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 114.1 KB
