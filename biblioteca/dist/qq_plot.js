@@ -1,7 +1,7 @@
 /*!
  * Q-Q Plot (Normalidade) — visualização customizada para o Looker
  * id: qq_plot
- * versão: 0.1.0 | build: 2026-10-22 18:37:14 | commit: e0ce0b9
+ * versão: 0.1.0 | build: 2026-10-22 18:45:42 | commit: 41b9772
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

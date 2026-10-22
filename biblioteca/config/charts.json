@@ -666,6 +666,20 @@
         "temporal",
         "vazio"
       ]
+    },
+    {
+      "id": "motion_bubbles",
+      "label": "Bolhas em Movimento",
+      "tier": 5,
+      "pasta": "motion_bubbles",
+      "resumo": "X, Y, tamanho e cor animados no tempo (Rosling), com a AREA proporcional ao valor, rastro opcional e escalas fixas entre periodos.",
+      "explore": "2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "duasDimensoes",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:37:14 (commit `e0ce0b9`).
+Gerado automaticamente pelo build em 2026-10-22 18:45:42 (commit `41b9772`).
 
 ## Como cadastrar no Looker
 
@@ -59,6 +59,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `slope_chart` | Slope Chart | `dist/slope_chart.js` | (vazio) | 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/slope_chart.js` |
 | `horizon_chart` | Horizon Chart | `dist/horizon_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/horizon_chart.js` |
 | `bar_race` | Bar Chart Race | `dist/bar_race.js` | (vazio) | 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bar_race.js` |
+| `motion_bubbles` | Bolhas em Movimento | `dist/motion_bubbles.js` | (vazio) | 2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/motion_bubbles.js` |
 
 ## Detalhes por visualização
 
@@ -456,4 +457,13 @@ Barras que se reordenam ao longo do tempo, com barra de tempo tao proeminente qu
 - **Tier**: 5
 - **Explore**: 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 116.8 KB
+- **Tamanho do bundle**: 117.8 KB
+
+### Bolhas em Movimento (`motion_bubbles`)
+
+X, Y, tamanho e cor animados no tempo (Rosling), com a AREA proporcional ao valor, rastro opcional e escalas fixas entre periodos.
+
+- **Tier**: 5
+- **Explore**: 2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho).
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 155.9 KB

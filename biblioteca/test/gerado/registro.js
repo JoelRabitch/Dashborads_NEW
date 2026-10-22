@@ -621,5 +621,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas)."
+  },
+  {
+    "id": "motion_bubbles",
+    "label": "Bolhas em Movimento",
+    "tier": 5,
+    "arquivo": "../dist/motion_bubbles.js",
+    "existe": true,
+    "fixtures": [
+      "duasDimensoes",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho)."
   }
 ];

@@ -21,15 +21,21 @@
  */
 
 import { defineViz } from '../../core/define-viz.js';
-import { criarEl, definirTexto, injetarEstilo, preferindoMenosMovimento } from '../../core/dom.js';
-import { coresDaPaleta, comOpacidade, textoLegivelSobre } from '../../core/theme.js';
+import { criarEl, definirTexto, injetarEstilo } from '../../core/dom.js';
+import { coresDaPaleta } from '../../core/theme.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
 import { extrairMatriz, tratarNulos, opcaoDeOrigemDasSeries } from '../../core/series.js';
 import { formatarData } from '../../core/format.js';
 import {
+  CSS_ANIMACAO,
+  opcoesDeAnimacao,
+  criarControleDeTempo,
+  pararAnimacao,
+  notaDeMenosMovimento,
+} from '../_animacao/index.js';
+import {
   montarOpcoes,
   comDefaults,
-  listaDeValores,
   blocoDeCores,
   blocoDeRotulos,
   blocoDeTema,
@@ -38,10 +44,6 @@ import {
 
 const CSS = `
 .bc-raiz{position:relative;width:100%;height:100%;display:flex;flex-direction:column;}
-.bc-controles{display:flex;align-items:center;gap:8px;padding:4px 8px;flex:0 0 auto;}
-.bc-botao{flex:0 0 auto;border-radius:4px;padding:2px 10px;font:inherit;cursor:pointer;}
-.bc-tempo{flex:1 1 auto;min-width:60px;}
-.bc-periodo{flex:0 0 auto;font-weight:600;white-space:nowrap;}
 .bc-pista{flex:1 1 auto;position:relative;overflow:hidden;}
 .bc-barra{position:absolute;left:0;display:flex;align-items:center;gap:6px;}
 .bc-nome{flex:0 0 auto;text-align:right;overflow:hidden;white-space:nowrap;}
@@ -63,6 +65,7 @@ export default defineViz({
       blocoDeTema(),
       blocoAvancado(),
       opcaoDeOrigemDasSeries(),
+      opcoesDeAnimacao({ secao: 'Corrida' }),
       {
         barrasVisiveis: {
           type: 'number',
@@ -73,28 +76,6 @@ export default defineViz({
           max: MAXIMO_DE_BARRAS,
           step: 1,
           default: 10,
-        },
-        duracaoPorPeriodo: {
-          type: 'number',
-          label: 'Duração de cada período (ms)',
-          section: 'Corrida',
-          display: 'range',
-          min: 200,
-          max: 3000,
-          step: 100,
-          default: 900,
-        },
-        comecarTocando: {
-          type: 'boolean',
-          label: 'Começar tocando',
-          section: 'Corrida',
-          default: true,
-        },
-        repetir: {
-          type: 'boolean',
-          label: 'Repetir do início ao terminar',
-          section: 'Corrida',
-          default: false,
         },
         escalaFixa: {
           type: 'boolean',
@@ -158,7 +139,7 @@ export default defineViz({
 
     // ---------- Cena ----------
     ctx.limparRaiz();
-    injetarEstilo(raiz, CSS, 'bc');
+    injetarEstilo(raiz, CSS_ANIMACAO + CSS, 'bc');
     const caixa = criarEl('div', { classe: 'bc-raiz', pai: raiz });
 
     const casas = Number(config.casasDecimaisDoRotulo);
@@ -169,43 +150,9 @@ export default defineViz({
     const rotuloDoPeriodo = (categoria) =>
       ehData ? formatarData(categoria.valorBruto, config.formatoDeData || 'auto') : categoria.rotulo;
 
-    // --- Controles ---
-    const controles = criarEl('div', { classe: 'bc-controles', pai: caixa });
-
-    const botao = criarEl('button', { classe: 'bc-botao', pai: controles });
-    botao.type = 'button';
-    botao.style.background = tema.fundo;
-    botao.style.color = tema.texto;
-    botao.style.border = `1px solid ${tema.borda}`;
-
-    const barraDeTempo = criarEl('input', { classe: 'bc-tempo', pai: controles });
-    barraDeTempo.type = 'range';
-    barraDeTempo.min = '0';
-    barraDeTempo.max = String(periodos.length - 1);
-    barraDeTempo.step = '0.01';
-
-    const rotuloDoTempo = criarEl('div', { classe: 'bc-periodo', pai: controles });
-    rotuloDoTempo.style.color = tema.texto;
-
     const pista = criarEl('div', { classe: 'bc-pista', pai: caixa });
     const nota = criarEl('div', { classe: 'bc-nota', pai: caixa });
     nota.style.color = tema.textoSuave;
-
-    // ---------- Estado da animação ----------
-    const menosMovimento = preferindoMenosMovimento();
-    const duracao = Math.max(100, Number(config.duracaoPorPeriodo) || 900);
-
-    if (!ctx.estado.corrida) {
-      ctx.estado.corrida = {
-        // Com `prefers-reduced-motion`, o gráfico abre PARADO no último
-        // período: é o quadro com mais informação, e nenhum movimento
-        // começa sem o usuário pedir.
-        tempo: menosMovimento ? periodos.length - 1 : 0,
-        tocando: menosMovimento ? false : config.comecarTocando !== false,
-      };
-    }
-    const estado = ctx.estado.corrida;
-    estado.tempo = Math.max(0, Math.min(periodos.length - 1, estado.tempo));
 
     const cores = new Map();
     const paleta = coresDaPaleta(config.paleta);
@@ -216,14 +163,14 @@ export default defineViz({
     const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 140);
     const barras = new Map();
 
-    const desenhar = () => {
+    const desenhar = (instante) => {
       const alturaDisponivel = Math.max(20, pista.clientHeight || ctx.altura - 60);
       const alturaPedida = Number(config.alturaDaBarra) || 0;
       const alturaDaBarra =
         alturaPedida > 0 ? alturaPedida : Math.max(8, alturaDisponivel / visiveis - 4);
       const passo = alturaDisponivel / visiveis;
 
-      const quadro = interpolarQuadro({ quadros, tempo: estado.tempo });
+      const quadro = interpolarQuadro({ quadros, tempo: instante });
       const maior = config.escalaFixa === true
         ? maiorDeTodos
         : Math.max(...quadro.map((item) => item.valor), 0) || 1;
@@ -260,51 +207,26 @@ export default defineViz({
         barras.delete(chave);
       }
 
-      const indiceInteiro = Math.min(periodos.length - 1, Math.round(estado.tempo));
-      definirTexto(rotuloDoTempo, rotuloDoPeriodo(periodos[indiceInteiro]));
-      barraDeTempo.value = String(estado.tempo);
-      definirTexto(botao, estado.tocando ? '❚❚ pausar' : '▶ tocar');
     };
 
     // ---------- Relógio ----------
-    let ultimoInstante = null;
-
-    const passoDoRelogio = (agora) => {
-      if (!estado.tocando) return;
-      if (ultimoInstante === null) ultimoInstante = agora;
-      const decorrido = agora - ultimoInstante;
-      ultimoInstante = agora;
-
-      estado.tempo += decorrido / duracao;
-      if (estado.tempo >= periodos.length - 1) {
-        if (config.repetir === true) {
-          estado.tempo = 0;
-        } else {
-          estado.tempo = periodos.length - 1;
-          estado.tocando = false;
-        }
-      }
-      desenhar();
-      if (estado.tocando) ctx.agendarQuadro(passoDoRelogio);
-    };
-
-    const alternar = () => {
-      estado.tocando = !estado.tocando;
-      ultimoInstante = null;
-      if (estado.tocando) {
-        if (estado.tempo >= periodos.length - 1) estado.tempo = 0;
-        ctx.agendarQuadro(passoDoRelogio);
-      }
-      desenhar();
-    };
-
-    ctx.eventos.on(botao, 'click', alternar);
-    ctx.eventos.on(barraDeTempo, 'input', () => {
-      estado.tocando = false;
-      ultimoInstante = null;
-      estado.tempo = Number(barraDeTempo.value);
-      desenhar();
+    const tempo = criarControleDeTempo({
+      ctx,
+      hospedeiro: caixa,
+      quantidade: periodos.length,
+      config,
+      rotuloDoPeriodo: (i) => rotuloDoPeriodo(periodos[i]),
+      aoQuadro: (t) => desenhar(t),
+      chaveDoEstado: 'corrida',
     });
+    // Os controles nascem no fim da caixa; aqui eles vão para o topo, que
+    // é onde o usuário procura o play.
+    caixa.insertBefore(tempo.controles, pista);
+
+    tempo.controles.classList.add('bc-controles');
+    tempo.botao.classList.add('bc-botao');
+    tempo.barraDeTempo.classList.add('bc-tempo');
+    tempo.rotulo.classList.add('bc-periodo');
 
     // ---------- Nota ----------
     definirTexto(
@@ -315,21 +237,17 @@ export default defineViz({
         config.escalaFixa === true
           ? 'escala fixa: as larguras são comparáveis entre períodos'
           : 'ATENÇÃO: a escala acompanha o maior do período — as larguras NÃO são comparáveis entre períodos',
-        menosMovimento ? 'animação desligada por preferência de menos movimento do sistema' : null,
+        notaDeMenosMovimento(tempo.menosMovimento),
       ]
         .filter(Boolean)
         .join(' · ')
     );
 
-    desenhar();
-    if (estado.tocando) ctx.agendarQuadro(passoDoRelogio);
+    tempo.iniciar();
   },
 
   aoDestruir({ estado }) {
-    // Os quadros e timers já são cancelados pelo defineViz; o que falta é
-    // impedir que um passo em voo redesenhe sobre um DOM que não existe
-    // mais.
-    if (estado && estado.corrida) estado.corrida.tocando = false;
+    pararAnimacao(estado, 'corrida');
   },
 });
 

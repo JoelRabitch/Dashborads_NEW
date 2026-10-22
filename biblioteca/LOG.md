@@ -2086,33 +2086,73 @@ cancela quadros e timers, mas um passo em voo redesenhando sobre DOM morto
 Números: 44 gráficos construídos; 1.002/1.002 testes passando; checagem de
 segurança sem violação em 123 arquivos.
 
+### Etapa 49 — base `_animacao/` + `motion_bubbles` (TIER 5, item 45)
+
+**A extração primeiro**, pela sexta vez na biblioteca e pelo mesmo
+critério: `src/charts/_animacao/index.js` ficou com o relógio, o botão
+tocar/pausar, a barra de tempo arrastável, o nome do período e o respeito a
+`prefers-reduced-motion`. Os 16 testes do `bar_race` passam **sem uma linha
+alterada** (ele mantém os próprios nomes de classe ao lado dos da base).
+
+Três obrigações viraram contrato da base, documentadas nela: a barra de
+tempo é tão proeminente quanto o play; `prefers-reduced-motion` abre o
+gráfico parado no último período e explica; e arrastar SEMPRE pausa — quem
+foi procurar um período quer olhar, não ver o gráfico fugir da mão.
+
+**O gráfico de Rosling, e a regra da área.** O erro clássico do gênero é o
+raio proporcional ao valor: o olho lê ÁREA, então isso faz uma diferença de
+3× parecer 9×, e o desenho continua perfeitamente plausível — só exagera
+tudo. Aqui o raio sai de `√(valor/maior)`, com teste medindo a relação
+exata (dobrar o valor multiplica o raio por √2 e a área por 2).
+
+**E então o teste encontrou a exceção que eu tinha escrito sem perceber.**
+O piso de 2 px — necessário, senão um valor mil vezes menor que o maior
+daria 1,5 px e sumiria — **quebra a proporção de área justamente para as
+bolhas pequenas**. Minha primeira versão do teste afirmava proporção
+"sempre" e falhou em [1, 1000]. A correção não foi afrouxar o teste: foi
+assumir a exceção no código (`RAIO_MINIMO` exportado, com o porquê
+comentado), **contar quantas bolhas caem no piso** (`quantosNoPiso`) e
+fazer o gráfico AVISAR que para aquelas o tamanho não é comparável. Entre
+desenhar a bolha maior do que ela é e não desenhá-la, desenhamos — e
+dizemos. É o padrão da biblioteca inteira aplicado a um detalhe de 2 px.
+
+Outras decisões com teste: as escalas X e Y são FIXAS em todos os períodos
+(escala que se mexe junto com os dados faz tudo parecer parado, e o
+movimento é a única coisa que o gráfico tem a mostrar); bolha sem X ou Y
+nos dois períodos vizinhos fica de fora do quadro, em vez de ficar parada
+numa posição antiga afirmando um dado que não existe; o rastro pula
+lacunas em vez de ligar por cima delas.
+
+Números: 45 gráficos construídos; 1.033/1.033 testes passando; checagem de
+segurança sem violação em 126 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 45: criar `src/charts/motion_bubbles/` ("Bolhas em
-Movimento"): o gráfico de Hans Rosling — X, Y, tamanho e cor, animados no
-tempo.
+TIER 5, item 46: criar `src/charts/kpi_vivo/` ("KPI Vivo"): o número
+grande — valor atual, comparação com um período anterior ou com uma meta,
+e uma sparkline de contexto.
 
-Herda do `bar_race` o aparato de animação, então **se o controle de tempo
-(play/pausa/barra, `prefers-reduced-motion`, relógio que para ao destruir)
-for o mesmo código, extrair para `_animacao/` agora** — é o segundo da
-família e a regra já se pagou cinco vezes nesta biblioteca.
+É o gráfico mais usado de qualquer dashboard e o mais fácil de errar,
+porque **um número sozinho não significa nada**. As decisões:
 
-Pontos de atenção: (a) reaproveitar `_dispersao/` para a nuvem e a escolha
-SVG×canvas; (b) **o rastro ("trails") é o que torna o gráfico analisável**
-— sem ele o leitor só vê o instante; com ele, vê o caminho. Opção, com
-comprimento ajustável; (c) a área da bolha (não o raio) tem de ser
-proporcional ao valor, senão a diferença de tamanho é lida ao quadrado —
-é o erro clássico de bolha e precisa estar no código com comentário e
-teste; (d) eixos em log são comuns neste gráfico (renda per capita): a
-opção existe em `escalaNumerica` e precisa ser declarada na tela, porque
-num eixo log a mesma distância significa a mesma RAZÃO, não a mesma
-diferença; (e) bolhas que entram e saem ao longo do tempo: aparecer e
-sumir sem aviso faz o leitor achar que o dado mudou — melhor manter
-visível com opacidade baixa ou declarar a contagem por período.
+(a) **A variação precisa de base declarada.** "+12%" sobre o quê — mês
+anterior, mesmo mês do ano passado, meta? Sem isso o número é retórica.
+Oferecer a escolha e escrever a base na tela, sempre;
+(b) **Cor por direção é armadilha**: queda nem sempre é ruim (custo,
+churn, tempo de resposta). Precisa de opção "menor é melhor" e o padrão
+não pode assumir;
+(c) a sparkline dá o contexto que o número esconde — "+12%" depois de três
+quedas é diferente de "+12%" no quarto mês de alta;
+(d) **comparar com um período incompleto é o erro mais comum do KPI**: o
+mês corrente contra o mês passado inteiro sempre "cai". Se dá para
+detectar (última categoria com menos linhas/dias que as anteriores),
+avisar; se não dá, dizer que a comparação supõe períodos completos;
+(e) tipografia: o número grande precisa caber — ajustar o tamanho da fonte
+ao espaço e ao comprimento do texto, sem estourar.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/motion_bubbles.test.mjs` (a ÁREA é proporcional ao valor — dobrar o
-valor multiplica o raio por √2, não por 2; o rastro tem o comprimento
-pedido; com `prefers-reduced-motion` nada começa; **e todo laço afirma que
+`test/kpi_vivo.test.mjs` (a variação bate com a conta à mão; a base da
+comparação aparece na tela; "menor é melhor" inverte a cor sem inverter o
+sinal do número; período incompleto é denunciado; **e todo laço afirma que
 a lista não é vazia**), `npm test`, `npm run seguranca`, marcar em
-TAREFAS.md, commitar e seguir para o item 46 (`kpi_vivo`).
+TAREFAS.md, commitar e seguir para o item 47 (`parallel_sets`).

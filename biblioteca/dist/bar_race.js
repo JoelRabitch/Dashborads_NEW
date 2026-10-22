@@ -1,7 +1,7 @@
 /*!
  * Bar Chart Race — visualização customizada para o Looker
  * id: bar_race
- * versão: 0.1.0 | build: 2026-10-22 18:37:14 | commit: e0ce0b9
+ * versão: 0.1.0 | build: 2026-10-22 18:45:42 | commit: 41b9772
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -1684,7 +1684,7 @@
     const {
       comPaleta = true,
       comEscalaPorValor = true,
-      comOpacidade: comOpacidade2 = true,
+      comOpacidade = true,
       comContorno = true,
       opacidadePadrao = 1,
       secao = "Cores"
@@ -1783,7 +1783,7 @@
         display_size: "half"
       };
     }
-    if (comOpacidade2) {
+    if (comOpacidade) {
       bloco.opacidade = {
         type: "number",
         label: "Opacidade do preenchimento",
@@ -2687,13 +2687,142 @@
     return (antes + depois) / 2;
   }
 
+  // src/charts/_animacao/index.js
+  var CSS_ANIMACAO = `
+.an-controles{display:flex;align-items:center;gap:8px;padding:4px 8px;flex:0 0 auto;}
+.an-botao{flex:0 0 auto;border-radius:4px;padding:2px 10px;font:inherit;cursor:pointer;}
+.an-tempo{flex:1 1 auto;min-width:60px;}
+.an-periodo{flex:0 0 auto;font-weight:600;white-space:nowrap;}
+`;
+  function opcoesDeAnimacao({ secao = "Anima\xE7\xE3o", duracaoPadrao = 900 } = {}) {
+    return {
+      duracaoPorPeriodo: {
+        type: "number",
+        label: "Dura\xE7\xE3o de cada per\xEDodo (ms)",
+        section: secao,
+        display: "range",
+        min: 200,
+        max: 3e3,
+        step: 100,
+        default: duracaoPadrao
+      },
+      comecarTocando: {
+        type: "boolean",
+        label: "Come\xE7ar tocando",
+        section: secao,
+        default: true
+      },
+      repetir: {
+        type: "boolean",
+        label: "Repetir do in\xEDcio ao terminar",
+        section: secao,
+        default: false
+      }
+    };
+  }
+  function criarControleDeTempo({
+    ctx,
+    hospedeiro,
+    quantidade,
+    config = {},
+    rotuloDoPeriodo = (i) => String(i + 1),
+    aoQuadro,
+    chaveDoEstado = "animacao"
+  }) {
+    const { tema } = ctx;
+    const ultimo = Math.max(0, quantidade - 1);
+    const duracao = Math.max(100, Number(config.duracaoPorPeriodo) || 900);
+    const menosMovimento = preferindoMenosMovimento();
+    const controles = criarEl("div", { classe: "an-controles", pai: hospedeiro });
+    const botao = criarEl("button", { classe: "an-botao", pai: controles });
+    botao.type = "button";
+    botao.style.background = tema.fundo;
+    botao.style.color = tema.texto;
+    botao.style.border = `1px solid ${tema.borda}`;
+    const barraDeTempo = criarEl("input", { classe: "an-tempo", pai: controles });
+    barraDeTempo.type = "range";
+    barraDeTempo.min = "0";
+    barraDeTempo.max = String(ultimo);
+    barraDeTempo.step = "0.01";
+    const rotulo = criarEl("div", { classe: "an-periodo", pai: controles });
+    rotulo.style.color = tema.texto;
+    if (!ctx.estado[chaveDoEstado]) {
+      ctx.estado[chaveDoEstado] = {
+        tempo: menosMovimento ? ultimo : 0,
+        tocando: menosMovimento ? false : config.comecarTocando !== false
+      };
+    }
+    const estado = ctx.estado[chaveDoEstado];
+    estado.tempo = Math.max(0, Math.min(ultimo, estado.tempo));
+    const atualizarControles = () => {
+      const indiceInteiro = Math.min(ultimo, Math.round(estado.tempo));
+      definirTexto(rotulo, rotuloDoPeriodo(indiceInteiro));
+      barraDeTempo.value = String(estado.tempo);
+      definirTexto(botao, estado.tocando ? "\u275A\u275A pausar" : "\u25B6 tocar");
+    };
+    const desenhar = () => {
+      if (typeof aoQuadro === "function") aoQuadro(estado.tempo);
+      atualizarControles();
+    };
+    let ultimoInstante = null;
+    const passo = (agora) => {
+      if (!estado.tocando) return;
+      if (ultimoInstante === null) ultimoInstante = agora;
+      const decorrido = agora - ultimoInstante;
+      ultimoInstante = agora;
+      estado.tempo += decorrido / duracao;
+      if (estado.tempo >= ultimo) {
+        if (config.repetir === true) {
+          estado.tempo = 0;
+        } else {
+          estado.tempo = ultimo;
+          estado.tocando = false;
+        }
+      }
+      desenhar();
+      if (estado.tocando) ctx.agendarQuadro(passo);
+    };
+    ctx.eventos.on(botao, "click", () => {
+      estado.tocando = !estado.tocando;
+      ultimoInstante = null;
+      if (estado.tocando) {
+        if (estado.tempo >= ultimo) estado.tempo = 0;
+        ctx.agendarQuadro(passo);
+      }
+      desenhar();
+    });
+    ctx.eventos.on(barraDeTempo, "input", () => {
+      estado.tocando = false;
+      ultimoInstante = null;
+      estado.tempo = Number(barraDeTempo.value);
+      desenhar();
+    });
+    return {
+      estado,
+      menosMovimento,
+      duracao,
+      controles,
+      botao,
+      barraDeTempo,
+      rotulo,
+      atualizarControles,
+      desenhar,
+      iniciar() {
+        desenhar();
+        if (estado.tocando) ctx.agendarQuadro(passo);
+      }
+    };
+  }
+  function pararAnimacao(estado, chaveDoEstado = "animacao") {
+    if (estado && estado[chaveDoEstado]) estado[chaveDoEstado].tocando = false;
+  }
+  function notaDeMenosMovimento(menosMovimento) {
+    return menosMovimento ? "anima\xE7\xE3o desligada por prefer\xEAncia de menos movimento do sistema" : null;
+  }
+
   // src/charts/bar_race/index.js
   var CSS = `
 .bc-raiz{position:relative;width:100%;height:100%;display:flex;flex-direction:column;}
-.bc-controles{display:flex;align-items:center;gap:8px;padding:4px 8px;flex:0 0 auto;}
-.bc-botao{flex:0 0 auto;border-radius:4px;padding:2px 10px;font:inherit;cursor:pointer;}
-.bc-tempo{flex:1 1 auto;min-width:60px;}
-.bc-periodo{flex:0 0 auto;font-weight:600;white-space:nowrap;}
 .bc-pista{flex:1 1 auto;position:relative;overflow:hidden;}
 .bc-barra{position:absolute;left:0;display:flex;align-items:center;gap:6px;}
 .bc-nome{flex:0 0 auto;text-align:right;overflow:hidden;white-space:nowrap;}
@@ -2712,6 +2841,7 @@
         blocoDeTema(),
         blocoAvancado(),
         opcaoDeOrigemDasSeries(),
+        opcoesDeAnimacao({ secao: "Corrida" }),
         {
           barrasVisiveis: {
             type: "number",
@@ -2722,28 +2852,6 @@
             max: MAXIMO_DE_BARRAS,
             step: 1,
             default: 10
-          },
-          duracaoPorPeriodo: {
-            type: "number",
-            label: "Dura\xE7\xE3o de cada per\xEDodo (ms)",
-            section: "Corrida",
-            display: "range",
-            min: 200,
-            max: 3e3,
-            step: 100,
-            default: 900
-          },
-          comecarTocando: {
-            type: "boolean",
-            label: "Come\xE7ar tocando",
-            section: "Corrida",
-            default: true
-          },
-          repetir: {
-            type: "boolean",
-            label: "Repetir do in\xEDcio ao terminar",
-            section: "Corrida",
-            default: false
           },
           escalaFixa: {
             type: "boolean",
@@ -2797,7 +2905,7 @@
         0
       );
       ctx.limparRaiz();
-      injetarEstilo(raiz, CSS, "bc");
+      injetarEstilo(raiz, CSS_ANIMACAO + CSS, "bc");
       const caixa = criarEl("div", { classe: "bc-raiz", pai: raiz });
       const casas = Number(config.casasDecimaisDoRotulo);
       const formatar = formatadorDeValueFormat(matriz.medida && matriz.medida.valueFormat, {
@@ -2805,35 +2913,9 @@
       });
       const ehData = !!(matriz.campoDaCategoria && matriz.campoDaCategoria.ehData);
       const rotuloDoPeriodo = (categoria) => ehData ? formatarData(categoria.valorBruto, config.formatoDeData || "auto") : categoria.rotulo;
-      const controles = criarEl("div", { classe: "bc-controles", pai: caixa });
-      const botao = criarEl("button", { classe: "bc-botao", pai: controles });
-      botao.type = "button";
-      botao.style.background = tema.fundo;
-      botao.style.color = tema.texto;
-      botao.style.border = `1px solid ${tema.borda}`;
-      const barraDeTempo = criarEl("input", { classe: "bc-tempo", pai: controles });
-      barraDeTempo.type = "range";
-      barraDeTempo.min = "0";
-      barraDeTempo.max = String(periodos.length - 1);
-      barraDeTempo.step = "0.01";
-      const rotuloDoTempo = criarEl("div", { classe: "bc-periodo", pai: controles });
-      rotuloDoTempo.style.color = tema.texto;
       const pista = criarEl("div", { classe: "bc-pista", pai: caixa });
       const nota = criarEl("div", { classe: "bc-nota", pai: caixa });
       nota.style.color = tema.textoSuave;
-      const menosMovimento = preferindoMenosMovimento();
-      const duracao = Math.max(100, Number(config.duracaoPorPeriodo) || 900);
-      if (!ctx.estado.corrida) {
-        ctx.estado.corrida = {
-          // Com `prefers-reduced-motion`, o gráfico abre PARADO no último
-          // período: é o quadro com mais informação, e nenhum movimento
-          // começa sem o usuário pedir.
-          tempo: menosMovimento ? periodos.length - 1 : 0,
-          tocando: menosMovimento ? false : config.comecarTocando !== false
-        };
-      }
-      const estado = ctx.estado.corrida;
-      estado.tempo = Math.max(0, Math.min(periodos.length - 1, estado.tempo));
       const cores = /* @__PURE__ */ new Map();
       const paleta = coresDaPaleta(config.paleta);
       series.forEach((s, i) => {
@@ -2841,12 +2923,12 @@
       });
       const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 140);
       const barras = /* @__PURE__ */ new Map();
-      const desenhar = () => {
+      const desenhar = (instante) => {
         const alturaDisponivel = Math.max(20, pista.clientHeight || ctx.altura - 60);
         const alturaPedida = Number(config.alturaDaBarra) || 0;
         const alturaDaBarra = alturaPedida > 0 ? alturaPedida : Math.max(8, alturaDisponivel / visiveis - 4);
         const passo = alturaDisponivel / visiveis;
-        const quadro = interpolarQuadro({ quadros, tempo: estado.tempo });
+        const quadro = interpolarQuadro({ quadros, tempo: instante });
         const maior = config.escalaFixa === true ? maiorDeTodos : Math.max(...quadro.map((item) => item.valor), 0) || 1;
         const larguraDaPista = Math.max(60, pista.clientWidth || ctx.largura);
         const larguraUtil = Math.max(20, larguraDaPista - larguraDoNome - 70);
@@ -2873,59 +2955,34 @@
           if (barra.raiz.parentNode) barra.raiz.parentNode.removeChild(barra.raiz);
           barras.delete(chave);
         }
-        const indiceInteiro = Math.min(periodos.length - 1, Math.round(estado.tempo));
-        definirTexto(rotuloDoTempo, rotuloDoPeriodo(periodos[indiceInteiro]));
-        barraDeTempo.value = String(estado.tempo);
-        definirTexto(botao, estado.tocando ? "\u275A\u275A pausar" : "\u25B6 tocar");
       };
-      let ultimoInstante = null;
-      const passoDoRelogio = (agora) => {
-        if (!estado.tocando) return;
-        if (ultimoInstante === null) ultimoInstante = agora;
-        const decorrido = agora - ultimoInstante;
-        ultimoInstante = agora;
-        estado.tempo += decorrido / duracao;
-        if (estado.tempo >= periodos.length - 1) {
-          if (config.repetir === true) {
-            estado.tempo = 0;
-          } else {
-            estado.tempo = periodos.length - 1;
-            estado.tocando = false;
-          }
-        }
-        desenhar();
-        if (estado.tocando) ctx.agendarQuadro(passoDoRelogio);
-      };
-      const alternar = () => {
-        estado.tocando = !estado.tocando;
-        ultimoInstante = null;
-        if (estado.tocando) {
-          if (estado.tempo >= periodos.length - 1) estado.tempo = 0;
-          ctx.agendarQuadro(passoDoRelogio);
-        }
-        desenhar();
-      };
-      ctx.eventos.on(botao, "click", alternar);
-      ctx.eventos.on(barraDeTempo, "input", () => {
-        estado.tocando = false;
-        ultimoInstante = null;
-        estado.tempo = Number(barraDeTempo.value);
-        desenhar();
+      const tempo = criarControleDeTempo({
+        ctx,
+        hospedeiro: caixa,
+        quantidade: periodos.length,
+        config,
+        rotuloDoPeriodo: (i) => rotuloDoPeriodo(periodos[i]),
+        aoQuadro: (t) => desenhar(t),
+        chaveDoEstado: "corrida"
       });
+      caixa.insertBefore(tempo.controles, pista);
+      tempo.controles.classList.add("bc-controles");
+      tempo.botao.classList.add("bc-botao");
+      tempo.barraDeTempo.classList.add("bc-tempo");
+      tempo.rotulo.classList.add("bc-periodo");
       definirTexto(
         nota,
         [
           `${series.length} s\xE9ries \xB7 ${periodos.length} per\xEDodos \xB7 ${visiveis} barras por vez`,
           "a compara\xE7\xE3o s\xF3 vale com o gr\xE1fico PARADO: o caminho entre dois per\xEDodos passa r\xE1pido demais para ser retido",
           config.escalaFixa === true ? "escala fixa: as larguras s\xE3o compar\xE1veis entre per\xEDodos" : "ATEN\xC7\xC3O: a escala acompanha o maior do per\xEDodo \u2014 as larguras N\xC3O s\xE3o compar\xE1veis entre per\xEDodos",
-          menosMovimento ? "anima\xE7\xE3o desligada por prefer\xEAncia de menos movimento do sistema" : null
+          notaDeMenosMovimento(tempo.menosMovimento)
         ].filter(Boolean).join(" \xB7 ")
       );
-      desenhar();
-      if (estado.tocando) ctx.agendarQuadro(passoDoRelogio);
+      tempo.iniciar();
     },
     aoDestruir({ estado }) {
-      if (estado && estado.corrida) estado.corrida.tocando = false;
+      pararAnimacao(estado, "corrida");
     }
   });
   function montarBarra({ tema, larguraDoNome, cor }) {
