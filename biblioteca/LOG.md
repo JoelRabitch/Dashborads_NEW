@@ -1472,34 +1472,102 @@ Vale para qualquer teste futuro que compare dois renders.
 Números: 32 gráficos construídos; 662/662 testes passando; checagem de
 segurança sem violação em 97 arquivos.
 
+## Sessão retomada em 2026-10-23
+
+Ponto de partida: branch `agente/novas-viz`, commit `038cb00`
+(`intervalo_confianca`, TIER 3 item 32). `origin/main` sem novidades —
+`git merge-base --is-ancestor origin/main HEAD` confirma que já está
+incorporada, nenhum merge necessário.
+
+Havia trabalho não commitado da sessão anterior, exatamente o que a
+"PRÓXIMA AÇÃO EXATA" mandava começar: a extração de `_dispersao/`, parada
+no meio (a base já criada, o `dispersao_regressao` já reapontado nos
+imports e na leitura dos pontos, mas ainda com o bloco de desenho
+duplicado). Como o LOG pedia essa extração, terminei em vez de descartar.
+
+### Etapa 37 — base `_dispersao/` + `matriz_dispersao` (TIER 3, item 33)
+
+**A extração primeiro.** Regra que já se pagou várias vezes nesta
+biblioteca: a base sai quando nasce o SEGUNDO da família, não depois.
+`src/charts/_dispersao/index.js` recebeu o que `dispersao_regressao` e
+`matriz_dispersao` compartilham: CSS, limite de SVG×canvas, leitura dos
+pares (x, y) com contagem das linhas descartadas, `desenharNuvem` (que
+escolhe a técnica e devolve se usou canvas), `opcoesDePontos`, a regressão
+pela origem, a banda de incerteza e o teste de corridas.
+
+O `dispersao_regressao` passou a importar tudo isso e a **re-exportar** os
+nomes que seus testes usam. A superfície pública do gráfico não mudou — e
+o critério de que a extração deu certo foi exatamente esse: **os 22 testes
+dele continuam passando sem uma linha alterada.** Se tivessem precisado
+mudar, a extração teria mudado comportamento e estaria errada.
+
+**O SPLOM.** Dispersão no triângulo inferior, densidade na diagonal, r de
+Pearson no superior. Decisões:
+
+- **Uma linha só entra se tiver valor em TODAS as medidas.** Um ponto que
+  aparece em alguns painéis e some em outros faria as nuvens da mesma
+  matriz descreverem amostras diferentes — e nada na tela diria isso. O
+  descarte é contado e anunciado.
+- **Um canvas só para a matriz inteira**, não um por painel: com 5 medidas
+  e 5.000 linhas são 20 painéis e 100 mil pontos; 20 contextos 2D seriam
+  20 cópias da mesma conta. Há teste exigindo exatamente um `<canvas>`.
+- **Teto de medidas com aviso**: k medidas são k² painéis, e acima de ~6
+  cada painel fica com ~100 px de lado.
+- **A ressalva do quarteto de Anscombe na nota.** O r é um número sobre
+  RETAS: quatro nuvens completamente diferentes dão r = 0,816. Por isso o
+  número e a forma ficam na mesma tela, espelhados em torno da diagonal, e
+  a nota manda olhar a dispersão antes de concluir.
+
+**O erro que eu quase deixei passar, e é o mais instrutivo da sessão.** O
+teste central do SPLOM é o do espelho: o painel (i, j) tem de ser o painel
+(j, i) com x e y trocados — é o que pega eixos invertidos, que é o defeito
+característico deste gráfico e é completamente invisível na tela. Ele
+passou de primeira... conferindo ZERO pares. Com 5 medidas, os 2.400
+pontos tinham ido para o canvas, e `querySelectorAll('circle')` devolvia
+lista vazia: todos os laços rodavam zero vezes e os `assert` dentro deles
+nunca executavam. Três testes estavam verdes sem testar nada.
+
+A correção foi forçar 3 medidas (720 pontos, abaixo do limite do canvas) e
+**afirmar a contagem**: `assert.ok(r.pontos.length > 0)` e
+`assert.equal(conferidos, 3)`. **Lição para o resto da biblioteca: todo
+teste que percorre uma lista precisa afirmar que a lista não está vazia.**
+Um laço vazio é a forma mais silenciosa de teste falso-positivo que existe,
+e ela aparece de graça sempre que o gráfico troca de técnica de desenho
+conforme o volume — o que é o caso de cinco gráficos daqui.
+
+Números: 33 gráficos construídos; 687/687 testes passando; checagem de
+segurança sem violação em 100 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 33: criar `src/charts/matriz_dispersao/` ("Matriz de
-Dispersão" / SPLOM): grade de dispersões, uma por par de medidas, com a
-diagonal mostrando a distribuição de cada variável.
+TIER 3, item 34: criar `src/charts/correlacao_matriz/` ("Matriz de
+Correlação"): o mapa de calor de correlações — todas contra todas, com
+agrupamento opcional por similaridade.
 
-Este é o SEGUNDO gráfico de dispersão da biblioteca, então vale a regra que
-já se pagou várias vezes: **extrair a base `_dispersao/` AGORA**, não
-depois. O que o `dispersao_regressao` já tem e serve aos dois: leitura dos
-pontos, escolha SVG×canvas pelo volume, tooltip do ponto mais próximo,
-ajuste por mínimos quadrados e o teste de corridas. Mover para
-`src/charts/_dispersao/index.js` e fazer o `dispersao_regressao` passar a
-usá-la, conferindo que os testes dele continuam passando sem alteração —
-se precisarem mudar, a extração mudou comportamento e está errada.
+É o primo do `matriz_dispersao` sem as nuvens: cabe muito mais medida na
+tela (30 × 30 é legível, 30 medidas de SPLOM não é), e a pergunta é outra —
+não "como é a relação deste par" e sim "que blocos de variáveis andam
+juntos".
 
-Pontos de atenção do SPLOM: (a) k medidas dão k² painéis; acima de ~6
-medidas (36 painéis) cada um fica com poucos pixels e não mostra nada —
-cortar com aviso; (b) cada painel é pequeno, então nada de eixos completos:
-só os da borda, e o nome da variável na diagonal; (c) o número de pontos
-TOTAL é n × k², então canvas quase sempre — desenhar os k² painéis num
-único canvas, não um canvas por painel; (d) a diagonal pode ser histograma
-ou densidade, e o triângulo superior pode mostrar o r de Pearson em vez de
-repetir a dispersão espelhada (é a convenção, e economiza metade dos
-pixels); (e) correlação alta num painel não significa nada sem olhar a
-forma — é literalmente o quarteto de Anscombe; dizer isso na nota.
+Pontos de atenção: (a) reaproveitar `correlacaoDePearson` e a leitura de
+linhas completas do `matriz_dispersao` — se o código for o mesmo, mover
+para `_dispersao/`; (b) **escala divergente obrigatória, centrada em zero**
+— uma escala sequencial num dado que vai de −1 a +1 faz correlação zero
+parecer "média" em vez de "nenhuma"; (c) oferecer Spearman além de Pearson
+(posto em vez de valor), porque Spearman pega relação monótona não-linear
+e a diferença entre os dois é informativa — quando discordam muito, há
+curvatura ou outlier; (d) agrupamento por similaridade (ordenar as
+variáveis para os blocos aparecerem) muda a leitura completamente: um
+algoritmo simples de ligação média já resolve, e a ordem usada precisa ser
+declarada; (e) escrever o número dentro da célula quando couber, e nunca
+só a cor — cor sozinha não permite ler magnitude; (f) a mesma ressalva de
+Anscombe, e mais uma: com k medidas são k(k−1)/2 correlações, e a 5% de
+significância ~5% delas passam por acaso — com 20 medidas são 190 pares e
+~10 falsos positivos esperados. Dizer isso na tela.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/matriz_dispersao.test.mjs` (k medidas ⇒ k² painéis; o painel (i,j)
-tem de usar as medidas i e j nas escalas certas — um SPLOM com eixos
-trocados é indistinguível a olho), `npm test`, `npm run seguranca`, marcar
-em TAREFAS.md, commitar e seguir para o item 34 (`correlacao_matriz`).
+`test/correlacao_matriz.test.mjs` (a matriz tem de ser simétrica e ter 1 na
+diagonal; Spearman de uma relação monótona não-linear tem de dar 1 enquanto
+Pearson dá menos; **e todo laço precisa afirmar que a lista não é vazia**),
+`npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e seguir
+para o item 35 (`boxplot_avancado`), que fecha o TIER 3.

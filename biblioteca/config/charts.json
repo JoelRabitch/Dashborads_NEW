@@ -484,6 +484,21 @@
         "semPivo",
         "vazio"
       ]
+    },
+    {
+      "id": "matriz_dispersao",
+      "label": "Matriz de Dispersao",
+      "tier": 3,
+      "pasta": "matriz_dispersao",
+      "resumo": "SPLOM: dispersao no triangulo inferior, densidade na diagonal e o r de Pearson no superior, todos os pontos num canvas so.",
+      "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "semPivo",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

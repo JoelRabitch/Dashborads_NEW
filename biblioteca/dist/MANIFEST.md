@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 14:58:41 (commit `1936db9`).
+Gerado automaticamente pelo build em 2026-10-22 17:34:38 (commit `038cb00`).
 
 ## Como cadastrar no Looker
 
@@ -47,6 +47,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `qq_plot` | Q-Q Plot (Normalidade) | `dist/qq_plot.js` | (vazio) | 1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/qq_plot.js` |
 | `densidade_ecdf` | Densidade e ECDF | `dist/densidade_ecdf.js` | (vazio) | 1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/densidade_ecdf.js` |
 | `intervalo_confianca` | Intervalo de Confianca | `dist/intervalo_confianca.js` | (vazio) | 1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/intervalo_confianca.js` |
+| `matriz_dispersao` | Matriz de Dispersao | `dist/matriz_dispersao.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/matriz_dispersao.js` |
 
 ## Detalhes por visualização
 
@@ -309,7 +310,7 @@ Nuvem de pontos com reta ajustada, R2, equacao e banda de incerteza nomeada (da 
 - **Tier**: 3
 - **Explore**: 2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 168.7 KB
+- **Tamanho do bundle**: 169.6 KB
 
 ### Q-Q Plot (Normalidade) (`qq_plot`)
 
@@ -337,3 +338,12 @@ Estimativa por categoria com barra de erro, por tres caminhos declarados, e o mo
 - **Explore**: 1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 166.0 KB
+
+### Matriz de Dispersao (`matriz_dispersao`)
+
+SPLOM: dispersao no triangulo inferior, densidade na diagonal e o r de Pearson no superior, todos os pontos num canvas so.
+
+- **Tier**: 3
+- **Explore**: 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 161.1 KB

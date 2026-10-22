@@ -451,5 +451,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao."
+  },
+  {
+    "id": "matriz_dispersao",
+    "label": "Matriz de Dispersao",
+    "tier": 3,
+    "arquivo": "../dist/matriz_dispersao.js",
+    "existe": true,
+    "fixtures": [
+      "ohlc",
+      "semPivo",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha."
   }
 ];

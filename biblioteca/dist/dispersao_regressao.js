@@ -1,7 +1,7 @@
 /*!
  * Dispersao com Regressao — visualização customizada para o Looker
  * id: dispersao_regressao
- * versão: 0.1.0 | build: 2026-10-22 14:58:41 | commit: 1936db9
+ * versão: 0.1.0 | build: 2026-10-22 17:34:38 | commit: 038cb00
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -4246,20 +4246,199 @@
     return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
   }
 
-  // src/charts/dispersao_regressao/index.js
-  var CSS = `
+  // src/charts/_dispersao/index.js
+  var CSS_DISPERSAO = `
 .dr-area{position:relative;width:100%;height:100%;}
 .dr-canvas{position:absolute;left:0;top:0;}
 .dr-svg{position:absolute;left:0;top:0;}
 .dr-marca{pointer-events:none;}
 .dr-reta{pointer-events:none;}
+.dr-envelope{pointer-events:none;}
 .dr-caixa{position:absolute;right:10px;top:8px;font-size:11px;line-height:1.5;
-  padding:6px 8px;border-radius:4px;pointer-events:none;}
-.dr-caixa b{font-weight:600;}
+  padding:6px 8px;border-radius:4px;pointer-events:none;max-width:46%;}
 .dr-nota{position:absolute;left:8px;bottom:4px;font-size:10px;opacity:.75;pointer-events:none;}
 `;
   var LIMITE_PARA_CANVAS = 2e3;
   var MINIMO_PARA_INFERENCIA = 10;
+  function opcoesDePontos({ secao = "Formato", tamanhoPadrao = 5, opacidadePadrao = 0.7 } = {}) {
+    return {
+      tamanhoDoPonto: {
+        type: "number",
+        label: "Tamanho do ponto",
+        section: secao,
+        display: "range",
+        min: 1,
+        max: 16,
+        step: 0.5,
+        default: tamanhoPadrao
+      },
+      opacidadeDoPonto: {
+        type: "number",
+        label: "Opacidade do ponto",
+        section: secao,
+        display: "range",
+        min: 0.05,
+        max: 1,
+        step: 0.05,
+        default: opacidadePadrao
+      },
+      formaDoPonto: {
+        type: "string",
+        label: "Forma do ponto",
+        section: secao,
+        display: "select",
+        default: "circulo",
+        values: listaDeValores([
+          { rotulo: "C\xEDrculo", valor: "circulo" },
+          { rotulo: "Quadrado", valor: "quadrado" },
+          { rotulo: "Losango", valor: "losango" },
+          { rotulo: "Cruz", valor: "cruz" }
+        ])
+      }
+    };
+  }
+  function lerPontos({ modelo, campoX, campoY, campoDoRotulo = null }) {
+    const pontos = [];
+    for (let i = 0; i < modelo.linhas.length; i++) {
+      const linha = modelo.linhas[i];
+      const x = modelo.valorNumerico(linha, campoX.nome);
+      const y = modelo.valorNumerico(linha, campoY.nome);
+      if (x === null || y === null) continue;
+      pontos.push({
+        indice: i,
+        x,
+        y,
+        rotulo: campoDoRotulo ? modelo.texto(linha, campoDoRotulo.nome, void 0, "") : `#${i + 1}`
+      });
+    }
+    return { pontos, descartadas: modelo.linhas.length - pontos.length };
+  }
+  function desenharNuvem({
+    area,
+    svg,
+    pontos,
+    largura,
+    altura,
+    raio,
+    forma = "circulo",
+    opacidade = 0.7,
+    cor,
+    limite = LIMITE_PARA_CANVAS,
+    classe = "dr-marca"
+  }) {
+    if (pontos.length <= limite) {
+      for (const ponto of pontos) {
+        criarSvgEl("circle", {
+          pai: svg,
+          classe,
+          atributos: {
+            cx: ponto.px,
+            cy: ponto.py,
+            r: raio,
+            fill: ponto.cor || cor,
+            opacity: opacidade
+          }
+        });
+      }
+      return { usouCanvas: false, contexto: null };
+    }
+    const canvas = criarEl("canvas", { classe: "dr-canvas" });
+    area.insertBefore(canvas, svg);
+    const { ctx: pincel } = prepararCanvas(canvas, largura, altura);
+    if (!pincel) return { usouCanvas: true, contexto: null };
+    pincel.globalAlpha = opacidade;
+    let corAtual = null;
+    for (const ponto of pontos) {
+      const corDoPonto = ponto.cor || cor;
+      if (corDoPonto !== corAtual) {
+        pincel.fillStyle = corDoPonto;
+        corAtual = corDoPonto;
+      }
+      desenharSimboloNoCanvas(pincel, forma, ponto.px, ponto.py, raio * 2);
+      pincel.fill();
+    }
+    pincel.globalAlpha = 1;
+    return { usouCanvas: true, contexto: pincel };
+  }
+  function regressaoPelaOrigem(pontos) {
+    const limpos = pontos.filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
+    const n = limpos.length;
+    if (n < 2) return null;
+    let sxy = 0;
+    let sxx = 0;
+    let somaY = 0;
+    for (const p of limpos) {
+      sxy += p.x * p.y;
+      sxx += p.x * p.x;
+      somaY += p.y;
+    }
+    if (sxx === 0) return null;
+    const inclinacao = sxy / sxx;
+    const mediaY = somaY / n;
+    let sqe = 0;
+    let syy = 0;
+    for (const p of limpos) {
+      sqe += (p.y - inclinacao * p.x) ** 2;
+      syy += (p.y - mediaY) ** 2;
+    }
+    return {
+      n,
+      inclinacao,
+      intercepto: 0,
+      r2: syy === 0 ? 1 : Math.max(0, Math.min(1, 1 - sqe / syy)),
+      mediaX: limpos.reduce((a, p) => a + p.x, 0) / n,
+      sxx,
+      syy,
+      sqe,
+      erroResidual: n > 1 ? Math.sqrt(sqe / (n - 1)) : null,
+      grausDeLiberdade: n - 1,
+      pelaOrigem: true,
+      previsto: (x) => inclinacao * x
+    };
+  }
+  function ajustar(pontos, { pelaOrigem = false } = {}) {
+    return pelaOrigem ? regressaoPelaOrigem(pontos) : regressaoLinear(pontos);
+  }
+  function calcularBanda({ ajuste, de, ate, nivel = 0.95, predicao = false, passos = 60 }) {
+    if (!ajuste || ajuste.erroResidual === null || !(ajuste.sxx > 0)) return null;
+    const t = quantilT(1 - (1 - nivel) / 2, ajuste.grausDeLiberdade);
+    if (t === null) return null;
+    const divisoes = Math.max(1, passos);
+    const pontos = [];
+    for (let i = 0; i <= divisoes; i++) {
+      const x = de + (ate - de) * i / divisoes;
+      const dentro = 1 / ajuste.n + (x - ajuste.mediaX) ** 2 / ajuste.sxx;
+      const meia = t * ajuste.erroResidual * Math.sqrt(predicao ? 1 + dentro : dentro);
+      const previsto = ajuste.previsto(x);
+      pontos.push({ x, previsto, superior: previsto + meia, inferior: previsto - meia, meia });
+    }
+    return pontos;
+  }
+  function testeDeCorridas(pontos, ajuste) {
+    if (!ajuste) return null;
+    const ordenados = pontos.filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y)).slice().sort((a, b) => a.x - b.x);
+    const sinais = [];
+    for (const p of ordenados) {
+      const residuo = p.y - ajuste.previsto(p.x);
+      if (residuo === 0) continue;
+      sinais.push(residuo > 0 ? 1 : -1);
+    }
+    const n = sinais.length;
+    const positivos = sinais.filter((s) => s > 0).length;
+    const negativos = n - positivos;
+    if (n < 20 || positivos === 0 || negativos === 0) return null;
+    let corridas = 1;
+    for (let i = 1; i < n; i++) {
+      if (sinais[i] !== sinais[i - 1]) corridas += 1;
+    }
+    const esperadas = 2 * positivos * negativos / n + 1;
+    const variancia = 2 * positivos * negativos * (2 * positivos * negativos - n) / (n * n * (n - 1));
+    if (!(variancia > 0)) return null;
+    const z = (corridas - esperadas) / Math.sqrt(variancia);
+    return { corridas, esperadas, z, n, suspeito: z < -2 };
+  }
+
+  // src/charts/dispersao_regressao/index.js
   var index_default = defineViz({
     id: "dispersao_regressao",
     label: "Dispers\xE3o com Regress\xE3o",
@@ -4271,6 +4450,7 @@
         blocoDeTooltip(),
         blocoDeTema(),
         blocoAvancado(),
+        opcoesDePontos(),
         {
           tipoDeAjuste: {
             type: "string",
@@ -4322,39 +4502,6 @@
             label: "For\xE7ar a reta a passar pela origem",
             section: "Regress\xE3o",
             default: false
-          },
-          tamanhoDoPonto: {
-            type: "number",
-            label: "Tamanho do ponto",
-            section: "Formato",
-            display: "range",
-            min: 1,
-            max: 16,
-            step: 0.5,
-            default: 5
-          },
-          opacidadeDoPonto: {
-            type: "number",
-            label: "Opacidade do ponto",
-            section: "Formato",
-            display: "range",
-            min: 0.05,
-            max: 1,
-            step: 0.05,
-            default: 0.7
-          },
-          formaDoPonto: {
-            type: "string",
-            label: "Forma do ponto",
-            section: "Formato",
-            display: "select",
-            default: "circulo",
-            values: listaDeValores([
-              { rotulo: "C\xEDrculo", valor: "circulo" },
-              { rotulo: "Quadrado", valor: "quadrado" },
-              { rotulo: "Losango", valor: "losango" },
-              { rotulo: "Cruz", valor: "cruz" }
-            ])
           },
           corDaReta: {
             type: "string",
@@ -4408,30 +4555,17 @@
         return;
       }
       const campoDoRotulo = config.campoDoRotulo === "" ? null : modelo.dimensoes.find((d) => d.nome === config.campoDoRotulo) || modelo.dimensoes[0] || null;
-      const pontos = [];
-      for (let i = 0; i < modelo.linhas.length; i++) {
-        const linha = modelo.linhas[i];
-        const x = modelo.valorNumerico(linha, campoX.nome);
-        const y = modelo.valorNumerico(linha, campoY.nome);
-        if (x === null || y === null) continue;
-        pontos.push({
-          indice: i,
-          x,
-          y,
-          rotulo: campoDoRotulo ? modelo.texto(linha, campoDoRotulo.nome, void 0, "") : `#${i + 1}`
-        });
-      }
+      const { pontos, descartadas } = lerPontos({ modelo, campoX, campoY, campoDoRotulo });
       if (pontos.length < 2) {
         ctx.mostrarVazio("S\xE3o necess\xE1rias pelo menos duas linhas com valor nas duas medidas.");
         return;
       }
-      const descartadas = modelo.linhas.length - pontos.length;
       if (descartadas > 0) {
         ctx.avisar(`${descartadas} linha(s) sem valor em X ou Y ficaram de fora do ajuste.`);
       }
       const semAjuste = (config.tipoDeAjuste || "minimosQuadrados") === "nenhum";
       const pelaOrigem = !!config.forcarPelaOrigem;
-      const ajuste = semAjuste ? null : pelaOrigem ? regressaoPelaOrigem(pontos) : regressaoLinear(pontos);
+      const ajuste = semAjuste ? null : ajustar(pontos, { pelaOrigem });
       if (!semAjuste && !ajuste) {
         ctx.avisar(
           "Todos os pontos t\xEAm o mesmo valor em X: n\xE3o existe reta de regress\xE3o. A nuvem foi desenhada sem ajuste."
@@ -4449,7 +4583,7 @@
         );
       }
       ctx.limparRaiz();
-      injetarEstilo(raiz, CSS, "dr");
+      injetarEstilo(raiz, CSS_DISPERSAO, "dr");
       const area = criarEl("div", { classe: "dr-area", pai: raiz });
       const casas = Number(config.casasDecimaisDoRotulo);
       const casasSeguras = Number.isFinite(casas) ? casas : 1;
@@ -4519,40 +4653,24 @@
       const opacidade = Number(config.opacidadeDoPonto) || 0.7;
       const forma = config.formaDoPonto || "circulo";
       const corDoPonto = coresDaPaleta(config.paleta)[0];
-      const usarCanvas = pontos.length > LIMITE_PARA_CANVAS;
       for (const ponto of pontos) {
         ponto.px = escalaX(ponto.x);
         ponto.py = escalaY(ponto.y);
       }
-      if (usarCanvas) {
-        const canvas = criarEl("canvas", { classe: "dr-canvas" });
-        area.insertBefore(canvas, svg);
-        const { ctx: pincel } = prepararCanvas(canvas, largura, altura);
-        if (pincel) {
-          pincel.globalAlpha = opacidade;
-          pincel.fillStyle = corDoPonto;
-          for (const ponto of pontos) {
-            desenharSimboloNoCanvas(pincel, forma, ponto.px, ponto.py, raioDoPonto * 2);
-            pincel.fill();
-          }
-          pincel.globalAlpha = 1;
-        } else {
-          ctx.avisar("O navegador n\xE3o forneceu contexto 2D; os pontos n\xE3o foram desenhados.");
-        }
-      } else {
-        for (const ponto of pontos) {
-          criarSvgEl("circle", {
-            pai: svg,
-            classe: "dr-marca",
-            atributos: {
-              cx: ponto.px,
-              cy: ponto.py,
-              r: raioDoPonto,
-              fill: corDoPonto,
-              opacity: opacidade
-            }
-          });
-        }
+      const { usouCanvas: usarCanvas, contexto } = desenharNuvem({
+        area,
+        svg,
+        pontos,
+        largura,
+        altura,
+        raio: raioDoPonto,
+        forma,
+        opacidade,
+        cor: corDoPonto,
+        limite: LIMITE_PARA_CANVAS
+      });
+      if (usarCanvas && !contexto) {
+        ctx.avisar("O navegador n\xE3o forneceu contexto 2D; os pontos n\xE3o foram desenhados.");
       }
       if (ajuste) {
         const x0 = Math.min(...valoresX);
@@ -4649,79 +4767,5 @@
     if (usarCanvas) partes.push("pontos em canvas");
     partes.push("correla\xE7\xE3o n\xE3o \xE9 causalidade");
     return partes.join(" \xB7 ");
-  }
-  function regressaoPelaOrigem(pontos) {
-    const limpos = pontos.filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
-    const n = limpos.length;
-    if (n < 2) return null;
-    let sxy = 0;
-    let sxx = 0;
-    let somaY = 0;
-    for (const p of limpos) {
-      sxy += p.x * p.y;
-      sxx += p.x * p.x;
-      somaY += p.y;
-    }
-    if (sxx === 0) return null;
-    const inclinacao = sxy / sxx;
-    const mediaY = somaY / n;
-    let sqe = 0;
-    let syy = 0;
-    for (const p of limpos) {
-      sqe += (p.y - inclinacao * p.x) ** 2;
-      syy += (p.y - mediaY) ** 2;
-    }
-    return {
-      n,
-      inclinacao,
-      intercepto: 0,
-      r2: syy === 0 ? 1 : Math.max(0, Math.min(1, 1 - sqe / syy)),
-      mediaX: limpos.reduce((a, p) => a + p.x, 0) / n,
-      sxx,
-      syy,
-      sqe,
-      erroResidual: n > 1 ? Math.sqrt(sqe / (n - 1)) : null,
-      grausDeLiberdade: n - 1,
-      pelaOrigem: true,
-      previsto: (x) => inclinacao * x
-    };
-  }
-  function calcularBanda({ ajuste, de, ate, nivel = 0.95, predicao = false, passos = 60 }) {
-    if (!ajuste || ajuste.erroResidual === null || !(ajuste.sxx > 0)) return null;
-    const t = quantilT(1 - (1 - nivel) / 2, ajuste.grausDeLiberdade);
-    if (t === null) return null;
-    const divisoes = Math.max(1, passos);
-    const pontos = [];
-    for (let i = 0; i <= divisoes; i++) {
-      const x = de + (ate - de) * i / divisoes;
-      const dentro = 1 / ajuste.n + (x - ajuste.mediaX) ** 2 / ajuste.sxx;
-      const meia = t * ajuste.erroResidual * Math.sqrt(predicao ? 1 + dentro : dentro);
-      const previsto = ajuste.previsto(x);
-      pontos.push({ x, previsto, superior: previsto + meia, inferior: previsto - meia, meia });
-    }
-    return pontos;
-  }
-  function testeDeCorridas(pontos, ajuste) {
-    if (!ajuste) return null;
-    const ordenados = pontos.filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y)).slice().sort((a, b) => a.x - b.x);
-    const sinais = [];
-    for (const p of ordenados) {
-      const residuo = p.y - ajuste.previsto(p.x);
-      if (residuo === 0) continue;
-      sinais.push(residuo > 0 ? 1 : -1);
-    }
-    const n = sinais.length;
-    const positivos = sinais.filter((s) => s > 0).length;
-    const negativos = n - positivos;
-    if (n < 20 || positivos === 0 || negativos === 0) return null;
-    let corridas = 1;
-    for (let i = 1; i < n; i++) {
-      if (sinais[i] !== sinais[i - 1]) corridas += 1;
-    }
-    const esperadas = 2 * positivos * negativos / n + 1;
-    const variancia = 2 * positivos * negativos * (2 * positivos * negativos - n) / (n * n * (n - 1));
-    if (!(variancia > 0)) return null;
-    const z = (corridas - esperadas) / Math.sqrt(variancia);
-    return { corridas, esperadas, z, n, suspeito: z < -2 };
   }
 })();
