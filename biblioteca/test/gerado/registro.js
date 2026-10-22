@@ -648,5 +648,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline."
+  },
+  {
+    "id": "parallel_sets",
+    "label": "Conjuntos Paralelos",
+    "tier": 5,
+    "arquivo": "../dist/parallel_sets.js",
+    "existe": true,
+    "fixtures": [
+      "duasDimensoes",
+      "hierarquia",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas)."
   }
 ];

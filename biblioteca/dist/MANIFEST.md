@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:49:10 (commit `162225a`).
+Gerado automaticamente pelo build em 2026-10-22 18:54:10 (commit `c3ad21c`).
 
 ## Como cadastrar no Looker
 
@@ -61,6 +61,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `bar_race` | Bar Chart Race | `dist/bar_race.js` | (vazio) | 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bar_race.js` |
 | `motion_bubbles` | Bolhas em Movimento | `dist/motion_bubbles.js` | (vazio) | 2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/motion_bubbles.js` |
 | `kpi_vivo` | KPI Vivo | `dist/kpi_vivo.js` | (vazio) | 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/kpi_vivo.js` |
+| `parallel_sets` | Conjuntos Paralelos | `dist/parallel_sets.js` | (vazio) | 2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/parallel_sets.js` |
 
 ## Detalhes por visualização
 
@@ -477,3 +478,12 @@ O numero grande com a BASE da comparacao sempre declarada, opcao de menor-e-melh
 - **Explore**: 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 144.6 KB
+
+### Conjuntos Paralelos (`parallel_sets`)
+
+Fitas mostrando como a populacao se reparte entre categorias de varias dimensoes, com conservacao do total e ordenacao automatica que reduz cruzamentos.
+
+- **Tier**: 5
+- **Explore**: 2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas).
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 117.6 KB

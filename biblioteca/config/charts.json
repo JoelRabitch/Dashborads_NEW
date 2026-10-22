@@ -695,6 +695,21 @@
         "grande5k",
         "vazio"
       ]
+    },
+    {
+      "id": "parallel_sets",
+      "label": "Conjuntos Paralelos",
+      "tier": 5,
+      "pasta": "parallel_sets",
+      "resumo": "Fitas mostrando como a populacao se reparte entre categorias de varias dimensoes, com conservacao do total e ordenacao automatica que reduz cruzamentos.",
+      "explore": "2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "duasDimensoes",
+        "hierarquia",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

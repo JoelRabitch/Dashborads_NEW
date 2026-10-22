@@ -2168,27 +2168,68 @@ que é pior que um número pequeno.
 Números: 46 gráficos construídos; 1.066/1.066 testes passando; checagem de
 segurança sem violação em 128 arquivos.
 
+### Etapa 51 — `parallel_sets` (TIER 5, item 47)
+
+Como a população se reparte a cada passo: uma coluna por dimensão, blocos
+proporcionais e fitas ligando as combinações.
+
+**Conservação é a regra que carrega o gráfico.** A soma das fitas que saem
+de uma categoria tem de ser o tamanho da categoria, e a soma das que
+chegam também. Quando isso quebra, algum caso sumiu ou foi contado duas
+vezes — e o desenho continua bonito, porque fita nenhuma fica visivelmente
+sobrando. O teste confere entrada E saída de cada categoria de cada coluna
+(10 categorias na fixture), e confere também que **todas as colunas somam
+o mesmo total**: colunas com totais diferentes tornariam os blocos
+incomparáveis, que é exatamente o que o gráfico promete comparar.
+
+**O espaguete tem solução medida.** Com as categorias em ordem arbitrária,
+as fitas se cruzam tanto que nada se segue. A ordenação por baricentro — a
+heurística clássica dos grafos em camadas, com passadas de ida e volta —
+reduz os cruzamentos. E aqui o importante: **a métrica é publicada na
+nota** ("84 cruzamentos"), o que permitiu escrever um teste que compara os
+dois modos no render e exige que a automática nunca cruze mais que a
+ordenação por tamanho (medido: 84 contra 92). Num cenário construído
+cruzado de propósito, ela zera os três cruzamentos.
+
+O baricentro não é ótimo — minimizar cruzamentos é NP-difícil — e isso
+está comentado no código. O que ele precisa ser é melhor que a alternativa,
+e isso o teste prova.
+
+Detalhe que exigiu decisão: categoria sem ligação nenhuma recebe baricentro
+`Infinity` e vai para o FIM. Mandá-la para o começo (baricentro 0) a
+colocaria no topo empurrando quem tem posição preferida — ela não tem
+opinião e não deve ter voto.
+
+Categorias pequenas viram "Outros" **preservando o total**, a mesma regra
+do `pareto` e do `treemap_carteira`, com aviso. E a ressalva estrutural das
+coordenadas paralelas vale igual aqui, na nota: só se vê relação entre
+colunas VIZINHAS.
+
+Números: 47 gráficos construídos; 1.094/1.094 testes passando; checagem de
+segurança sem violação em 130 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 47: criar `src/charts/parallel_sets/` ("Conjuntos
-Paralelos"): fluxo entre categorias de duas ou mais dimensões — as fitas
-que mostram como a população se reparte a cada passo.
+TIER 5, item 48: criar `src/charts/arc_diagram/` ("Diagrama de Arcos"):
+nós numa linha e arcos ligando quem se relaciona — o grafo achatado em uma
+dimensão.
 
-Pontos de atenção: (a) **a largura da fita é a CONTAGEM (ou a medida), e a
-ordem das dimensões muda o que se vê** — como nas coordenadas paralelas,
-só se enxerga a relação entre eixos vizinhos; declarar a ordem e permitir
-trocá-la; (b) cruzamentos excessivos viram espaguete: ordenar as categorias
-de cada eixo para minimizar cruzamentos (heurística do baricentro, usada
-em grafos em camadas) e dizer que a ordem é automática; (c) **agrupar as
-categorias pequenas em "Outros" preservando o total** — a mesma regra do
-`pareto` e do `treemap_carteira`; (d) a fita precisa manter a identidade da
-combinação no tooltip (A→B→C e quantos), senão o gráfico é decorativo;
-(e) acima de ~4 dimensões ou ~12 categorias por dimensão, avisar.
+Pontos de atenção: (a) a consulta vem como pares (origem, destino) e uma
+medida opcional de peso; aceitar também o formato "uma linha por aresta"
+que o `diagrama_venn` já sabe ler — conferir `src/charts/diagrama_venn/`
+antes de escrever leitura nova; (b) **a ordem dos nós é tudo**: na ordem
+alfabética o diagrama é espaguete; ordenando por grau, por cluster ou por
+uma dimensão do próprio dado, a estrutura aparece. Oferecer e declarar,
+como no `parallel_sets`; (c) arcos acima e abaixo da linha podem separar
+direções (ida/volta) quando o grafo é dirigido — e, se for dirigido,
+**dizer isso**, porque arco sem direção lido como dirigido inverte
+relações; (d) espessura do arco pela medida, raio do nó pelo grau; (e)
+acima de ~60 nós ou ~300 arestas, cortar com aviso.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/parallel_sets.test.mjs` (a soma das larguras das fitas que saem de
-uma categoria é igual à largura da categoria — é a conservação que
-garante que nenhum caso se perdeu nem se duplicou; a ordenação por
-baricentro reduz o número de cruzamentos de verdade; **e todo laço afirma
-que a lista não é vazia**), `npm test`, `npm run seguranca`, marcar em
-TAREFAS.md, commitar e seguir para o item 48 (`arc_diagram`).
+`test/arc_diagram.test.mjs` (o arco liga os dois nós certos — mesmo teste
+de identidade do SPLOM e do heatmap; a ordenação por grau coloca os nós
+mais conectados onde promete; auto-ligação (origem = destino) é tratada
+e não vira arco de largura zero; **e todo laço afirma que a lista não é
+vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar
+e seguir para o item 49 (`nightingale`).
