@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:11:29 (commit `ae9eb87`).
+Gerado automaticamente pelo build em 2026-10-22 18:19:11 (commit `4ce975d`).
 
 ## Como cadastrar no Looker
 
@@ -54,6 +54,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `small_multiples` | Small Multiples | `dist/small_multiples.js` | (vazio) | 1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/small_multiples.js` |
 | `barras_ranking_denso` | Barras de Ranking Denso | `dist/barras_ranking_denso.js` | (vazio) | 1 dimensao (o nome) e 1 medida (a barra). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/barras_ranking_denso.js` |
 | `dot_plot_denso` | Dot Plot Denso | `dist/dot_plot_denso.js` | (vazio) | 1 dimensao (o nome) e 1 ou mais medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dot_plot_denso.js` |
+| `parallel_coords` | Coordenadas Paralelas | `dist/parallel_coords.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/parallel_coords.js` |
 
 ## Detalhes por visualização
 
@@ -407,3 +408,12 @@ Pontos de Cleveland para muitas categorias e varias medidas por linha, com rolag
 - **Explore**: 1 dimensao (o nome) e 1 ou mais medidas.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 121.6 KB
+
+### Coordenadas Paralelas (`parallel_coords`)
+
+Um eixo por medida e uma linha quebrada por registro, em canvas, com escovacao por eixo e ordenacao automatica que poe pares correlacionados lado a lado.
+
+- **Tier**: 4
+- **Explore**: 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 139.4 KB

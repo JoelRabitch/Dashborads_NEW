@@ -1847,31 +1847,86 @@ pego na hora.
 Números: 39 gráficos construídos; 868/868 testes passando; checagem de
 segurança sem violação em 113 arquivos.
 
+### Etapa 44 — `parallel_coords` (TIER 4, item 40)
+
+Um eixo vertical por medida, uma linha quebrada por registro cruzando
+todos. É o gráfico para achar padrão em muitas dimensões: registros
+parecidos desenham linhas parecidas e um grupo coerente aparece como feixe.
+
+**Três coisas que parecem defeito e não são — mas precisam ser ditas**, e
+as três estão na nota:
+1. *Cada eixo tem a própria escala.* As unidades são diferentes; o que se
+   lê é o PADRÃO, não a altura absoluta. Comparar altura entre eixos não
+   significa nada.
+2. *A ordem dos eixos muda o que se enxerga.* Só se vê relação entre eixos
+   ADJACENTES — dois eixos nas pontas podem ter r = 0,95 sem que nada
+   apareça. Daí a ordenação automática: heurística gulosa que começa pelo
+   par mais correlacionado e encadeia o eixo ainda não usado mais
+   correlacionado com a ponta. É O(k²) em vez de fatorial (o problema exato
+   é o caminho hamiltoniano de peso máximo) e, com até 12 eixos, a
+   diferença é irrelevante. Usa |r|, não r: uma relação inversa é tão
+   informativa quanto uma direta quando os eixos são vizinhos. Na fixture
+   OHLC a ordem saiu Abertura · Mínima · Fechamento · Máxima · Volume.
+3. *Linhas sobrepostas viram mancha.* Opacidade baixa e contagem sempre na
+   tela.
+
+**Bug real em `core/interaction.js`, encontrado pelo teste de escovação.**
+`habilitarBrush` decidia "foi clique, não arrasto" com
+`largura < 3 && altura < 3`. Mas com `direcao: 'y'` a largura é sempre a do
+alvo inteiro (e com `'x'`, a altura), então a condição **nunca** era
+verdadeira: o caminho de LIMPAR a seleção estava morto nas duas direções.
+Na prática, um clique virava uma seleção de altura zero — filtrava tudo,
+apagava o gráfico inteiro e não havia como desfazer. Agora só a dimensão
+efetivamente escovada conta. O `parallel_coords` é o primeiro gráfico da
+biblioteca a usar `habilitarBrush`, então o defeito estava lá desde que o
+módulo foi escrito, sem nunca ter sido exercitado.
+
+O teste da escovação dispara `PointerEvent` de verdade no jsdom e confere
+duas coisas: o arrasto reduz as linhas ativas (120 → 11) **e a contagem
+declarada bate exatamente com as linhas desenhadas** — um filtro que
+dissesse "11 de 120" desenhando outra quantidade seria pior que não
+filtrar. O segundo teste confere que o clique devolve as 120.
+
+Os filtros são guardados em posição NORMALIZADA (0 a 1), não em pixels:
+assim a seleção sobrevive a redimensionamento e a troca de escala, que é o
+que o usuário espera.
+
+Teste de correspondência dado→geometria: como cada eixo usa todo o trilho,
+os topos de todos os eixos têm de coincidir e as bases também. Se um eixo
+estivesse usando a escala de outro, ocuparia só um pedaço — e o emaranhado
+continuaria plausível. Medido: variação < 2 px em 5 eixos.
+
+Números: 40 gráficos construídos; 901/901 testes passando; checagem de
+segurança sem violação em 115 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 40: criar `src/charts/parallel_coords/` ("Coordenadas
-Paralelas"): um eixo vertical por medida, uma LINHA quebrada por registro,
-cruzando todos os eixos — o gráfico para achar padrões em dados de muitas
-dimensões.
+TIER 4, item 41: criar `src/charts/bump_chart/` ("Bump Chart"): a evolução
+do RANKING ao longo do tempo — uma linha por item, mas o eixo Y é a
+posição, não o valor.
 
-Pontos de atenção: (a) **cada eixo tem a própria escala**, e isso aqui é
-correto, não um defeito: as medidas têm unidades diferentes e o que se lê é
-o PADRÃO das linhas, não a altura absoluta; mas é preciso dizer na tela que
-as alturas não são comparáveis entre eixos; (b) **a ordem dos eixos muda
-tudo** — só se vê correlação entre eixos ADJACENTES, então oferecer
-reordenar (e, melhor, uma ordenação automática que ponha juntos os pares
-mais correlacionados, reaproveitando `correlacaoDePearson`); (c) canvas
-obrigatório: 5.000 linhas × 6 eixos são 30 mil segmentos; (d) **escovação
-(brushing)**: arrastar num eixo filtra as linhas, que é a interação que faz
-o gráfico valer — `habilitarBrush` já existe em `core/interaction.js`;
-(e) linhas sobrepostas viram mancha: opacidade baixa por padrão e, acima de
-~2.000 registros, dizer quantos estão desenhados; (f) escala por quantil
-como opção, com a mesma ressalva do `heatmap_denso`.
+É o gráfico para "quem subiu e quem caiu", e tem uma armadilha própria:
+**a distância entre o 1º e o 2º lugar é sempre igual à distância entre o
+9º e o 10º**, não importa se o primeiro abriu 10x de vantagem e os outros
+estão empatados. O ranking apaga a magnitude. Isso precisa estar na nota, e
+o tooltip precisa mostrar o VALOR junto da posição — é a única forma de o
+leitor saber se a troca de lugares foi um terremoto ou um empate técnico.
+
+Pontos de atenção: (a) reaproveitar `core/series.js` (`extrairMatriz`) para
+categorias × séries, e `_serie_temporal/` para a leitura e o hover; (b)
+empates: duas séries com o mesmo valor precisam de posição definida e
+ESTÁVEL (desempatar por nome, não pela ordem da consulta, senão o ranking
+treme entre renderizações); (c) séries que não existem em todos os períodos
+— a linha deve CORTAR, não interpolar uma posição inventada; (d) rótulos
+nas pontas (nome à esquerda e à direita), com desbaste quando não couber;
+(e) destacar uma série ao passar o mouse, apagando as outras — com 40
+linhas cruzando, é a única forma de seguir uma; (f) teto de séries com
+aviso (~30), porque acima disso as posições ficam a menos de 10 px.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/parallel_coords.test.mjs` (cada eixo usa a própria escala e o valor
-mínimo de cada medida cai na base do seu eixo; a escovação num eixo reduz
-a contagem de linhas desenhadas e a contagem é declarada; reordenar os
-eixos muda a ordem das coordenadas; **e todo laço afirma que a lista não é
-vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar e
-seguir para o item 41 (`bump_chart`).
+`test/bump_chart.test.mjs` (as posições de cada período são uma permutação
+de 1..n, sem buracos nem repetições; o desempate é estável entre duas
+renderizações; série ausente num período corta a linha em vez de
+interpolar; **e todo laço afirma que a lista não é vazia**), `npm test`,
+`npm run seguranca`, marcar em TAREFAS.md, commitar e seguir para o item 42
+(`slope_chart`).

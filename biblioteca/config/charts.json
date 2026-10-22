@@ -591,6 +591,21 @@
         "rotulosLongos",
         "vazio"
       ]
+    },
+    {
+      "id": "parallel_coords",
+      "label": "Coordenadas Paralelas",
+      "tier": 4,
+      "pasta": "parallel_coords",
+      "resumo": "Um eixo por medida e uma linha quebrada por registro, em canvas, com escovacao por eixo e ordenacao automatica que poe pares correlacionados lado a lado.",
+      "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
     }
   ]
 }

@@ -205,8 +205,21 @@ export function habilitarBrush({ alvo, eventos, direcao = 'x', aoSelecionar, aoL
       const atual = evento ? posicaoLocal(evento) : inicio;
       const retangulo = normalizarRetangulo(inicio, atual, direcao, alvo);
       inicio = null;
+
+      // Só a dimensão ESCOVADA conta para decidir se foi um clique.
+      // Com `direcao: 'y'`, a largura é sempre a do alvo inteiro (e
+      // vice-versa), então exigir que AS DUAS fossem pequenas tornava o
+      // caminho de limpar inalcançável — um clique virava uma seleção de
+      // altura zero, que filtra tudo e não dá para desfazer.
       const minimoUtil = 3;
-      if (retangulo.largura < minimoUtil && retangulo.altura < minimoUtil) {
+      const arrastoUtil =
+        direcao === 'x'
+          ? retangulo.largura
+          : direcao === 'y'
+            ? retangulo.altura
+            : Math.max(retangulo.largura, retangulo.altura);
+
+      if (arrastoUtil < minimoUtil) {
         if (aoLimpar) aoLimpar();
         if (desenharRetangulo) desenharRetangulo(null);
         return;
