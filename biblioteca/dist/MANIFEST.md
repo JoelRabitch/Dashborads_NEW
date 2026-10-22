@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 18:19:11 (commit `4ce975d`).
+Gerado automaticamente pelo build em 2026-10-22 18:22:29 (commit `ed8812d`).
 
 ## Como cadastrar no Looker
 
@@ -55,6 +55,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `barras_ranking_denso` | Barras de Ranking Denso | `dist/barras_ranking_denso.js` | (vazio) | 1 dimensao (o nome) e 1 medida (a barra). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/barras_ranking_denso.js` |
 | `dot_plot_denso` | Dot Plot Denso | `dist/dot_plot_denso.js` | (vazio) | 1 dimensao (o nome) e 1 ou mais medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dot_plot_denso.js` |
 | `parallel_coords` | Coordenadas Paralelas | `dist/parallel_coords.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/parallel_coords.js` |
+| `bump_chart` | Bump Chart | `dist/bump_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/bump_chart.js` |
 
 ## Detalhes por visualização
 
@@ -417,3 +418,12 @@ Um eixo por medida e uma linha quebrada por registro, em canvas, com escovacao p
 - **Explore**: 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 139.4 KB
+
+### Bump Chart (`bump_chart`)
+
+Evolucao do ranking ao longo do tempo: o eixo Y e a posicao, nao o valor — e o grafico declara que isso apaga a magnitude.
+
+- **Tier**: 4
+- **Explore**: 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).
+- **Aceita pivô**: sim
+- **Tamanho do bundle**: 151.7 KB

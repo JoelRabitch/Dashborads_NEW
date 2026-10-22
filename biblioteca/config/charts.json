@@ -606,6 +606,21 @@
         "semPivo",
         "vazio"
       ]
+    },
+    {
+      "id": "bump_chart",
+      "label": "Bump Chart",
+      "tier": 4,
+      "pasta": "bump_chart",
+      "resumo": "Evolucao do ranking ao longo do tempo: o eixo Y e a posicao, nao o valor — e o grafico declara que isso apaga a magnitude.",
+      "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
     }
   ]
 }

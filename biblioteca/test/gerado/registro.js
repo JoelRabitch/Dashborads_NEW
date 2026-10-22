@@ -565,5 +565,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro."
+  },
+  {
+    "id": "bump_chart",
+    "label": "Bump Chart",
+    "tier": 4,
+    "arquivo": "../dist/bump_chart.js",
+    "existe": true,
+    "fixtures": [
+      "comPivo",
+      "duasDimensoes",
+      "temporal",
+      "vazio"
+    ],
+    "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas)."
   }
 ];

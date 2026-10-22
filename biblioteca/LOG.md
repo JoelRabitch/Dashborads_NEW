@@ -1899,34 +1899,79 @@ continuaria plausível. Medido: variação < 2 px em 5 eixos.
 Números: 40 gráficos construídos; 901/901 testes passando; checagem de
 segurança sem violação em 115 arquivos.
 
+### Etapa 45 — `bump_chart` (TIER 4, item 41)
+
+A evolução do ranking ao longo do tempo: uma linha por item, mas o eixo Y
+é a POSIÇÃO, não o valor.
+
+**A armadilha estrutural**, que vale para todo bump chart que existe: a
+distância do 1º ao 2º lugar é desenhada igual à distância do 9º ao 10º —
+não importa se o líder abriu dez vezes de vantagem ou se os dois estão
+empatados na terceira casa decimal. O ranking APAGA a magnitude, e uma
+troca de posições pode ser um terremoto ou um empate técnico sem que o
+desenho mude em nada. Então: a ressalva vai na nota com a consequência
+concreta escrita ("a distância do 1º ao 2º é desenhada igual à do 9º ao
+10º"), e o tooltip traz SEMPRE o valor ao lado da posição — é a única
+informação que distingue os dois casos.
+
+Duas decisões de `calcularPosicoes`, ambas com teste:
+
+- **Empate desempata pelo NOME, não pela ordem da consulta.** Se dependesse
+  da ordem em que o Looker devolveu as séries, o ranking trocaria de
+  posições entre renderizações da MESMA consulta — e um bump chart que se
+  mexe sozinho é pior que nenhum. O teste roda as mesmas três séries
+  empatadas em duas ordens diferentes e exige o mesmo ranking.
+- **Período sem valor não recebe posição.** A linha corta ali, e a lacuna é
+  a informação. Ranquear o ausente (como zero, ou como "último")
+  inventaria uma queda que não aconteceu. `maiorPosicao` continua sendo a
+  do período cheio, para a escala não pular quando alguém falta.
+
+**Teste melhorado no meio do caminho, e o motivo importa.** Minha primeira
+versão exigia que o número de pontos fosse múltiplo do número de séries —
+o que é falso assim que existe uma lacuna legítima (a fixture tem 59
+pontos para 5 séries e 12 períodos). Pior: era uma asserção sobre
+contagem, não sobre a propriedade. A versão nova confere no DOM a
+propriedade de verdade: **agrupando os pontos por período, duas séries
+nunca ocupam a mesma altura** — a permutação verificada no desenho, não na
+função. Teste que mede contagem quando podia medir estrutura é teste
+fraco.
+
+Outro teste estrutural: como o eixo é o ranking, só existem n alturas
+possíveis, igualmente espaçadas. Qualquer altura intermediária indicaria
+posição fracionária, que num ranking não existe. Medido: 5 alturas,
+passo 127,5 px.
+
+Números: 41 gráficos construídos; 925/925 testes passando; checagem de
+segurança sem violação em 117 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 4, item 41: criar `src/charts/bump_chart/` ("Bump Chart"): a evolução
-do RANKING ao longo do tempo — uma linha por item, mas o eixo Y é a
-posição, não o valor.
+TIER 4, item 42: criar `src/charts/slope_chart/` ("Slope Chart"): dois
+períodos (ou dois cenários), uma linha por item ligando os dois — o
+gráfico de Tufte para "o que mudou entre A e B".
 
-É o gráfico para "quem subiu e quem caiu", e tem uma armadilha própria:
-**a distância entre o 1º e o 2º lugar é sempre igual à distância entre o
-9º e o 10º**, não importa se o primeiro abriu 10x de vantagem e os outros
-estão empatados. O ranking apaga a magnitude. Isso precisa estar na nota, e
-o tooltip precisa mostrar o VALOR junto da posição — é a única forma de o
-leitor saber se a troca de lugares foi um terremoto ou um empate técnico.
+É o irmão simples do `bump_chart`, e com uma diferença que é o ponto:
+**aqui o eixo é o VALOR, não a posição.** A inclinação da linha é a
+variação real, e é por isso que o slope responde "quanto mudou" onde o
+bump só responde "quem passou quem". Os dois juntos, na mesma biblioteca,
+dão ao usuário a escolha certa — e a nota de cada um deve apontar o outro.
 
-Pontos de atenção: (a) reaproveitar `core/series.js` (`extrairMatriz`) para
-categorias × séries, e `_serie_temporal/` para a leitura e o hover; (b)
-empates: duas séries com o mesmo valor precisam de posição definida e
-ESTÁVEL (desempatar por nome, não pela ordem da consulta, senão o ranking
-treme entre renderizações); (c) séries que não existem em todos os períodos
-— a linha deve CORTAR, não interpolar uma posição inventada; (d) rótulos
-nas pontas (nome à esquerda e à direita), com desbaste quando não couber;
-(e) destacar uma série ao passar o mouse, apagando as outras — com 40
-linhas cruzando, é a única forma de seguir uma; (f) teto de séries com
-aviso (~30), porque acima disso as posições ficam a menos de 10 px.
+Pontos de atenção: (a) com N itens, os rótulos nas duas pontas colidem —
+resolver com anti-colisão por empurrão vertical (algoritmo simples:
+ordenar por y, empurrar para baixo quem invade o anterior, depois
+re-centralizar o bloco), e não só desbastar; (b) destacar as linhas que
+SOBEM e as que DESCEM com cores diferentes é mais informativo do que uma
+cor por item; (c) ordenar/filtrar pelas maiores variações (absoluta ou
+percentual — e são perguntas diferentes: +1 sobre 2 é +50%, +1 sobre 1.000
+é +0,1%; oferecer as duas e declarar qual está em uso); (d) escala: aqui
+NÃO começar em zero é defensável (o foco é a variação), mas é preciso
+declarar, como no `dot_plot_denso`; (e) mais de ~2 períodos na consulta:
+usar o primeiro e o último e DIZER que foi isso que se fez.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/bump_chart.test.mjs` (as posições de cada período são uma permutação
-de 1..n, sem buracos nem repetições; o desempate é estável entre duas
-renderizações; série ausente num período corta a linha em vez de
-interpolar; **e todo laço afirma que a lista não é vazia**), `npm test`,
-`npm run seguranca`, marcar em TAREFAS.md, commitar e seguir para o item 42
-(`slope_chart`).
+`test/slope_chart.test.mjs` (a inclinação corresponde à variação real; a
+anti-colisão não deixa dois rótulos se sobreporem E preserva a ORDEM
+vertical dos itens — empurrar sem preservar a ordem trocaria os nomes de
+lugar, que é pior que sobrepor; **e todo laço afirma que a lista não é
+vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar
+e seguir para o item 43 (`horizon_chart`), que fecha o TIER 4.
