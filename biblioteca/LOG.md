@@ -43,6 +43,7 @@ retomada de sessão (ver seção 11 do `PROMPT_AGENTE.md`).
       + branch `agente/novas-viz` criado.
 - [x] **Etapa 2** — `package.json` com versões fixas conferidas e instaladas.
 - [x] **Etapa 3** — núcleo base: `dom.js`, `errors.js`, `theme.js`, `format.js`.
+- [x] **Etapa 4** — `looker-adapter.js` + `data-model.js` + `test/fixtures/`.
 
 ### Versões de build escolhidas (todas conferidas com `npm view`)
 
@@ -92,11 +93,40 @@ Decisões:
   Looker (`rendered`); nossa formatação só entra em números que a própria
   viz calcula (totais, médias, diferenças). Isso evita divergir da conta.
 
+### Notas da etapa 4 (decisões importantes)
+
+1. **`registerOptions` SUBSTITUI o painel inteiro de opções** — não mescla
+   com as `options` estáticas. Isso foi confirmado testando no Looker real
+   (as seções estáticas sumiam do painel Edit). O adapter agora SEMPRE
+   manda estáticas + dinâmicas juntas, e só dispara quando a assinatura das
+   opções muda (evita loop).
+2. **`abrirUrl` não usa `window.open`** (proibido pela seção 7): cria um
+   `<a rel="noopener noreferrer" target="_blank">` temporário, valida que a
+   URL é http(s) e dispara o clique.
+3. **`atualizarConfig` (evento `updateConfig`) é "melhor esforço"**: não há
+   como DETECTAR se o Looker trata esse evento. A viz nunca pode depender
+   dele — o estado real mora em memória na viz; a persistência é um bônus.
+   Registrado também em `docs/COMPAT.md` (etapa futura).
+4. **Cross-filter (`toggleCrossfilter`/`getCrossfilterSelection`)**: existe
+   na documentação, mas NÃO confirmei que funciona nesta versão. O adapter
+   detecta e, se não houver, desativa o recurso com aviso — nenhum gráfico
+   depende dele.
+5. **`hidden_fields`**: a API clássica não documenta de forma estável.
+   Procuramos em `config.hidden_fields`, `queryResponse.hidden_fields` e
+   `queryResponse.fields.hidden_fields`; se nada existir, assumimos que o
+   Looker já tirou os campos ocultos das listas. Testado funcionando com
+   `config.hidden_fields`.
+6. **Totais gerais**: procuramos `queryResponse.totals_data`,
+   `queryResponse.totals` e `data.totals_data`. Se não houver, o gráfico
+   calcula por conta própria (soma simples) e AVISA que é cálculo nosso —
+   a API não expõe o tipo de agregação da medida (média, distinct, etc.).
+
+Desempenho conferido: modelo + extração de série com **50.000 linhas em
+~50 ms**.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 4 (Tier 0): escrever `src/core/looker-adapter.js` — ÚNICO arquivo que
-toca `looker.*` e `LookerCharts.*`. Precisa expor `registrarVisualizacao`,
-`limparErros`, `mostrarErro`, `registrarOpcoes`, `atualizarConfig`,
-`textoDaCelula`, `htmlDaCelula`, `abrirDrill`, `abrirUrl` e `crossfilter`,
-cada um com detecção de recurso (`typeof`) e fallback com aviso no console.
-Registrar cada método usado em `docs/COMPAT.md` na etapa 13.
+Etapa 5 (Tier 0): escrever `src/core/options-kit.js` com os blocos de opções
+reutilizáveis da seção 6 do prompt (cores, rotação, barras, pontos, pivô,
+dados, eixos, rótulos, legenda, referências, tooltip, animação, interação,
+tema, avançado) e o registro dinâmico por campo/série.
