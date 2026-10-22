@@ -325,6 +325,12 @@ export function opcoesEstaticas() {
       // ---------- Interação ----------
       permitirOrdenar: { type: 'boolean', label: 'Ordenar clicando no cabeçalho', section: 'Interação', default: true },
       mostrarBusca: { type: 'boolean', label: 'Mostrar caixa de busca', section: 'Interação', default: true },
+      mostrarFiltrosPorColuna: {
+        type: 'boolean',
+        label: 'Mostrar filtro em cada coluna',
+        section: 'Interação',
+        default: false,
+      },
       permitirSelecionarLinhas: {
         type: 'boolean',
         label: 'Selecionar linhas (clique) e somar',

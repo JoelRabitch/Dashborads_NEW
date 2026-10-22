@@ -11,7 +11,7 @@
  *  - Texto SEMPRE por `textContent` (nunca `innerHTML`).
  */
 
-import { criarEl, limpar, definirTexto, injetarEstilo } from '../../core/dom.js';
+import { criarEl, limpar, definirTexto, injetarEstilo, preferindoMenosMovimento } from '../../core/dom.js';
 import { criarFiltroDeBusca } from '../../core/interaction.js';
 import { criarFormatadorNumerico } from '../../core/format.js';
 import { cssDasCelulas } from './celulas.js';
@@ -43,6 +43,22 @@ const CSS = `
 .tc-th-conteudo{position:relative;display:block;overflow:hidden;text-overflow:ellipsis;}
 .tc-vertical .tc-th-conteudo{writing-mode:vertical-rl;transform:rotate(180deg);text-align:left;}
 .tc-numero-linha{opacity:.5;font-variant-numeric:tabular-nums;}
+.tc-filtro{width:100%;box-sizing:border-box;padding:2px 5px;border-radius:3px;border:1px solid;
+  font:inherit;font-size:11px;font-weight:400;}
+.tc-grupo td{font-weight:600;}
+.tc-seta-grupo{display:inline-block;width:10px;}
+@keyframes tc-entrada{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.tc-entrando{animation:tc-entrada .22s ease-out both;}
+.tc-flash{transition:background-color .7s ease-out;}
+.tc-menu{position:fixed;z-index:50;min-width:170px;padding:4px 0;border-radius:6px;border:1px solid;
+  font-size:12px;}
+.tc-menu button{display:block;width:100%;text-align:left;padding:5px 12px;border:none;background:none;
+  cursor:pointer;font:inherit;color:inherit;}
+.tc-menu button:hover{filter:brightness(.94);}
+@media (prefers-reduced-motion: reduce){
+  .tc-entrando{animation:none;}
+  .tc-flash{transition:none;}
+}
 `;
 
 /** Alturas por densidade (linha, cabeçalho). */
@@ -197,13 +213,17 @@ export function desenharTabela(params) {
     gruposDePivo,
     temPivo,
     visual,
-    indicesVisiveis,
+    itens,
+    indicesDeDados,
     estado,
     aoOrdenar,
     aoBuscar,
     aoSelecionarLinha,
     aoRedimensionar,
     aoExportar,
+    aoAlternarGrupo,
+    aoFiltrarColuna,
+    aoMenuDeContexto,
     pintarCelula,
   } = params;
   const { modelo, config, tema, raiz } = ctx;
@@ -286,20 +306,23 @@ export function desenharTabela(params) {
     ctx,
     aoOrdenar,
     aoRedimensionar,
+    aoFiltrarColuna,
   });
 
   // ---------------- Corpo (virtualizado) ----------------
   const tbody = criarEl('tbody', { pai: tabela });
 
   // ---------------- Rodapé (totais) ----------------
-  let tfoot = null;
   if (config.mostrarTotais !== false) {
-    tfoot = criarEl('tfoot', { pai: tabela });
-    construirRodape({ tfoot, colunasVisiveis, indicesVisiveis, visual, config, estado, deslocamentos, fixas, modelo });
+    const tfoot = criarEl('tfoot', { pai: tabela });
+    construirRodape({
+      tfoot, colunasVisiveis, indicesVisiveis: indicesDeDados, visual, config, deslocamentos, fixas, modelo,
+    });
   }
 
   // Altura total do cabeçalho (para a conta da virtualização).
-  const alturaCabecalhoTotal = (temPivo ? 2 : 1) * visual.alturaCabecalho;
+  const linhasDeCabecalho = (temPivo ? 2 : 1) + (config.mostrarFiltrosPorColuna ? 1 : 0);
+  const alturaCabecalhoTotal = linhasDeCabecalho * visual.alturaCabecalho;
 
   const estadoDeDesenho = {
     rolagem,
@@ -314,15 +337,17 @@ export function desenharTabela(params) {
     desenharLinhasVisiveis({
       ctx,
       estadoDeDesenho,
-      indicesVisiveis,
+      itens,
       visual,
       config,
       estado,
       modelo,
       aoSelecionarLinha,
+      aoAlternarGrupo,
+      aoMenuDeContexto,
       pintarCelula,
     });
-    if (resumoEl) atualizarResumo(resumoEl, indicesVisiveis, estado, colunasVisiveis, modelo, config);
+    if (resumoEl) atualizarResumo(resumoEl, indicesDeDados, estado, colunasVisiveis, modelo);
   }
 
   // Preserva a rolagem entre atualizações.
@@ -377,6 +402,7 @@ function construirCabecalho({
   ctx,
   aoOrdenar,
   aoRedimensionar,
+  aoFiltrarColuna,
 }) {
   // --- Linha 1: grupos do pivô (só quando há pivô) ---
   if (temPivo) {
@@ -425,6 +451,38 @@ function construirCabecalho({
       criarThDeColuna({ coluna, indice: i, topo, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar })
     );
   }
+
+  // --- Linha de filtros por coluna (opcional) ---
+  if (!config.mostrarFiltrosPorColuna) return;
+
+  const trFiltros = criarEl('tr', { pai: thead });
+  const topoDosFiltros = topo + visual.alturaCabecalho;
+
+  if (config.mostrarNumeroDaLinha) {
+    const th = criarEl('th', { pai: trFiltros });
+    aplicarEstiloDeCabecalho(th, visual, config, topoDosFiltros);
+  }
+
+  colunasVisiveis.forEach((coluna, i) => {
+    const th = criarEl('th', { pai: trFiltros });
+    aplicarEstiloDeCabecalho(th, visual, config, topoDosFiltros);
+    if (i < fixas) {
+      th.classList.add('tc-fixa');
+      th.style.left = `${deslocamentos.get(coluna.id) || 0}px`;
+      th.style.position = 'sticky';
+    }
+
+    const campo = criarEl('input', { classe: 'tc-filtro', pai: th });
+    campo.type = 'text';
+    // Em coluna de medida dá para escrever ">100", "<=5" ou "=3".
+    campo.placeholder = coluna.ehMedida ? 'ex.: >100' : 'filtrar…';
+    campo.value = estado.filtros[coluna.id] || '';
+    campo.style.borderColor = visual.borda;
+    campo.style.background = visual.fundo;
+    campo.style.color = visual.texto;
+    ctx.eventos.on(campo, 'input', (ev) => aoFiltrarColuna(coluna.id, ev.target.value));
+    ctx.eventos.on(campo, 'click', (ev) => ev.stopPropagation());
+  });
 }
 
 /** Monta o `<th>` de uma coluna (rótulo, seta de ordenação e alça de largura). */
@@ -542,17 +600,19 @@ function estiloDeRodape(td, visual, config) {
 function desenharLinhasVisiveis({
   ctx,
   estadoDeDesenho,
-  indicesVisiveis,
+  itens,
   visual,
   config,
   estado,
   modelo,
   aoSelecionarLinha,
+  aoAlternarGrupo,
+  aoMenuDeContexto,
   pintarCelula,
 }) {
   const { rolagem, tbody, colunasVisiveis, deslocamentos, fixas, alturaCabecalhoTotal } = estadoDeDesenho;
   const alturaLinha = visual.alturaLinha;
-  const total = indicesVisiveis.length;
+  const total = itens.length;
 
   limpar(tbody);
 
@@ -560,7 +620,11 @@ function desenharLinhasVisiveis({
     const tr = criarEl('tr', { pai: tbody });
     const td = criarEl('td', { pai: tr, classe: 'tc-vazio' });
     td.colSpan = colunasVisiveis.length + (config.mostrarNumeroDaLinha ? 1 : 0);
-    definirTexto(td, estado.busca ? 'Nenhuma linha encontrada para a busca.' : config.textoSemDados || 'Sem dados para exibir');
+    const temFiltro = estado.busca || Object.values(estado.filtros).some((v) => v && v.trim());
+    definirTexto(
+      td,
+      temFiltro ? 'Nenhuma linha encontrada para a busca.' : config.textoSemDados || 'Sem dados para exibir'
+    );
     return;
   }
 
@@ -580,11 +644,26 @@ function desenharLinhasVisiveis({
 
   if (inicio > 0) tbody.appendChild(linhaEspacadora(inicio * alturaLinha, colunasVisiveis.length + 1));
 
+  const animar = config.animarEntradaDasLinhas !== false && !preferindoMenosMovimento();
+
   for (let i = inicio; i < fim; i++) {
-    const indiceDaLinha = indicesVisiveis[i];
+    const item = itens[i];
+
+    if (item.tipo === 'grupo') {
+      tbody.appendChild(
+        linhaDeGrupo({ item, ctx, colunasVisiveis, visual, config, modelo, fixas, deslocamentos, aoAlternarGrupo })
+      );
+      continue;
+    }
+
+    const indiceDaLinha = item.indice;
     const linha = modelo.linhas[indiceDaLinha];
     const tr = criarEl('tr', { pai: tbody });
     tr.style.height = `${alturaLinha}px`;
+    if (animar) {
+      tr.classList.add('tc-entrando');
+      tr.style.animationDelay = `${Math.min(140, (i - inicio) * 7)}ms`;
+    }
 
     const selecionada = estado.selecionadas.has(indiceDaLinha);
     const zebrada = visual.usarZebra && i % 2 === 1;
@@ -628,15 +707,69 @@ function desenharLinhasVisiveis({
         td.style.background = fundoBase === 'transparent' ? visual.fundo : fundoBase;
       }
 
-      // O desenho do conteúdo fica a cargo de quem chamou (parte 2 traz os
-      // tipos de célula ricos e as regras de formatação).
+      // O conteúdo em si é desenhado por quem chamou (tipos de célula ricos
+      // e regras de formatação condicional vivem no index.js).
       pintarCelula({ td, coluna, linha, indiceDaLinha, visual, posicaoNaJanela: i });
+
+      if (aoMenuDeContexto) {
+        ctx.eventos.on(td, 'contextmenu', (ev) => aoMenuDeContexto(ev, { coluna, linha, indiceDaLinha, td }));
+      }
     }
   }
 
   if (fim < total && porPagina <= 0) {
     tbody.appendChild(linhaEspacadora((total - fim) * alturaLinha, colunasVisiveis.length + 1));
   }
+}
+
+/** Linha de cabeçalho de grupo, com o subtotal já embutido. */
+function linhaDeGrupo({ item, ctx, colunasVisiveis, visual, config, modelo, fixas, deslocamentos, aoAlternarGrupo }) {
+  const tr = criarEl('tr', { classe: 'tc-grupo' });
+  tr.style.height = `${visual.alturaLinha}px`;
+  tr.style.background = visual.escuro ? '#1B2738' : '#EEF2F7';
+  tr.style.fontWeight = '600';
+
+  if (config.mostrarNumeroDaLinha) {
+    const td = criarEl('td', { pai: tr });
+    estiloDeCelula(td, visual, config);
+  }
+
+  const mostrarSubtotais = config.mostrarSubtotais !== false;
+  let primeira = true;
+
+  colunasVisiveis.forEach((coluna, c) => {
+    const td = criarEl('td', { pai: tr });
+    estiloDeCelula(td, visual, config);
+    td.style.textAlign = coluna.alinhamento;
+    if (c < fixas) {
+      td.classList.add('tc-fixa');
+      td.style.left = `${deslocamentos.get(coluna.id) || 0}px`;
+      td.style.background = tr.style.background;
+    }
+
+    if (primeira && !coluna.ehMedida) {
+      primeira = false;
+      td.style.paddingLeft = `${8 + item.nivel * 14}px`;
+      const seta = criarEl('span', { classe: 'tc-seta-grupo', pai: td, texto: item.aberto ? '▾' : '▸' });
+      seta.style.marginRight = '5px';
+      const rotulo = criarEl('span', { pai: td, texto: `${item.rotulo} (${item.quantidade})` });
+      rotulo.title = item.rotulo;
+      td.classList.add('tc-selecionavel');
+      ctx.eventos.on(td, 'click', (ev) => {
+        ev.stopPropagation();
+        aoAlternarGrupo(item.chave);
+      });
+      return;
+    }
+
+    if (coluna.ehMedida && mostrarSubtotais) {
+      const valores = item.indices.map((i) => coluna.valorNumerico(modelo.linhas[i]));
+      const valor = agregar(valores, config.agregacaoDoTotal || 'soma');
+      definirTexto(td, valor === null ? '' : coluna.formatar ? coluna.formatar(valor) : String(valor));
+    }
+  });
+
+  return tr;
 }
 
 function linhaEspacadora(altura, colSpan) {
@@ -655,7 +788,7 @@ function estiloDeCelula(td, visual, config) {
   if (visual.bordasVerticais) td.style.borderRight = `1px solid ${visual.borda}`;
 }
 
-function atualizarResumo(resumoEl, indicesVisiveis, estado, colunasVisiveis, modelo, config) {
+function atualizarResumo(resumoEl, indicesVisiveis, estado, colunasVisiveis, modelo) {
   const partes = [`${indicesVisiveis.length.toLocaleString('pt-BR')} linha(s)`];
   if (estado.selecionadas.size) {
     partes.push(`${estado.selecionadas.size} selecionada(s)`);

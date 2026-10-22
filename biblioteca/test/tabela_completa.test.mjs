@@ -228,6 +228,109 @@ test('tabela_completa — cabeçalho de dois níveis quando há pivô', (t) => {
   t.diagnostic('cabeçalho de dois níveis e rodapé conferidos');
 });
 
+test('tabela_completa — agrupa, mostra subtotal e recolhe o grupo', (t) => {
+  const ctx = preparar('duasDimensoes');
+  const { window } = ctx.amb;
+
+  try {
+    assert.equal(ctx.palco.querySelectorAll('.tc-grupo').length, 0, 'sem agrupamento não deve haver grupos');
+
+    ctx.render({ agruparPor: '1', mostrarSubtotais: true });
+    const grupos = ctx.palco.querySelectorAll('.tc-grupo');
+    assert.ok(grupos.length > 0, 'nenhum cabeçalho de grupo foi criado');
+    // Grupos e linhas de dados convivem na mesma lista virtualizada.
+    const dados = Array.from(ctx.palco.querySelectorAll('.tc-tabela tbody tr:not(.tc-espacador)'))
+      .filter((tr) => !tr.classList.contains('tc-grupo'));
+    assert.ok(dados.length > 0, 'as linhas de dados sumiram ao agrupar');
+
+    // O subtotal fica na própria linha do grupo.
+    const celulasDoGrupo = Array.from(grupos[0].querySelectorAll('td'));
+    assert.ok(
+      celulasDoGrupo.some((td, i) => i > 0 && td.textContent.trim().length > 0),
+      'a linha de grupo deveria trazer o subtotal'
+    );
+
+    // Recolher todos os grupos: sobram só os cabeçalhos, nenhuma linha de
+    // dados. Contar linhas no DOM não serviria, porque a janela da
+    // virtualização simplesmente puxa outras linhas para o lugar.
+    for (let tentativa = 0; tentativa < 40; tentativa++) {
+      const aberto = Array.from(ctx.palco.querySelectorAll('.tc-grupo')).find((tr) =>
+        tr.textContent.startsWith('▾')
+      );
+      if (!aberto) break;
+      aberto.querySelector('td').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    }
+
+    const aindaAberto = Array.from(ctx.palco.querySelectorAll('.tc-grupo')).some((tr) =>
+      tr.textContent.startsWith('▾')
+    );
+    assert.equal(aindaAberto, false, 'algum grupo continuou aberto depois de clicar');
+
+    const dadosDepois = Array.from(ctx.palco.querySelectorAll('.tc-tabela tbody tr:not(.tc-espacador)'))
+      .filter((tr) => !tr.classList.contains('tc-grupo'));
+    assert.equal(dadosDepois.length, 0, 'com todos os grupos fechados não deveria sobrar linha de dados');
+    assert.ok(ctx.palco.querySelectorAll('.tc-grupo').length > 0, 'os cabeçalhos de grupo sumiram ao recolher');
+  } finally {
+    ctx.fim();
+  }
+  t.diagnostic('agrupamento, subtotal e recolher conferidos');
+});
+
+test('tabela_completa — filtro por coluna, inclusive numérico', (t) => {
+  const ctx = preparar('semPivo');
+  const { window } = ctx.amb;
+
+  try {
+    ctx.render({ mostrarFiltrosPorColuna: true });
+    const filtros = ctx.palco.querySelectorAll('.tc-filtro');
+    assert.ok(filtros.length > 0, 'a linha de filtros não apareceu');
+
+    const totalDeLinhas = ctx.palco.querySelectorAll('.tc-tabela tbody tr:not(.tc-espacador)').length;
+
+    const digitar = (indice, texto) => {
+      const campo = ctx.palco.querySelectorAll('.tc-filtro')[indice];
+      campo.value = texto;
+      campo.dispatchEvent(new window.Event('input', { bubbles: true }));
+    };
+
+    digitar(0, 'Centro');
+    const filtradas = ctx.palco.querySelectorAll('.tc-tabela tbody tr:not(.tc-espacador)').length;
+    assert.ok(filtradas > 0 && filtradas < totalDeLinhas, 'o filtro de texto não filtrou');
+
+    digitar(0, '');
+    digitar(1, '>1000000000');
+    assert.match(
+      ctx.palco.querySelector('.tc-vazio')?.textContent || '',
+      /Nenhuma linha/,
+      'o filtro numérico ">" não foi aplicado'
+    );
+  } finally {
+    ctx.fim();
+  }
+  t.diagnostic('filtros por coluna conferidos');
+});
+
+test('tabela_completa — menu de contexto abre e fecha', (t) => {
+  const ctx = preparar('semPivo');
+  const { window } = ctx.amb;
+
+  try {
+    ctx.render({ permitirCopiar: true });
+    const celula = ctx.palco.querySelector('.tc-tabela tbody tr:not(.tc-espacador) td');
+    celula.dispatchEvent(new window.MouseEvent('contextmenu', { bubbles: true, clientX: 10, clientY: 10 }));
+
+    const menu = window.document.querySelector('.tc-menu');
+    assert.ok(menu, 'o menu de contexto não abriu');
+    assert.ok(menu.querySelectorAll('button').length >= 3, 'o menu veio sem opções');
+
+    menu.querySelector('button').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    assert.equal(window.document.querySelector('.tc-menu'), null, 'o menu não fechou depois do clique');
+  } finally {
+    ctx.fim();
+  }
+  t.diagnostic('menu de contexto conferido');
+});
+
 test('tabela_completa — o bundle existe', () => {
   assert.ok(existsSync(BUNDLE), 'rode `npm run build` antes de `npm test`');
 });

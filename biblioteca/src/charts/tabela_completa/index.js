@@ -1,22 +1,22 @@
 /**
  * tabela_completa — "Tabela Completa" (seção 8 do PROMPT_AGENTE.md).
  *
- * Parte 1 (esta entrega): estrutura de colunas a partir do modelo, cabeçalho
- * fixo em dois níveis quando há pivô, virtualização por janela de linhas,
- * ordenação por uma ou várias colunas, busca, seleção com soma, exportação
- * CSV, redimensionamento de colunas, temas/densidade e linha de totais.
+ * Estrutura: colunas a partir do modelo, cabeçalho fixo em dois níveis
+ * quando há pivô, virtualização por janela de linhas, ordenação por uma ou
+ * várias colunas, busca, filtros por coluna, agrupamento com subtotais,
+ * seleção com soma, cópia, menu de contexto, exportação CSV e totais.
  *
- * Parte 2 trará os tipos de célula ricos (barra, sparkline, badge, semáforo…)
- * e o motor de regras de formatação condicional; parte 3 traz agrupamento de
- * linhas com subtotais e as animações de mudança de valor.
+ * Os tipos de célula ricos ficam em `celulas.js` e as regras de formatação
+ * condicional em `regras.js`. Este arquivo é só a amarração.
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { definirTexto, criarEl } from '../../core/dom.js';
 import { misturarCores } from '../../core/scales.js';
-import { textoLegivelSobre } from '../../core/theme.js';
+import { textoLegivelSobre, comOpacidade } from '../../core/theme.js';
 import { prepararRegras, avaliarRegras, posicaoNaColuna } from './regras.js';
 import { desenhistaDoTipo, TIPOS_QUE_PRECISAM_DA_COLUNA } from './celulas.js';
+import { montarItens, aplicarFiltrosDeColuna } from './grupos.js';
 import { opcoesEstaticas, opcoesPorColuna, MAXIMO_DE_COLUNAS_CONFIGURAVEIS } from './opcoes.js';
 import { construirColunas, colunasNumericasParaOpcoes, resumoDeColunas } from './colunas.js';
 import {
@@ -44,6 +44,8 @@ function ordenacaoInicial(config, colunas) {
 function prepararEstado(estado, config, colunas) {
   if (!estado.larguras) estado.larguras = {};
   if (!estado.selecionadas) estado.selecionadas = new Set();
+  if (!estado.gruposFechados) estado.gruposFechados = new Set();
+  if (!estado.filtros) estado.filtros = {};
   if (estado.busca === undefined) estado.busca = '';
   if (estado.pagina === undefined) estado.pagina = 0;
   if (!estado.ordenacao || estado.assinaturaDaOrdenacao !== config.ordenacaoInicial) {
@@ -67,11 +69,15 @@ function textoParaNulo(config) {
  * Pinta o conteúdo de uma célula: tipo de célula escolhido, escala de cor,
  * regras de formatação condicional e drill.
  */
-function criarPintorDeCelula(ctx, nulo, contextos, porId) {
+function criarPintorDeCelula(ctx, nulo, contextos, porId, comparacao) {
   const { config, ponte, modelo } = ctx;
 
-  return function pintarCelula({ td, coluna, linha }) {
+  return function pintarCelula({ td, coluna, linha, indiceDaLinha }) {
     const estatistica = contextos.get(coluna.id) || null;
+
+    if (comparacao && coluna.ehMedida) {
+      compararComAtualizacaoAnterior({ ctx, td, coluna, linha, indiceDaLinha, comparacao });
+    }
 
     // 1) Cores fixas da coluna (base, antes das regras).
     if (coluna.corDoTexto) td.style.color = coluna.corDoTexto;
@@ -170,6 +176,56 @@ function baixarCsv(conteudo, nomeDoArquivo) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * Pisca a célula quando o valor mudou em relação à atualização anterior.
+ * Só vale na PRIMEIRA pintura depois de novos dados: reordenar ou buscar
+ * não deve piscar nada, porque o valor não mudou.
+ */
+function compararComAtualizacaoAnterior({ ctx, td, coluna, linha, indiceDaLinha, comparacao }) {
+  const chave = `${indiceDaLinha}|${coluna.id}`;
+  const valor = coluna.valorNumerico(linha);
+  comparacao.novos.set(chave, valor);
+
+  if (!comparacao.anteriores) return;
+  const antigo = comparacao.anteriores.get(chave);
+  if (antigo === undefined || antigo === null || valor === null || valor === antigo) return;
+
+  const cor = valor > antigo ? ctx.config.corDeSubida || '#16A34A' : ctx.config.corDeDescida || '#DC2626';
+  const fundoAnterior = td.style.background;
+  td.classList.add('tc-flash');
+  td.style.background = comOpacidade(cor, 0.35);
+  ctx.agendarTimer(() => {
+    td.style.background = fundoAnterior;
+  }, 60);
+}
+
+/**
+ * Copia texto para a área de transferência.
+ *
+ * Dentro do iframe do Looker a API moderna (`navigator.clipboard`) costuma
+ * ser bloqueada por permissão, então o caminho que funciona é o antigo:
+ * um `<textarea>` fora da tela + `document.execCommand('copy')`.
+ */
+function copiar(texto) {
+  if (typeof document === 'undefined') return false;
+  const area = criarEl('textarea');
+  area.value = texto;
+  area.setAttribute('readonly', 'readonly');
+  area.style.position = 'fixed';
+  area.style.top = '-1000px';
+  area.style.opacity = '0';
+  document.body.appendChild(area);
+  let deuCerto = false;
+  try {
+    area.select();
+    deuCerto = typeof document.execCommand === 'function' && document.execCommand('copy');
+  } catch (_) {
+    deuCerto = false;
+  }
+  document.body.removeChild(area);
+  return deuCerto;
+}
+
 export default defineViz({
   id: 'tabela_completa',
   label: 'Tabela Completa',
@@ -214,24 +270,39 @@ export default defineViz({
     const nulo = textoParaNulo(config);
     const porId = new Map(colunas.map((c) => [c.id, c]));
 
-    // Índices de linha depois de busca + ordenação. Recalculado a cada
-    // interação; a virtualização cuida de não transformar isso em DOM.
+    // Índices de linha depois de filtros + busca + ordenação. Recalculado a
+    // cada interação; a virtualização cuida de não transformar isso em DOM.
     function calcularIndices() {
       const todos = modelo.linhas.map((_, i) => i);
-      const filtrados = filtrarIndices(todos, colunasVisiveis, estado.busca, modelo);
-      return ordenarIndices(filtrados, colunas, estado.ordenacao, modelo);
+      const porColuna = aplicarFiltrosDeColuna(todos, colunasVisiveis, estado.filtros, modelo);
+      const buscados = filtrarIndices(porColuna, colunasVisiveis, estado.busca, modelo);
+      return ordenarIndices(buscados, colunas, estado.ordenacao, modelo);
     }
 
     let indicesVisiveis = calcularIndices();
+    let itens = montarItens({ indices: indicesVisiveis, colunas, config, modelo, estado });
 
     // Top N, percentil, média, escalas de cor e os tipos de célula que
     // comparam com a coluna inteira: calculado uma vez por renderização.
     const estatisticas = () => prepararRegras(colunas, indicesVisiveis, modelo, TIPOS_QUE_PRECISAM_DA_COLUNA);
-    let pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId);
+
+    // Comparação com a atualização anterior, usada só nesta primeira
+    // pintura: reordenar ou buscar não deve fazer a tabela piscar.
+    const comparacao =
+      config.animarMudancaDeValor !== false && !ctx.primeiraRenderizacao
+        ? { anteriores: estado.valoresAnteriores || null, novos: new Map() }
+        : { anteriores: null, novos: new Map() };
+
+    let pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, comparacao);
+
+    function recalcular() {
+      indicesVisiveis = calcularIndices();
+      itens = montarItens({ indices: indicesVisiveis, colunas, config, modelo, estado });
+    }
 
     function redesenhar() {
-      indicesVisiveis = calcularIndices();
-      pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId);
+      recalcular();
+      pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, null);
       desenhar();
     }
 
@@ -243,7 +314,8 @@ export default defineViz({
         gruposDePivo,
         temPivo,
         visual,
-        indicesVisiveis,
+        itens,
+        indicesDeDados: indicesVisiveis,
         estado,
         pintarCelula,
 
@@ -293,9 +365,89 @@ export default defineViz({
         aoExportar() {
           baixarCsv(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo), 'tabela_completa.csv');
         },
+
+        aoAlternarGrupo(chave) {
+          if (estado.gruposFechados.has(chave)) estado.gruposFechados.delete(chave);
+          else estado.gruposFechados.add(chave);
+          redesenhar();
+        },
+
+        aoFiltrarColuna(colunaId, termo) {
+          estado.filtros[colunaId] = termo;
+          estado.pagina = 0;
+          estado.rolagemTopo = 0;
+          redesenhar();
+        },
+
+        aoMenuDeContexto: config.permitirCopiar === false ? null : abrirMenuDeContexto,
       });
     }
 
+    /** Menu do botão direito: copiar célula, copiar linha(s), exportar. */
+    function abrirMenuDeContexto(evento, { coluna, linha, indiceDaLinha }) {
+      evento.preventDefault();
+      fecharMenu();
+
+      const menu = criarEl('div', { classe: 'tc-menu', pai: document.body });
+      menu.style.background = visual.fundo;
+      menu.style.color = visual.texto;
+      menu.style.borderColor = visual.borda;
+      menu.style.boxShadow = tema.sombra;
+      menu.style.left = `${evento.clientX}px`;
+      menu.style.top = `${evento.clientY}px`;
+      ctx.estado.menuAberto = menu;
+
+      const item = (rotulo, acao) => {
+        const botao = criarEl('button', { pai: menu, texto: rotulo });
+        ctx.eventos.on(botao, 'click', () => {
+          acao();
+          fecharMenu();
+        });
+      };
+
+      item('Copiar valor desta célula', () => copiar(coluna.texto(linha, nulo)));
+      item('Copiar esta linha', () => copiar(linhaComoTexto(indiceDaLinha)));
+      if (estado.selecionadas.size) {
+        item(`Copiar ${estado.selecionadas.size} linha(s) selecionada(s)`, () =>
+          copiar(Array.from(estado.selecionadas).map(linhaComoTexto).join('\n'))
+        );
+      }
+      item('Copiar a tabela inteira', () => copiar(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo)));
+      item('Exportar CSV', () =>
+        baixarCsv(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo), 'tabela_completa.csv')
+      );
+
+      const celula = coluna.celula(linha);
+      if (config.permitirDrill !== false && celula && ctx.ponte.temDrill(celula)) {
+        item('Abrir drill do Looker', () => ctx.ponte.abrirDrill(celula, evento));
+      }
+
+      // Fecha ao clicar em qualquer outro lugar.
+      ctx.agendarTimer(() => {
+        ctx.eventos.on(document, 'click', fecharMenu, { once: true });
+      }, 0);
+    }
+
+    function fecharMenu() {
+      const menu = ctx.estado.menuAberto;
+      if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+      ctx.estado.menuAberto = null;
+    }
+
+    function linhaComoTexto(indice) {
+      const linha = modelo.linhas[indice];
+      return colunasVisiveis.map((c) => c.texto(linha, nulo)).join('\t');
+    }
+
     desenhar();
+
+    // A virtualização só pinta a janela visível, então o mapa cobre o que
+    // apareceu. Mesclamos com o anterior para não perder o resto da tabela.
+    estado.valoresAnteriores = new Map([...(estado.valoresAnteriores || []), ...comparacao.novos]);
+  },
+
+  aoDestruir({ estado }) {
+    const menu = estado && estado.menuAberto;
+    if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
   },
 });

@@ -319,11 +319,47 @@ Defeitos achados e corrigidos antes do commit:
 Números: bundle 155,6 KB; 18/18 testes passando; checagem de segurança sem
 violação.
 
+#### Parte 3 — concluída (gráfico 1 do TIER 1 fechado)
+
+Arquivo novo: `grupos.js` (agrupamento, subtotais e filtros por coluna).
+
+Decisões desta parte:
+
+- **Lista plana de itens visuais**: em vez de desenhar "linhas de dados", a
+  tabela desenha uma lista de itens que podem ser cabeçalho de grupo ou
+  linha de dados. Como todos têm a mesma altura, a virtualização continua
+  valendo sem nenhuma conta especial. Foi o que permitiu agrupar sem perder
+  o desempenho com 5.000 linhas.
+- **O subtotal fica na PRÓPRIA linha do grupo**, não numa linha extra: assim
+  ele continua visível com o grupo fechado, que é quando ele mais importa.
+- **Filtro por coluna aceita comparação numérica** (`>100`, `<=5`, `=3`) em
+  colunas de medida, e "contém" em texto. É a sintaxe que o usuário de
+  planilha já espera, e não exige mais nenhum controle na tela.
+- **Copiar usa `<textarea>` + `document.execCommand('copy')`**, não
+  `navigator.clipboard`: dentro do iframe do Looker a API moderna costuma
+  ser bloqueada por permissão. O método antigo é o que de fato funciona lá.
+- **Piscar ao mudar de valor só na primeira pintura depois de novos dados**:
+  reordenar ou buscar não faz a tabela piscar, porque o valor não mudou. O
+  mapa de valores anteriores é mesclado entre atualizações, já que a
+  virtualização só pinta a janela visível.
+- **O menu de contexto é removido no `aoDestruir`**, porque ele vive em
+  `document.body` (fora da raiz da viz) e não sairia com a limpeza normal.
+
+Testes acrescentados: agrupar + subtotal + recolher todos os grupos, filtros
+por coluna (texto e numérico) e menu de contexto abrindo/fechando.
+
+Um detalhe que custou duas tentativas de teste: **contar linhas no DOM não
+prova nada quando há virtualização** — fechar um grupo não diminui o número
+de linhas, só troca quais linhas entram na janela. O teste certo é fechar
+TODOS os grupos e exigir que não sobre nenhuma linha de dados.
+
+Números: bundle 169,7 KB; 21/21 testes passando; checagem de segurança sem
+violação. `tabela_completa` marcada como `[x]` em TAREFAS.md.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 9, parte 3: agrupamento de linhas com expandir/recolher e subtotais
-(opções `agruparPor`, `gruposComecamAbertos`, `mostrarSubtotais`), filtros
-por coluna, copiar seleção, menu de contexto e as animações da tabela
-(`animarEntradaDasLinhas`, `animarMudancaDeValor` com as cores de subida e
-descida). Depois buildar, rodar `npm test` e `npm run seguranca`, marcar o
-item 1 do TIER 1 como `[x]` em TAREFAS.md e commitar.
+TIER 1, item 2: criar `src/charts/diagrama_venn/` (Diagrama de Venn para 2 a
+5 conjuntos, lendo as fixtures `conjuntos2` a `conjuntos5`,
+`conjuntosPorItem` e `conjuntosBooleanos`), registrar em
+`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
+marcar em TAREFAS.md e commitar.
