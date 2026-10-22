@@ -1425,29 +1425,81 @@ contagem direta em sete limites, inclusive fora do intervalo.
 Números: 31 gráficos construídos; 632/632 testes passando; checagem de
 segurança sem violação em 95 arquivos.
 
+### Etapa 36 — `intervalo_confianca` (TIER 3, item 32)
+
+Estimativa por categoria com a barra de erro em volta: "essa diferença é
+real ou cabe no erro?".
+
+**A armadilha central, e ela é grande.** Intervalos de 95% que se TOCAM não
+significam "diferença não significativa". O erro-padrão da diferença é
+√(EP₁² + EP₂²), menor que a soma dos dois — dois intervalos de 95% podem se
+sobrepor bastante e a diferença ainda ser significativa a 5%. Quem lê
+sobreposição como "igual" erra para o lado conservador o tempo todo e
+deixa de ver efeitos reais. A leitura errada é a natural, e a conta está
+certa: é o tipo de erro que nenhum teste de código pega.
+
+Daí o modo **intervalos de comparação (~83,4%)**: barras de 1,386 EP, que é
+1,96/√2, construídas justamente para que a sobreposição corresponda ao
+teste. O teste confere a propriedade numericamente — duas estimativas
+separadas pelo limiar do teste (1,96·√2·EP) têm as barras se tocando
+exatamente. E o gráfico declara em voz alta que elas NÃO são intervalos de
+confiança da estimativa, porque trocar um pelo outro é trocar uma conclusão
+por outra.
+
+**Três caminhos para o n, todos declarados na tela**, porque não significam
+a mesma coisa: (1) limites já calculados no LookML — o gráfico só desenha o
+que recebeu e avisa que não pode recalculá-los em outro nível; (2) medidas
+de n e desvio por categoria, com EP = s/√n; (3) a partir das linhas sem
+agregar, reaproveitando `_distribuicao/` — o único caminho em que o n é o
+número de observações de verdade. Quando nenhum está disponível, a mensagem
+de saída ENSINA os outros dois em vez de dizer "não dá".
+
+Usa `quantilT` com n−1 graus de liberdade, não 1,96 fixo: com n = 6 o
+multiplicador certo é 2,571, e usar z estreitaria o intervalo em ~24%
+exatamente na faixa de n em que a incerteza é maior. Teste confere o
+multiplicador e também a lei do √n (quadruplicar o n reduz a largura pela
+metade: medido 2,019).
+
+Erro meu no teste, e instrutivo: comparei o comprimento em PIXELS das
+barras de 95% com as de comparação, esperando que as segundas fossem
+menores — e vieram maiores. Barras mais estreitas encolhem o domínio do
+eixo, a escala dá zoom e tudo volta a parecer longo. **Pixels crus não são
+comparáveis entre dois desenhos com domínios diferentes.** O que é
+invariante de escala é a barra medida CONTRA a distância entre as
+estimativas, que são os mesmos dados nos dois casos: 1,933 contra 0,892.
+Vale para qualquer teste futuro que compare dois renders.
+
+Números: 32 gráficos construídos; 662/662 testes passando; checagem de
+segurança sem violação em 97 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 32: criar `src/charts/intervalo_confianca/` ("Intervalo de
-Confiança"): estimativa pontual por categoria com a barra de erro em volta
-— o gráfico que responde "essa diferença é real ou cabe no erro?".
+TIER 3, item 33: criar `src/charts/matriz_dispersao/` ("Matriz de
+Dispersão" / SPLOM): grade de dispersões, uma por par de medidas, com a
+diagonal mostrando a distribuição de cada variável.
 
-Pontos de atenção: (a) o intervalo precisa de n, e a consulta quase nunca
-traz n: oferecer (i) duas medidas extras para limite inferior/superior já
-calculados no LookML, (ii) uma medida de contagem + uma de desvio, ou (iii)
-calcular a partir das LINHAS quando a consulta vier sem agregar —
-reaproveitando `_distribuicao/`. Declarar na tela qual dos três caminhos
-foi usado, porque eles não significam a mesma coisa; (b) usar `quantilT`
-(já existe em `core/estatistica.js`) e não 1,96 fixo — com n pequeno a
-diferença é grande; (c) **a armadilha central**: intervalos que se tocam
-NÃO implicam diferença não significativa, e intervalos que não se tocam
-implicam sim. Oferecer o modo "intervalos de comparação" (barras de
-~83-84%, cuja sobreposição é que corresponde ao teste) e explicar a
-diferença na tela — sem isso o gráfico induz à conclusão errada o tempo
-todo; (d) ordenar por estimativa, e marcar a linha de referência (média
-geral ou zero) quando fizer sentido.
+Este é o SEGUNDO gráfico de dispersão da biblioteca, então vale a regra que
+já se pagou várias vezes: **extrair a base `_dispersao/` AGORA**, não
+depois. O que o `dispersao_regressao` já tem e serve aos dois: leitura dos
+pontos, escolha SVG×canvas pelo volume, tooltip do ponto mais próximo,
+ajuste por mínimos quadrados e o teste de corridas. Mover para
+`src/charts/_dispersao/index.js` e fazer o `dispersao_regressao` passar a
+usá-la, conferindo que os testes dele continuam passando sem alteração —
+se precisarem mudar, a extração mudou comportamento e está errada.
+
+Pontos de atenção do SPLOM: (a) k medidas dão k² painéis; acima de ~6
+medidas (36 painéis) cada um fica com poucos pixels e não mostra nada —
+cortar com aviso; (b) cada painel é pequeno, então nada de eixos completos:
+só os da borda, e o nome da variável na diagonal; (c) o número de pontos
+TOTAL é n × k², então canvas quase sempre — desenhar os k² painéis num
+único canvas, não um canvas por painel; (d) a diagonal pode ser histograma
+ou densidade, e o triângulo superior pode mostrar o r de Pearson em vez de
+repetir a dispersão espelhada (é a convenção, e economiza metade dos
+pixels); (e) correlação alta num painel não significa nada sem olhar a
+forma — é literalmente o quarteto de Anscombe; dizer isso na nota.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/intervalo_confianca.test.mjs` (o intervalo tem de bater com
-x̄ ± t·s/√n calculado à mão; n maior tem de estreitar o intervalo;
-confiança maior tem de alargá-lo), `npm test`, `npm run seguranca`, marcar
-em TAREFAS.md, commitar e seguir para o item 33 (`matriz_dispersao`).
+`test/matriz_dispersao.test.mjs` (k medidas ⇒ k² painéis; o painel (i,j)
+tem de usar as medidas i e j nas escalas certas — um SPLOM com eixos
+trocados é indistinguível a olho), `npm test`, `npm run seguranca`, marcar
+em TAREFAS.md, commitar e seguir para o item 34 (`correlacao_matriz`).

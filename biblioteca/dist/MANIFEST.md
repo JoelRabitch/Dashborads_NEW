@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 14:53:37 (commit `3e112d2`).
+Gerado automaticamente pelo build em 2026-10-22 14:58:41 (commit `1936db9`).
 
 ## Como cadastrar no Looker
 
@@ -46,6 +46,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `dispersao_regressao` | Dispersao com Regressao | `dist/dispersao_regressao.js` | (vazio) | 2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/dispersao_regressao.js` |
 | `qq_plot` | Q-Q Plot (Normalidade) | `dist/qq_plot.js` | (vazio) | 1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/qq_plot.js` |
 | `densidade_ecdf` | Densidade e ECDF | `dist/densidade_ecdf.js` | (vazio) | 1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/densidade_ecdf.js` |
+| `intervalo_confianca` | Intervalo de Confianca | `dist/intervalo_confianca.js` | (vazio) | 1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/intervalo_confianca.js` |
 
 ## Detalhes por visualização
 
@@ -327,3 +328,12 @@ Duas vistas da mesma distribuicao no mesmo eixo X: a densidade estimada (que dep
 - **Explore**: 1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 162.8 KB
+
+### Intervalo de Confianca (`intervalo_confianca`)
+
+Estimativa por categoria com barra de erro, por tres caminhos declarados, e o modo de COMPARACAO (~83,4%) em que a sobreposicao corresponde ao teste.
+
+- **Tier**: 3
+- **Explore**: 1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 166.0 KB

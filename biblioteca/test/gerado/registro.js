@@ -437,5 +437,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes."
+  },
+  {
+    "id": "intervalo_confianca",
+    "label": "Intervalo de Confianca",
+    "tier": 3,
+    "arquivo": "../dist/intervalo_confianca.js",
+    "existe": true,
+    "fixtures": [
+      "conjuntosPorItem",
+      "grande5k",
+      "semPivo",
+      "vazio"
+    ],
+    "explore": "1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao."
   }
 ];

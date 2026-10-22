@@ -469,6 +469,21 @@
         "conjuntosPorItem",
         "vazio"
       ]
+    },
+    {
+      "id": "intervalo_confianca",
+      "label": "Intervalo de Confianca",
+      "tier": 3,
+      "pasta": "intervalo_confianca",
+      "resumo": "Estimativa por categoria com barra de erro, por tres caminhos declarados, e o modo de COMPARACAO (~83,4%) em que a sobreposicao corresponde ao teste.",
+      "explore": "1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "conjuntosPorItem",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
     }
   ]
 }
