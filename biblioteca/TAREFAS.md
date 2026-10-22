@@ -8,24 +8,24 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 
 ## TIER 0 — infraestrutura
 
-- [~] T0.1 Esqueleto de `/biblioteca` + branch `agente/novas-viz`
-- [ ] T0.2 Conferir node/npm e versões (esbuild, módulos d3) + `package.json`
-- [ ] T0.3 `src/core/dom.js`, `errors.js`, `theme.js`, `format.js`
-- [ ] T0.4 `src/core/looker-adapter.js` (único arquivo que toca a API do Looker)
-- [ ] T0.5 `src/core/data-model.js` (modelo interno estável)
-- [ ] T0.6 `src/core/options-kit.js` (kit de opções da seção 6)
-- [ ] T0.7 `src/core/define-viz.js` (fábrica que liga viz ao adapter)
-- [ ] T0.8 `src/core/scales.js`, `shapes.js`, `animate.js`, `tooltip.js`, `legend.js`, `interaction.js`
-- [ ] T0.9 `src/charts/_template/` (modelo de gráfico novo)
-- [ ] T0.10 `config/charts.json` + `build/build.mjs` (gera `dist/<id>.js` e `dist/MANIFEST.md`)
-- [ ] T0.11 `test/fixtures/` (com/sem pivô, nulos, vazio, 5.000 e 50.000 linhas)
-- [ ] T0.12 `test/smoke.test.mjs` + `test/harness.html`
-- [ ] T0.13 `docs/ARQUITETURA.md`, `COMPAT.md`, `COMO_ADICIONAR_GRAFICO.md`, `CHANGELOG.md`
-- [ ] T0.14 `README.md` da biblioteca + aviso no `README.md` da raiz
+- [x] T0.1 Esqueleto de `/biblioteca` + branch `agente/novas-viz`
+- [x] T0.2 Conferir node/npm e versões (esbuild, módulos d3) + `package.json`
+- [x] T0.3 `src/core/dom.js`, `errors.js`, `theme.js`, `format.js`
+- [x] T0.4 `src/core/looker-adapter.js` (único arquivo que toca a API do Looker)
+- [x] T0.5 `src/core/data-model.js` (modelo interno estável)
+- [x] T0.6 `src/core/options-kit.js` (kit de opções da seção 6)
+- [x] T0.7 `src/core/define-viz.js` (fábrica que liga viz ao adapter)
+- [x] T0.8 `src/core/scales.js`, `shapes.js`, `animate.js`, `tooltip.js`, `legend.js`, `interaction.js`
+- [x] T0.9 `src/charts/_template/` (modelo de gráfico novo)
+- [x] T0.10 `config/charts.json` + `build/build.mjs` (gera `dist/<id>.js` e `dist/MANIFEST.md`)
+- [x] T0.11 `test/fixtures/` (com/sem pivô, nulos, vazio, 5.000 e 50.000 linhas)
+- [x] T0.12 `test/smoke.test.mjs` + `test/harness.html`
+- [x] T0.13 `docs/ARQUITETURA.md`, `COMPAT.md`, `COMO_ADICIONAR_GRAFICO.md`, `CHANGELOG.md`
+- [x] T0.14 `README.md` da biblioteca + aviso no `README.md` da raiz
 
 ## TIER 1 — pedidos diretos
 
-- [ ] 1. `tabela_completa` — "Tabela Completa" (seção 8 do prompt)
+- [~] 1. `tabela_completa` — "Tabela Completa" (seção 8 do prompt)
 - [ ] 2. `diagrama_venn` — "Diagrama de Venn"
 - [ ] 3. `quadrant_scatter` — "Dispersão com Quadrantes"
 - [ ] 4. `matriz_2x2` — "Matriz 2x2"

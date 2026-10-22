@@ -50,6 +50,9 @@ retomada de sessão (ver seção 11 do `PROMPT_AGENTE.md`).
       `build/checagem-seguranca.mjs`.
 - [x] **Etapa 7** — `test/harness.html` + `test/smoke.test.mjs` (+ geração de
       `test/gerado/fixtures.js` e `registro.js` pelo build).
+- [x] **Etapa 8** — docs (`ARQUITETURA`, `COMPAT`, `COMO_ADICIONAR_GRAFICO`,
+      `CHANGELOG`), `README.md` da biblioteca e aviso no `README.md` da raiz.
+      **TIER 0 CONCLUÍDO.**
 
 ### Versões de build escolhidas (todas conferidas com `npm view`)
 
@@ -183,10 +186,41 @@ Desempenho conferido: modelo + extração de série com **50.000 linhas em
   comentário mostrando como ler pivô de verdade (`modelo.pivotsDeDados` +
   `chaveDoPivo`), para não ensinar o padrão errado.
 
+### Notas da etapa 8
+
+- `docs/COMPAT.md` ficou sendo o documento mais importante da pasta: lista
+  cada método da API do Looker usado, com **nível de confiança** (confirmado
+  / documentado / incerto), como confirmar, o que acontece sem ele, e o
+  checklist de 8 passos para quando a versão do Looker mudar. Inclui também
+  os comportamentos reais que já causaram problema (registerOptions que
+  substitui o painel, arraste travando no iframe, Trusted Types em
+  report-only, bloqueio de CDN pela rede da empresa).
+- A ÚNICA alteração fora de `/biblioteca` foi acrescentar 16 linhas no fim do
+  `README.md` da raiz (permitido pela seção 2 do prompt). Conferido com
+  `git diff --cached --stat`: `README.md | 16 ++++++`.
+
+---
+
+## TIER 1 — gráficos
+
+### Etapa 9 — `tabela_completa` (em andamento)
+
+Plano de ataque (a seção 8 do prompt é grande, então vai em partes, cada uma
+com commit e push):
+1. **Parte 1**: estrutura — colunas, cabeçalho fixo, virtualização de linhas,
+   ordenação por clique (e múltipla com shift), temas, densidade, totais.
+2. **Parte 2**: tipos de célula (barra de dados, sparkline, badge, semáforo,
+   estrelas, progresso, seta de variação, mini-barras) + motor de regras de
+   formatação condicional.
+3. **Parte 3**: campos animados (contador, barras crescendo, flash ao mudar
+   de valor, entrada das linhas) + interação (busca, filtros por coluna,
+   seleção com soma, copiar, exportar CSV, menu de contexto) + agrupamento
+   de linhas com expandir/recolher e subtotais.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Etapa 8 (Tier 0, última): escrever `docs/ARQUITETURA.md`, `docs/COMPAT.md`
-(com a tabela de cada método da API do Looker usado + o checklist "se a
-versão do Looker mudar"), `docs/COMO_ADICIONAR_GRAFICO.md`,
-`docs/CHANGELOG.md`, o `README.md` da biblioteca e o aviso no fim do
-`README.md` da raiz. Depois disso, começar o Tier 1 pelo `tabela_completa`.
+Etapa 9, parte 1: criar `src/charts/tabela_completa/index.js` com a
+estrutura da tabela (colunas a partir do modelo, cabeçalho fixo em 2 níveis
+quando há pivô, virtualização por janela de linhas, ordenação, temas e
+totais no rodapé), registrar em `config/charts.json`, buildar, testar e
+commitar.
