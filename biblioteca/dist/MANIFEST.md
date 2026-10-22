@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 02:20:49 (commit `2e5db10`).
+Gerado automaticamente pelo build em 2026-10-22 02:28:10 (commit `22848f5`).
 
 ## Como cadastrar no Looker
 
@@ -23,6 +23,8 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `theme_river` | ThemeRiver | `dist/theme_river.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/theme_river.js` |
 | `funil_variacoes` | Funis (Estilos) | `dist/funil_variacoes.js` | (vazio) | 1 dimensao com as etapas e 1 medida, ou varias medidas (uma por etapa). Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/funil_variacoes.js` |
 | `funil_comparativo` | Funil Comparativo | `dist/funil_comparativo.js` | (vazio) | 1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/funil_comparativo.js` |
+| `gauge_variacoes` | Medidores (Estilos) | `dist/gauge_variacoes.js` | (vazio) | 1 medida (o valor). Opcionalmente uma segunda medida para o alvo. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/gauge_variacoes.js` |
+| `gauge_grid` | Medidores em Grade | `dist/gauge_grid.js` | (vazio) | 1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/gauge_grid.js` |
 
 ## Detalhes por visualização
 
@@ -97,3 +99,21 @@ Varios funis lado a lado, um por segmento, compartilhando a mesma escala para a 
 - **Explore**: 1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos.
 - **Aceita pivô**: sim
 - **Tamanho do bundle**: 130.7 KB
+
+### Medidores (Estilos) (`gauge_variacoes`)
+
+Um medidor em cinco estilos (arco de 270 graus, semicirculo, circulo completo, barra linear e bullet chart), com faixas coloridas, alvo e agulha.
+
+- **Tier**: 1
+- **Explore**: 1 medida (o valor). Opcionalmente uma segunda medida para o alvo. Nao aceita pivo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 124.3 KB
+
+### Medidores em Grade (`gauge_grid`)
+
+Um medidor pequeno por item de uma dimensao, numa grade responsiva, todos compartilhando a mesma escala para serem comparaveis.
+
+- **Tier**: 1
+- **Explore**: 1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 126.9 KB

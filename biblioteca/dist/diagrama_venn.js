@@ -1,7 +1,7 @@
 /*!
  * Diagrama de Venn — visualização customizada para o Looker
  * id: diagrama_venn
- * versão: 0.1.0 | build: 2026-10-22 02:20:49 | commit: 2e5db10
+ * versão: 0.1.0 | build: 2026-10-22 02:28:10 | commit: 22848f5
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

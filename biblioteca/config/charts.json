@@ -128,6 +128,35 @@
         "duasDimensoes",
         "vazio"
       ]
+    },
+    {
+      "id": "gauge_variacoes",
+      "label": "Medidores (Estilos)",
+      "tier": 1,
+      "pasta": "gauge_variacoes",
+      "resumo": "Um medidor em cinco estilos (arco de 270 graus, semicirculo, circulo completo, barra linear e bullet chart), com faixas coloridas, alvo e agulha.",
+      "explore": "1 medida (o valor). Opcionalmente uma segunda medida para o alvo. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "gauge_grid",
+      "label": "Medidores em Grade",
+      "tier": 1,
+      "pasta": "gauge_grid",
+      "resumo": "Um medidor pequeno por item de uma dimensao, numa grade responsiva, todos compartilhando a mesma escala para serem comparaveis.",
+      "explore": "1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "somenteNulos",
+        "vazio"
+      ]
     }
   ]
 }

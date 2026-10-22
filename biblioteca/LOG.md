@@ -568,13 +568,52 @@ depende disso.
 Números: 8 gráficos construídos; 135/135 testes passando; checagem de
 segurança sem violação.
 
+### Etapa 15 — `gauge_variacoes` e `gauge_grid` (TIER 1, itens 9 e 10)
+
+Base comum em `src/charts/_medidor/`: cinco estilos (arco de 270°,
+semicírculo, círculo, barra linear e bullet), faixas coloridas, alvo e
+agulha.
+
+O assunto central deste par não é o desenho, é a **escala**. Um medidor é o
+gráfico mais fácil de usar para enganar: a mesma agulha no mesmo lugar
+significa coisas diferentes conforme o mínimo e o máximo. Tentei duas
+abordagens antes de chegar na que ficou:
+
+1. Escala dos valores POR LINHA. Com agregação por soma, o total passa de
+   qualquer linha e o ponteiro fica sempre encostado no máximo.
+2. Escala do próprio valor exibido. Aí o ponteiro marca sempre 100%.
+
+Nenhuma das duas é honesta, porque com UM número não existe escala
+derivável. A ordem que ficou vai atrás de uma referência que o usuário
+realmente definiu: limites fixos → alvo (com 25% de folga) → maior faixa
+configurada → e, se não houver nada disso, o gráfico **avisa na tela** que
+não tem escala definida, em vez de fingir que tem.
+
+Outras decisões:
+
+- Com várias linhas, o medidor **diz na tela qual agregação usou**. Mostrar
+  silenciosamente a primeira linha seria um jeito fácil de enganar.
+- Na grade, **todos os medidores compartilham a mesma escala por padrão**.
+  Cada um na própria escala faria todos parecerem iguais, o contrário do
+  que se quer ao comparar.
+- O semicírculo baixa o centro e aumenta o raio; senão metade da caixa
+  ficaria vazia.
+
+Mais um defeito corrigido: quando a medida do valor ainda não tinha sido
+escolhida no painel (primeira renderização), o alvo "segunda medida" caía na
+MESMA medida do valor — e o medidor mostrava sempre "100% do alvo". Agora a
+comparação é com a medida já resolvida, não com a opção crua.
+
+Números: 10 gráficos construídos; 164/164 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, itens 9 e 10: criar `src/charts/gauge_variacoes/` ("Medidores
-(Estilos)": arco, semicírculo, círculo completo, barra linear e bullet
-chart, com faixas coloridas, alvo e agulha) e `src/charts/gauge_grid/`
-("Medidores em Grade": um medidor por item de uma dimensão, em grade
-responsiva). Extrair a base para `src/charts/_medidor/` antes do segundo,
-como foi feito nos quadrantes e nos funis. Depois registrar em
-`config/charts.json`, buildar, rodar `npm test` e `npm run seguranca`,
-marcar em TAREFAS.md e commitar.
+TIER 1, itens 11 e 12: criar `src/charts/arvore_radial/` ("Árvore Radial") e
+`src/charts/arvores_multiplas/` ("Múltiplas Árvores"). Antes dos dois,
+escrever `src/core/hierarquia.js`, que monta uma hierarquia a partir das
+duas formas que o Looker entrega: várias dimensões aninhadas (fixture
+`hierarquia`) ou pares id/pai (fixture `paiFilho`). Usar `d3-hierarchy`
+(já está nas devDependencies). Depois registrar em `config/charts.json`,
+buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
+commitar.

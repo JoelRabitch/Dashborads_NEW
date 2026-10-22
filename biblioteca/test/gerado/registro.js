@@ -119,5 +119,32 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos."
+  },
+  {
+    "id": "gauge_variacoes",
+    "label": "Medidores (Estilos)",
+    "tier": 1,
+    "arquivo": "../dist/gauge_variacoes.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "somenteNulos",
+      "vazio"
+    ],
+    "explore": "1 medida (o valor). Opcionalmente uma segunda medida para o alvo. Nao aceita pivo."
+  },
+  {
+    "id": "gauge_grid",
+    "label": "Medidores em Grade",
+    "tier": 1,
+    "arquivo": "../dist/gauge_grid.js",
+    "existe": true,
+    "fixtures": [
+      "semPivo",
+      "rotulosLongos",
+      "somenteNulos",
+      "vazio"
+    ],
+    "explore": "1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo."
   }
 ];
