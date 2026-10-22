@@ -1,7 +1,7 @@
 /*!
  * Diagrama de Venn — visualização customizada para o Looker
  * id: diagrama_venn
- * versão: 0.1.0 | build: 2026-10-22 02:37:50 | commit: 6cd1802
+ * versão: 0.1.0 | build: 2026-10-22 02:43:05 | commit: 3eada95
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -2957,10 +2957,10 @@
     if (modelo.dimensoes.length >= 2) return "itemConjunto";
     return "regioes";
   }
-  function lerConjuntos(modelo, config) {
+  function lerConjuntos(modelo, config, { maximoAbsoluto = 5 } = {}) {
     const formato = config.formatoDosDados && config.formatoDosDados !== "auto" ? config.formatoDosDados : detectarFormato(modelo);
     const leitor = { regioes: lerRegioes, itemConjunto: lerItemConjunto, booleanas: lerBooleanas }[formato];
-    const resultado = (leitor || lerRegioes)(modelo, config);
+    const resultado = (leitor || lerRegioes)(modelo, config, maximoAbsoluto);
     resultado.formato = formato;
     const totalPorConjunto = /* @__PURE__ */ new Map();
     for (let i = 0; i < resultado.conjuntos.length; i++) {
@@ -2973,7 +2973,7 @@
     resultado.totalPorConjunto = totalPorConjunto;
     return resultado;
   }
-  function lerRegioes(modelo, config) {
+  function lerRegioes(modelo, config, maximoAbsoluto) {
     const avisos = [];
     const dimensao = modelo.dimensoes[0];
     const medida = escolherMedida(modelo, config);
@@ -2998,7 +2998,7 @@
       const valor = medida ? modelo.valorNumerico(linha, medida.nome) : 1;
       bruto.push({ partes, valor: valor === null ? 0 : valor });
     }
-    const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config);
+    const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
     if (aviso) avisos.push(aviso);
     const regioes = /* @__PURE__ */ new Map();
     for (const { partes, valor } of bruto) {
@@ -3012,7 +3012,7 @@
     }
     return { conjuntos, regioes, avisos, unidade: medida ? medida.rotuloCurto : "linhas" };
   }
-  function lerItemConjunto(modelo, config) {
+  function lerItemConjunto(modelo, config, maximoAbsoluto) {
     const avisos = [];
     const campoDoItem = escolherDimensao(modelo, config.campoDoItem, 0);
     const campoDoConjunto = escolherDimensao(modelo, config.campoDoConjunto, 1);
@@ -3044,7 +3044,7 @@
         if (v !== null) registro.valor += v;
       }
     }
-    const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config);
+    const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
     if (aviso) avisos.push(aviso);
     const contarItens = !medida || config.medirPor === "itens";
     const regioes = /* @__PURE__ */ new Map();
@@ -3065,7 +3065,7 @@
       unidade: contarItens ? campoDoItem.rotuloCurto : medida.rotuloCurto
     };
   }
-  function lerBooleanas(modelo, config) {
+  function lerBooleanas(modelo, config, maximoAbsoluto) {
     const avisos = [];
     const medida = escolherMedida(modelo, config);
     const candidatas = modelo.dimensoes.filter((d) => /yesno|boolean/i.test(d.tipo));
@@ -3080,7 +3080,7 @@
     }
     const nomes = colunas.map((c) => c.rotuloCurto);
     const indicePorNome = new Map(nomes.map((n, i) => [n, i]));
-    const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config);
+    const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
     if (aviso) avisos.push(aviso);
     const contarItens = !medida || config.medirPor === "itens";
     const regioes = /* @__PURE__ */ new Map();
@@ -3097,8 +3097,8 @@
     }
     return { conjuntos, regioes, avisos, unidade: contarItens ? "itens" : medida.rotuloCurto };
   }
-  function limitarConjuntos(nomes, indicePorNome, config) {
-    const maximo = Math.min(5, Math.max(2, Number(config.maximoDeConjuntos) || 5));
+  function limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto = 5) {
+    const maximo = Math.min(maximoAbsoluto, Math.max(2, Number(config.maximoDeConjuntos) || maximoAbsoluto));
     if (nomes.length <= maximo) {
       return {
         conjuntos: nomes.map((nome) => ({ nome })),
@@ -3110,7 +3110,7 @@
     return {
       conjuntos: escolhidos.map((nome) => ({ nome })),
       mantidos: new Map(escolhidos.map((n, i) => [n, i])),
-      aviso: `A consulta tem ${nomes.length} conjuntos e o diagrama de Venn vai at\xE9 ${maximo}. Os ${nomes.length - maximo} \xFAltimos foram ignorados.`
+      aviso: `A consulta tem ${nomes.length} conjuntos e o limite aqui \xE9 ${maximo}. Os ${nomes.length - maximo} \xFAltimos foram ignorados.`
     };
   }
   function escolherMedida(modelo, config) {

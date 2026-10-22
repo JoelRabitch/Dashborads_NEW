@@ -168,3 +168,114 @@ test('diagrama_venn — mais de 5 conjuntos avisa em vez de desenhar errado', (t
   }
   t.diagnostic('limite de 5 conjuntos conferido');
 });
+
+/* ------------------------------------------------------------------ */
+/* UpSet Plot — compartilha o leitor de conjuntos com o Venn           */
+/* ------------------------------------------------------------------ */
+
+const BUNDLE_UPSET = join(resolve(__dirname, '..'), 'dist', 'upset_plot.js');
+
+function renderizarUpset(nomeDaFixture, ajustes = {}) {
+  const amb = montarAmbiente();
+  amb.window.eval(readFileSync(BUNDLE_UPSET, 'utf8'));
+  const definicao = amb.registro.upset_plot;
+  assert.ok(definicao, 'upset_plot não se registrou');
+
+  const instancia = criarInstancia(definicao, amb.chamadasDeApi);
+  const { data, queryResponse } = FIXTURES[nomeDaFixture]();
+  const palco = amb.window.document.getElementById('palco');
+
+  instancia.create(palco, configPadrao(definicao));
+  let chamouDone = false;
+  instancia.updateAsync(
+    data,
+    palco,
+    Object.assign(configPadrao(definicao), ajustes),
+    queryResponse,
+    {},
+    () => { chamouDone = true; }
+  );
+  assert.ok(chamouDone, 'done() precisa ser chamado sempre');
+
+  return {
+    amb,
+    palco,
+    barras: Array.from(palco.querySelectorAll('.up-barra')),
+    textos: Array.from(palco.querySelectorAll('.up-texto')).map((t) => t.textContent),
+    fim: () => amb.restaurar(),
+  };
+}
+
+test('upset_plot — uma barra por interseção, ordenada da maior para a menor', (t) => {
+  const r = renderizarUpset('conjuntos3');
+  try {
+    assert.equal(r.barras.length, 7, 'três conjuntos têm 7 interseções possíveis');
+    const alturas = r.barras.map((b) => Number(b.getAttribute('height')));
+    for (let i = 1; i < alturas.length; i++) {
+      assert.ok(
+        alturas[i] <= alturas[i - 1] + 0.01,
+        `por tamanho, a barra ${i} não pode ser maior que a anterior`
+      );
+    }
+    assert.equal(r.amb.chamadasDeApi.erros.length, 0);
+  } finally {
+    r.fim();
+  }
+  t.diagnostic(`${r.barras.length} interseções`);
+});
+
+test('upset_plot — aguenta mais de 5 conjuntos, que é o motivo de ele existir', (t) => {
+  const amb = montarAmbiente();
+  try {
+    amb.window.eval(readFileSync(BUNDLE_UPSET, 'utf8'));
+    const definicao = amb.registro.upset_plot;
+    const instancia = criarInstancia(definicao, amb.chamadasDeApi);
+    const palco = amb.window.document.getElementById('palco');
+
+    const cel = (v) => ({ value: v, rendered: String(v) });
+    const regioes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'A,B', 'C,D,E', 'F,G'];
+    const data = regioes.map((r, i) => ({ regiao: cel(r), itens: cel(100 - i * 7) }));
+    const queryResponse = {
+      fields: {
+        dimension_like: [{ name: 'regiao', label: 'Conjuntos', label_short: 'Conjuntos', type: 'string' }],
+        measure_like: [{ name: 'itens', label: 'Itens', label_short: 'Itens', type: 'count', is_numeric: true }],
+        pivots: [],
+      },
+      pivots: [],
+    };
+
+    instancia.create(palco, configPadrao(definicao));
+    instancia.updateAsync(data, palco, configPadrao(definicao), queryResponse, {}, () => {});
+
+    assert.equal(
+      palco.querySelectorAll('.up-barra').length,
+      regioes.length,
+      'com 7 conjuntos, todas as interseções com dado precisam aparecer'
+    );
+    assert.ok(
+      !/conjuntos e o limite aqui/.test(palco.querySelector('.bl-aviso')?.textContent || ''),
+      'o UpSet não deveria cortar conjuntos em 5, como o Venn faz'
+    );
+  } finally {
+    amb.restaurar();
+  }
+  t.diagnostic('7 conjuntos aceitos');
+});
+
+test('upset_plot — conta itens por padrão, como o Venn', (t) => {
+  const r = renderizarUpset('conjuntosBooleanos');
+  try {
+    // A fixture tem 200 itens: nenhum total de conjunto pode passar disso.
+    const totais = r.textos
+      .map((texto) => /\s(\d[\d.,]*)$/.exec(texto))
+      .filter(Boolean)
+      .map((m) => Number(m[1].replace(/[.,]/g, '')));
+    assert.ok(totais.length >= 3, 'faltaram os totais dos conjuntos');
+    for (const total of totais) {
+      assert.ok(total <= 200, `${total} é maior que os 200 itens da fixture: virou soma de medida`);
+    }
+  } finally {
+    r.fim();
+  }
+  t.diagnostic(`textos: ${r.textos.slice(0, 3).join(' | ')}`);
+});

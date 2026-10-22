@@ -38,7 +38,7 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 11. `arvore_radial` — "Árvore Radial"
 - [x] 12. `arvores_multiplas` — "Múltiplas Árvores"
 - [x] 13. `org_chart` — "Organograma"
-- [ ] 14. `upset_plot` — "UpSet Plot" (opcional)
+- [x] 14. `upset_plot` — "UpSet Plot" (opcional)
 
 ## TIER 2 — financeiros
 

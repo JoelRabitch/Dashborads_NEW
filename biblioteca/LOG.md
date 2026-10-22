@@ -690,13 +690,46 @@ O padrão que mais rendeu: **extrair a base ANTES de escrever o segundo
 gráfico da família**, não depois. Toda vez que fiz isso, o segundo gráfico
 saiu em um terço do tempo e os defeitos apareceram uma vez só.
 
+### Etapa 18 — `upset_plot` (TIER 1, item 14) — TIER 1 COMPLETO, 14/14
+
+Reaproveita o `dados.js` do `diagrama_venn`, que já entendia os três
+formatos de conjuntos. Uma barra por interseção, ordenada por tamanho, e
+embaixo a matriz de pontos dizendo quais conjuntos formam cada uma.
+
+A linha ligando os pontos de uma coluna não é enfeite: sem ela o olho
+precisa conferir ponto a ponto qual conjunto participa.
+
+Defeito encontrado ao ligar os dois: o limite de 5 conjuntos estava
+**cravado dentro do leitor** (`Math.min(5, ...)`), quando na verdade é uma
+restrição do VENN — acima de 5 conjuntos o diagrama de Venn deixa de
+existir. O UpSet foi feito exatamente para esse caso, então herdar o limite
+tirava dele o motivo de existir. O teto virou parâmetro de quem chama: o
+Venn passa 5, o UpSet passa 20.
+
+Vale registrar como o defeito apareceu: o teste "aguenta mais de 5
+conjuntos" falhou mostrando 7 interseções onde deviam ser 10. Sem esse
+teste, o gráfico entregaria silenciosamente um recorte dos dados.
+
+Também acertei o padrão de `medirPor` para contagem de itens, igual ao
+Venn — sem isso os dois gráficos mostrariam números diferentes para a mesma
+consulta.
+
+**TIER 1 COMPLETO: 14 de 14.**
+
+Números: 14 gráficos construídos; 231/231 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 1, item 14 (`upset_plot`, opcional): criar `src/charts/upset_plot/`
-reaproveitando o `dados.js` do `diagrama_venn` (que já lê os três formatos
-de conjuntos) — barras horizontais com o tamanho de cada interseção e uma
-matriz de pontos embaixo indicando quais conjuntos participam. É a
-alternativa ao Venn quando há mais de 5 conjuntos, então vale a pena.
-Depois registrar em `config/charts.json`, buildar, rodar `npm test` e
-`npm run seguranca`, marcar em TAREFAS.md e commitar. Em seguida começa o
-TIER 2 pelo item 15 (`candlestick_ohlc`), que já tem a fixture `ohlc`.
+Começar o TIER 2 (financeiros) pelo item 15: criar
+`src/charts/candlestick_ohlc/` usando a fixture `ohlc` (que já traz
+abertura, máxima, mínima, fechamento e volume por dia). Precisa de uma
+escala temporal no eixo X (`escalaTemporal` em `core/scales.js`), velas e
+barras OHLC como estilos, cores de alta e baixa, e volume opcional numa
+faixa embaixo. Depois registrar em `config/charts.json`, buildar, rodar
+`npm test` e `npm run seguranca`, marcar em TAREFAS.md e commitar.
+
+Observação para quem continuar: os itens 16 a 19 (`linha_bandas`,
+`drawdown`, `retorno_acumulado`, `fluxo_caixa`) são todos séries temporais
+com eixo cartesiano. Vale extrair `src/charts/_serie_temporal/` ao escrever
+o SEGUNDO deles, seguindo o padrão que deu certo no TIER 1.

@@ -203,6 +203,23 @@
         "duasDimensoes",
         "vazio"
       ]
+    },
+    {
+      "id": "upset_plot",
+      "label": "UpSet Plot",
+      "tier": 1,
+      "pasta": "upset_plot",
+      "resumo": "Alternativa ao Venn quando ha mais de 5 conjuntos: uma barra por intersecao, ordenada por tamanho, e uma matriz de pontos dizendo quais conjuntos formam cada uma.",
+      "explore": "Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "conjuntos3",
+        "conjuntos4",
+        "conjuntos5",
+        "conjuntosPorItem",
+        "conjuntosBooleanos",
+        "vazio"
+      ]
     }
   ]
 }

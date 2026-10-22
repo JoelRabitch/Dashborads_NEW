@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 02:37:50 (commit `6cd1802`).
+Gerado automaticamente pelo build em 2026-10-22 02:43:05 (commit `3eada95`).
 
 ## Como cadastrar no Looker
 
@@ -28,6 +28,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `arvore_radial` | Árvore Radial | `dist/arvore_radial.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arvore_radial.js` |
 | `arvores_multiplas` | Múltiplas Árvores | `dist/arvores_multiplas.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arvores_multiplas.js` |
 | `org_chart` | Organograma | `dist/org_chart.js` | (vazio) | Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/org_chart.js` |
+| `upset_plot` | UpSet Plot | `dist/upset_plot.js` | (vazio) | Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/upset_plot.js` |
 
 ## Detalhes por visualização
 
@@ -47,7 +48,7 @@ Diagrama de Venn de 2 a 5 conjuntos, lendo três formatos de dados (uma linha po
 - **Tier**: 1
 - **Explore**: Uma dimensão com os conjuntos ("A", "A,B"), ou duas dimensões (item e conjunto), ou várias colunas sim/não. Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 131.8 KB
+- **Tamanho do bundle**: 132.0 KB
 
 ### Dispersão com Quadrantes (`quadrant_scatter`)
 
@@ -147,3 +148,12 @@ Organograma em cartoes, de cima para baixo ou da esquerda para a direita, com li
 - **Explore**: Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 137.4 KB
+
+### UpSet Plot (`upset_plot`)
+
+Alternativa ao Venn quando ha mais de 5 conjuntos: uma barra por intersecao, ordenada por tamanho, e uma matriz de pontos dizendo quais conjuntos formam cada uma.
+
+- **Tier**: 1
+- **Explore**: Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 119.0 KB

@@ -189,5 +189,21 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao."
+  },
+  {
+    "id": "upset_plot",
+    "label": "UpSet Plot",
+    "tier": 1,
+    "arquivo": "../dist/upset_plot.js",
+    "existe": true,
+    "fixtures": [
+      "conjuntos3",
+      "conjuntos4",
+      "conjuntos5",
+      "conjuntosPorItem",
+      "conjuntosBooleanos",
+      "vazio"
+    ],
+    "explore": "Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao."
   }
 ];

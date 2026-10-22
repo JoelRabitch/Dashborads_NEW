@@ -37,13 +37,13 @@ export function detectarFormato(modelo) {
  *            totalPorConjunto:Map<number,number>, formato:string,
  *            avisos:string[], unidade:string}}
  */
-export function lerConjuntos(modelo, config) {
+export function lerConjuntos(modelo, config, { maximoAbsoluto = 5 } = {}) {
   const formato = config.formatoDosDados && config.formatoDosDados !== 'auto'
     ? config.formatoDosDados
     : detectarFormato(modelo);
 
   const leitor = { regioes: lerRegioes, itemConjunto: lerItemConjunto, booleanas: lerBooleanas }[formato];
-  const resultado = (leitor || lerRegioes)(modelo, config);
+  const resultado = (leitor || lerRegioes)(modelo, config, maximoAbsoluto);
   resultado.formato = formato;
 
   // Total de cada conjunto = soma de todas as regiões que o contêm.
@@ -61,7 +61,7 @@ export function lerConjuntos(modelo, config) {
 }
 
 /** (a) Uma linha por região: "A", "A,B", "A,B,C". */
-function lerRegioes(modelo, config) {
+function lerRegioes(modelo, config, maximoAbsoluto) {
   const avisos = [];
   const dimensao = modelo.dimensoes[0];
   const medida = escolherMedida(modelo, config);
@@ -95,7 +95,7 @@ function lerRegioes(modelo, config) {
     bruto.push({ partes, valor: valor === null ? 0 : valor });
   }
 
-  const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config);
+  const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
   if (aviso) avisos.push(aviso);
 
   const regioes = new Map();
@@ -115,7 +115,7 @@ function lerRegioes(modelo, config) {
 }
 
 /** (b) Uma linha por item e conjunto. */
-function lerItemConjunto(modelo, config) {
+function lerItemConjunto(modelo, config, maximoAbsoluto) {
   const avisos = [];
   const campoDoItem = escolherDimensao(modelo, config.campoDoItem, 0);
   const campoDoConjunto = escolherDimensao(modelo, config.campoDoConjunto, 1);
@@ -153,7 +153,7 @@ function lerItemConjunto(modelo, config) {
     }
   }
 
-  const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config);
+  const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
   if (aviso) avisos.push(aviso);
 
   const contarItens = !medida || config.medirPor === 'itens';
@@ -178,7 +178,7 @@ function lerItemConjunto(modelo, config) {
 }
 
 /** (c) Uma linha por item, uma coluna sim/não por conjunto. */
-function lerBooleanas(modelo, config) {
+function lerBooleanas(modelo, config, maximoAbsoluto) {
   const avisos = [];
   const medida = escolherMedida(modelo, config);
   const candidatas = modelo.dimensoes.filter((d) => /yesno|boolean/i.test(d.tipo));
@@ -195,7 +195,7 @@ function lerBooleanas(modelo, config) {
 
   const nomes = colunas.map((c) => c.rotuloCurto);
   const indicePorNome = new Map(nomes.map((n, i) => [n, i]));
-  const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config);
+  const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
   if (aviso) avisos.push(aviso);
 
   const contarItens = !medida || config.medirPor === 'itens';
@@ -220,8 +220,10 @@ function lerBooleanas(modelo, config) {
  * O Venn só existe até 5 conjuntos. Se vierem mais, ficamos com os maiores
  * e avisamos — melhor do que desenhar errado ou não desenhar nada.
  */
-function limitarConjuntos(nomes, indicePorNome, config) {
-  const maximo = Math.min(5, Math.max(2, Number(config.maximoDeConjuntos) || 5));
+function limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto = 5) {
+  // O teto ABSOLUTO vem de quem chama, não dos dados: o Venn só existe até
+  // 5 conjuntos, enquanto o UpSet foi feito justamente para aguentar mais.
+  const maximo = Math.min(maximoAbsoluto, Math.max(2, Number(config.maximoDeConjuntos) || maximoAbsoluto));
   if (nomes.length <= maximo) {
     return {
       conjuntos: nomes.map((nome) => ({ nome })),
@@ -234,7 +236,7 @@ function limitarConjuntos(nomes, indicePorNome, config) {
   return {
     conjuntos: escolhidos.map((nome) => ({ nome })),
     mantidos: new Map(escolhidos.map((n, i) => [n, i])),
-    aviso: `A consulta tem ${nomes.length} conjuntos e o diagrama de Venn vai até ${maximo}. Os ${
+    aviso: `A consulta tem ${nomes.length} conjuntos e o limite aqui é ${maximo}. Os ${
       nomes.length - maximo
     } últimos foram ignorados.`,
   };
