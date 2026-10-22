@@ -2208,28 +2208,67 @@ colunas VIZINHAS.
 Números: 47 gráficos construídos; 1.094/1.094 testes passando; checagem de
 segurança sem violação em 130 arquivos.
 
+### Etapa 52 — `arc_diagram` (TIER 5, item 48)
+
+Os nós numa linha e arcos ligando quem se relaciona — o grafo achatado
+numa dimensão.
+
+**A ordem dos nós é o gráfico inteiro.** Na ordem alfabética o diagrama é
+espaguete; reordenando por vizinhança, os blocos conectados aparecem — e
+são os MESMOS dados. A seriação é gulosa: começa pelo nó mais conectado e
+puxa sempre o vizinho ainda não colocado com maior peso. Medido no render:
+42 cruzamentos na automática contra 64 na alfabética. Como no
+`parallel_sets`, **a métrica vai publicada na nota**, o que torna a
+afirmação verificável pelo usuário e testável no código.
+
+**Direção declarada.** Um arco sem direção lido como dirigido inverte
+relações — "A → B" vira "B → A" e nada no desenho muda. No modo dirigido a
+ida fica acima da linha e a volta abaixo; no modo não dirigido a nota diz
+em voz alta que "o arco não diz quem procurou quem".
+
+O teste que importa aqui é o mesmo gênero do espelho do SPLOM e da grade do
+heatmap: **cada arco começa e termina exatamente nos nós que ele declara**.
+Com 24 curvas cruzadas, ninguém confere a olho, e um arco ligado ao vizinho
+errado continua uma rede perfeitamente plausível. O teste lê o `d` de cada
+caminho, compara as pontas com o `cx` dos nós e afirma a contagem (24
+arcos conferidos) para não passar vazio.
+
+Decisões menores, cada uma com teste: arestas repetidas são SOMADAS (dois
+arcos sobrepostos dariam a impressão de duas relações onde há uma); o grau
+conta vizinhos DISTINTOS, não linhas; o raio do nó sai da raiz do grau,
+pelo mesmo motivo das bolhas do `motion_bubbles` — o olho lê área;
+auto-ligação vira um laço, não um arco de largura zero.
+
+Números: 48 gráficos construídos; 1.126/1.126 testes passando; checagem de
+segurança sem violação em 132 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 5, item 48: criar `src/charts/arc_diagram/` ("Diagrama de Arcos"):
-nós numa linha e arcos ligando quem se relaciona — o grafo achatado em uma
-dimensão.
+TIER 5, item 49: criar `src/charts/nightingale/` ("Rosa de Nightingale"):
+o gráfico polar de áreas — fatias de ângulo igual e raio variável.
 
-Pontos de atenção: (a) a consulta vem como pares (origem, destino) e uma
-medida opcional de peso; aceitar também o formato "uma linha por aresta"
-que o `diagrama_venn` já sabe ler — conferir `src/charts/diagrama_venn/`
-antes de escrever leitura nova; (b) **a ordem dos nós é tudo**: na ordem
-alfabética o diagrama é espaguete; ordenando por grau, por cluster ou por
-uma dimensão do próprio dado, a estrutura aparece. Oferecer e declarar,
-como no `parallel_sets`; (c) arcos acima e abaixo da linha podem separar
-direções (ida/volta) quando o grafo é dirigido — e, se for dirigido,
-**dizer isso**, porque arco sem direção lido como dirigido inverte
-relações; (d) espessura do arco pela medida, raio do nó pelo grau; (e)
-acima de ~60 nós ou ~300 arestas, cortar com aviso.
+**E este abre com uma armadilha que é a razão de ele existir na
+biblioteca:** na versão ingênua, o raio é proporcional ao valor, e como a
+área de um setor cresce com o QUADRADO do raio, um valor 2× maior ocupa 4×
+mais tinta. O gráfico original de Florence Nightingale tem exatamente esse
+problema e é citado como exemplo de boa visualização — o que o torna
+duplamente perigoso. Aqui: **raio por √valor é o padrão** (área
+proporcional), a opção de raio direto existe para quem quer reproduzir o
+original, e **o modo escolhido vai declarado na tela**, com a consequência
+escrita.
+
+Pontos de atenção: (a) reaproveitar `geradorDeArco` de `core/shapes.js`;
+(b) o setor começa no CENTRO: raio interno > 0 vira rosca e aí a área deixa
+de ser proporcional de novo — se oferecer, declarar; (c) ângulo igual para
+todas as categorias é o que define a rosa (o que varia é o raio); (d)
+ordenação por valor ou pela ordem natural (meses!) — e a ordem natural é o
+padrão quando a dimensão é temporal, porque girar os meses destrói a
+leitura; (e) rótulos em volta, com a mesma anti-colisão do `slope_chart` se
+couber.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/arc_diagram.test.mjs` (o arco liga os dois nós certos — mesmo teste
-de identidade do SPLOM e do heatmap; a ordenação por grau coloca os nós
-mais conectados onde promete; auto-ligação (origem = destino) é tratada
-e não vira arco de largura zero; **e todo laço afirma que a lista não é
-vazia**), `npm test`, `npm run seguranca`, marcar em TAREFAS.md, commitar
-e seguir para o item 49 (`nightingale`).
+`test/nightingale.test.mjs` (**a área do setor é proporcional ao valor no
+modo padrão** — dobrar o valor dobra a área, não o raio; no modo "raio
+direto" a distorção existe e é declarada; os ângulos são iguais; **e todo
+laço afirma que a lista não é vazia**), `npm test`, `npm run seguranca`,
+marcar em TAREFAS.md, commitar e seguir para o item 50 (`radial_bar`).

@@ -662,5 +662,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas)."
+  },
+  {
+    "id": "arc_diagram",
+    "label": "Diagrama de Arcos",
+    "tier": 5,
+    "arquivo": "../dist/arc_diagram.js",
+    "existe": true,
+    "fixtures": [
+      "duasDimensoes",
+      "paiFilho",
+      "hierarquia",
+      "vazio"
+    ],
+    "explore": "2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao."
   }
 ];
