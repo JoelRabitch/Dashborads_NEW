@@ -220,6 +220,19 @@
         "conjuntosBooleanos",
         "vazio"
       ]
+    },
+    {
+      "id": "candlestick_ohlc",
+      "label": "Candlestick / OHLC",
+      "tier": 2,
+      "pasta": "candlestick_ohlc",
+      "resumo": "Velas japonesas ou barras OHLC por periodo, com cores de alta e baixa, media movel opcional e faixa de volume com escala propria.",
+      "explore": "1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "vazio"
+      ]
     }
   ]
 }

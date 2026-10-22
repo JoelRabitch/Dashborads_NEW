@@ -205,5 +205,17 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao."
+  },
+  {
+    "id": "candlestick_ohlc",
+    "label": "Candlestick / OHLC",
+    "tier": 2,
+    "arquivo": "../dist/candlestick_ohlc.js",
+    "existe": true,
+    "fixtures": [
+      "ohlc",
+      "vazio"
+    ],
+    "explore": "1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume."
   }
 ];

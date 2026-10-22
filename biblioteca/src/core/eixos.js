@@ -138,9 +138,26 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
     });
 
     const girar = Number(config.rotacaoRotuloEixoX) || 0;
-    for (const t of ticksX) {
+
+    // Com eixo de banda, `ticksX` tem UMA entrada por categoria: 120 datas
+    // viram 120 rótulos sobrepostos e ilegíveis. Então pulamos de N em N,
+    // calculando N pela largura que cada rótulo precisa. (Escala numérica
+    // não passa por aqui: o d3 já devolve poucos ticks redondos.)
+    let salto = 1;
+    if (rotulosDeBanda && ticksX.length > 1) {
+      const maiorRotulo = ticksX.reduce(
+        (a, t) => Math.max(a, larguraAproximada(formatarX ? formatarX(t) : t, fonte)),
+        0
+      );
+      const necessario = girar ? fonte * 1.4 : maiorRotulo + 8;
+      const disponivel = area.largura / ticksX.length;
+      salto = Math.max(1, Math.ceil(necessario / Math.max(1, disponivel)));
+    }
+
+    ticksX.forEach((t, indice) => {
+      if (indice % salto !== 0) return;
       const x = posicaoNoEixo(escalaX, t, rotulosDeBanda);
-      if (!Number.isFinite(x)) continue;
+      if (!Number.isFinite(x)) return;
       const texto = criarSvgEl('text', {
         pai: grupo,
         atributos: {
@@ -151,7 +168,7 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
         },
       });
       definirTexto(texto, formatarX ? formatarX(t) : String(t));
-    }
+    });
   }
 
   // --- Títulos ---

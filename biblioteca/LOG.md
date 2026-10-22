@@ -719,17 +719,68 @@ consulta.
 Números: 14 gráficos construídos; 231/231 testes passando; checagem de
 segurança sem violação.
 
+---
+
+## Sessão retomada em 2026-10-22
+
+Ponto de partida conferido antes de mexer em qualquer coisa:
+`git fetch` + `git status` + `git log -5`. Branch `agente/novas-viz`,
+`origin/main` SEM commits novos além do que o branch já tem (conferido com
+`git log origin/main ^HEAD`, que veio vazio) — então não houve merge a
+fazer.
+
+Havia trabalho não commitado da sessão anterior, e ele estava **completo**,
+não pela metade: o `candlestick_ohlc` (gráfico, registro e bundle), o ajuste
+em `core/eixos.js` e o arquivo de testes. O que faltava era um teste
+falhando por asserção mal calibrada — descrito abaixo. Terminei em vez de
+descartar.
+
+### Etapa 19 — `candlestick_ohlc` (TIER 2, item 15)
+
+Velas japonesas, barras OHLC ou só a linha de fechamento, com média móvel
+opcional e faixa de volume.
+
+Decisões:
+
+- **O eixo Y não começa em zero, de propósito.** Num gráfico de preço o que
+  importa é a variação; forçar o zero achataria todas as velas numa faixa
+  fina. É a única família de gráficos da biblioteca em que isso vale.
+- **O domínio do eixo sai de todas as MÁXIMAS e MÍNIMAS**, não dos
+  fechamentos: senão os pavios saem cortados. Há teste para isso.
+- **O volume vai numa faixa com escala PRÓPRIA.** Volume e preço no mesmo
+  eixo não querem dizer nada.
+- **Máxima menor que mínima é dado inconsistente, não erro de desenho**: os
+  dois valores são trocados, o período continua aparecendo e o usuário é
+  avisado uma vez só.
+- Acima de 400 períodos as velas vão para canvas; abaixo disso, SVG.
+
+Correção no núcleo que vale para TODOS os gráficos de banda
+(`core/eixos.js`): com eixo de categorias, havia um rótulo por categoria —
+120 dias viravam 120 datas sobrepostas e ilegíveis. Agora o eixo pula de N
+em N, com N calculado pela largura que o maior rótulo precisa. Na fixture
+`ohlc` saiu de 120 rótulos para 9.
+
+O teste que ficou falhando da sessão anterior era meu, não do gráfico: ele
+contava "formas no total > 10", e o estilo "linha" desenha UM caminho e mais
+nada — ou seja, a asserção reprovava o comportamento certo. Reescrito com
+uma expectativa por estilo (o candlestick tem um corpo por período, o OHLC
+usa traços e não retângulos, a linha tem um caminho que passa por todos os
+períodos). Fica a lição: **contagem genérica de elementos não é teste**,
+porque não distingue "desenhou pouco" de "desenhou o que devia".
+
+Números: 15 gráficos construídos; 249/249 testes passando; checagem de
+segurança sem violação.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Começar o TIER 2 (financeiros) pelo item 15: criar
-`src/charts/candlestick_ohlc/` usando a fixture `ohlc` (que já traz
-abertura, máxima, mínima, fechamento e volume por dia). Precisa de uma
-escala temporal no eixo X (`escalaTemporal` em `core/scales.js`), velas e
-barras OHLC como estilos, cores de alta e baixa, e volume opcional numa
-faixa embaixo. Depois registrar em `config/charts.json`, buildar, rodar
-`npm test` e `npm run seguranca`, marcar em TAREFAS.md e commitar.
+TIER 2, item 16: criar `src/charts/linha_bandas/` ("Linha com Bandas":
+uma linha central com uma faixa de mínimo/máximo ou de intervalo em volta,
+lendo três medidas — inferior, central e superior). Usar `core/eixos.js`,
+`core/series.js` e `core/shapes.js` (`geradorDeArea`).
 
-Observação para quem continuar: os itens 16 a 19 (`linha_bandas`,
-`drawdown`, `retorno_acumulado`, `fluxo_caixa`) são todos séries temporais
-com eixo cartesiano. Vale extrair `src/charts/_serie_temporal/` ao escrever
-o SEGUNDO deles, seguindo o padrão que deu certo no TIER 1.
+Ao escrever o item 17 (`drawdown`), extrair `src/charts/_serie_temporal/`
+com o que `linha_bandas`, `drawdown`, `retorno_acumulado` e `fluxo_caixa`
+compartilham — o padrão de extrair a base no SEGUNDO gráfico da família foi
+o que mais rendeu no TIER 1. Depois registrar em `config/charts.json`,
+buildar, rodar `npm test` e `npm run seguranca`, marcar em TAREFAS.md e
+commitar.

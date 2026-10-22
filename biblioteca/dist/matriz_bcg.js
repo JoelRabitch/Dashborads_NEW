@@ -1,7 +1,7 @@
 /*!
  * Matriz BCG — visualização customizada para o Looker
  * id: matriz_bcg
- * versão: 0.1.0 | build: 2026-10-22 02:43:05 | commit: 3eada95
+ * versão: 0.1.0 | build: 2026-10-22 02:46:08 | commit: d84eb5b
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3596,9 +3596,20 @@
         }
       });
       const girar = Number(config.rotacaoRotuloEixoX) || 0;
-      for (const t of ticksX) {
+      let salto = 1;
+      if (rotulosDeBanda && ticksX.length > 1) {
+        const maiorRotulo = ticksX.reduce(
+          (a, t) => Math.max(a, larguraAproximada(formatarX ? formatarX(t) : t, fonte)),
+          0
+        );
+        const necessario = girar ? fonte * 1.4 : maiorRotulo + 8;
+        const disponivel = area.largura / ticksX.length;
+        salto = Math.max(1, Math.ceil(necessario / Math.max(1, disponivel)));
+      }
+      ticksX.forEach((t, indice) => {
+        if (indice % salto !== 0) return;
         const x = posicaoNoEixo(escalaX, t, rotulosDeBanda);
-        if (!Number.isFinite(x)) continue;
+        if (!Number.isFinite(x)) return;
         const texto = criarSvgEl("text", {
           pai: grupo,
           atributos: {
@@ -3611,7 +3622,7 @@
           }
         });
         definirTexto(texto, formatarX ? formatarX(t) : String(t));
-      }
+      });
     }
     if (config.tituloEixoY) {
       const x = 10;

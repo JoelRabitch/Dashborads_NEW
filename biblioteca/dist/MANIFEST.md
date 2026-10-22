@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 02:43:05 (commit `3eada95`).
+Gerado automaticamente pelo build em 2026-10-22 02:46:08 (commit `d84eb5b`).
 
 ## Como cadastrar no Looker
 
@@ -29,6 +29,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `arvores_multiplas` | Múltiplas Árvores | `dist/arvores_multiplas.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/arvores_multiplas.js` |
 | `org_chart` | Organograma | `dist/org_chart.js` | (vazio) | Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/org_chart.js` |
 | `upset_plot` | UpSet Plot | `dist/upset_plot.js` | (vazio) | Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/upset_plot.js` |
+| `candlestick_ohlc` | Candlestick / OHLC | `dist/candlestick_ohlc.js` | (vazio) | 1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/candlestick_ohlc.js` |
 
 ## Detalhes por visualização
 
@@ -57,7 +58,7 @@ Dispersão de duas medidas com linhas divisórias (média, mediana, zero ou valo
 - **Tier**: 1
 - **Explore**: 1 dimensão (o nome de cada ponto) e pelo menos 2 medidas (eixos X e Y). Opcionalmente mais medidas para tamanho e cor. Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 173.9 KB
+- **Tamanho do bundle**: 174.4 KB
 
 ### Matriz 2x2 (`matriz_2x2`)
 
@@ -66,7 +67,7 @@ Matriz de decisão 2x2: duas medidas nos eixos, corte no ponto médio, quadrante
 - **Tier**: 1
 - **Explore**: 1 dimensão (o nome do item) e 2 medidas (os dois eixos). Opcionalmente uma terceira para o tamanho. Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 174.7 KB
+- **Tamanho do bundle**: 175.2 KB
 
 ### Matriz BCG (`matriz_bcg`)
 
@@ -75,7 +76,7 @@ Matriz crescimento x participação do BCG: eixo X em log e invertido (participa
 - **Tier**: 1
 - **Explore**: 1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 176.7 KB
+- **Tamanho do bundle**: 177.2 KB
 
 ### ThemeRiver (`theme_river`)
 
@@ -84,7 +85,7 @@ Streamgraph: areas empilhadas com base ondulada (wiggle/silhouette) mostrando co
 - **Tier**: 1
 - **Explore**: 1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas.
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 196.2 KB
+- **Tamanho do bundle**: 196.7 KB
 
 ### Funis (Estilos) (`funil_variacoes`)
 
@@ -157,3 +158,12 @@ Alternativa ao Venn quando ha mais de 5 conjuntos: uma barra por intersecao, ord
 - **Explore**: Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 119.0 KB
+
+### Candlestick / OHLC (`candlestick_ohlc`)
+
+Velas japonesas ou barras OHLC por periodo, com cores de alta e baixa, media movel opcional e faixa de volume com escala propria.
+
+- **Tier**: 2
+- **Explore**: 1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 139.0 KB
