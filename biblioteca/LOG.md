@@ -1596,34 +1596,92 @@ diferente sem nada na tela dizer isso.
 Números: 34 gráficos construídos; 720/720 testes passando; checagem de
 segurança sem violação em 102 arquivos.
 
+### Etapa 39 — `boxplot_avancado` (TIER 3, item 35) — **TIER 3 COMPLETO**
+
+O que torna este boxplot "avançado" não é enfeite: é mostrar o que o
+boxplot comum esconde.
+
+**1. A bimodalidade — a mentira clássica da caixa.** Escrevi um teste que
+não exercita código nenhum do gráfico: ele estabelece o PROBLEMA. Cem
+observações em 10, uma em 50 e cem em 90 produzem Q1 = 10, mediana = 50 e
+Q3 = 90 — **exatamente os mesmos três números** de uma distribuição
+uniforme em [−30, 130]. A caixa é idêntica, as formas são opostas, e a
+conclusão ("o valor típico é 50") é falsa nos dois casos de um jeito
+diferente: numa, 50 é o único valor que quase não ocorre; na outra, é tão
+comum quanto qualquer outro. Daí `detectarPicos()`: conta picos na
+densidade por kernel, com dois filtros para não disparar à toa — o pico
+precisa ter ≥ 25% da altura do maior e o vale entre dois picos precisa
+descer a ≤ 75% do menor deles. Testado nos dois sentidos (acusa a bimodal
+e as três modas; não acusa quatro amostras unimodais com sementes
+diferentes), porque um aviso que dispara à toa é pior que aviso nenhum.
+
+**2. A largura ∝ √n.** Uma caixa de 5 observações desenhada do mesmo
+tamanho de uma de 5.000 afirma uma solidez que não tem.
+
+**3. O entalhe da mediana** (±1,58 × IQR/√n, de McGill, Tukey e Larsen),
+com a mesma ressalva do `intervalo_confianca` escrita na nota: entalhes que
+NÃO se sobrepõem são evidência de diferença; os que se sobrepõem não são
+evidência de igualdade. Teste confere que quadruplicar o n divide o entalhe
+por 2 — é o que faz dele uma afirmação sobre precisão.
+
+**Decisão corrigida no meio do caminho.** Eu tinha escrito que o entalhe
+ficaria SOLTO quando ultrapassasse os quartis, e que a "borboleta"
+resultante seria o gráfico admitindo não saber onde a mediana está. Bonito
+no comentário, errado na prática: o teste de contenção pegou uma caixa
+saindo por cima da área do gráfico (y = −11,6). Com n pequeno o entalhe
+estoura não só a caixa, estoura a tela. Agora ele é preso aos quartis no
+desenho, e o fato de ter estourado não é escondido — vira a cor de atenção
+na linha da mediana e uma linha no tooltip. O comentário do código e o do
+teste foram corrigidos junto: **comentário que descreve a intenção antiga
+é pior que comentário nenhum.**
+
+Também nesta etapa, dois testes meus que mediam a coisa errada:
+- o da bimodalidade comparava IQRs de duas amostras que, de fato, têm IQRs
+  diferentes (80 contra 40). A demonstração só existe com amostras
+  construídas para terem a caixa idêntica — e aí ela é exata, não
+  aproximada;
+- o da largura ∝ √n usava uma fixture cujas categorias têm todas o mesmo n,
+  então as larguras eram iguais e o teste reprovava o comportamento certo.
+  Agrupando por produto (n = 131, 132 e 125) a condição existe.
+
+Métodos declarados na tela, como no `violin`: quartil tipo 7, bigode de
+1,5 × IQR parando no último valor REAL (Tukey).
+
+**TIER 3 fechado: 11 gráficos estatísticos (itens 25 a 35).**
+
+Números: 35 gráficos construídos; 753/753 testes passando; checagem de
+segurança sem violação em 104 arquivos.
+
 ### PRÓXIMA AÇÃO EXATA
 
-TIER 3, item 35: criar `src/charts/boxplot_avancado/` ("Boxplot
-Avançado") — o último do TIER 3.
+TIER 4, item 36: criar `src/charts/heatmap_denso/` ("Heatmap Denso") — o
+primeiro do TIER 4, que é o tier do VOLUME: a partir daqui o problema não é
+mais o que o gráfico esconde, é caber.
 
-Reaproveitar `_distribuicao/` (preparo, corte, ordenação, tooltip, resumo e
-`limitesDeOutlier`, que já param os bigodes no último valor REAL em vez do
-limite calculado).
+Heatmap de duas dimensões cruzadas (linha × coluna) com cor pela medida,
+feito para dezenas de milhares de células — 500 × 200 = 100 mil retângulos
+é o caso de uso, e isso não pode ser SVG.
 
-Pontos de atenção: (a) o que faz este boxplot ser "avançado" é mostrar o
-que o boxplot comum esconde — oferecer o entalhe de confiança da mediana
-(±1,58 × IQR/√n, cuja NÃO sobreposição entre duas caixas é o teste
-informal, mesma família de ideia do `intervalo_confianca`), a largura da
-caixa proporcional a √n (para um grupo de 5 não parecer tão sólido quanto
-um de 5.000) e os pontos individuais sobrepostos quando n é pequeno;
-(b) **a mentira clássica do boxplot é a bimodalidade**: duas modas bem
-separadas produzem exatamente a mesma caixa que uma distribuição uniforme —
-detectar e avisar (comparar a densidade por kernel com a unimodal, ou
-simplesmente contar picos como no teste do `densidade_ecdf`, que já tem a
-conta pronta); (c) declarar o método do quartil (tipo 7) e o do bigode
-(1,5 × IQR, Tukey) na tela, como o `violin` já faz; (d) orientação
-horizontal e vertical, com o mesmo truque de escala de banda no Y usado no
-`beeswarm` e no `intervalo_confianca`.
+Pontos de atenção: (a) **canvas obrigatório** acima de ~5.000 células, com
+um `<canvas>` só e `fillRect` em laço; as linhas de grade somem sozinhas
+quando a célula fica menor que ~3 px (desenhá-las comeria a própria
+célula); (b) rótulos de eixo com desbaste por largura, como já faz
+`core/eixos.js` no eixo de banda — reaproveitar `larguraAproximada`;
+(c) a escala de cor é a decisão central: sequencial para medidas que só
+crescem, divergente centrada em zero para variações — e, como no
+`correlacao_matriz`, o domínio precisa ser declarado; oferecer também
+escala por QUANTIL (que revela estrutura quando a distribuição é muito
+assimétrica) **avisando que ela distorce as distâncias**: duas células de
+cores vizinhas podem estar a ordens de grandeza de distância;
+(d) interação por célula com busca O(1) (índice por linha/coluna a partir
+da posição do mouse, não varredura); (e) células ausentes ≠ zero — o buraco
+precisa ser visualmente distinto de um valor baixo, e isso precisa estar
+na legenda.
 
 Depois: registrar em `config/charts.json`, `npm run build`, escrever
-`test/boxplot_avancado.test.mjs` (os quartis contra valores calculados à
-mão; o bigode parando no último valor real; a bimodalidade sendo detectada
-numa amostra construída com duas modas e NÃO sendo acusada numa normal; e
-todo laço afirmando que a lista não é vazia), `npm test`,
-`npm run seguranca`, marcar em TAREFAS.md, commitar. **Isso fecha o
-TIER 3** — em seguida, abrir o TIER 4 pelo item 36 (`heatmap_denso`).
+`test/heatmap_denso.test.mjs` (a célula (i,j) recebe o valor de (i,j) — o
+mesmo gênero de teste do espelho do SPLOM; a escala por quantil preserva a
+ORDEM das cores mesmo mudando as distâncias; ausência é distinguível de
+zero; **e todo laço afirma que a lista não é vazia**), `npm test`,
+`npm run seguranca`, marcar em TAREFAS.md, commitar e seguir para o item 37
+(`small_multiples`).

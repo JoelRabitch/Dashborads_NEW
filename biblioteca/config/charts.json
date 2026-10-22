@@ -514,6 +514,20 @@
         "semPivo",
         "vazio"
       ]
+    },
+    {
+      "id": "boxplot_avancado",
+      "label": "Boxplot Avancado",
+      "tier": 3,
+      "pasta": "boxplot_avancado",
+      "resumo": "Boxplot com entalhe de confianca da mediana, largura proporcional a raiz de n, observacoes individuais e denuncia de distribuicoes com mais de um pico.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "conjuntosPorItem",
+        "grande5k",
+        "vazio"
+      ]
     }
   ]
 }

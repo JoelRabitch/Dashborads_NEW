@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-22 17:43:10 (commit `b2fd573`).
+Gerado automaticamente pelo build em 2026-10-22 17:49:50 (commit `7d439e2`).
 
 ## Como cadastrar no Looker
 
@@ -49,6 +49,7 @@ Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ass
 | `intervalo_confianca` | Intervalo de Confianca | `dist/intervalo_confianca.js` | (vazio) | 1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/intervalo_confianca.js` |
 | `matriz_dispersao` | Matriz de Dispersao | `dist/matriz_dispersao.js` | (vazio) | 2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/matriz_dispersao.js` |
 | `correlacao_matriz` | Matriz de Correlacao | `dist/correlacao_matriz.js` | (vazio) | 2 ou mais medidas com VARIAS linhas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/correlacao_matriz.js` |
+| `boxplot_avancado` | Boxplot Avancado | `dist/boxplot_avancado.js` | (vazio) | 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/boxplot_avancado.js` |
 
 ## Detalhes por visualização
 
@@ -357,3 +358,12 @@ Mapa de calor de todas as medidas contra todas, com escala divergente fixa em [-
 - **Explore**: 2 ou mais medidas com VARIAS linhas.
 - **Aceita pivô**: não
 - **Tamanho do bundle**: 114.1 KB
+
+### Boxplot Avancado (`boxplot_avancado`)
+
+Boxplot com entalhe de confianca da mediana, largura proporcional a raiz de n, observacoes individuais e denuncia de distribuicoes com mais de um pico.
+
+- **Tier**: 3
+- **Explore**: 1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.
+- **Aceita pivô**: não
+- **Tamanho do bundle**: 164.3 KB

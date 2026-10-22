@@ -479,5 +479,18 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 ou mais medidas com VARIAS linhas."
+  },
+  {
+    "id": "boxplot_avancado",
+    "label": "Boxplot Avancado",
+    "tier": 3,
+    "arquivo": "../dist/boxplot_avancado.js",
+    "existe": true,
+    "fixtures": [
+      "conjuntosPorItem",
+      "grande5k",
+      "vazio"
+    ],
+    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
   }
 ];
