@@ -2599,12 +2599,68 @@ e **nenhum gráfico importa de outro gráfico** (importar de um arquivo
 registrado embute o `defineViz` dele e registra duas visualizações num
 bundle só).
 
+## Etapa 55 — URLs do campo Main com hash de verdade (2026-10-23)
+
+**Problema:** o `dist/MANIFEST.md` trazia a palavra `COMMIT` no lugar do hash,
+com a instrução "troque você mesmo". Nas 54 linhas, isso é 54 chances de
+errar — e o Looker não aceita a URL em nenhuma outra forma.
+
+**Hash usado:** `890c450663db0d049144bc1dcfbd87a61830f0ba`
+(commit `890c450`, "viz: marimekko — os 54 graficos construidos"), obtido com
+`git log -1 --format=%H -- biblioteca/dist`. É o último commit que alterou
+algum bundle; o HEAD anterior (`606d2f6`) era só documentação e não mudou
+nenhum arquivo servido.
+
+**O que foi feito:**
+
+1. As 54 URLs do `MANIFEST.md` passaram a trazer o hash completo de 40
+   caracteres, no formato exato que o Looker aceitou:
+   `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@<hash>/biblioteca/dist/<id>.js`
+   O parágrafo que mandava trocar `COMMIT` virou o aviso oposto: as URLs já
+   estão fixadas, **não** troque por branch, `@main` nem `@latest`.
+2. `build/build.mjs` ganhou `hashDosBundles()`, que descobre esse hash
+   sozinho, e o MANIFEST passa a sair pronto. Não existe mais `COMMIT` no
+   arquivo gerado.
+
+**Duas decisões que não são óbvias e por isso ficam escritas:**
+
+- **O filtro é `dist/*.js`, não `dist`.** O MANIFEST.md mora dentro de
+  `dist/`. Se o hash viesse de `-- dist`, commitar o próprio MANIFEST mudaria
+  o hash que ele acabou de publicar, e o arquivo passaria a apontar para um
+  commit anterior ao dele mesmo — errado de um jeito que ninguém percebe,
+  porque a URL continua funcionando (serve o bundle de ontem). Com
+  `dist/*.js`, commitar documentação não mexe no hash.
+- **O build agora avisa quando não pode garantir o que afirma.**
+  `bundlesNaoCommitados()` lista os `dist/*.js` com alteração pendente. Se
+  o build acabou de mudar um bundle que ainda não foi commitado, a URL
+  aponta para a versão ANTERIOR dele — verdade incômoda que o MANIFEST passa
+  a dizer em letra maiúscula, em vez de calar. Isto é o mesmo princípio dos
+  54 gráficos: o arquivo declara o que não dá para ver nele.
+
+**Conferido (não só gerado):** 54 URLs no formato exato e nenhuma fora dele;
+todas com o mesmo hash de 40 caracteres; `git ls-tree 890c450
+biblioteca/dist/` lista exatamente 54 arquivos `.js` e cada URL aponta para
+um que existe nessa árvore; 54 arquivos em `dist/` no disco — os três números
+batem. Nenhuma ocorrência de `@main`, `@latest`, `raw.githubusercontent.com`
+ou `github.com/blob` em URL nenhuma (as duas primeiras aparecem só no texto
+que manda **não** usá-las). `npm test`: 1.286 passando, 0 falhando.
+`npm run seguranca`: sem violação em 145 arquivos.
+
+**O build NÃO foi rodado de novo**, de propósito: o cabeçalho de cada bundle
+carrega a data do build, então rebuildar mudaria os 54 arquivos, o que mudaria
+o hash, o que invalidaria o MANIFEST que acabou de ser corrigido. O
+`MANIFEST.md` foi editado para ficar idêntico ao que o build novo produziria.
+
 ### PRÓXIMA AÇÃO EXATA
 
-Nenhuma. A lista de 54 gráficos está completa e o fechamento pedido pela
-seção 10 do `PROMPT_AGENTE.md` está escrito acima.
+Nenhuma pendente na lista — os 54 gráficos estão prontos e as URLs do campo
+Main estão fixadas em `890c450663db0d049144bc1dcfbd87a61830f0ba`.
 
-Se houver uma próxima sessão, o trabalho útil é o da lista de revisão
-humana: abrir os gráficos no Looker real, começando pelos sete que
-desenham em canvas, e ajustar os limites de corte aos tamanhos de tile
-que você usa de verdade.
+Duas coisas para a próxima sessão, nesta ordem:
+
+1. **Se algum bundle for alterado**, rode `npm run build`, commite os
+   `dist/*.js` e **rode o build de novo** antes de usar o MANIFEST: o hash só
+   existe depois do commit. O próprio arquivo avisa quando isto falta.
+2. O trabalho útil restante continua sendo o da lista de revisão humana da
+   Etapa de fechamento: abrir os gráficos no Looker real, começando pelos
+   sete que desenham em canvas.

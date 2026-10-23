@@ -12,7 +12,7 @@
  */
 
 import { build } from 'esbuild';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,6 +37,56 @@ function hashDoCommit() {
       .trim();
   } catch (_) {
     return 'sem-commit';
+  }
+}
+
+/**
+ * Hash COMPLETO (40 caracteres) do último commit que alterou algum `dist/*.js`.
+ *
+ * Por que o hash completo e por que ESTE commit: o campo Main do Looker só
+ * aceita a URL fixada num commit (`@<hash>`), nunca em branch, `@main` ou
+ * `@latest` — senão a visualização muda sozinha depois de testada. E o commit
+ * certo é o último que mexeu nos bundles, não o HEAD: commit de documentação
+ * não muda o arquivo servido, e fixar nele só faria o jsDelivr guardar cópias
+ * iguais em caches diferentes.
+ *
+ * O filtro é `dist/*.js` de propósito, e não `dist`: assim commitar o próprio
+ * MANIFEST.md não muda o hash que ele acabou de publicar.
+ */
+function hashDosBundles() {
+  try {
+    const saida = execFileSync('git', ['log', '-1', '--format=%H', '--', 'dist/*.js'], {
+      cwd: RAIZ,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .toString()
+      .trim();
+    return /^[0-9a-f]{40}$/.test(saida) ? saida : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Bundles com alteração ainda não commitada.
+ *
+ * Isto existe porque o MANIFEST afirma uma coisa que ele não tem como garantir
+ * sozinho: que a URL serve ESTE código. Se o build acabou de mudar um bundle
+ * que ainda não foi commitado, a URL aponta para a versão anterior — e aí o
+ * arquivo avisa, em vez de mentir por omissão.
+ */
+function bundlesNaoCommitados() {
+  try {
+    return execFileSync('git', ['status', '--porcelain', '--', 'dist'], {
+      cwd: RAIZ,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .toString()
+      .split(/\r?\n/)
+      .map((linha) => linha.slice(3).trim())
+      .filter((caminho) => caminho.endsWith('.js'));
+  } catch (_) {
+    return [];
   }
 }
 
@@ -96,7 +146,10 @@ function gerarManifest(graficos, resultados, meta) {
   const linhas = [];
   linhas.push('# MANIFEST — visualizações da biblioteca');
   linhas.push('');
-  linhas.push(`Gerado automaticamente pelo build em ${meta.data} (commit \`${meta.commit}\`).`);
+  linhas.push(
+    `Gerado automaticamente pelo build em ${meta.data} ` +
+      `(HEAD \`${meta.commit}\`; bundles fixados em \`${meta.hashDist || '—'}\`).`
+  );
   linhas.push('');
   linhas.push('## Como cadastrar no Looker');
   linhas.push('');
@@ -108,17 +161,34 @@ function gerarManifest(graficos, resultados, meta) {
   linhas.push('- **Dependencies**: **VAZIO** — todos os arquivos são autocontidos');
   linhas.push('');
   linhas.push(
-    'Troque `COMMIT` pelo hash do commit que você quer fixar (nunca use `@main`: ' +
-      'assim a visualização não muda sozinha depois de testada).'
+    meta.hashDist
+      ? 'As URLs da última coluna já vêm fixadas no commit `' +
+          meta.hashDist +
+          '` — o último que alterou algum bundle. Copie e cole como estão: não troque o ' +
+          'hash por branch, `@main` ou `@latest`, senão a visualização muda sozinha depois ' +
+          'de testada.'
+      : 'ATENÇÃO: o build não conseguiu descobrir o commit dos bundles (rodou fora de um ' +
+          'repositório git?). As URLs abaixo estão SEM hash e não funcionam como estão.'
   );
   linhas.push('');
+  if (meta.bundlesPendentes && meta.bundlesPendentes.length) {
+    linhas.push(
+      `ATENÇÃO: ${meta.bundlesPendentes.length} bundle(s) mudaram e ainda não foram ` +
+        'commitados, então as URLs acima servem a versão ANTERIOR deles. Faça commit e ' +
+        'rode o build de novo antes de cadastrar no Looker: ' +
+        meta.bundlesPendentes.map((caminho) => `\`${caminho}\``).join(', ')
+    );
+    linhas.push('');
+  }
   linhas.push('| ID | Label | Arquivo | Dependencies | Como montar o Explore | URL para o campo Main |');
   linhas.push('|---|---|---|---|---|---|');
 
   for (const g of graficos) {
     const r = resultados.find((x) => x.id === g.id);
     const arquivo = r && r.construido ? `\`dist/${g.id}.js\`` : '_(ainda não construído)_';
-    const url = `\`https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/${g.id}.js\``;
+    const url = `\`https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@${
+      meta.hashDist || 'SEM-HASH'
+    }/biblioteca/dist/${g.id}.js\``;
     linhas.push(
       `| \`${g.id}\` | ${g.label} | ${arquivo} | (vazio) | ${g.explore || '—'} | ${url} |`
     );
@@ -193,6 +263,8 @@ async function principal() {
   const meta = {
     versao: versaoDoPacote(),
     commit: hashDoCommit(),
+    hashDist: hashDosBundles(),
+    bundlesPendentes: bundlesNaoCommitados(),
     data: new Date().toISOString().slice(0, 19).replace('T', ' '),
   };
 
