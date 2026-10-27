@@ -3094,3 +3094,14 @@ cabeçalho, só reescreve se mudou), `dist/URLS.md`/`URLS.csv`, MANIFEST sem
   ARQUITETURA (módulos novos e o que o define-viz faz por todos), README da
   biblioteca (URLs e fluxo de manutenção), README da raiz (seção da
   biblioteca aponta para URLS.md). `npm run opcoes` gera os `.depois.json`.
+- URLs regeneradas depois do commit do bundle da tabela: hash
+  `313b2db8ef69a1688e9b9826350383396b23c300`; os 22 caminhos conferidos
+  com `git cat-file -e`; nenhum `@main`/`@latest`/raw/blob; MANIFEST sem
+  `COMMIT`. Build repetido: `git status` limpo.
+- `npm test` 765/765; `npm run seguranca` sem violação.
+- `docs/RELATORIO_CORRECOES.md` escrito (corrigido × testado × conferir no
+  Looker real, ids novos, decisões, pendências).
+
+TODAS AS FASES CONCLUÍDAS. PRÓXIMA AÇÃO: nenhuma pendente no agente; o
+usuário cadastra as URLs de `dist/URLS.md` e percorre
+`docs/TESTE_NO_LOOKER.md` no Looker real.

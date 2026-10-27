@@ -120,5 +120,5 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] grafico_controle
 
 ### Fase D
-- [ ] 2.9 Build determinístico e URLs
-- [ ] D.1 `docs/RELATORIO_CORRECOES.md`
+- [x] 2.9 Build determinístico e URLs
+- [x] D.1 `docs/RELATORIO_CORRECOES.md`
