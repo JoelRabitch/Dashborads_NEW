@@ -68,7 +68,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
       cor: l.getAttribute('stroke'),
     })),
     eixos: todas.filter((l) => l.getAttribute('x1') === l.getAttribute('x2')),
-    pontos: Array.from(palco.querySelectorAll('circle.sl-ponto')),
+    pontos: Array.from(palco.querySelectorAll('.bl-marcador.sl-ponto')),
     rotulos: Array.from(palco.querySelectorAll('.sl-rotulo')).map((t) => ({
       texto: t.textContent,
       x: Number(t.getAttribute('x')),

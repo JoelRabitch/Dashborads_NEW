@@ -58,8 +58,8 @@ function renderizar(nomeDaFixture, ajustes = {}) {
   return {
     amb,
     palco,
-    sinais: Array.from(palco.querySelectorAll('circle.gc-sinal')),
-    pontos: Array.from(palco.querySelectorAll('circle.st-ponto')),
+    sinais: Array.from(palco.querySelectorAll('.bl-marcador.gc-sinal')),
+    pontos: Array.from(palco.querySelectorAll('.bl-marcador.st-ponto')),
     nota: palco.querySelector('.st-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     vazio: palco.querySelector('.bl-vazio')?.textContent || '',
@@ -338,7 +338,7 @@ test('grafico_controle — todo período vira um ponto, com sinal ou sem', (t) =
   try {
     assert.ok(r.pontos.length + r.sinais.length > 0, 'nenhum ponto desenhado');
     for (const c of [...r.pontos, ...r.sinais]) {
-      assert.ok(Number.isFinite(Number(c.getAttribute('cy'))), 'ponto com cy inválido');
+      assert.ok(Number.isFinite(Number(c.getAttribute('data-y'))), 'ponto com cy inválido');
     }
   } finally {
     r.fim();

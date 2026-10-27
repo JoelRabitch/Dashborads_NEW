@@ -11,15 +11,32 @@
  * O cálculo é cumulativo e depende da ORDEM das linhas. Se a consulta não
  * vier ordenada pelo tempo, o resultado é ficção — por isso o gráfico
  * confere e avisa quando a dimensão é temporal e está fora de ordem.
+ *
+ * Campos: 1 dimensão de período (+ pivô, 2ª dimensão ou várias medidas
+ * para várias séries) e 1 medida.
+ *
+ * Opções (correções v2):
+ *   - Rótulos: o valor da queda nos pontos (todos, se couberem; senão o
+ *     último de cada série) e o rótulo "Pior: …" seguem o bloco Rótulos
+ *     (mostrar, tamanho, cor, negrito, rotação, posição — automática =
+ *     abaixo da linha —, conteúdo, formato, casas, truncar, colisão).
+ *   - Cores: com várias séries, paleta + "Inverter ordem das cores" + cor
+ *     própria por série (opção dinâmica "Cor — <série>"); com uma série,
+ *     "Cor da área de queda". "Opacidade do preenchimento" multiplica a
+ *     "Opacidade da área" e vale nos pontos; o contorno vale nos pontos.
+ *   - Tooltip único do gráfico, com o valor no texto do Looker; o clique
+ *     segue a "Ação do clique" (drill, fixar ou nada).
+ *   - Eixos: escala/mínimo/máximo/inverter do Y e "Inverter eixo X".
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto } from '../../core/dom.js';
-import { geradorDeLinha, geradorDeArea } from '../../core/shapes.js';
+import { geradorDeLinha, geradorDeArea, criarMarcadorSvg } from '../../core/shapes.js';
 import { tratarNulos } from '../../core/series.js';
-import { coresDaPaleta, comOpacidade } from '../../core/theme.js';
 import { formatarPercentual } from '../../core/format.js';
 import { desenharLegenda } from '../../core/legend.js';
+import { corDoItem, opacidadeDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, criarRotuloSvg } from '../../core/rotulos.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -35,11 +52,17 @@ import {
 import { opcaoDeOrigemDasSeries } from '../../core/series.js';
 import {
   opcoesDeTracado,
+  opcoesDinamicasDeSerie,
   lerSerieTemporal,
   montarPlano,
   desenharReferencia,
+  desenharRotulosDosPontos,
   ligarGuiaEHover,
-  drillDoPeriodo,
+  celulaDoPonto,
+  celulaDoPeriodo,
+  textoDoPonto,
+  formatadorDaSerie,
+  valueFormatDaSerie,
   destruirSerieTemporal,
   avisarSeForaDeOrdem,
 } from '../_serie_temporal/index.js';
@@ -105,6 +128,10 @@ export default defineViz({
   ),
   exigencia: { dimensoesMin: 1, medidasMin: 1, aceitaPivo: true, exigeLinhas: true },
 
+  // Cor própria por série só faz sentido com mais de uma (com uma, vale
+  // "Cor da área de queda").
+  opcoesDinamicas: opcoesDinamicasDeSerie({ minimoDeSeries: 2 }),
+
   render(ctx) {
     const { config, tema } = ctx;
 
@@ -118,12 +145,16 @@ export default defineViz({
 
     const emPercentual = (config.unidadeDoDrawdown || 'percentual') === 'percentual';
     const series = tratarNulos(serie.matriz.series, config.tratamentoDeNulos || 'interpolar');
-    const paleta = coresDaPaleta(config.paleta);
+    const variasSeries = series.length > 1;
 
     const calculadas = series.map((s, indice) => ({
       chave: s.chave,
       rotulo: s.rotulo,
-      cor: config[`cor_${s.chave}`] || paleta[indice % paleta.length],
+      original: s,
+      // Paleta (com "Inverter ordem das cores") e cor própria por série.
+      // Com uma série só, a cor é a "Cor da área de queda".
+      cor: variasSeries ? corDoItem(config, indice, s.chave) : config.corDaQueda || tema.negativo,
+      formatar: formatadorDaSerie(serie, s, config),
       valores: s.valores,
       ...calcularDrawdown(s.valores, emPercentual),
     }));
@@ -143,12 +174,15 @@ export default defineViz({
       serie,
       valores: [...todosOsDrawdowns, 0],
       formatarY,
-      comLegenda: calculadas.length > 1,
+      comLegenda: variasSeries,
     });
 
     const curva = config.curvaDaLinha || 'monotone';
-    const opacidade = Number(config.opacidadeDaArea);
+    const opacidadeDaArea = Number(config.opacidadeDaArea);
+    const opacidade = opacidadeDoConfig(config);
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
     const yDoZero = plano.escalaY(0);
+    const rot = lerRotulos(config, tema);
 
     desenharReferencia({
       svg: plano.svg,
@@ -158,8 +192,10 @@ export default defineViz({
       tracejada: false,
     });
 
+    const gruposDeRotulos = [];
+
     for (const calculada of calculadas) {
-      const cor = calculadas.length > 1 ? calculada.cor : config.corDaQueda || tema.negativo;
+      const cor = calculada.cor;
 
       const area = geradorDeArea({
         x: (_, i) => plano.x(i),
@@ -173,7 +209,8 @@ export default defineViz({
         classe: 'st-area-preenchida',
         atributos: {
           d: area(serie.categorias) || '',
-          fill: comOpacidade(cor, Number.isFinite(opacidade) ? opacidade : 0.25),
+          fill: cor,
+          'fill-opacity': (Number.isFinite(opacidadeDaArea) ? opacidadeDaArea : 0.25) * opacidade,
         },
       });
 
@@ -197,19 +234,50 @@ export default defineViz({
       if (config.mostrarPontos) {
         serie.categorias.forEach((_, i) => {
           if (calculada.drawdown[i] === null) return;
-          criarSvgEl('circle', {
-            pai: plano.svg,
+          const x = plano.x(i);
+          const y = plano.escalaY(calculada.drawdown[i]);
+          const ponto = criarMarcadorSvg(plano.svg, 'circulo', x, y, 5, {
             classe: 'st-ponto',
-            atributos: {
-              cx: plano.x(i),
-              cy: plano.escalaY(calculada.drawdown[i]),
-              r: 2.5,
-              fill: cor,
-            },
+            fill: cor,
+            'fill-opacity': opacidade,
+            'data-x': x,
+            'data-y': y,
           });
+          aplicarContorno(ponto, contorno);
         });
       }
+
+      // Rótulos de dado: o valor da queda em cada ponto.
+      gruposDeRotulos.push({
+        cor: variasSeries ? cor : undefined,
+        pontos: serie.categorias.map((_, i) => {
+          const v = calculada.drawdown[i];
+          if (v === null) return null;
+          return {
+            indice: i,
+            x: plano.x(i),
+            y: plano.escalaY(v),
+            texto: textoDoRotulo(rot, {
+              valor: v,
+              nome: calculada.rotulo,
+              valueFormat: emPercentual ? undefined : valueFormatDaSerie(serie, calculada.original),
+              textoDoValor: emPercentual ? formatarY(v) : calculada.formatar(v),
+            }),
+          };
+        }),
+      });
     }
+
+    desenharRotulosDosPontos({
+      plano,
+      rot,
+      grupos: gruposDeRotulos,
+      quantidadeDePeriodos: serie.categorias.length,
+      // A área fica ENTRE o zero e a linha (acima dela): abaixo da linha o
+      // texto não briga com o preenchimento.
+      posicaoAuto: 'abaixo',
+      raio: config.mostrarPontos ? 2.5 : 1,
+    });
 
     // ---------- Pior queda ----------
     const pior = calculadas.reduce(
@@ -229,32 +297,34 @@ export default defineViz({
           stroke: tema.texto, 'stroke-width': 1, 'stroke-dasharray': '3 3',
         },
       });
-      criarSvgEl('circle', {
-        pai: plano.svg,
-        classe: 'st-destaque',
-        atributos: { cx: xPior, cy: yPior, r: 4, fill: tema.texto },
-      });
+      criarMarcadorSvg(plano.svg, 'circulo', xPior, yPior, 8, { classe: 'st-destaque', fill: tema.texto });
 
-      const rotulo = criarSvgEl('text', {
-        pai: plano.svg,
-        classe: 'st-destaque',
-        atributos: {
-          x: xPior,
-          y: yPior + 16,
-          'text-anchor': xPior > plano.retangulo.esquerda + plano.retangulo.largura * 0.8 ? 'end' : 'middle',
-          'font-size': Math.max(9, tema.tamanhoBase),
-          'font-weight': '600',
-          fill: tema.texto,
-        },
+      // O texto "Pior: …" é rótulo de dado: segue o bloco Rótulos (e some
+      // com "Mostrar rótulos" desligado; a marca continua).
+      const textoDoPior = textoDoRotulo(
+        { ...rot, conteudo: 'valor' },
+        {
+          valor: pior.pior.valor,
+          valueFormat: emPercentual ? undefined : valueFormatDaSerie(serie, pior.original),
+          textoDoValor: formatarY(pior.pior.valor),
+        }
+      );
+      const direita = Math.max(plano.retangulo.esquerda, plano.retangulo.esquerda + plano.retangulo.largura);
+      const rotulo = criarRotuloSvg(plano.svg, rot, {
+        x: xPior,
+        y: yPior + rot.tamanho / 2 + 10,
+        texto: `Pior: ${textoDoPior}`,
+        ancora: xPior > direita - plano.retangulo.largura * 0.2 ? 'end' : 'middle',
+        corAutomatica: tema.texto,
       });
-      definirTexto(rotulo, `Pior: ${formatarY(pior.pior.valor)}`);
+      if (rotulo) rotulo.setAttribute('class', 'bl-rotulo st-destaque');
     }
 
     // ---------- Nota de recuperação ----------
     if (config.mostrarRecuperacao !== false && pior && pior.pior.indice >= 0) {
       const nota = criarEl('div', { classe: 'st-nota', pai: plano.area });
       nota.style.color = tema.textoSuave;
-      definirTexto(nota, textoDaRecuperacao(pior, serie, calculadas.length > 1));
+      definirTexto(nota, textoDaRecuperacao(pior, serie, variasSeries));
     }
 
     // ---------- Interação ----------
@@ -264,23 +334,42 @@ export default defineViz({
       serie,
       montarLinhasDoTooltip(indice) {
         const linhas = [];
+        let variaveis = null;
         for (const calculada of calculadas) {
           if (calculada.drawdown[indice] === null) continue;
+          // Valor da célula: o texto do Looker. Queda e topo são números
+          // derivados: formatados pelo value_format do campo.
+          const textoDoValor = textoDoPonto(
+            ctx, serie.matriz, indice, calculada.original, calculada.valores[indice], calculada.formatar
+          );
           linhas.push({
-            rotulo: calculadas.length > 1 ? calculada.rotulo : 'Queda do topo',
+            rotulo: variasSeries ? calculada.rotulo : 'Queda do topo',
             valor: formatarY(calculada.drawdown[indice]),
-            cor: calculadas.length > 1 ? calculada.cor : config.corDaQueda,
+            cor: calculada.cor,
           });
-          linhas.push({ rotulo: '   valor', valor: serie.formatarValor(calculada.valores[indice]) });
-          linhas.push({ rotulo: '   topo até aqui', valor: serie.formatarValor(calculada.topo[indice]) });
+          linhas.push({ rotulo: '   valor', valor: textoDoValor });
+          linhas.push({ rotulo: '   topo até aqui', valor: calculada.formatar(calculada.topo[indice]) });
+          if (!variaveis) {
+            variaveis = {
+              valor: textoDoValor,
+              serie: calculada.rotulo,
+              queda: formatarY(calculada.drawdown[indice]),
+              percentual: emPercentual ? formatarY(calculada.drawdown[indice]) : '',
+            };
+          }
         }
-        return linhas;
+        return { linhas, variaveis: variaveis || {} };
       },
-      aoClicar: (indice, ev) => drillDoPeriodo(ctx, serie, indice, ev),
+      // Uma série: o clique usa a célula do ponto (onde o Looker põe o
+      // drill da medida); várias: a do período.
+      celulaDoClique: (indice) =>
+        variasSeries
+          ? celulaDoPeriodo(ctx, serie, indice)
+          : celulaDoPonto(ctx, serie.matriz, indice, calculadas[0].original),
     });
 
     // ---------- Legenda ----------
-    if (calculadas.length > 1 && config.mostrarLegenda !== false && plano.areaLegenda) {
+    if (variasSeries && config.mostrarLegenda !== false && plano.areaLegenda) {
       desenharLegenda({
         hospedeiro: plano.areaLegenda,
         tema,

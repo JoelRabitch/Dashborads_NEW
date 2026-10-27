@@ -1,7 +1,7 @@
 /*!
  * Grafico de Controle — visualização customizada para o Looker
  * id: grafico_controle
- * versão: 0.1.0 | build: 2026-10-27 13:46:04 | commit: 3a8b5dd
+ * versão: 0.1.0 | build: 2026-10-27 14:10:32 | commit: 4873ede
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -107,7 +107,11 @@
         const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
-        const completas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const completas = {};
+        Object.keys(juntas).sort((a, b) => (Number(juntas[a].order) || 0) - (Number(juntas[b].order) || 0)).forEach((k) => {
+          completas[k] = juntas[k];
+        });
         instancia._blOpcoesRegistradas = completas;
         instancia.trigger("registerOptions", completas);
         return true;
@@ -681,6 +685,11 @@
       default:
         return `${dia}/${mes}/${ano}`;
     }
+  }
+  function truncar(texto, limite = 24) {
+    const t = texto === null || texto === void 0 ? "" : String(texto);
+    if (t.length <= limite) return t;
+    return t.slice(0, Math.max(1, limite - 1)).trimEnd() + "\u2026";
   }
 
   // src/core/data-model.js
@@ -1769,6 +1778,10 @@
     tema.metricas = METRICAS;
     return tema;
   }
+  function coresDaPaleta(nomeDaPaleta) {
+    const p = PALETAS_CATEGORICAS[nomeDaPaleta] || PALETAS_CATEGORICAS.looker;
+    return p.cores;
+  }
   function opcoesDePaleta() {
     return Object.keys(PALETAS_CATEGORICAS).map((chave) => ({
       [PALETAS_CATEGORICAS[chave].rotulo]: chave
@@ -2290,6 +2303,142 @@
       }
     };
   }
+  function blocoDeAnimacao(opcoes = {}) {
+    const { secao = "Anima\xE7\xE3o", padraoAtiva = true, duracaoPadrao = 600 } = opcoes;
+    return {
+      animacaoAtiva: {
+        type: "boolean",
+        label: "Ativar anima\xE7\xF5es",
+        section: secao,
+        default: padraoAtiva
+      },
+      duracaoDaAnimacao: {
+        type: "number",
+        label: "Dura\xE7\xE3o (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 3e3,
+        step: 50,
+        default: duracaoPadrao
+      },
+      atrasoDaAnimacao: {
+        type: "number",
+        label: "Atraso inicial (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 2e3,
+        step: 50,
+        default: 0
+      },
+      cascataDaAnimacao: {
+        type: "number",
+        label: "Cascata entre itens (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 200,
+        step: 5,
+        default: 20
+      },
+      suavizacaoDaAnimacao: {
+        type: "string",
+        label: "Curva da anima\xE7\xE3o",
+        section: secao,
+        display: "select",
+        default: "saida",
+        values: listaDeValores([
+          { rotulo: "Linear", valor: "linear" },
+          { rotulo: "Suave na sa\xEDda", valor: "saida" },
+          { rotulo: "Suave na entrada", valor: "entrada" },
+          { rotulo: "Suave nos dois lados", valor: "ambos" },
+          { rotulo: "El\xE1stica", valor: "elastica" },
+          { rotulo: "Com quique", valor: "quique" }
+        ])
+      },
+      quandoAnimar: {
+        type: "string",
+        label: "Quando animar",
+        section: secao,
+        display: "select",
+        default: "sempre",
+        values: listaDeValores([
+          { rotulo: "A cada atualiza\xE7\xE3o", valor: "sempre" },
+          { rotulo: "S\xF3 na primeira carga", valor: "primeira" }
+        ])
+      },
+      contadorAnimado: {
+        type: "boolean",
+        label: "N\xFAmeros sobem/descem at\xE9 o valor (contador)",
+        section: secao,
+        default: true
+      }
+    };
+  }
+  function blocoDeInteracao(opcoes = {}) {
+    const {
+      secao = "Intera\xE7\xE3o",
+      comZoom = true,
+      comBrush = false,
+      comBusca = false,
+      comSelecao = true
+    } = opcoes;
+    const bloco = {
+      permitirDrill: {
+        type: "boolean",
+        label: "Clique abre o drill do Looker",
+        section: secao,
+        default: true
+      },
+      destacarAoPassarMouse: {
+        type: "boolean",
+        label: "Destacar ao passar o mouse",
+        section: secao,
+        default: true
+      }
+    };
+    if (comZoom) {
+      bloco.permitirZoom = { type: "boolean", label: "Permitir zoom", section: secao, default: false };
+      bloco.permitirArrastar = {
+        type: "boolean",
+        label: "Permitir arrastar (pan)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBrush) {
+      bloco.permitirBrush = {
+        type: "boolean",
+        label: "Permitir sele\xE7\xE3o por \xE1rea (brush)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBusca) {
+      bloco.mostrarBusca = {
+        type: "boolean",
+        label: "Mostrar caixa de busca",
+        section: secao,
+        default: false
+      };
+    }
+    if (comSelecao) {
+      bloco.permitirSelecao = {
+        type: "boolean",
+        label: "Permitir selecionar itens (clique)",
+        section: secao,
+        default: true
+      };
+      bloco.usarCrossfilter = {
+        type: "boolean",
+        label: "Usar cross-filter do Looker quando dispon\xEDvel",
+        section: secao,
+        default: false
+      };
+    }
+    return bloco;
+  }
   function blocoDeTema(opcoes = {}) {
     const { secao = "Tema" } = opcoes;
     return {
@@ -2393,6 +2542,110 @@
       }
     };
   }
+  var JUNTAR_EIXOS_E_TEXTO = true;
+  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABA_POR_SECAO = {
+    Dados: "Dados",
+    Medidas: "Dados",
+    Formato: "Visual",
+    Cores: "Visual",
+    Cor: "Visual",
+    Tema: "Visual",
+    Refer\u00EAncias: "Visual",
+    Eixos: "Eixos",
+    R\u00F3tulos: "Texto",
+    Legenda: "Texto",
+    Intera\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Anima\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Avan\u00E7ado: "Avan\xE7ado"
+  };
+  var PREFIXO_POR_SECAO = {
+    Cores: "Cor",
+    Cor: "Cor",
+    R\u00F3tulos: "R\xF3tulo",
+    Legenda: "Legenda",
+    Anima\u00E7\u00E3o: "Anima\xE7\xE3o",
+    Refer\u00EAncias: "Refer\xEAncia"
+  };
+  var DESTINO_POR_ID = {
+    titulo: ["Texto", "T\xEDtulo"],
+    subtitulo: ["Texto", "T\xEDtulo"],
+    textoSemDados: ["Texto", "Aviso"],
+    mostrarAvisos: ["Texto", "Aviso"],
+    posicaoDosAvisos: ["Texto", "Aviso"],
+    tema: ["Visual", "Tema"],
+    corDeFundo: ["Visual", "Cor"],
+    corDoTexto: ["Visual", "Cor"],
+    corDaBorda: ["Visual", "Cor"],
+    corDaGrade: ["Visual", "Cor"],
+    familiaDaFonte: ["Visual", "Tema"],
+    tamanhoDaFonte: ["Visual", "Tema"],
+    formatoDoEixo: ["Eixos", "Eixo"],
+    casasDecimaisDoEixo: ["Eixos", "Eixo"],
+    usarEixoSecundario: ["Eixos", "Eixo"],
+    tratamentoDeNulos: ["Dados", ""],
+    textoParaNulo: ["Dados", ""]
+  };
+  function abaPeloId(id, opcao) {
+    const t = id.toLowerCase();
+    if (/debug|json/.test(t)) return "Avan\xE7ado";
+    if (/tooltip|drill|clique|hover|destacar(no|ao)|anima|duracao|atraso|cascata|tocando|repetir|busca|recolher|expandi|interativ|crossfilter|selec|zoom|arrastar|copiar|exportar|redimensionar|ordenar$|permitir/.test(t)) {
+      return "Intera\xE7\xE3o";
+    }
+    if (/eixo/.test(t)) return "Eixos";
+    if (/rotulo|escrever|mostrarvalor|mostrarpercentual|mostrarposicao|mostrarrank|titulo|legenda|aviso|texto|mostrartotais|mostrarcontagem|nome$/.test(t)) {
+      return "Texto";
+    }
+    if (opcao && opcao.display === "color") return "Visual";
+    if (/^cor|cor$|cores|paleta|opacidade|forma|tamanho|espessura|raio|altura|largura|espaco|contorno|borda|grade|zebra|fundo|estilo|densidade|layout|orientacao|curva|ligacao|preencher|pintar|zona|guias|ponto|sparkline|icone|cartao|arranjo|colunasdagrade|escala/.test(t)) {
+      return "Visual";
+    }
+    return "Dados";
+  }
+  function organizarAbas(opcoes) {
+    const itens = [];
+    let i = 0;
+    for (const [id, original] of Object.entries(opcoes || {})) {
+      if (!original || typeof original !== "object") continue;
+      if (original._organizada) {
+        itens.push([id, original]);
+        continue;
+      }
+      const opcao = { ...original };
+      const secaoAntiga = opcao.section || "Avan\xE7ado";
+      let aba;
+      let prefixo;
+      if (DESTINO_POR_ID[id]) {
+        [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Coluna: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
+      } else if (ABA_POR_SECAO[secaoAntiga]) {
+        aba = ABA_POR_SECAO[secaoAntiga];
+        prefixo = PREFIXO_POR_SECAO[secaoAntiga];
+        if (aba === "Eixos") prefixo = /X$|X[A-Z]/.test(id) ? "Eixo X" : /Y$|Y[A-Z]/.test(id) ? "Eixo Y" : "Eixo";
+        if (secaoAntiga === "Intera\xE7\xE3o") prefixo = /tooltip|Tooltip|HtmlDoLooker/.test(id) ? "Tooltip" : "Clique";
+        if (secaoAntiga === "Tema") prefixo = "Tema";
+      } else {
+        aba = abaPeloId(id, opcao);
+        prefixo = secaoAntiga;
+      }
+      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
+      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
+        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      }
+      opcao.section = aba;
+      const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;
+      opcao.order = (ABAS.indexOf(aba) + 1) * 1e4 + ordemAntiga;
+      Object.defineProperty(opcao, "_organizada", { value: true, enumerable: false });
+      itens.push([id, opcao]);
+      i += 1;
+    }
+    itens.sort((a, b) => a[1].order - b[1].order);
+    const saida = {};
+    for (const [id, opcao] of itens) saida[id] = opcao;
+    return saida;
+  }
   function comDefaults(opcoes, novosPadroes) {
     const saida = Object.assign({}, opcoes);
     for (const [chave, valor] of Object.entries(novosPadroes)) {
@@ -2405,6 +2658,9 @@
       saida[chave] = Object.assign({}, saida[chave], { default: valor });
     }
     return saida;
+  }
+  function sanitizarChave(texto) {
+    return String(texto).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
   }
   function normalizarConfig(config, opcoes) {
     const saida = Object.assign({}, config || {});
@@ -2553,10 +2809,129 @@
       }
     };
   }
+  function preferindoMenosMovimento() {
+    try {
+      return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (_) {
+      return false;
+    }
+  }
   function cancelarQuadro(id) {
     if (id === null || id === void 0) return;
     if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
     else clearTimeout(id);
+  }
+
+  // src/core/animate.js
+  var SUAVIZACOES = {
+    linear: (t) => t,
+    entrada: (t) => t * t * t,
+    saida: (t) => 1 - Math.pow(1 - t, 3),
+    ambos: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    elastica: (t) => {
+      if (t === 0 || t === 1) return t;
+      const p = 0.3;
+      return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
+    },
+    quique: (t) => {
+      const n1 = 7.5625;
+      const d1 = 2.75;
+      if (t < 1 / d1) return n1 * t * t;
+      if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+      if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+      return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    }
+  };
+  function suavizacaoPorNome(nome) {
+    return SUAVIZACOES[nome] || SUAVIZACOES.saida;
+  }
+  function opcoesDeAnimacao(config = {}, { primeiraRenderizacao = true } = {}) {
+    var _a, _b, _c;
+    const menosMovimento = preferindoMenosMovimento();
+    const ligada = config.animacaoAtiva !== false && !menosMovimento && (config.quandoAnimar !== "primeira" || primeiraRenderizacao);
+    return {
+      ligada,
+      menosMovimento,
+      duracao: ligada ? Math.max(0, Number((_a = config.duracaoDaAnimacao) != null ? _a : 600)) : 0,
+      atraso: ligada ? Math.max(0, Number((_b = config.atrasoDaAnimacao) != null ? _b : 0)) : 0,
+      cascata: ligada ? Math.max(0, Number((_c = config.cascataDaAnimacao) != null ? _c : 20)) : 0,
+      suavizacao: suavizacaoPorNome(config.suavizacaoDaAnimacao),
+      contador: ligada && config.contadorAnimado !== false
+    };
+  }
+  var ANIMACOES_HABILITADAS = true;
+  var CURVAS_CSS = {
+    linear: "linear",
+    saida: "cubic-bezier(.33,1,.68,1)",
+    entrada: "cubic-bezier(.32,0,.67,0)",
+    ambos: "cubic-bezier(.65,0,.35,1)",
+    elastica: "cubic-bezier(.34,1.56,.64,1)",
+    quique: "cubic-bezier(.34,1.8,.64,1)"
+  };
+  var CSS_ANIMACAO_GENERICA = `
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+@keyframes bl-surgir-html{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+`;
+  var SELETOR_DE_MARCAS = "svg rect, svg path, svg circle, svg ellipse, svg polygon, svg polyline, svg line, svg text, svg image, .bl-anima";
+  var MAXIMO_DE_MARCAS = 600;
+  function animarEntradaGenerica(area, config = {}, { primeiraRenderizacao = true } = {}) {
+    if (!area || !ANIMACOES_HABILITADAS) return 0;
+    const op = opcoesDeAnimacao(config, { primeiraRenderizacao });
+    if (!op.ligada || op.duracao <= 0) return 0;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-animacao"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-animacao");
+      style.textContent = CSS_ANIMACAO_GENERICA;
+      raiz.appendChild(style);
+    }
+    const curva = CURVAS_CSS[config.suavizacaoDaAnimacao] || CURVAS_CSS.saida;
+    let marcas = Array.from(area.querySelectorAll(SELETOR_DE_MARCAS));
+    if (marcas.length > MAXIMO_DE_MARCAS) marcas = Array.from(area.querySelectorAll("svg, .bl-anima"));
+    const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
+    marcas.forEach((el, i) => {
+      const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms backwards`;
+    });
+    return marcas.length;
+  }
+
+  // src/core/interaction.js
+  var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
+  var CSS_DESTAQUE = `
+.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:opacity .15s ease;}
+.bl-hover-ativo [data-item]:not(.bl-sob-mouse), .bl-hover-ativo .bl-marcador:not(.bl-sob-mouse){opacity:.3;}
+@media (prefers-reduced-motion: reduce){.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:none;}}
+`;
+  function ligarDestaqueAoPassar({ area, eventos, config = {} }) {
+    if (!area || config.destacarAoPassarMouse === false) return false;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-destaque"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-destaque");
+      style.textContent = CSS_DESTAQUE;
+      raiz.appendChild(style);
+    }
+    let acesos = [];
+    const apagar = () => {
+      for (const el of acesos) el.classList.remove("bl-sob-mouse");
+      acesos = [];
+      area.classList.remove("bl-hover-ativo");
+    };
+    eventos.on(area, "pointerover", (ev) => {
+      const alvo = ev.target && ev.target.closest ? ev.target.closest(SELETOR_DE_ITENS) : null;
+      if (!alvo || !area.contains(alvo)) {
+        apagar();
+        return;
+      }
+      apagar();
+      const chave = alvo.getAttribute("data-item");
+      acesos = chave ? Array.from(area.querySelectorAll("[data-item]")).filter((e) => e.getAttribute("data-item") === chave) : [alvo];
+      for (const el of acesos) el.classList.add("bl-sob-mouse");
+      area.classList.add("bl-hover-ativo");
+    });
+    eventos.on(area, "pointerleave", apagar);
+    return true;
   }
 
   // src/core/tooltip.js
@@ -2891,14 +3266,19 @@
 
   // src/core/define-viz.js
   var CSS_BASE = `
-.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;}
+.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+  display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;}
+.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
 .bl-titulo{font-weight:600;line-height:1.2;}
 .bl-subtitulo{opacity:.7;line-height:1.2;}
-.bl-area{position:relative;width:100%;height:100%;}
-.bl-aviso{position:absolute;left:8px;right:8px;top:6px;z-index:5;padding:4px 8px;border-radius:4px;
-  font-size:11px;line-height:1.35;pointer-events:none;}
+.bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
+.bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
+  border-radius:4px;font-size:11px;line-height:1.35;}
+.bl-aviso-texto{flex:1 1 auto;}
+.bl-aviso-fechar{flex:0 0 auto;border:none;background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-size:13px;line-height:1;padding:0 2px;opacity:.75;}
+.bl-aviso-fechar:hover{opacity:1;}
 .bl-vazio{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
   text-align:center;padding:16px;opacity:.75;font-size:13px;}
 `;
@@ -2906,15 +3286,24 @@
     const {
       id,
       label,
-      opcoes = {},
+      opcoes: opcoesDeclaradas = {},
       exigencia = {},
       opcoesDinamicas = null,
       render,
-      aoDestruir = null
+      aoDestruir = null,
+      // true = o gráfico anima sozinho (bar_race, tabela); a animação
+      // genérica de entrada (módulo 2.7) não roda por cima.
+      animacaoPropria = false,
+      // true = o gráfico desenha título/subtítulo dentro do próprio desenho
+      // (kpi_vivo): o cabeçalho padrão não repete o título.
+      cabecalhoProprio = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
+    const opcoes = organizarAbas(
+      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
+    );
     const definicao = {
       id,
       label,
@@ -2926,9 +3315,8 @@
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
         const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
         const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+        const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
-        const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-        avisoEl.style.display = "none";
         this._bl = {
           element,
           raiz,
@@ -2957,7 +3345,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
             data,
             element,
             config,
@@ -3002,7 +3390,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
     const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
@@ -3011,15 +3399,14 @@
     const bl = this._bl;
     limparPendencias(bl);
     esconderTooltipsDe(bl.raiz);
-    bl.avisoEl.style.display = "none";
-    definirTexto(bl.avisoEl, "");
+    limparAviso(bl);
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -3038,13 +3425,14 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, configFinal, tema);
+    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
       ponte.mostrarErro(problema.titulo, problema.mensagem);
       return;
     }
+    posicionarAviso(bl, configFinal, id);
     for (const aviso of modelo.avisos) mostrarAviso(bl, tema, aviso);
     const { largura, altura } = medir(bl.area);
     const ctx = {
@@ -3107,10 +3495,10 @@
       redesenhar() {
         limparPendencias(bl);
         esconderTooltipsDe(bl.raiz);
-        bl.avisoEl.style.display = "none";
-        definirTexto(bl.avisoEl, "");
+        limparAviso(bl);
         try {
           render(ctx);
+          ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
@@ -3128,14 +3516,26 @@
       ctx.altura = tamanho.altura;
       bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
+      limparAviso(bl);
       try {
         render(ctx);
+        ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
     render(ctx);
+    ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
+    if (!animacaoPropria) {
+      animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
+    }
     bl.primeiraRenderizacao = false;
+  }
+  function opcoesDeAnimacaoPadrao() {
+    const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
+    delete bloco.contadorAnimado;
+    bloco.destacarAoPassarMouse = blocoDeInteracao({ comZoom: false, comSelecao: false }).destacarAoPassarMouse;
+    return bloco;
   }
   function definicaoCreateManual(element) {
     limpar(element);
@@ -3144,9 +3544,8 @@
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
     const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
     const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+    const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
-    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-    avisoEl.style.display = "none";
     this._bl = {
       element,
       raiz,
@@ -3175,14 +3574,74 @@
     bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
     bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
   }
+  function criarAviso(raiz) {
+    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
+    avisoEl.setAttribute("role", "status");
+    criarEl("span", { classe: "bl-aviso-texto", pai: avisoEl });
+    const fechar = criarEl("button", { classe: "bl-aviso-fechar", pai: avisoEl, texto: "\xD7" });
+    fechar.type = "button";
+    fechar.setAttribute("aria-label", "Fechar aviso");
+    fechar.title = "Fechar aviso";
+    fechar.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const bl = avisoEl._bl;
+      if (bl) bl.estado.avisoFechado = textoDoAviso(bl);
+      avisoEl.style.display = "none";
+    });
+    avisoEl.style.display = "none";
+    return avisoEl;
+  }
+  function textoDoAviso(bl) {
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    return t ? t.textContent : "";
+  }
+  function limparAviso(bl) {
+    bl.avisoEl._bl = bl;
+    bl.avisoEl.style.display = "none";
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    if (t) definirTexto(t, "");
+  }
+  function posicionarAviso(bl, config, id) {
+    bl.idDoGrafico = id;
+    const ligado = config.mostrarAvisos !== false;
+    bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
+    if (bl.posicaoDoAviso === "rodape") {
+      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+    } else if (bl.avisoEl.nextSibling !== bl.area) {
+      bl.raiz.insertBefore(bl.avisoEl, bl.area);
+    }
+  }
   function mostrarAviso(bl, tema, mensagem) {
     if (!mensagem) return;
-    const atual = bl.avisoEl.textContent;
-    definirTexto(bl.avisoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
-    bl.avisoEl.style.display = "block";
+    bl.avisosNoConsole = bl.avisosNoConsole || /* @__PURE__ */ new Set();
+    if (!bl.avisosNoConsole.has(mensagem) && typeof console !== "undefined" && console.warn) {
+      bl.avisosNoConsole.add(mensagem);
+      console.warn(`[${bl.idDoGrafico || "biblioteca-looker"}] aviso: ${mensagem}`);
+    }
+    const textoEl = bl.avisoEl.querySelector(".bl-aviso-texto");
+    const atual = textoEl.textContent;
+    definirTexto(textoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
+    const fechadoPeloUsuario = !!bl.estado.avisoFechado && bl.estado.avisoFechado === textoEl.textContent;
+    bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
   }
+  var OPCOES_DE_AVISO = {
+    mostrarAvisos: {
+      type: "boolean",
+      label: "Mostrar avisos (eles sempre v\xE3o tamb\xE9m para o console)",
+      section: "Texto",
+      default: true
+    },
+    posicaoDosAvisos: {
+      type: "string",
+      label: "Posi\xE7\xE3o dos avisos",
+      section: "Texto",
+      display: "select",
+      default: "topo",
+      values: [{ Topo: "topo" }, { Rodap\u00E9: "rodape" }, { Oculto: "oculto" }]
+    }
+  };
   function mostrarEstadoVazio(bl, tema, mensagem) {
     limpar(bl.area);
     const caixa = criarEl("div", { classe: "bl-vazio", pai: bl.area, texto: mensagem });
@@ -3852,6 +4311,86 @@
     if (definido) g.defined(definido);
     return g;
   }
+  function caminhoDoSimbolo(forma, tamanho) {
+    const r = Math.max(0.5, tamanho / 2);
+    switch (forma) {
+      case "quadrado":
+        return `M${-r},${-r}h${r * 2}v${r * 2}h${-r * 2}Z`;
+      case "triangulo": {
+        const h = r * 1.6;
+        return `M0,${-h}L${r * 1.4},${h * 0.7}L${-r * 1.4},${h * 0.7}Z`;
+      }
+      case "losango":
+        return `M0,${-r * 1.3}L${r * 1},0L0,${r * 1.3}L${-r * 1},0Z`;
+      case "cruz": {
+        const b = r * 0.42;
+        return `M${-b},${-r}h${b * 2}v${r - b}h${r - b}v${b * 2}h${-(r - b)}v${r - b}h${-b * 2}v${-(r - b)}h${-(r - b)}v${-b * 2}h${r - b}Z`;
+      }
+      case "estrela": {
+        const pontas = 5;
+        const rExterno = r * 1.25;
+        const rInterno = r * 0.5;
+        let d = "";
+        for (let i = 0; i < pontas * 2; i++) {
+          const raio = i % 2 === 0 ? rExterno : rInterno;
+          const ang = Math.PI / pontas * i - Math.PI / 2;
+          const x2 = Math.cos(ang) * raio;
+          const y2 = Math.sin(ang) * raio;
+          d += `${i === 0 ? "M" : "L"}${x2.toFixed(2)},${y2.toFixed(2)}`;
+        }
+        return `${d}Z`;
+      }
+      case "wye":
+        return pontosDoWye(r).map(([x2, y2], i) => `${i ? "L" : "M"}${x2.toFixed(2)},${y2.toFixed(2)}`).join("") + "Z";
+      case "circulo":
+      default:
+        return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
+    }
+  }
+  function pontosDoWye(r) {
+    const b = r * 0.38;
+    const pontos = [];
+    for (let k = 0; k < 3; k++) {
+      const ang = -Math.PI / 2 + k * 2 * Math.PI / 3;
+      const cx = Math.cos(ang);
+      const cy = Math.sin(ang);
+      const px = -cy;
+      const py = cx;
+      const centro = b / Math.sqrt(3);
+      pontos.push([cx * r * 1.15 - px * b, cy * r * 1.15 - py * b]);
+      pontos.push([cx * r * 1.15 + px * b, cy * r * 1.15 + py * b]);
+      const prox = ang + Math.PI / 3;
+      pontos.push([Math.cos(prox) * centro * 2, Math.sin(prox) * centro * 2]);
+    }
+    return pontos;
+  }
+  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
+  function formaDoMarcador(nome) {
+    const mapa = { circle: "circulo", square: "quadrado", triangle: "triangulo", diamond: "losango", cross: "cruz", star: "estrela", y: "wye" };
+    const n = String(nome || "").trim().toLowerCase();
+    if (FORMAS_DE_MARCADOR.includes(n)) return n;
+    return mapa[n] || "circulo";
+  }
+  function criarMarcadorSvg(pai, forma, x2, y2, diametro, atributos = {}) {
+    const f = formaDoMarcador(forma);
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    el.setAttribute("d", caminhoDoSimbolo(f, Math.max(1, Number(diametro) || 1)));
+    el.setAttribute("transform", `translate(${Number(x2) || 0},${Number(y2) || 0})`);
+    el.setAttribute("class", "bl-marcador");
+    el.setAttribute("data-forma", f);
+    for (const [k, v] of Object.entries(atributos)) {
+      if (v === void 0 || v === null) continue;
+      if (k === "classe") el.setAttribute("class", `bl-marcador ${v}`);
+      else el.setAttribute(k, String(v));
+    }
+    if (pai) pai.appendChild(el);
+    return el;
+  }
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
+    return null;
+  }
 
   // src/core/series.js
   function opcaoDeOrigemDasSeries(secao = "Dados") {
@@ -4084,6 +4623,192 @@
     const resto = posicao - base;
     if (base + 1 >= ordenados.length) return ordenados[ordenados.length - 1];
     return ordenados[base] + (ordenados[base + 1] - ordenados[base]) * resto;
+  }
+
+  // src/core/rotulos.js
+  function lerBooleano(valor, padrao) {
+    if (valor === void 0 || valor === null || valor === "") return padrao;
+    if (valor === true || valor === false) return valor;
+    if (valor === "true") return true;
+    if (valor === "false") return false;
+    return !!valor;
+  }
+  function lerNumero(valor, padrao) {
+    const n = numeroOuNulo(valor);
+    return n === null ? padrao : n;
+  }
+  function lerTexto(valor, padrao = "") {
+    if (valor === void 0 || valor === null) return padrao;
+    const t = String(valor).trim();
+    return t === "" ? padrao : t;
+  }
+  function lerRotulos(config = {}, tema = {}, padroes = {}) {
+    const { padraoVisivel = true, tamanhoPadrao = 11, casasPadrao = 1 } = padroes;
+    return {
+      mostrar: lerBooleano(config.mostrarRotulos, padraoVisivel),
+      tamanho: Math.max(6, Math.min(48, lerNumero(config.tamanhoDoRotulo, tamanhoPadrao))),
+      cor: lerTexto(config.corDoRotulo, ""),
+      // vazio = automática
+      negrito: lerBooleano(config.negritoNoRotulo, false),
+      rotacao: lerNumero(config.rotacaoDoRotulo, 0),
+      evitarColisao: lerBooleano(config.evitarColisaoDeRotulos, true),
+      truncar: Math.max(0, lerNumero(config.truncarRotulo, 0)),
+      posicao: lerTexto(config.posicaoDoRotulo, "auto"),
+      conteudo: lerTexto(config.conteudoDoRotulo, "valor"),
+      formato: lerTexto(config.formatoDoRotulo, "auto"),
+      casas: Math.max(0, Math.min(6, Math.round(lerNumero(config.casasDecimaisDoRotulo, casasPadrao)))),
+      fonte: tema.fonte,
+      corDoTema: tema.texto
+    };
+  }
+  function formatadorDoRotulo(rot, valueFormat) {
+    if (!rot || rot.formato === "auto") {
+      return formatadorDeValueFormat(valueFormat, { casas: rot ? rot.casas : 1 });
+    }
+    return criarFormatadorNumerico({ estilo: rot.formato, casas: rot.casas });
+  }
+  function textoDoRotulo(rot, dado = {}) {
+    const { valor, nome = "", total, valueFormat, textoDoValor } = dado;
+    const formatar = formatadorDoRotulo(rot, valueFormat);
+    const n = numeroOuNulo(valor);
+    const textoValor = rot.formato === "auto" && textoDoValor !== void 0 && textoDoValor !== null && textoDoValor !== "" ? String(textoDoValor) : n === null ? "" : formatar(n);
+    let fracao = numeroOuNulo(dado.percentual);
+    if (fracao === null && n !== null && numeroOuNulo(total)) fracao = n / Number(total);
+    const textoPct = fracao === null ? "" : `${(fracao * 100).toFixed(rot.casas)}%`;
+    let texto;
+    switch (rot.conteudo) {
+      case "nome":
+        texto = String(nome);
+        break;
+      case "nomeValor":
+        texto = nome !== "" && textoValor !== "" ? `${nome}: ${textoValor}` : String(nome || textoValor);
+        break;
+      case "percentual":
+        texto = textoPct || textoValor;
+        break;
+      case "valorPercentual":
+        texto = textoPct ? `${textoValor} (${textoPct})` : textoValor;
+        break;
+      case "valor":
+      default:
+        texto = textoValor;
+        break;
+    }
+    return rot.truncar > 0 ? truncar(texto, rot.truncar) : texto;
+  }
+  function estilizarRotulo(el, rot, extra = {}) {
+    if (!el || !rot) return el;
+    const cor = rot.cor || extra.corAutomatica || rot.corDoTema;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      el.setAttribute("font-size", String(rot.tamanho));
+      if (cor) el.setAttribute("fill", cor);
+      el.setAttribute("font-weight", rot.negrito ? "700" : "400");
+      if (rot.fonte) el.setAttribute("font-family", rot.fonte);
+      if (rot.rotacao) {
+        const x2 = extra.x !== void 0 ? extra.x : Number(el.getAttribute("x")) || 0;
+        const y2 = extra.y !== void 0 ? extra.y : Number(el.getAttribute("y")) || 0;
+        const anterior = el.getAttribute("transform");
+        const giro = `rotate(${rot.rotacao},${x2},${y2})`;
+        el.setAttribute("transform", anterior ? `${anterior} ${giro}` : giro);
+      }
+    } else {
+      el.style.fontSize = `${rot.tamanho}px`;
+      if (cor) el.style.color = cor;
+      el.style.fontWeight = rot.negrito ? "700" : "400";
+      if (rot.rotacao) {
+        const anterior = el.style.transform || "";
+        el.style.transform = `${anterior} rotate(${rot.rotacao}deg)`.trim();
+      }
+    }
+    el.setAttribute("data-rotulo", "1");
+    return el;
+  }
+  function criarRotuloSvg(pai, rot, { x: x2, y: y2, texto, ancora = "middle", base = "central", corAutomatica } = {}) {
+    if (!rot || !rot.mostrar || texto === "" || texto === null || texto === void 0) return null;
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    el.setAttribute("x", String(x2));
+    el.setAttribute("y", String(y2));
+    el.setAttribute("text-anchor", ancora);
+    el.setAttribute("dominant-baseline", base);
+    el.setAttribute("class", "bl-rotulo");
+    el.textContent = String(texto);
+    estilizarRotulo(el, rot, { corAutomatica, x: x2, y: y2 });
+    pai.appendChild(el);
+    return el;
+  }
+  function larguraDoTexto(texto, tamanho) {
+    return String(texto || "").length * tamanho * 0.58;
+  }
+  function esconderColisoes(caixas, rot) {
+    if (!rot || !rot.evitarColisao) return 0;
+    const mantidas = [];
+    let escondidos = 0;
+    for (const c of caixas) {
+      if (!c || !c.el) continue;
+      const colide = mantidas.some(
+        (m) => Math.abs(m.x - c.x) * 2 < m.largura + c.largura && Math.abs(m.y - c.y) * 2 < m.altura + c.altura
+      );
+      if (colide) {
+        c.el.setAttribute("display", "none");
+        if (c.el.style) c.el.style.display = "none";
+        escondidos += 1;
+      } else {
+        mantidas.push(c);
+      }
+    }
+    return escondidos;
+  }
+
+  // src/core/cores.js
+  function paletaDoConfig(config = {}) {
+    const cores = coresDaPaleta(config.paleta).slice();
+    if (lerBooleano(config.inverterPaleta, false)) cores.reverse();
+    return cores;
+  }
+  function corDoItem(config = {}, indice = 0, chave, { prefixo = "cor_" } = {}) {
+    if (chave !== void 0 && chave !== null) {
+      const propria = lerTexto(config[`${prefixo}${sanitizarChave(chave)}`], "");
+      const padraoDaPosicao = coresDaPaleta("looker")[indice % coresDaPaleta("looker").length];
+      if (propria && propria.toLowerCase() !== String(padraoDaPosicao).toLowerCase()) return propria;
+    }
+    const paleta = paletaDoConfig(config);
+    return paleta[(indice % paleta.length + paleta.length) % paleta.length];
+  }
+  function opacidadeDoConfig(config = {}, padrao = 1) {
+    return Math.max(0, Math.min(1, lerNumero(config.opacidade, padrao)));
+  }
+  function lerContorno(config = {}, tema = {}, { corPadrao } = {}) {
+    const espessura = Math.max(0, lerNumero(config.espessuraDoContorno, 1));
+    return {
+      mostrar: lerBooleano(config.mostrarContorno, true) && espessura > 0,
+      // '#FFFFFF' é o DEFAULT declarado (não pode mudar): quando o gráfico
+      // informa uma cor padrão, o branco default vale como 'automática'.
+      cor: ((c) => c && !(corPadrao && c.toUpperCase() === "#FFFFFF") ? c : corPadrao || tema.fundo || "#FFFFFF")(
+        lerTexto(config.corDoContorno, "")
+      ),
+      espessura,
+      estilo: lerTexto(config.tracejadoDoContorno, "solido")
+    };
+  }
+  function aplicarContorno(el, contorno) {
+    if (!el || !contorno) return el;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      if (!contorno.mostrar) {
+        el.setAttribute("stroke", "none");
+        el.removeAttribute("stroke-dasharray");
+        return el;
+      }
+      el.setAttribute("stroke", contorno.cor);
+      el.setAttribute("stroke-width", String(contorno.espessura));
+      const traco = tracejadoPorEstilo(contorno.estilo, contorno.espessura);
+      if (traco) el.setAttribute("stroke-dasharray", traco);
+      else el.removeAttribute("stroke-dasharray");
+    } else {
+      el.style.border = contorno.mostrar ? `${contorno.espessura}px ${contorno.estilo === "tracejado" ? "dashed" : contorno.estilo === "pontilhado" ? "dotted" : "solid"} ${contorno.cor}` : "none";
+    }
+    return el;
   }
 
   // node_modules/d3-array/src/ascending.js
@@ -5044,6 +5769,7 @@
 .st-marca{pointer-events:none;}
 .st-nota{position:absolute;left:8px;bottom:4px;font-size:10px;opacity:.7;pointer-events:none;}
 .st-destaque{pointer-events:none;}
+.st-area .bl-rotulo,.st-area .bl-marcador{pointer-events:none;}
 `;
   function opcoesDeTracado({ secao = "Formato", espessuraPadrao = 2 } = {}) {
     return {
@@ -5098,12 +5824,76 @@
       return null;
     }
     const campoDeFormato = matriz.medida || modelo.medidas[0] || null;
+    const casas = Number(config.casasDecimaisDoRotulo);
     const formatarValor = formatadorDeValueFormat(campoDeFormato && campoDeFormato.valueFormat, {
-      casas: Number(config.casasDecimaisDoRotulo) || 1
+      casas: Number.isFinite(casas) ? casas : 1
     });
     const ehData = !!(matriz.campoDaCategoria && matriz.campoDaCategoria.ehData);
     const rotuloDaCategoria = (categoria) => ehData ? formatarData(categoria.valorBruto, config.formatoDeData || "auto") : categoria.rotulo;
     return { matriz, categorias: matriz.categorias, rotuloDaCategoria, formatarValor, campoDeFormato };
+  }
+  function valueFormatDaSerie(serie, s) {
+    if (s && s.campo && s.campo.valueFormat) return s.campo.valueFormat;
+    return serie.campoDeFormato ? serie.campoDeFormato.valueFormat : void 0;
+  }
+  function chaveDe(modelo, linha, nome) {
+    const bruto = modelo.valorBruto(linha, nome);
+    return bruto === null || bruto === void 0 ? "\u2205" : String(bruto);
+  }
+  function localizarPonto(ctx, matriz, indice, s) {
+    const { modelo } = ctx;
+    const categoria = matriz.categorias[indice];
+    const campoDaCategoria = matriz.campoDaCategoria;
+    if (!categoria || !campoDaCategoria) return null;
+    let campo = null;
+    let pivo;
+    let filtro = () => true;
+    if (s && !s.ehOutros) {
+      if (matriz.origem === "pivo") {
+        campo = matriz.medida ? matriz.medida.nome : null;
+        pivo = s.chave;
+      } else if (matriz.origem === "dimensao") {
+        campo = matriz.medida ? matriz.medida.nome : null;
+        const campoDaSerie = modelo.dimensoes.find((d) => d.nome !== campoDaCategoria.nome);
+        if (campoDaSerie) filtro = (linha) => chaveDe(modelo, linha, campoDaSerie.nome) === s.chave;
+      } else {
+        campo = s.chave;
+      }
+    }
+    const linhas = modelo.linhas.filter(
+      (linha) => chaveDe(modelo, linha, campoDaCategoria.nome) === categoria.chave && filtro(linha)
+    );
+    return { linhas, campo, pivo, categoria };
+  }
+  function celulaDoPonto(ctx, matriz, indice, s) {
+    const { modelo } = ctx;
+    const local = localizarPonto(ctx, matriz, indice, s);
+    if (!local) return null;
+    if (local.campo && local.linhas.length) {
+      const c = modelo.celula(local.linhas[0], local.campo, local.pivo);
+      if (c) return c;
+    }
+    const linha = modelo.linhas[local.categoria.indiceDaPrimeiraLinha];
+    return linha ? modelo.celula(linha, matriz.campoDaCategoria.nome) : null;
+  }
+  function textoDoPonto(ctx, matriz, indice, s, valor, formatar) {
+    if (valor === null || valor === void 0 || !Number.isFinite(valor)) return "\u2014";
+    const local = localizarPonto(ctx, matriz, indice, s);
+    if (local && local.campo && local.linhas.length === 1) {
+      const linha = local.linhas[0];
+      const bruto = ctx.modelo.valorNumerico(linha, local.campo, local.pivo);
+      if (bruto !== null && Math.abs(bruto - valor) < 1e-9 * Math.max(1, Math.abs(valor))) {
+        const t = ctx.modelo.texto(linha, local.campo, local.pivo, "");
+        if (t !== "") return t;
+      }
+    }
+    return formatar(valor);
+  }
+  function celulaDoPeriodo(ctx, serie, indice) {
+    const categoria = serie.categorias[indice];
+    if (!categoria || !serie.matriz.campoDaCategoria) return null;
+    const linha = ctx.modelo.linhas[categoria.indiceDaPrimeiraLinha];
+    return linha ? ctx.modelo.celula(linha, serie.matriz.campoDaCategoria.nome) : null;
   }
   function montarPlano({ ctx, serie, valores, formatarY, comLegenda = false }) {
     const { config, tema, raiz, largura, altura } = ctx;
@@ -5128,9 +5918,11 @@
       tema
     });
     const retangulo = areaDeDesenho(larguraUtil, alturaUtil, margens);
+    const intervaloX = [retangulo.esquerda, retangulo.esquerda + retangulo.largura];
+    if (config.inverterEixoX === true) intervaloX.reverse();
     const escalaX = escalaDePonto({
       dominio: serie.categorias.map((c) => c.chave),
-      intervalo: [retangulo.esquerda, retangulo.esquerda + retangulo.largura],
+      intervalo: intervaloX,
       preenchimento: 0.04
     });
     const escalaY = escalaNumerica({
@@ -5184,10 +5976,58 @@
       }
     });
   }
-  function ligarGuiaEHover({ ctx, plano, serie, montarLinhasDoTooltip, aoClicar }) {
-    const { config, tema } = ctx;
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(ctx.raiz, tema);
-    ctx.estado.tooltip = tooltip;
+  function desenharRotulosDosPontos({ plano, rot, grupos, quantidadeDePeriodos, posicaoAuto = "acima", raio = 3, pai, quais = "auto", classe }) {
+    if (!rot || !rot.mostrar) return [];
+    const destino = pai || plano.svg;
+    const validos = grupos.map((g) => ({ ...g, pontos: g.pontos.filter((p) => p && p.texto !== "" && Number.isFinite(p.y)) }));
+    const maior = validos.reduce(
+      (a, g) => g.pontos.reduce((b, p) => Math.max(b, larguraDoTexto(p.texto, rot.tamanho)), a),
+      0
+    );
+    const passo = plano.retangulo.largura / Math.max(1, (quantidadeDePeriodos || 2) - 1);
+    const todos = quais !== "ultimo" && passo >= maior + 4;
+    const lado = rot.posicao === "centro" ? "centro" : rot.posicao === "dentro" ? "abaixo" : rot.posicao === "fora" || rot.posicao === "foraComLinha" ? "acima" : posicaoAuto;
+    const deslocamento = lado === "centro" ? 0 : raio + rot.tamanho / 2 + 3;
+    const dy = lado === "abaixo" ? deslocamento : -deslocamento;
+    const esquerda = Math.min(plano.retangulo.esquerda, plano.retangulo.esquerda + plano.retangulo.largura);
+    const direita = esquerda + plano.retangulo.largura;
+    const prioritarios = [];
+    const demais = [];
+    for (const g of validos) {
+      if (!g.pontos.length) continue;
+      const ultimo = g.pontos.reduce((a, p) => p.indice > a.indice ? p : a, g.pontos[0]);
+      for (const p of todos ? g.pontos : [ultimo]) {
+        const largura = larguraDoTexto(p.texto, rot.tamanho);
+        let ancora = "middle";
+        let cx = p.x;
+        if (p.x + largura / 2 > direita + 4) {
+          ancora = "end";
+          cx = p.x - largura / 2;
+        } else if (p.x - largura / 2 < esquerda - 4) {
+          ancora = "start";
+          cx = p.x + largura / 2;
+        }
+        const el = criarRotuloSvg(destino, rot, {
+          x: p.x,
+          y: p.y + dy,
+          texto: p.texto,
+          ancora,
+          corAutomatica: p.cor || g.cor
+        });
+        if (!el) continue;
+        if (classe) el.setAttribute("class", `bl-rotulo ${classe}`);
+        if (g.aoCriar) g.aoCriar(el);
+        const caixa = { el, x: cx, y: p.y + dy, largura, altura: rot.tamanho };
+        (p === ultimo ? prioritarios : demais).push(caixa);
+      }
+    }
+    const caixas = prioritarios.concat(demais);
+    esconderColisoes(caixas, rot);
+    return caixas.map((c) => c.el);
+  }
+  function ligarGuiaEHover({ ctx, plano, serie, montarLinhasDoTooltip, aoClicar, celulaDoClique }) {
+    const { tema } = ctx;
+    const tooltip = ctx.tooltip();
     const guia = criarSvgEl("line", {
       pai: plano.svg,
       classe: "st-guia",
@@ -5213,38 +6053,45 @@
       });
       return melhor;
     };
+    const conteudoDoPeriodo = (indice) => {
+      const r = montarLinhasDoTooltip(indice);
+      if (!r) return null;
+      const linhas = Array.isArray(r) ? r : r.linhas;
+      if (!linhas || !linhas.length) return null;
+      const titulo = !Array.isArray(r) && r.titulo || serie.rotuloDaCategoria(serie.categorias[indice]);
+      const variaveis = Object.assign(
+        { categoria: serie.rotuloDaCategoria(serie.categorias[indice]) },
+        Array.isArray(r) ? {} : r.variaveis || {}
+      );
+      return { titulo, linhas, variaveis };
+    };
     ctx.eventos.on(plano.area, "pointermove", (ev) => {
       const indice = indiceMaisProximo(ev.clientX);
       guia.setAttribute("x1", plano.x(indice));
       guia.setAttribute("x2", plano.x(indice));
       guia.setAttribute("opacity", 0.6);
       if (!tooltip) return;
-      const linhas = montarLinhasDoTooltip(indice);
-      if (!linhas || !linhas.length) {
+      const conteudo = conteudoDoPeriodo(indice);
+      if (!conteudo) {
         tooltip.esconder();
         return;
       }
-      tooltip.mostrar(
-        { titulo: serie.rotuloDaCategoria(serie.categorias[indice]), linhas },
-        ev.clientX,
-        ev.clientY
-      );
+      tooltip.mostrar(conteudo, ev.clientX, ev.clientY);
     });
     ctx.eventos.on(plano.area, "pointerleave", () => {
       guia.setAttribute("opacity", 0);
       if (tooltip) tooltip.esconder();
     });
-    if (typeof aoClicar === "function") {
-      ctx.eventos.on(plano.area, "click", (ev) => aoClicar(indiceMaisProximo(ev.clientX), ev));
-    }
+    ctx.eventos.on(plano.area, "click", (ev) => {
+      const indice = indiceMaisProximo(ev.clientX);
+      if (typeof aoClicar === "function") {
+        aoClicar(indice, ev);
+        return;
+      }
+      const celula = typeof celulaDoClique === "function" ? celulaDoClique(indice) : celulaDoPeriodo(ctx, serie, indice);
+      ctx.cliqueNoItem(ev, celula, conteudoDoPeriodo(indice));
+    });
     return { tooltip, guia };
-  }
-  function drillDoPeriodo(ctx, serie, indice, evento) {
-    const categoria = serie.categorias[indice];
-    if (!categoria || !serie.matriz.campoDaCategoria) return;
-    const linha = ctx.modelo.linhas[categoria.indiceDaPrimeiraLinha];
-    const celula = ctx.modelo.celula(linha, serie.matriz.campoDaCategoria.nome);
-    if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, evento);
   }
   function avisarSeForaDeOrdem(ctx, serie, oQueEhCumulativo = "O c\xE1lculo \xE9 cumulativo") {
     const campo = serie.matriz.campoDaCategoria;
@@ -5261,8 +6108,7 @@
     }
     return false;
   }
-  function destruirSerieTemporal({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
+  function destruirSerieTemporal() {
   }
 
   // src/charts/grafico_controle/index.js
@@ -5418,8 +6264,17 @@
         valores: [...paraEscala, limites.superior, limites.inferior]
       });
       injetarEstilo(ctx.raiz, ".gc-sinal{pointer-events:none;}", "gc");
-      const corDaLinha = config.corDeDestaque || tema.destaque;
+      const corDaLinha = corDoItem(config, 0, escolhida.chave);
       const corDoSinal = config.corDoSinal || tema.negativo;
+      const rot = lerRotulos(config, tema);
+      const opacidade = opacidadeDoConfig(config);
+      const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+      const valueFormat = valueFormatDaSerie(serie, escolhida);
+      const textoDoValor = (v, textoDoLooker) => textoDoRotulo({ ...rot, conteudo: "valor", truncar: 0 }, {
+        valor: v,
+        valueFormat,
+        textoDoValor: textoDoLooker !== void 0 ? textoDoLooker : serie.formatarValor(v)
+      });
       if (config.mostrarZonas !== false && limites.sigma > 0) {
         desenharZonas({ svg: plano.svg, plano, limites, tema });
       }
@@ -5438,18 +6293,15 @@
           espessura: marca.nome === "LC" ? 1.5 : 1
         });
         if (config.escreverLimites !== false) {
-          const texto = criarSvgEl("text", {
-            pai: plano.svg,
-            classe: "st-marca",
-            atributos: {
-              x: plano.retangulo.esquerda + plano.retangulo.largura - 2,
-              y: y2 - 3,
-              "text-anchor": "end",
-              "font-size": Math.max(8, tema.tamanhoBase - 2),
-              fill: marca.cor
-            }
+          const direita = Math.max(plano.retangulo.esquerda, plano.retangulo.esquerda + plano.retangulo.largura);
+          const texto = criarRotuloSvg(plano.svg, rot, {
+            x: direita - 2,
+            y: y2 - 3 - rot.tamanho / 2,
+            texto: `${marca.nome} ${textoDoValor(marca.valor)}`,
+            ancora: "end",
+            corAutomatica: marca.cor
           });
-          definirTexto(texto, `${marca.nome} ${serie.formatarValor(marca.valor)}`);
+          if (texto) texto.setAttribute("class", "bl-rotulo st-marca");
         }
       }
       const linha = geradorDeLinha({
@@ -5468,22 +6320,46 @@
           "stroke-linejoin": "round"
         }
       });
+      const mostrarComuns = config.mostrarPontos !== false;
+      const textosDoLooker = valores.map(
+        (v, i) => v === null || !Number.isFinite(v) ? null : textoDoPonto(ctx, serie.matriz, i, escolhida, v, serie.formatarValor)
+      );
+      const pontosRotulaveis = [];
       serie.categorias.forEach((_, i) => {
         const valor = valores[i];
         if (valor === null || !Number.isFinite(valor)) return;
         const temSinal = sinais[i].length > 0;
-        criarSvgEl("circle", {
-          pai: plano.svg,
-          classe: temSinal ? "gc-sinal" : "st-ponto",
-          atributos: {
-            cx: plano.x(i),
-            cy: plano.escalaY(valor),
-            r: temSinal ? 4.5 : 2.5,
+        const x2 = plano.x(i);
+        const y2 = plano.escalaY(valor);
+        if (temSinal || mostrarComuns) {
+          const ponto = criarMarcadorSvg(plano.svg, "circulo", x2, y2, temSinal ? 9 : 5, {
+            classe: temSinal ? "gc-sinal" : "st-ponto",
             fill: temSinal ? corDoSinal : corDaLinha,
-            stroke: temSinal ? tema.fundo : null,
-            "stroke-width": temSinal ? 1 : null
-          }
+            "fill-opacity": opacidade,
+            "data-x": x2,
+            "data-y": y2
+          });
+          aplicarContorno(ponto, contorno);
+        }
+        pontosRotulaveis.push({
+          indice: i,
+          x: x2,
+          y: y2,
+          cor: temSinal ? corDoSinal : void 0,
+          texto: textoDoRotulo(rot, {
+            valor,
+            nome: escolhida.rotulo,
+            valueFormat,
+            textoDoValor: textosDoLooker[i]
+          })
         });
+      });
+      desenharRotulosDosPontos({
+        plano,
+        rot,
+        grupos: [{ pontos: pontosRotulaveis }],
+        quantidadeDePeriodos: serie.categorias.length,
+        raio: 4.5
       });
       const nota = criarEl("div", { classe: "st-nota", pai: plano.area });
       nota.style.color = tema.textoSuave;
@@ -5499,7 +6375,7 @@
           const valor = valores[indice];
           if (valor === null || !Number.isFinite(valor)) return null;
           const linhas = [
-            { rotulo: escolhida.rotulo, valor: serie.formatarValor(valor), cor: corDaLinha },
+            { rotulo: escolhida.rotulo, valor: textosDoLooker[indice], cor: corDaLinha },
             { rotulo: "Linha central", valor: serie.formatarValor(limites.centro) },
             {
               rotulo: "Dist\xE2ncia da m\xE9dia",
@@ -5511,9 +6387,17 @@
             const regra = REGRAS.find((r) => r.id === id);
             linhas.push({ rotulo: `Regra ${id}`, valor: regra ? regra.rotulo : "\u2014", cor: corDoSinal });
           }
-          return linhas;
+          return {
+            linhas,
+            variaveis: {
+              valor: textosDoLooker[indice],
+              serie: escolhida.rotulo,
+              sigma: limites.sigma > 0 ? `${((valor - limites.centro) / limites.sigma).toFixed(2)} \u03C3` : "\u2014"
+            }
+          };
         },
-        aoClicar: (indice, ev) => drillDoPeriodo(ctx, serie, indice, ev)
+        // O clique usa a célula do ponto (a medida), onde o Looker põe o drill.
+        celulaDoClique: (indice) => celulaDoPonto(ctx, serie.matriz, indice, escolhida)
       });
     },
     aoDestruir: destruirSerieTemporal

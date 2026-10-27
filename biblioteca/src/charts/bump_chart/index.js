@@ -14,19 +14,44 @@
  * Por isso duas coisas não são opcionais aqui: a ressalva fica escrita na
  * tela, e o tooltip mostra sempre o VALOR ao lado da posição — é a única
  * forma de o leitor distinguir os dois casos.
+ *
+ * Campos: 1 dimensão de período + séries (pivô, 2ª dimensão ou várias
+ * medidas) e 1 medida.
+ *
+ * Opções (correções v2):
+ *   - Cores: paleta + "Inverter ordem das cores" + cor própria por série
+ *     (opção dinâmica "Cor — <série>", vazio = da paleta). Antes a cor
+ *     vinha de `coresDaPaleta` sem inversão e de `cor_<chave>` sem
+ *     sanitizar e nunca registrada — nenhuma opção de cor funcionava.
+ *     Opacidade e contorno valem nos pontos.
+ *   - Rótulos: o bloco Rótulos vale nos nomes das pontas ("Nomes nas
+ *     pontas" continua escolhendo o lado) e no NOVO rótulo de valor no
+ *     último ponto de cada série (conteúdo/formato/casas/posição/colisão).
+ *     "Mostrar rótulos" desligado esconde os dois.
+ *   - Pontos: com "Número da posição dentro do ponto" ligado, o disco é
+ *     sempre desenhado (é o suporte do número); com ele desligado, os
+ *     pontos seguem "Marcar cada período com um ponto".
+ *   - Tooltip único; valor no texto do Looker; clique pela "Ação do clique".
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
 import { escalaDePonto } from '../../core/scales.js';
-import { geradorDeLinha } from '../../core/shapes.js';
-import { coresDaPaleta, comOpacidade } from '../../core/theme.js';
+import { geradorDeLinha, criarMarcadorSvg } from '../../core/shapes.js';
+import { textoLegivelSobre } from '../../core/theme.js';
 import { truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
 import { larguraAproximada } from '../../core/eixos.js';
+import { corDoItem, opacidadeDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, criarRotuloSvg } from '../../core/rotulos.js';
 import {
   opcoesDeTracado,
+  opcoesDinamicasDeSerie,
   lerSerieTemporal,
+  desenharRotulosDosPontos,
+  celulaDoPonto,
+  textoDoPonto,
+  formatadorDaSerie,
+  valueFormatDaSerie,
   destruirSerieTemporal,
 } from '../_serie_temporal/index.js';
 import { tratarNulos, opcaoDeOrigemDasSeries } from '../../core/series.js';
@@ -47,6 +72,7 @@ const CSS = `
 .bp-linha{fill:none;pointer-events:none;}
 .bp-ponto{pointer-events:none;}
 .bp-rotulo{pointer-events:none;}
+.bp-valor{pointer-events:none;}
 .bp-periodo{pointer-events:none;}
 .bp-nota{position:absolute;left:8px;bottom:4px;font-size:10px;opacity:.75;pointer-events:none;}
 `;
@@ -119,6 +145,8 @@ export default defineViz({
   ),
   exigencia: { dimensoesMin: 1, medidasMin: 1, aceitaPivo: true, exigeLinhas: true },
 
+  opcoesDinamicas: opcoesDinamicasDeSerie({ minimoDeSeries: 2 }),
+
   render(ctx) {
     const { config, tema, raiz, largura, altura } = ctx;
 
@@ -161,17 +189,23 @@ export default defineViz({
     injetarEstilo(raiz, CSS, 'bp');
     const area = criarEl('div', { classe: 'bp-area', pai: raiz });
 
+    // Relido a cada desenho: nada do painel fica guardado entre updates.
+    const rot = lerRotulos(config, tema);
+    const opacidade = opacidadeDoConfig(config);
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+
     const fonte = Math.max(8, tema.tamanhoBase - 1);
-    const modoDosRotulos = config.rotulosNasPontas || 'ambas';
-    const maiorNome = series.reduce(
-      (a, s) => Math.max(a, larguraAproximada(truncar(s.rotulo, 20), fonte)),
-      0
-    );
+    const modoDosRotulos = rot.mostrar ? config.rotulosNasPontas || 'ambas' : 'nenhum';
+    const limiteDoNome = rot.truncar > 0 ? rot.truncar : 20;
+    const nomeCurto = (s) => truncar(s.rotulo, limiteDoNome);
+    const maiorNome = series.reduce((a, s) => Math.max(a, larguraAproximada(nomeCurto(s), rot.tamanho)), 0);
     const margemEsquerda =
       modoDosRotulos === 'ambas' || modoDosRotulos === 'esquerda' ? maiorNome + 14 : 18;
     const margemDireita =
       modoDosRotulos === 'ambas' || modoDosRotulos === 'direita' ? maiorNome + 14 : 18;
-    const margemDeCima = fonte + 14;
+    // O rótulo de valor fica ACIMA do último ponto: a 1ª posição precisa
+    // de espaço para ele abaixo da linha dos períodos.
+    const margemDeCima = fonte + 14 + (rot.mostrar ? rot.tamanho + 2 : 0);
     const margemDeBaixo = fonte + 14;
 
     const escalaX = escalaDePonto({
@@ -209,16 +243,23 @@ export default defineViz({
     });
 
     // ---------- Linhas ----------
-    const paleta = coresDaPaleta(config.paleta);
     const curva = config.curvaDaLinha || 'monotone';
     const espessura = Number(config.espessuraDaLinha) || 2.5;
     const raioDoPonto = (Number(config.tamanhoDoPonto) || 12) / 2;
+    const comNumero = config.mostrarPosicao !== false;
+    // O disco é o suporte do número da posição; sem o número, os pontos
+    // seguem "Marcar cada período com um ponto".
+    const desenharPontos = comNumero || config.mostrarPontos === true;
 
     const grupoDasLinhas = criarSvgEl('g', { pai: svg, classe: 'bp-linhas' });
+    const gruposDeValor = [];
+    const ultimoPeriodo = serie.categorias.length - 1;
+    const totalNoPeriodo = (i) => series.reduce((a, s) => a + (Number.isFinite(s.valores[i]) ? s.valores[i] : 0), 0);
 
     series.forEach((s, indice) => {
-      s.cor = config[`cor_${s.chave}`] || paleta[indice % paleta.length];
+      s.cor = corDoItem(config, indice, s.chave);
       s.posicoes = posicoes[indice];
+      s.formatar = formatadorDaSerie(serie, s, config);
 
       const gerador = geradorDeLinha({
         x: (_, i) => escalaX(serie.categorias[i].chave),
@@ -241,33 +282,32 @@ export default defineViz({
 
       s.marcas = [];
       serie.categorias.forEach((_, i) => {
-        if (s.posicoes[i] === null) return;
-        const circulo = criarSvgEl('circle', {
-          pai: grupoDasLinhas,
+        if (s.posicoes[i] === null || !desenharPontos) return;
+        const px = escalaX(serie.categorias[i].chave);
+        const py = y(s.posicoes[i]);
+        const ponto = criarMarcadorSvg(grupoDasLinhas, 'circulo', px, py, raioDoPonto * 2, {
           classe: 'bp-ponto',
-          atributos: {
-            cx: escalaX(serie.categorias[i].chave),
-            cy: y(s.posicoes[i]),
-            r: raioDoPonto,
-            fill: s.cor,
-            stroke: tema.fundo,
-            'stroke-width': 1.5,
-          },
+          fill: s.cor,
+          'fill-opacity': opacidade,
+          'data-x': px,
+          'data-y': py,
         });
-        s.marcas.push(circulo);
+        aplicarContorno(ponto, contorno);
+        s.marcas.push(ponto);
 
-        if (config.mostrarPosicao !== false && raioDoPonto >= 7) {
+        if (comNumero && raioDoPonto >= 7) {
           const numero = criarSvgEl('text', {
             pai: grupoDasLinhas,
             classe: 'bp-ponto',
             atributos: {
-              x: escalaX(serie.categorias[i].chave),
-              y: y(s.posicoes[i]),
+              x: px,
+              y: py,
               'text-anchor': 'middle',
               'dominant-baseline': 'central',
               'font-size': Math.max(7, raioDoPonto),
               'font-weight': '600',
-              fill: tema.fundo,
+              // Legível sobre a cor da série (paletas claras incluídas).
+              fill: textoLegivelSobre(s.cor, tema),
             },
           });
           definirTexto(numero, String(s.posicoes[i]));
@@ -275,41 +315,68 @@ export default defineViz({
         }
       });
 
-      // --- Nomes nas pontas ---
+      // --- Nomes nas pontas (estilo do bloco Rótulos) ---
       const primeira = s.posicoes.findIndex((p) => p !== null);
       const ultima = s.posicoes.length - 1 - [...s.posicoes].reverse().findIndex((p) => p !== null);
+      const folga = (desenharPontos ? raioDoPonto : 0) + 5;
 
-      if ((modoDosRotulos === 'ambas' || modoDosRotulos === 'esquerda') && primeira >= 0) {
-        const texto = criarSvgEl('text', {
-          pai: svg,
-          classe: 'bp-rotulo',
-          atributos: {
-            x: escalaX(serie.categorias[primeira].chave) - raioDoPonto - 5,
-            y: y(s.posicoes[primeira]),
-            'text-anchor': 'end',
-            'dominant-baseline': 'central',
-            'font-size': fonte,
-            fill: tema.texto,
-          },
+      const nome = (indiceDoPeriodo, ancora, dx) => {
+        const texto = criarRotuloSvg(svg, rot, {
+          x: escalaX(serie.categorias[indiceDoPeriodo].chave) + dx,
+          y: y(s.posicoes[indiceDoPeriodo]),
+          texto: nomeCurto(s),
+          ancora,
+          corAutomatica: tema.texto,
         });
-        definirTexto(texto, truncar(s.rotulo, 20));
-        s.marcas.push(texto);
+        if (texto) {
+          texto.setAttribute('class', 'bl-rotulo bp-rotulo');
+          s.marcas.push(texto);
+        }
+      };
+      if ((modoDosRotulos === 'ambas' || modoDosRotulos === 'esquerda') && primeira >= 0) {
+        nome(primeira, 'end', -folga);
       }
       if ((modoDosRotulos === 'ambas' || modoDosRotulos === 'direita') && primeira >= 0) {
-        const texto = criarSvgEl('text', {
-          pai: svg,
-          classe: 'bp-rotulo',
-          atributos: {
-            x: escalaX(serie.categorias[ultima].chave) + raioDoPonto + 5,
-            y: y(s.posicoes[ultima]),
-            'dominant-baseline': 'central',
-            'font-size': fonte,
-            fill: tema.texto,
-          },
-        });
-        definirTexto(texto, truncar(s.rotulo, 20));
-        s.marcas.push(texto);
+        nome(ultima, 'start', folga);
       }
+
+      // --- Valor no último ponto (rótulo de dado) ---
+      // O ranking apaga a magnitude: o valor ao lado da última posição é
+      // a forma mais barata de devolvê-la.
+      if (primeira >= 0) {
+        const v = s.valores[ultima];
+        gruposDeValor.push({
+          cor: s.cor,
+          aoCriar: (el) => s.marcas.push(el),
+          pontos: [
+            {
+              indice: ultima,
+              x: escalaX(serie.categorias[ultima].chave),
+              y: y(s.posicoes[ultima]),
+              texto: textoDoRotulo(rot, {
+                valor: v,
+                nome: s.rotulo,
+                total: ultima === ultimoPeriodo ? totalNoPeriodo(ultima) : undefined,
+                valueFormat: valueFormatDaSerie(serie, s),
+                textoDoValor: textoDoPonto(ctx, serie.matriz, ultima, s, v, s.formatar),
+              }),
+            },
+          ],
+        });
+      }
+    });
+
+    desenharRotulosDosPontos({
+      plano: {
+        svg,
+        retangulo: { esquerda: margemEsquerda, largura: Math.max(20, largura - margemDireita - margemEsquerda) },
+      },
+      rot,
+      grupos: gruposDeValor,
+      quantidadeDePeriodos: serie.categorias.length,
+      raio: desenharPontos ? raioDoPonto : 2,
+      quais: 'ultimo',
+      classe: 'bp-valor',
     });
 
     // ---------- Nota ----------
@@ -329,8 +396,9 @@ export default defineViz({
     );
 
     // ---------- Interação ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    // Tooltip ÚNICO do gráfico (o núcleo esconde no redesenho e remove no
+    // destroy); null se o usuário desligou.
+    const tooltip = ctx.tooltip();
 
     const destacar = (alvo) => {
       if (config.destacarNoHover === false) return;
@@ -341,14 +409,36 @@ export default defineViz({
       }
     };
 
-    ctx.eventos.on(area, 'pointermove', (ev) => {
+    const alvoDoEvento = (ev) => {
       const caixa = area.getBoundingClientRect();
       const px = ev.clientX - caixa.left;
       const py = ev.clientY - caixa.top;
-
       const i = indiceDoPeriodo(px, serie, escalaX);
       const alvo = serieMaisProxima({ series, indice: i, py, y, tolerancia: Math.max(12, passoY / 2) });
+      return { i, alvo };
+    };
 
+    const conteudoDe = (alvo, i) => {
+      const valor = alvo.valores[i];
+      // O valor vem SEMPRE (é ele que diz se a troca de posição foi um
+      // terremoto ou um empate técnico) e vem no texto do Looker.
+      const textoDoValor = textoDoPonto(ctx, serie.matriz, i, alvo, valor, alvo.formatar);
+      const periodo = serie.rotuloDaCategoria(serie.categorias[i]);
+      const posicao = alvo.posicoes[i] === null ? 'sem dado neste período' : `${alvo.posicoes[i]}º de ${maiorPosicao}`;
+      return {
+        titulo: alvo.rotulo,
+        linhas: [
+          { rotulo: 'Período', valor: periodo, cor: alvo.cor },
+          { rotulo: 'Posição', valor: posicao },
+          { rotulo: serie.matriz.medida ? serie.matriz.medida.rotuloCurto : 'Valor', valor: textoDoValor },
+          ...linhasDeVariacao(alvo, i, maiorPosicao),
+        ],
+        variaveis: { categoria: periodo, serie: alvo.rotulo, valor: textoDoValor, posicao },
+      };
+    };
+
+    ctx.eventos.on(area, 'pointermove', (ev) => {
+      const { i, alvo } = alvoDoEvento(ev);
       destacar(alvo);
 
       if (!tooltip) return;
@@ -356,33 +446,20 @@ export default defineViz({
         tooltip.esconder();
         return;
       }
-      const valor = alvo.valores[i];
-      tooltip.mostrar(
-        {
-          titulo: alvo.rotulo,
-          linhas: [
-            { rotulo: 'Período', valor: serie.rotuloDaCategoria(serie.categorias[i]), cor: alvo.cor },
-            {
-              rotulo: 'Posição',
-              valor: alvo.posicoes[i] === null ? 'sem dado neste período' : `${alvo.posicoes[i]}º de ${maiorPosicao}`,
-            },
-            // O valor vem SEMPRE: é ele que diz se a troca de posição foi
-            // um terremoto ou um empate técnico.
-            {
-              rotulo: serie.matriz.medida ? serie.matriz.medida.rotuloCurto : 'Valor',
-              valor: valor === null || !Number.isFinite(valor) ? '—' : serie.formatarValor(valor),
-            },
-            ...linhasDeVariacao(alvo, i, maiorPosicao),
-          ],
-        },
-        ev.clientX,
-        ev.clientY
-      );
+      tooltip.mostrar(conteudoDe(alvo, i), ev.clientX, ev.clientY);
     });
 
     ctx.eventos.on(area, 'pointerleave', () => {
       destacar(null);
       if (tooltip) tooltip.esconder();
+    });
+
+    // Clique: "Ação do clique" do painel (drill na célula do ponto, fixar
+    // o tooltip ou nada).
+    ctx.eventos.on(area, 'click', (ev) => {
+      const { i, alvo } = alvoDoEvento(ev);
+      if (!alvo || i < 0) return;
+      ctx.cliqueNoItem(ev, celulaDoPonto(ctx, serie.matriz, i, alvo), conteudoDe(alvo, i));
     });
   },
 

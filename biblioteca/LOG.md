@@ -3002,3 +3002,30 @@ evidência em `tmp/correcoes_listas.antes.txt`, fora do git).
 - Mudanças visuais no padrão: heatmap escreve valores onde cabem; contorno
   branco de 1 px nas barras/pontos (default do kit); guias e rank ligados.
 - Ficou de fora: bar_race sem tooltip (não declara o bloco).
+
+### Frente concluída: bump_chart, drawdown, grafico_controle, slope_chart, pareto
+`test/correcoes_series.test.mjs` (69 casos; 16 dos 17 testes originais
+falhavam no código anterior; o de "1 tooltip" é regressão).
+- Base `_serie_temporal`: tooltip único, clique pela ação (com a célula da
+  medida por trás do ponto), `textoDoPonto` (texto do Looker ou value_format
+  quando o ponto é soma/interpolado), `desenharRotulosDosPontos` (todos os
+  pontos se couberem, senão o último de cada série; colisão), "Inverter
+  eixo X" passa a valer; `casasDecimaisDoRotulo: 0` virava 1 (`|| 1`).
+- bump_chart — "nenhuma opção de cor funciona": lia `cor_<chave>` SEM
+  sanitizar, opção que nunca era registrada, e a paleta sem inverter.
+  Agora `corDoItem` + opção dinâmica "Cor — <série>" (default vazio).
+- drawdown: paleta/inverter e cor por série (2+ séries); rótulos de valor;
+  "Pior: …" no estilo do bloco.
+- grafico_controle — "aba Cores não funciona": a linha lia
+  `corDeDestaque`, que não é opção deste gráfico. Agora pela paleta;
+  LSC/LC/LIC e valores no estilo do bloco de rótulos.
+- slope_chart: nomes das pontas com o bloco inteiro; "Evitar colisão" liga
+  o espalhamento; clique na ponta mais próxima (antes não havia).
+- pareto: "Cor das barras" tinha default preenchido e a paleta nunca era
+  lida; com o default `#4276BE` vale a paleta (com inverter). Rótulo de
+  valor em cada barra. Tooltip persistente: clique sem links fixa, Shift
+  fixa, com links abre o drill (testado com `.bl-fixo`).
+- Mudanças visuais no padrão: rótulos de valor novos (mostrarRotulos já era
+  true por padrão); linha do controle #2563EB → #4276BE (paleta); contorno
+  branco 1 px.
+- Ids novos: só dinâmicos `cor_<série>` (default '').

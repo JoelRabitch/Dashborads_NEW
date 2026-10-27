@@ -12,11 +12,27 @@
  * Valores negativos quebram a leitura: o acumulado deixa de ser monótono,
  * e "80% do total" perde sentido quando parte das categorias subtrai. Por
  * isso o gráfico avisa em vez de desenhar algo que parece certo.
+ *
+ * Campos: 1 dimensão (categoria) e 1 medida.
+ *
+ * Opções (correções v2):
+ *   - Rótulos: NOVO rótulo de valor em cada barra, com o bloco Rótulos
+ *     inteiro (posição dentro/fora/centro/automática, conteúdo — valor,
+ *     nome, % do total —, formato, casas, tamanho, cor, negrito, rotação,
+ *     truncar, esconder sobrepostos).
+ *   - Cores: "Cor das barras" vale quando o usuário escolhe uma cor
+ *     diferente da padrão; com a padrão, as barras seguem a paleta (1ª cor,
+ *     respeitando "Inverter ordem das cores"). Opacidade e contorno valem
+ *     nas barras (e nos pontos do acumulado).
+ *   - Tooltip único, valor no texto do Looker; o clique segue a "Ação do
+ *     clique": drill se a célula tem links, senão FIXA o tooltip (Shift
+ *     sempre fixa; Esc ou clique fora solta) — era o "não fica
+ *     persistente".
+ *   - Eixos: escala/mínimo/máximo/inverter do Y e "Inverter eixo X".
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { criarTooltip } from '../../core/tooltip.js';
 import { escalaNumerica, escalaDeBanda } from '../../core/scales.js';
 import {
   calcularMargens,
@@ -25,9 +41,18 @@ import {
   desenharEixoSecundario,
   espacoParaEixoSecundario,
 } from '../../core/eixos.js';
-import { geradorDeLinha } from '../../core/shapes.js';
-import { coresDaPaleta, comOpacidade } from '../../core/theme.js';
+import { geradorDeLinha, criarMarcadorSvg } from '../../core/shapes.js';
+import { textoLegivelSobre } from '../../core/theme.js';
 import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core/format.js';
+import { paletaDoConfig, opacidadeDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
+import {
+  lerRotulos,
+  textoDoRotulo,
+  criarRotuloSvg,
+  esconderColisoes,
+  larguraDoTexto,
+  posicaoEfetiva,
+} from '../../core/rotulos.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -48,9 +73,13 @@ const CSS = `
 .pt-ponto{pointer-events:none;}
 .pt-marca{pointer-events:none;}
 .pt-texto{pointer-events:none;}
+.pt-rotulo{pointer-events:none;}
 .pt-nota{position:absolute;left:8px;bottom:4px;font-size:10px;opacity:.75;pointer-events:none;}
 @media (prefers-reduced-motion: reduce){.pt-barra{transition:none;}}
 `;
+
+/** Default declarado de "Cor das barras" (não mudar: dashboards salvos). */
+const COR_PADRAO_DA_BARRA = '#4276BE';
 
 export default defineViz({
   id: 'pareto',
@@ -101,7 +130,7 @@ export default defineViz({
           label: 'Cor das barras',
           section: 'Cores',
           display: 'color',
-          default: '#4276BE',
+          default: COR_PADRAO_DA_BARRA,
         },
         corDoAcumulado: {
           type: 'string',
@@ -154,10 +183,24 @@ export default defineViz({
     injetarEstilo(raiz, CSS, 'pt');
     const area = criarEl('div', { classe: 'pt-area', pai: raiz });
 
+    // `0` casa é escolha do usuário (antes `|| 0` só acertava por acaso).
+    const casas = Number(config.casasDecimaisDoRotulo);
     const formatarValor = formatadorDeValueFormat(medida.valueFormat, {
-      casas: Number(config.casasDecimaisDoRotulo) || 0,
+      casas: Number.isFinite(casas) ? casas : 0,
     });
     const formatarPercentualDoEixo = (v) => `${Math.round(v * 100)}%`;
+    // Valor de uma barra: texto do Looker quando a barra é UMA linha da
+    // consulta; soma de várias (ou "Outros") é número derivado, formatado
+    // pelo value_format do campo.
+    const textoDoValor = (item) =>
+      item.linhas === 1 && item.indiceDaLinha >= 0
+        ? modelo.texto(modelo.linhas[item.indiceDaLinha], medida.nome, undefined, '') || formatarValor(item.valor)
+        : formatarValor(item.valor);
+
+    // Relidos a cada desenho.
+    const rot = lerRotulos(config, tema);
+    const opacidade = opacidadeDoConfig(config);
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
 
     // ---------- Geometria ----------
     const margens = calcularMargens({
@@ -170,11 +213,16 @@ export default defineViz({
       margens.direita,
       espacoParaEixoSecundario(['100%'], tema, false)
     );
+    // Rótulo "fora" acima da maior barra precisa de espaço no topo.
+    if (rot.mostrar) margens.cima = (margens.cima || 0) + rot.tamanho + 4;
     const retangulo = areaDeDesenho(largura, altura, margens);
 
+    const inverterX = config.inverterEixoX === true;
+    const intervaloX = [retangulo.esquerda, retangulo.esquerda + retangulo.largura];
+    if (inverterX) intervaloX.reverse();
     const escalaX = escalaDeBanda({
       dominio: leitura.itens.map((i) => i.chave),
-      intervalo: [retangulo.esquerda, retangulo.esquerda + retangulo.largura],
+      intervalo: intervaloX,
       config: { larguraDaBarra: Number(config.larguraDaBarra) || 80, espacamentoEntreGrupos: 10 },
     });
     const escalaY = escalaNumerica({
@@ -222,32 +270,76 @@ export default defineViz({
     });
 
     // ---------- Barras ----------
-    const corDaBarra = config.corDaBarra || coresDaPaleta(config.paleta)[0];
+    // "Cor das barras" escolhida pelo usuário vence; com o valor padrão,
+    // vale a paleta (1ª cor, com "Inverter ordem das cores"). Antes a
+    // opção tinha default preenchido e a paleta nunca era lida.
+    const escolhida = typeof config.corDaBarra === 'string' ? config.corDaBarra.trim() : '';
+    const corDaBarra =
+      escolhida && escolhida.toUpperCase() !== COR_PADRAO_DA_BARRA ? escolhida : paletaDoConfig(config)[0];
     const yDoZero = escalaY(0);
     const barras = [];
+    const caixasDeRotulo = [];
 
     leitura.itens.forEach((item, indice) => {
       const x = escalaX(item.chave);
       const y = escalaY(Math.max(0, item.valor));
       const antesDoCorte = config.destacarAteOCorte !== false && indice <= leitura.indiceDoCorte;
+      const topo = Math.min(y, yDoZero);
+      const alturaDaBarra = Math.max(0.5, Math.abs(yDoZero - y));
 
       const barra = criarSvgEl('rect', {
         pai: svg,
         classe: 'pt-barra',
         atributos: {
           x,
-          y: Math.min(y, yDoZero),
+          y: topo,
           width: escalaX.bandwidth(),
-          height: Math.max(0.5, Math.abs(yDoZero - y)),
-          fill: antesDoCorte ? corDaBarra : comOpacidade(corDaBarra, 0.4),
+          height: alturaDaBarra,
+          fill: corDaBarra,
+          // As barras depois do corte ficam a 40% da opacidade escolhida.
+          'fill-opacity': opacidade * (antesDoCorte ? 1 : 0.4),
           rx: 1,
         },
       });
+      aplicarContorno(barra, contorno);
       barras.push(barra);
+
+      // --- Rótulo de dado ---
+      if (rot.mostrar) {
+        const texto = textoDoRotulo(rot, {
+          valor: item.valor,
+          nome: item.rotulo,
+          total: leitura.total,
+          percentual: item.participacao,
+          valueFormat: medida.valueFormat,
+          textoDoValor: textoDoValor(item),
+        });
+        const cabeDentro = alturaDaBarra >= rot.tamanho + 6;
+        const onde = posicaoEfetiva(rot, { cabeDentro });
+        const cx = x + escalaX.bandwidth() / 2;
+        const cy =
+          onde === 'centro' ? topo + alturaDaBarra / 2
+            : onde === 'dentro' ? topo + rot.tamanho / 2 + 3
+              : topo - rot.tamanho / 2 - 3;
+        const el = criarRotuloSvg(svg, rot, {
+          x: cx,
+          y: cy,
+          texto,
+          // Dentro da barra: cor legível sobre a barra; fora: a do tema.
+          corAutomatica: onde === 'fora' ? tema.texto : textoLegivelSobre(corDaBarra, tema),
+        });
+        if (el) {
+          el.setAttribute('class', 'bl-rotulo pt-rotulo');
+          caixasDeRotulo.push({ el, x: cx, y: cy, largura: larguraDoTexto(texto, rot.tamanho), altura: rot.tamanho });
+        }
+      }
     });
+    // As maiores barras vêm primeiro: são as que ficam quando há colisão.
+    esconderColisoes(caixasDeRotulo, rot);
 
     // ---------- Linha acumulada ----------
     const meioDaBanda = escalaX.bandwidth() / 2;
+    const corDoAcumulado = config.corDoAcumulado || tema.atencao;
     const desenhar = geradorDeLinha({
       x: (_, i) => escalaX(leitura.itens[i].chave) + meioDaBanda,
       y: (_, i) => escalaAcumulado(leitura.itens[i].acumulado),
@@ -258,7 +350,7 @@ export default defineViz({
       classe: 'pt-linha',
       atributos: {
         d: desenhar(leitura.itens) || '',
-        stroke: config.corDoAcumulado || tema.atencao,
+        stroke: corDoAcumulado,
         'stroke-width': 2,
         'stroke-linejoin': 'round',
       },
@@ -266,16 +358,16 @@ export default defineViz({
 
     if (config.mostrarPontosDoAcumulado !== false) {
       leitura.itens.forEach((item) => {
-        criarSvgEl('circle', {
-          pai: svg,
+        const px = escalaX(item.chave) + meioDaBanda;
+        const py = escalaAcumulado(item.acumulado);
+        const ponto = criarMarcadorSvg(svg, 'circulo', px, py, 5, {
           classe: 'pt-ponto',
-          atributos: {
-            cx: escalaX(item.chave) + meioDaBanda,
-            cy: escalaAcumulado(item.acumulado),
-            r: 2.5,
-            fill: config.corDoAcumulado || tema.atencao,
-          },
+          fill: corDoAcumulado,
+          'fill-opacity': opacidade,
+          'data-x': px,
+          'data-y': py,
         });
+        aplicarContorno(ponto, contorno);
       });
     }
 
@@ -293,7 +385,9 @@ export default defineViz({
         },
       });
 
-      const xDoCorte = escalaX(leitura.itens[leitura.indiceDoCorte].chave) + escalaX.bandwidth();
+      // Com o eixo invertido, o "depois" da barra do corte fica à esquerda.
+      const xDaBarraDoCorte = escalaX(leitura.itens[leitura.indiceDoCorte].chave);
+      const xDoCorte = inverterX ? xDaBarraDoCorte : xDaBarraDoCorte + escalaX.bandwidth();
       criarSvgEl('line', {
         pai: svg,
         classe: 'pt-marca',
@@ -323,31 +417,50 @@ export default defineViz({
     definirTexto(nota, textoDaConclusao(leitura, nivel, formatarValor));
 
     // ---------- Interação ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    // Tooltip ÚNICO do gráfico (null se desligado). Não é destruído a cada
+    // desenho: o núcleo esconde no redesenho e remove no destroy.
+    const tooltip = ctx.tooltip();
+
+    const conteudoDe = (item, indice) => {
+      const valor = textoDoValor(item);
+      const participacao = formatarPercentual(item.participacao, 1);
+      return {
+        titulo: item.rotulo,
+        linhas: [
+          { rotulo: medida.rotuloCurto, valor, cor: corDaBarra },
+          { rotulo: 'Participação', valor: participacao },
+          { rotulo: 'Acumulado', valor: formatarPercentual(item.acumulado, 1), cor: corDoAcumulado },
+          { rotulo: 'Posição', valor: `${indice + 1}ª de ${leitura.itens.length}` },
+        ],
+        variaveis: {
+          categoria: item.rotulo,
+          valor,
+          serie: medida.rotuloCurto,
+          percentual: participacao,
+          acumulado: formatarPercentual(item.acumulado, 1),
+        },
+      };
+    };
+
+    /** Célula do clique: a da categoria; se ela não tem drill, a da medida. */
+    const celulaDe = (item) => {
+      if (item.indiceDaLinha < 0) return null; // "Outros" não tem linha
+      const linha = modelo.linhas[item.indiceDaLinha];
+      const daCategoria = modelo.celula(linha, campoDaCategoria.nome);
+      if (daCategoria && daCategoria.links && daCategoria.links.length) return daCategoria;
+      if (item.linhas === 1) {
+        const daMedida = modelo.celula(linha, medida.nome);
+        if (daMedida && daMedida.links && daMedida.links.length) return daMedida;
+      }
+      return daCategoria;
+    };
 
     leitura.itens.forEach((item, indice) => {
       const barra = barras[indice];
       if (tooltip) {
         ctx.eventos.on(barra, 'pointerenter', (ev) => {
           barras.forEach((outra, i) => outra.classList.toggle('pt-apagada', i !== indice));
-          tooltip.mostrar(
-            {
-              titulo: item.rotulo,
-              linhas: [
-                { rotulo: medida.rotuloCurto, valor: formatarValor(item.valor), cor: corDaBarra },
-                { rotulo: 'Participação', valor: formatarPercentual(item.participacao, 1) },
-                {
-                  rotulo: 'Acumulado',
-                  valor: formatarPercentual(item.acumulado, 1),
-                  cor: config.corDoAcumulado,
-                },
-                { rotulo: 'Posição', valor: `${indice + 1}ª de ${leitura.itens.length}` },
-              ],
-            },
-            ev.clientX,
-            ev.clientY
-          );
+          tooltip.mostrar(conteudoDe(item, indice), ev.clientX, ev.clientY);
         });
         ctx.eventos.on(barra, 'pointermove', (ev) => tooltip.mover(ev.clientX, ev.clientY));
         ctx.eventos.on(barra, 'pointerleave', () => {
@@ -356,16 +469,12 @@ export default defineViz({
         });
       }
 
+      // "Ação do clique": drill se a célula tem links; senão fixa o
+      // tooltip (Shift+clique sempre fixa). É o que o deixa persistente.
       ctx.eventos.on(barra, 'click', (ev) => {
-        if (item.indiceDaLinha < 0) return;
-        const celula = modelo.celula(modelo.linhas[item.indiceDaLinha], campoDaCategoria.nome);
-        if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+        ctx.cliqueNoItem(ev, celulaDe(item), conteudoDe(item, indice));
       });
     });
-  },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
   },
 });
 
@@ -390,9 +499,13 @@ export function montarPareto({ modelo, campoDaCategoria, medida, config }) {
         rotulo: modelo.texto(linha, campoDaCategoria.nome, undefined, '∅'),
         valor: 0,
         indiceDaLinha: i,
+        // Quantas linhas da consulta somam nesta barra: com UMA, o tooltip
+        // e o rótulo usam o texto do Looker daquela célula.
+        linhas: 0,
       });
     }
     const v = modelo.valorNumerico(linha, medida.nome);
+    porChave.get(chave).linhas += 1;
     if (v !== null) porChave.get(chave).valor += v;
   }
 

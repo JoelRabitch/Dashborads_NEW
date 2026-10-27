@@ -16,16 +16,39 @@
  * a ordem** — trocar dois nomes de lugar para caber seria pior do que
  * deixá-los sobrepostos, porque o leitor liga o nome à linha errada sem
  * ter como perceber.
+ *
+ * Campos: 1 dimensão de período + séries (pivô, 2ª dimensão ou várias
+ * medidas) e 1 medida. Usa o primeiro e o último período.
+ *
+ * Opções (correções v2):
+ *   - Cores: "Colorir por direção" continua com as cores de alta/baixa;
+ *     desligado, vale a paleta (com "Inverter ordem das cores", que antes
+ *     era ignorado) e a cor própria por série ("Cor — <série>").
+ *     Opacidade e contorno valem nos pontos das pontas.
+ *   - Rótulos: os nomes das pontas são os rótulos de dado deste gráfico e
+ *     seguem o bloco Rótulos inteiro (mostrar, tamanho, cor, negrito,
+ *     rotação, truncar; conteúdo/formato/casas no valor quando "Escrever
+ *     o valor junto do nome" está ligado). "Esconder rótulos que se
+ *     sobrepõem" liga/desliga o espalhamento que preserva a ordem.
+ *   - Tooltip único, valores das pontas no texto do Looker; clique pela
+ *     "Ação do clique".
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
 import { escalaNumerica } from '../../core/scales.js';
-import { coresDaPaleta, comOpacidade } from '../../core/theme.js';
+import { criarMarcadorSvg } from '../../core/shapes.js';
 import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
 import { larguraAproximada } from '../../core/eixos.js';
-import { lerSerieTemporal, destruirSerieTemporal } from '../_serie_temporal/index.js';
+import { corDoItem, opacidadeDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, criarRotuloSvg } from '../../core/rotulos.js';
+import {
+  lerSerieTemporal,
+  opcoesDinamicasDeSerie,
+  celulaDoPonto,
+  textoDoPonto,
+  destruirSerieTemporal,
+} from '../_serie_temporal/index.js';
 import { tratarNulos, opcaoDeOrigemDasSeries } from '../../core/series.js';
 import {
   montarOpcoes,
@@ -129,6 +152,10 @@ export default defineViz({
   ),
   exigencia: { dimensoesMin: 1, medidasMin: 1, aceitaPivo: true, exigeLinhas: true },
 
+  // "Cor — <série>" (vazio = da paleta); vale com "Colorir por direção"
+  // desligado.
+  opcoesDinamicas: opcoesDinamicasDeSerie({ minimoDeSeries: 1 }),
+
   render(ctx) {
     const { config, tema, raiz, largura, altura } = ctx;
 
@@ -169,6 +196,7 @@ export default defineViz({
       itens.push({
         chave: s.chave,
         rotulo: s.rotulo,
+        original: s,
         a,
         b,
         variacao: b - a,
@@ -204,25 +232,61 @@ export default defineViz({
     injetarEstilo(raiz, CSS, 'sl');
     const area = criarEl('div', { classe: 'sl-area', pai: raiz });
 
+    // Relidos a cada desenho (módulos 6.1/6.2).
+    const rot = lerRotulos(config, tema);
+    const opacidade = opacidadeDoConfig(config);
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+
     const casas = Number(config.casasDecimaisDoRotulo);
-    const formatar = formatadorDeValueFormat(serie.matriz.medida && serie.matriz.medida.valueFormat, {
+    const valueFormat = serie.matriz.medida && serie.matriz.medida.valueFormat;
+    const formatar = formatadorDeValueFormat(valueFormat, {
       casas: Number.isFinite(casas) ? casas : 1,
     });
 
-    const fonte = Math.max(8, tema.tamanhoBase - 1);
-    const escreverValores = config.escreverValores !== false;
-    const textoDoRotulo = (item, valor) =>
-      escreverValores ? `${truncar(item.rotulo, 18)} ${formatar(valor)}` : truncar(item.rotulo, 18);
+    // Valor de cada ponta no texto do Looker quando é uma célula só.
+    for (const item of itens) {
+      item.textoA = textoDoPonto(ctx, serie.matriz, indiceDeA, item.original, item.a, formatar);
+      item.textoB = textoDoPonto(ctx, serie.matriz, indiceDeB, item.original, item.b, formatar);
+    }
+    const totalDeA = itens.reduce((s, i) => s + i.a, 0);
+    const totalDeB = itens.reduce((s, i) => s + i.b, 0);
 
-    const maiorRotulo = itens.reduce(
-      (a, item) =>
-        Math.max(
-          a,
-          larguraAproximada(textoDoRotulo(item, item.a), fonte),
-          larguraAproximada(textoDoRotulo(item, item.b), fonte)
-        ),
-      0
-    );
+    // Rótulo de cada ponta: o nome (identifica a linha) + o valor, se
+    // "Escrever o valor junto do nome" estiver ligado. O bloco Rótulos
+    // decide o resto: "O que mostrar" = nome → só o nome; nome e valor →
+    // "nome: valor"; percentual → % do total daquela coluna. Formato e
+    // casas valem no valor; "Truncar" vale no texto inteiro.
+    const fonte = Math.max(8, tema.tamanhoBase - 1);
+    const escreverValores = config.escreverValores !== false && rot.conteudo !== 'nome';
+    const conteudoDoValor = rot.conteudo === 'nome' || rot.conteudo === 'nomeValor' ? 'valor' : rot.conteudo;
+    const limiteDoNome = rot.truncar > 0 ? rot.truncar : 18;
+    const textoDoRotuloDaPonta = (item, lado) => {
+      const nome = truncar(item.rotulo, limiteDoNome);
+      if (!escreverValores) return nome;
+      const valor = textoDoRotulo(
+        { ...rot, conteudo: conteudoDoValor, truncar: 0 },
+        {
+          valor: lado === 'a' ? item.a : item.b,
+          total: lado === 'a' ? totalDeA : totalDeB,
+          valueFormat,
+          textoDoValor: lado === 'a' ? item.textoA : item.textoB,
+        }
+      );
+      const texto = `${nome}${rot.conteudo === 'nomeValor' ? ': ' : ' '}${valor}`;
+      return rot.truncar > 0 ? truncar(texto, rot.truncar) : texto;
+    };
+
+    const maiorRotulo = rot.mostrar
+      ? itens.reduce(
+          (a, item) =>
+            Math.max(
+              a,
+              larguraAproximada(textoDoRotuloDaPonta(item, 'a'), rot.tamanho),
+              larguraAproximada(textoDoRotuloDaPonta(item, 'b'), rot.tamanho)
+            ),
+          0
+        )
+      : 0;
     const margemLateral = Math.min(largura * 0.34, maiorRotulo + 16);
     const margemDeCima = fonte + 16;
     const margemDeBaixo = 18;
@@ -279,7 +343,6 @@ export default defineViz({
     }
 
     // ---------- Cores e destaque ----------
-    const paleta = coresDaPaleta(config.paleta);
     const corDeAlta = config.corDeAlta || tema.positivo;
     const corDeBaixa = config.corDeBaixa || tema.negativo;
     const porDirecao = config.corPorDirecao !== false;
@@ -304,13 +367,15 @@ export default defineViz({
     );
 
     itens.forEach((item, indice) => {
+      // Por direção: as cores próprias do gráfico. Senão: a paleta (com
+      // "Inverter ordem das cores") e a cor própria por série.
       item.cor = porDirecao
         ? item.variacao > 0
           ? corDeAlta
           : item.variacao < 0
             ? corDeBaixa
             : tema.neutro
-        : paleta[indice % paleta.length];
+        : corDoItem(config, indice, item.chave);
       item.apagado = topN > 0 && !destacados.has(item.chave);
     });
 
@@ -332,48 +397,48 @@ export default defineViz({
       });
 
       for (const ponta of [{ x: xA, y: item.yA }, { x: xB, y: item.yB }]) {
-        criarSvgEl('circle', {
-          pai: svg,
+        const ponto = criarMarcadorSvg(svg, 'circulo', ponta.x, ponta.y, item.apagado ? 4 : 7, {
           classe: 'sl-ponto',
-          atributos: {
-            cx: ponta.x, cy: ponta.y, r: item.apagado ? 2 : 3.5,
-            fill: item.cor, opacity: item.apagado ? 0.3 : 1,
-          },
+          fill: item.cor,
+          'fill-opacity': opacidade,
+          opacity: item.apagado ? 0.3 : 1,
+          'data-x': ponta.x,
+          'data-y': ponta.y,
         });
+        aplicarContorno(ponto, contorno);
       }
     }
 
     // ---------- Rótulos, com anti-colisão ----------
-    const alturaDoRotulo = fonte + 2;
-    const limites = { cima, baixo: cima + alturaUtil };
+    // "Esconder rótulos que se sobrepõem" ligado = espalhar preservando a
+    // ordem (ver `resolverColisoes`); desligado = cada nome na altura exata
+    // da sua ponta, mesmo que se sobreponham.
+    if (rot.mostrar) {
+      const alturaDoRotulo = rot.tamanho + 2;
+      const limites = { cima, baixo: cima + alturaUtil };
 
-    for (const lado of ['a', 'b']) {
-      const ordenados = itens
-        .map((item, indice) => ({ item, indice, y: lado === 'a' ? item.yA : item.yB }))
-        .sort((x, y) => x.y - y.y);
+      for (const lado of ['a', 'b']) {
+        const ordenados = itens
+          .map((item, indice) => ({ item, indice, y: lado === 'a' ? item.yA : item.yB }))
+          .sort((x, y) => x.y - y.y);
 
-      const ajustados = resolverColisoes(
-        ordenados.map((o) => o.y),
-        alturaDoRotulo,
-        limites
-      );
+        const ajustados = rot.evitarColisao
+          ? resolverColisoes(ordenados.map((o) => o.y), alturaDoRotulo, limites)
+          : ordenados.map((o) => o.y);
 
-      ordenados.forEach((o, i) => {
-        const texto = criarSvgEl('text', {
-          pai: svg,
-          classe: 'sl-rotulo',
-          atributos: {
+        ordenados.forEach((o, i) => {
+          const texto = criarRotuloSvg(svg, rot, {
             x: lado === 'a' ? xA - 8 : xB + 8,
             y: ajustados[i],
-            'text-anchor': lado === 'a' ? 'end' : 'start',
-            'dominant-baseline': 'central',
-            'font-size': fonte,
-            fill: o.item.apagado ? tema.textoSuave : tema.texto,
-            opacity: o.item.apagado ? 0.5 : 1,
-          },
+            texto: textoDoRotuloDaPonta(o.item, lado),
+            ancora: lado === 'a' ? 'end' : 'start',
+            corAutomatica: o.item.apagado ? tema.textoSuave : tema.texto,
+          });
+          if (!texto) return;
+          texto.setAttribute('class', 'bl-rotulo sl-rotulo');
+          if (o.item.apagado) texto.setAttribute('opacity', 0.5);
         });
-        definirTexto(texto, textoDoRotulo(o.item, lado === 'a' ? o.item.a : o.item.b));
-      });
+      }
     }
 
     // ---------- Nota ----------
@@ -398,43 +463,64 @@ export default defineViz({
     );
 
     // ---------- Interação ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    // Tooltip ÚNICO do gráfico (null se desligado).
+    const tooltip = ctx.tooltip();
+    const rotuloDeA = serie.rotuloDaCategoria(serie.categorias[indiceDeA]);
+    const rotuloDeB = serie.rotuloDaCategoria(serie.categorias[indiceDeB]);
 
-    ctx.eventos.on(area, 'pointermove', (ev) => {
-      if (!tooltip) return;
+    const alvoDoEvento = (ev) => {
       const caixa = area.getBoundingClientRect();
       const px = ev.clientX - caixa.left;
       const py = ev.clientY - caixa.top;
+      return { px, alvo: linhaMaisProxima({ itens, px, py, xA, xB }) };
+    };
 
-      const alvo = linhaMaisProxima({ itens, px, py, xA, xB });
+    const conteudoDe = (alvo) => {
+      // Pontas: texto do Looker. Variações: números derivados, formatados
+      // pelo value_format do campo.
+      const pct =
+        alvo.variacaoRelativa === null
+          ? 'não existe (começou em zero)'
+          : `${alvo.variacaoRelativa >= 0 ? '+' : ''}${formatarPercentual(alvo.variacaoRelativa, 1)}`;
+      return {
+        titulo: alvo.rotulo,
+        linhas: [
+          { rotulo: rotuloDeA, valor: alvo.textoA, cor: alvo.cor },
+          { rotulo: rotuloDeB, valor: alvo.textoB },
+          { rotulo: 'Variação', valor: `${alvo.variacao >= 0 ? '+' : ''}${formatar(alvo.variacao)}` },
+          { rotulo: 'Variação %', valor: pct },
+        ],
+        variaveis: {
+          categoria: alvo.rotulo,
+          serie: alvo.rotulo,
+          valor: alvo.textoB,
+          inicio: alvo.textoA,
+          variacao: `${alvo.variacao >= 0 ? '+' : ''}${formatar(alvo.variacao)}`,
+          percentual: alvo.variacaoRelativa === null ? '' : pct,
+        },
+      };
+    };
+
+    ctx.eventos.on(area, 'pointermove', (ev) => {
+      if (!tooltip) return;
+      const { alvo } = alvoDoEvento(ev);
       if (!alvo) {
         tooltip.esconder();
         return;
       }
-      tooltip.mostrar(
-        {
-          titulo: alvo.rotulo,
-          linhas: [
-            { rotulo: serie.rotuloDaCategoria(serie.categorias[indiceDeA]), valor: formatar(alvo.a), cor: alvo.cor },
-            { rotulo: serie.rotuloDaCategoria(serie.categorias[indiceDeB]), valor: formatar(alvo.b) },
-            { rotulo: 'Variação', valor: `${alvo.variacao >= 0 ? '+' : ''}${formatar(alvo.variacao)}` },
-            {
-              rotulo: 'Variação %',
-              valor:
-                alvo.variacaoRelativa === null
-                  ? 'não existe (começou em zero)'
-                  : `${alvo.variacaoRelativa >= 0 ? '+' : ''}${formatarPercentual(alvo.variacaoRelativa, 1)}`,
-            },
-          ],
-        },
-        ev.clientX,
-        ev.clientY
-      );
+      tooltip.mostrar(conteudoDe(alvo), ev.clientX, ev.clientY);
     });
 
     ctx.eventos.on(area, 'pointerleave', () => {
       if (tooltip) tooltip.esconder();
+    });
+
+    // Clique: "Ação do clique" na célula da ponta mais próxima.
+    ctx.eventos.on(area, 'click', (ev) => {
+      const { px, alvo } = alvoDoEvento(ev);
+      if (!alvo) return;
+      const indice = px - xA <= xB - px ? indiceDeA : indiceDeB;
+      ctx.cliqueNoItem(ev, celulaDoPonto(ctx, serie.matriz, indice, alvo.original), conteudoDe(alvo));
     });
   },
 

@@ -55,7 +55,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     amb,
     palco,
     linhas: Array.from(palco.querySelectorAll('path.bp-linha')),
-    pontos: Array.from(palco.querySelectorAll('circle.bp-ponto')),
+    pontos: Array.from(palco.querySelectorAll('.bl-marcador.bp-ponto')),
     rotulos: Array.from(palco.querySelectorAll('.bp-rotulo')).map((t) => t.textContent),
     periodos: Array.from(palco.querySelectorAll('.bp-periodo')).map((t) => t.textContent),
     nota: palco.querySelector('.bp-nota')?.textContent || '',
@@ -177,9 +177,9 @@ test('bump_chart — uma linha por série e um ponto por posição válida', (t)
     // de pontos por série" porque lacunas são legítimas.
     const porPeriodo = new Map();
     for (const ponto of r.pontos) {
-      const x = Number(ponto.getAttribute('cx')).toFixed(2);
+      const x = Number(ponto.getAttribute('data-x')).toFixed(2);
       if (!porPeriodo.has(x)) porPeriodo.set(x, []);
-      porPeriodo.get(x).push(Number(ponto.getAttribute('cy')).toFixed(2));
+      porPeriodo.get(x).push(Number(ponto.getAttribute('data-y')).toFixed(2));
     }
     assert.ok(porPeriodo.size > 1, 'os pontos deveriam se distribuir por vários períodos');
     for (const [x, alturas] of porPeriodo) {
@@ -212,7 +212,7 @@ test('bump_chart — os pontos ocupam alturas discretas, uma por posição', (t)
   const r = renderizar('comPivo');
   try {
     assert.ok(r.pontos.length > 0, 'nenhum ponto');
-    const alturas = new Set(r.pontos.map((c) => Number(c.getAttribute('cy')).toFixed(2)));
+    const alturas = new Set(r.pontos.map((c) => Number(c.getAttribute('data-y')).toFixed(2)));
     assert.equal(
       alturas.size,
       r.linhas.length,
@@ -238,8 +238,8 @@ test('bump_chart — nada sai da área do gráfico', (t) => {
   try {
     assert.ok(r.pontos.length > 0, 'nenhum ponto');
     for (const ponto of r.pontos) {
-      const cx = Number(ponto.getAttribute('cx'));
-      const cy = Number(ponto.getAttribute('cy'));
+      const cx = Number(ponto.getAttribute('data-x'));
+      const cy = Number(ponto.getAttribute('data-y'));
       assert.ok(cx >= -1 && cx <= 901, `ponto fora (x=${cx})`);
       assert.ok(cy >= -1 && cy <= 561, `ponto fora (y=${cy})`);
     }

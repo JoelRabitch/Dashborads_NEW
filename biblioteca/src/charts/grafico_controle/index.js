@@ -19,14 +19,32 @@
  * 2. **O que é um ponto.** Se cada ponto já é a média de n observações, os
  *    limites verdadeiros são σ/√n — mais estreitos. A consulta não conta
  *    isso, então o gráfico declara a hipótese em vez de fingir que sabe.
+ *
+ * Campos: 1 dimensão de período e 1 medida (com várias séries, só a
+ * primeira é usada, com aviso).
+ *
+ * Opções (correções v2):
+ *   - Cores: a linha usa a paleta ("Inverter ordem das cores" incluído) —
+ *     antes lia `corDeDestaque`, que não é opção deste gráfico, e a aba
+ *     Cores não mudava nada; "Cor dos pontos fora de controle" continua
+ *     valendo; opacidade e contorno valem nos pontos.
+ *   - Rótulos: valor nos pontos (todos, se couberem; senão o último) e
+ *     os textos LSC/LC/LIC ("Escrever os valores…") seguem o bloco
+ *     Rótulos; "Mostrar rótulos" desligado esconde todos.
+ *   - "Marcar cada período com um ponto" desligado esconde os pontos
+ *     comuns; os pontos com sinal ficam sempre (são a razão do gráfico).
+ *   - Tooltip único, valor no texto do Looker; clique pela "Ação do clique".
+ *   - Eixos: escala/mínimo/máximo/inverter do Y e "Inverter eixo X".
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { geradorDeLinha } from '../../core/shapes.js';
+import { geradorDeLinha, criarMarcadorSvg } from '../../core/shapes.js';
 import { tratarNulos, opcaoDeOrigemDasSeries } from '../../core/series.js';
 import { comOpacidade } from '../../core/theme.js';
 import { quantil } from '../../core/estatistica.js';
+import { corDoItem, opacidadeDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, criarRotuloSvg } from '../../core/rotulos.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -43,8 +61,11 @@ import {
   lerSerieTemporal,
   montarPlano,
   desenharReferencia,
+  desenharRotulosDosPontos,
   ligarGuiaEHover,
-  drillDoPeriodo,
+  celulaDoPonto,
+  textoDoPonto,
+  valueFormatDaSerie,
   destruirSerieTemporal,
   avisarSeForaDeOrdem,
 } from '../_serie_temporal/index.js';
@@ -240,8 +261,22 @@ export default defineViz({
 
     injetarEstilo(ctx.raiz, '.gc-sinal{pointer-events:none;}', 'gc');
 
-    const corDaLinha = config.corDeDestaque || tema.destaque;
+    // A linha é a "série" do gráfico: cor da paleta (respeita "Inverter
+    // ordem das cores" e a cor própria `cor_<série>`, se existir).
+    const corDaLinha = corDoItem(config, 0, escolhida.chave);
     const corDoSinal = config.corDoSinal || tema.negativo;
+    const rot = lerRotulos(config, tema);
+    const opacidade = opacidadeDoConfig(config);
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+    const valueFormat = valueFormatDaSerie(serie, escolhida);
+    // Texto de um valor no padrão dos rótulos (formato/casas do painel; em
+    // "automático", o formato do campo).
+    const textoDoValor = (v, textoDoLooker) =>
+      textoDoRotulo({ ...rot, conteudo: 'valor', truncar: 0 }, {
+        valor: v,
+        valueFormat,
+        textoDoValor: textoDoLooker !== undefined ? textoDoLooker : serie.formatarValor(v),
+      });
 
     if (config.mostrarZonas !== false && limites.sigma > 0) {
       desenharZonas({ svg: plano.svg, plano, limites, tema });
@@ -261,19 +296,18 @@ export default defineViz({
         tracejada: marca.nome !== 'LC',
         espessura: marca.nome === 'LC' ? 1.5 : 1,
       });
+      // "Escrever os valores de LSC, LC e LIC" continua valendo, agora
+      // com o estilo do bloco Rótulos (e sob "Mostrar rótulos").
       if (config.escreverLimites !== false) {
-        const texto = criarSvgEl('text', {
-          pai: plano.svg,
-          classe: 'st-marca',
-          atributos: {
-            x: plano.retangulo.esquerda + plano.retangulo.largura - 2,
-            y: y - 3,
-            'text-anchor': 'end',
-            'font-size': Math.max(8, tema.tamanhoBase - 2),
-            fill: marca.cor,
-          },
+        const direita = Math.max(plano.retangulo.esquerda, plano.retangulo.esquerda + plano.retangulo.largura);
+        const texto = criarRotuloSvg(plano.svg, rot, {
+          x: direita - 2,
+          y: y - 3 - rot.tamanho / 2,
+          texto: `${marca.nome} ${textoDoValor(marca.valor)}`,
+          ancora: 'end',
+          corAutomatica: marca.cor,
         });
-        definirTexto(texto, `${marca.nome} ${serie.formatarValor(marca.valor)}`);
+        if (texto) texto.setAttribute('class', 'bl-rotulo st-marca');
       }
     }
 
@@ -294,24 +328,50 @@ export default defineViz({
       },
     });
 
-    // Os pontos NÃO são opcionais aqui: num gráfico de controle o que
-    // importa é cada ponto individual, não a tendência da linha.
+    // Os pontos COM SINAL não são opcionais: num gráfico de controle o que
+    // importa é cada ponto individual, não a tendência da linha. Os pontos
+    // comuns seguem "Marcar cada período com um ponto" (padrão ligado aqui).
+    const mostrarComuns = config.mostrarPontos !== false;
+    const textosDoLooker = valores.map((v, i) =>
+      v === null || !Number.isFinite(v) ? null : textoDoPonto(ctx, serie.matriz, i, escolhida, v, serie.formatarValor)
+    );
+    const pontosRotulaveis = [];
     serie.categorias.forEach((_, i) => {
       const valor = valores[i];
       if (valor === null || !Number.isFinite(valor)) return;
       const temSinal = sinais[i].length > 0;
-      criarSvgEl('circle', {
-        pai: plano.svg,
-        classe: temSinal ? 'gc-sinal' : 'st-ponto',
-        atributos: {
-          cx: plano.x(i),
-          cy: plano.escalaY(valor),
-          r: temSinal ? 4.5 : 2.5,
+      const x = plano.x(i);
+      const y = plano.escalaY(valor);
+      if (temSinal || mostrarComuns) {
+        const ponto = criarMarcadorSvg(plano.svg, 'circulo', x, y, temSinal ? 9 : 5, {
+          classe: temSinal ? 'gc-sinal' : 'st-ponto',
           fill: temSinal ? corDoSinal : corDaLinha,
-          stroke: temSinal ? tema.fundo : null,
-          'stroke-width': temSinal ? 1 : null,
-        },
+          'fill-opacity': opacidade,
+          'data-x': x,
+          'data-y': y,
+        });
+        aplicarContorno(ponto, contorno);
+      }
+      pontosRotulaveis.push({
+        indice: i,
+        x,
+        y,
+        cor: temSinal ? corDoSinal : undefined,
+        texto: textoDoRotulo(rot, {
+          valor,
+          nome: escolhida.rotulo,
+          valueFormat,
+          textoDoValor: textosDoLooker[i],
+        }),
       });
+    });
+
+    desenharRotulosDosPontos({
+      plano,
+      rot,
+      grupos: [{ pontos: pontosRotulaveis }],
+      quantidadeDePeriodos: serie.categorias.length,
+      raio: 4.5,
     });
 
     // ---------- Nota: o método e a hipótese ----------
@@ -333,8 +393,10 @@ export default defineViz({
         const valor = valores[indice];
         if (valor === null || !Number.isFinite(valor)) return null;
 
+        // O valor do ponto é o texto do Looker; centro e limites são
+        // derivados, formatados pelo value_format do campo.
         const linhas = [
-          { rotulo: escolhida.rotulo, valor: serie.formatarValor(valor), cor: corDaLinha },
+          { rotulo: escolhida.rotulo, valor: textosDoLooker[indice], cor: corDaLinha },
           { rotulo: 'Linha central', valor: serie.formatarValor(limites.centro) },
           {
             rotulo: 'Distância da média',
@@ -349,9 +411,17 @@ export default defineViz({
           const regra = REGRAS.find((r) => r.id === id);
           linhas.push({ rotulo: `Regra ${id}`, valor: regra ? regra.rotulo : '—', cor: corDoSinal });
         }
-        return linhas;
+        return {
+          linhas,
+          variaveis: {
+            valor: textosDoLooker[indice],
+            serie: escolhida.rotulo,
+            sigma: limites.sigma > 0 ? `${((valor - limites.centro) / limites.sigma).toFixed(2)} σ` : '—',
+          },
+        };
       },
-      aoClicar: (indice, ev) => drillDoPeriodo(ctx, serie, indice, ev),
+      // O clique usa a célula do ponto (a medida), onde o Looker põe o drill.
+      celulaDoClique: (indice) => celulaDoPonto(ctx, serie.matriz, indice, escolhida),
     });
   },
 
