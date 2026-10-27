@@ -1,7 +1,7 @@
 /*!
  * KPI Vivo — visualização customizada para o Looker
  * id: kpi_vivo
- * versão: 0.1.0 | build: 2026-10-27 14:01:20 | commit: 442b80e
+ * versão: 0.1.0 | build: 2026-10-27 14:09:57 | commit: 4873ede
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -1875,6 +1875,69 @@
       }
     };
   }
+  function blocoDeInteracao(opcoes = {}) {
+    const {
+      secao = "Intera\xE7\xE3o",
+      comZoom = true,
+      comBrush = false,
+      comBusca = false,
+      comSelecao = true
+    } = opcoes;
+    const bloco = {
+      permitirDrill: {
+        type: "boolean",
+        label: "Clique abre o drill do Looker",
+        section: secao,
+        default: true
+      },
+      destacarAoPassarMouse: {
+        type: "boolean",
+        label: "Destacar ao passar o mouse",
+        section: secao,
+        default: true
+      }
+    };
+    if (comZoom) {
+      bloco.permitirZoom = { type: "boolean", label: "Permitir zoom", section: secao, default: false };
+      bloco.permitirArrastar = {
+        type: "boolean",
+        label: "Permitir arrastar (pan)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBrush) {
+      bloco.permitirBrush = {
+        type: "boolean",
+        label: "Permitir sele\xE7\xE3o por \xE1rea (brush)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBusca) {
+      bloco.mostrarBusca = {
+        type: "boolean",
+        label: "Mostrar caixa de busca",
+        section: secao,
+        default: false
+      };
+    }
+    if (comSelecao) {
+      bloco.permitirSelecao = {
+        type: "boolean",
+        label: "Permitir selecionar itens (clique)",
+        section: secao,
+        default: true
+      };
+      bloco.usarCrossfilter = {
+        type: "boolean",
+        label: "Usar cross-filter do Looker quando dispon\xEDvel",
+        section: secao,
+        default: false
+      };
+    }
+    return bloco;
+  }
   function blocoDeTema(opcoes = {}) {
     const { secao = "Tema" } = opcoes;
     return {
@@ -2265,6 +2328,10 @@
       return false;
     }
   }
+  function proximoQuadro(callback) {
+    if (typeof requestAnimationFrame === "function") return requestAnimationFrame(callback);
+    return setTimeout(() => callback(Date.now()), 16);
+  }
   function cancelarQuadro(id) {
     if (id === null || id === void 0) return;
     if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
@@ -2308,6 +2375,89 @@
       contador: ligada && config.contadorAnimado !== false
     };
   }
+  function criarControladorDeAnimacao() {
+    const ativos = /* @__PURE__ */ new Set();
+    let destruido = false;
+    function animar({ de = 0, para = 1, duracao = 600, atraso = 0, suavizacao = SUAVIZACOES.saida, aoAtualizar, aoTerminar }) {
+      if (destruido) return () => {
+      };
+      if (duracao <= 0) {
+        if (aoAtualizar) aoAtualizar(para, 1);
+        if (aoTerminar) aoTerminar();
+        return () => {
+        };
+      }
+      let quadro = null;
+      let inicio = null;
+      let cancelado = false;
+      const passo = (agora) => {
+        if (cancelado || destruido) return;
+        if (inicio === null) inicio = agora;
+        const decorrido = agora - inicio - atraso;
+        if (decorrido < 0) {
+          quadro = proximoQuadro(passo);
+          ativos.add(quadro);
+          return;
+        }
+        const t = Math.min(1, decorrido / duracao);
+        const valor = de + (para - de) * suavizacao(t);
+        if (aoAtualizar) aoAtualizar(valor, t);
+        if (t < 1) {
+          quadro = proximoQuadro(passo);
+          ativos.add(quadro);
+        } else {
+          if (aoTerminar) aoTerminar();
+        }
+      };
+      quadro = proximoQuadro(passo);
+      ativos.add(quadro);
+      return () => {
+        cancelado = true;
+        if (quadro !== null) {
+          cancelarQuadro(quadro);
+          ativos.delete(quadro);
+        }
+      };
+    }
+    function cancelarTudo() {
+      for (const q of ativos) cancelarQuadro(q);
+      ativos.clear();
+    }
+    function destruir() {
+      destruido = true;
+      cancelarTudo();
+    }
+    return { animar, cancelarTudo, destruir };
+  }
+  function animarContador({
+    elemento,
+    de = 0,
+    para,
+    formatar = (v) => String(Math.round(v)),
+    animacao,
+    controlador,
+    atrasoExtra = 0
+  }) {
+    if (!elemento) return () => {
+    };
+    const escrever = (v) => {
+      elemento.textContent = formatar(v);
+    };
+    if (!animacao || !animacao.ligada || !animacao.contador || animacao.duracao <= 0) {
+      escrever(para);
+      return () => {
+      };
+    }
+    const ctrl = controlador || criarControladorDeAnimacao();
+    return ctrl.animar({
+      de,
+      para,
+      duracao: animacao.duracao,
+      atraso: animacao.atraso + atrasoExtra,
+      suavizacao: animacao.suavizacao,
+      aoAtualizar: escrever
+    });
+  }
   var ANIMACOES_HABILITADAS = true;
   var CURVAS_CSS = {
     linear: "linear",
@@ -2340,9 +2490,47 @@
     const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
     marcas.forEach((el, i) => {
       const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
-      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms both`;
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms backwards`;
     });
     return marcas.length;
+  }
+
+  // src/core/interaction.js
+  var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
+  var CSS_DESTAQUE = `
+.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:opacity .15s ease;}
+.bl-hover-ativo [data-item]:not(.bl-sob-mouse), .bl-hover-ativo .bl-marcador:not(.bl-sob-mouse){opacity:.3;}
+@media (prefers-reduced-motion: reduce){.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:none;}}
+`;
+  function ligarDestaqueAoPassar({ area, eventos, config = {} }) {
+    if (!area || config.destacarAoPassarMouse === false) return false;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-destaque"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-destaque");
+      style.textContent = CSS_DESTAQUE;
+      raiz.appendChild(style);
+    }
+    let acesos = [];
+    const apagar = () => {
+      for (const el of acesos) el.classList.remove("bl-sob-mouse");
+      acesos = [];
+      area.classList.remove("bl-hover-ativo");
+    };
+    eventos.on(area, "pointerover", (ev) => {
+      const alvo = ev.target && ev.target.closest ? ev.target.closest(SELETOR_DE_ITENS) : null;
+      if (!alvo || !area.contains(alvo)) {
+        apagar();
+        return;
+      }
+      apagar();
+      const chave = alvo.getAttribute("data-item");
+      acesos = chave ? Array.from(area.querySelectorAll("[data-item]")).filter((e) => e.getAttribute("data-item") === chave) : [alvo];
+      for (const el of acesos) el.classList.add("bl-sob-mouse");
+      area.classList.add("bl-hover-ativo");
+    });
+    eventos.on(area, "pointerleave", apagar);
+    return true;
   }
 
   // src/core/tooltip.js
@@ -2704,7 +2892,10 @@
       aoDestruir = null,
       // true = o gráfico anima sozinho (bar_race, tabela); a animação
       // genérica de entrada (módulo 2.7) não roda por cima.
-      animacaoPropria = false
+      animacaoPropria = false,
+      // true = o gráfico desenha título/subtítulo dentro do próprio desenho
+      // (kpi_vivo): o cabeçalho padrão não repete o título.
+      cabecalhoProprio = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
@@ -2753,7 +2944,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
             data,
             element,
             config,
@@ -2798,7 +2989,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
     const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
@@ -2833,7 +3024,7 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, configFinal, tema);
+    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
@@ -2906,6 +3097,7 @@
         limparAviso(bl);
         try {
           render(ctx);
+          ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
@@ -2926,11 +3118,13 @@
       limparAviso(bl);
       try {
         render(ctx);
+        ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
     render(ctx);
+    ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     if (!animacaoPropria) {
       animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
     }
@@ -2939,6 +3133,7 @@
   function opcoesDeAnimacaoPadrao() {
     const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
     delete bloco.contadorAnimado;
+    bloco.destacarAoPassarMouse = blocoDeInteracao({ comZoom: false, comSelecao: false }).destacarAoPassarMouse;
     return bloco;
   }
   function definicaoCreateManual(element) {
@@ -4613,8 +4808,19 @@
 
   // src/charts/kpi_vivo/index.js
   var CSS = `
-.kv-raiz{position:relative;width:100%;height:100%;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:2px;padding:8px;box-sizing:border-box;}
+.kv-grade{position:relative;width:100%;height:100%;display:grid;gap:8px;padding:4px 4px 16px;box-sizing:border-box;}
+.kv-cartao{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;padding:8px;box-sizing:border-box;overflow:hidden;}
+.kv-cartao.kv-horizontal{flex-direction:row;justify-content:space-between;gap:12px;}
+.kv-horizontal .kv-texto{align-items:flex-start;text-align:left;}
+.kv-horizontal .kv-titulo,.kv-horizontal .kv-base{text-align:left;}
+.kv-cartao.kv-compacto{gap:1px;padding:4px;}
+.kv-texto{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;max-width:100%;}
+.kv-subtitulo{opacity:.7;text-align:center;}
+.kv-icone{flex:0 0 auto;}
+.kv-progresso{width:100%;min-width:80px;max-width:320px;height:6px;border-radius:3px;overflow:hidden;margin-top:4px;}
+.kv-progresso-barra{height:100%;border-radius:3px;}
+.kv-progresso-texto{font-size:11px;}
 .kv-titulo{font-weight:600;opacity:.8;text-align:center;}
 .kv-numero{font-weight:700;line-height:1.05;white-space:nowrap;}
 .kv-variacao{display:flex;align-items:baseline;gap:6px;white-space:nowrap;}
@@ -4691,12 +4897,171 @@
             label: "T\xEDtulo (vazio = nome da medida)",
             section: "R\xF3tulos",
             default: ""
+          },
+          // ---- Novas na Fase C (correções v2) ----
+          subtitulo: {
+            type: "string",
+            label: "Subt\xEDtulo do cart\xE3o",
+            section: "R\xF3tulos",
+            default: ""
+          },
+          layoutDoCartao: {
+            type: "string",
+            label: "Layout do cart\xE3o",
+            section: "KPI",
+            display: "select",
+            default: "grande",
+            values: listaDeValores([
+              { rotulo: "Grande (n\xFAmero no centro)", valor: "grande" },
+              { rotulo: "Compacto", valor: "compacto" },
+              { rotulo: "Horizontal (n\xFAmero \xE0 esquerda, gr\xE1fico \xE0 direita)", valor: "horizontal" }
+            ])
+          },
+          tipoDeSparkline: {
+            type: "string",
+            label: "Minigr\xE1fico",
+            section: "KPI",
+            display: "select",
+            default: "area",
+            values: listaDeValores([
+              { rotulo: "\xC1rea", valor: "area" },
+              { rotulo: "Linha", valor: "linha" },
+              { rotulo: "Barras", valor: "barras" }
+            ])
+          },
+          formatoDoNumero: {
+            type: "string",
+            label: "Formato do n\xFAmero (Autom\xE1tico = o do r\xF3tulo / do campo)",
+            section: "Dados",
+            display: "select",
+            default: "auto",
+            values: listaDeValores([
+              { rotulo: "Autom\xE1tico", valor: "auto" },
+              { rotulo: "N\xFAmero", valor: "numero" },
+              { rotulo: "Moeda", valor: "moeda" },
+              { rotulo: "Percentual", valor: "percentual" },
+              { rotulo: "Compacto (K, M, B)", valor: "compacto" }
+            ])
+          },
+          casasDoNumero: {
+            type: "number",
+            label: "Casas decimais do n\xFAmero",
+            section: "Dados",
+            display: "range",
+            min: 0,
+            max: 6,
+            step: 1,
+            default: 1
+          },
+          simboloDaMoeda: {
+            type: "string",
+            label: "S\xEDmbolo da moeda",
+            section: "Dados",
+            default: "R$ "
+          },
+          corPositiva: {
+            type: "string",
+            label: "Cor do positivo (vazio = do tema)",
+            section: "KPI",
+            display: "color",
+            default: ""
+          },
+          corNegativa: {
+            type: "string",
+            label: "Cor do negativo (vazio = do tema)",
+            section: "KPI",
+            display: "color",
+            default: ""
+          },
+          mostrarProgressoDaMeta: {
+            type: "boolean",
+            label: 'Barra de progresso at\xE9 a meta (usa "Valor da meta")',
+            section: "KPI",
+            default: false
+          },
+          usarLimites: {
+            type: "boolean",
+            label: "Colorir o n\xFAmero por limites (verde / amarelo / vermelho)",
+            section: "KPI",
+            default: false
+          },
+          limiteVerde: {
+            type: "number",
+            label: 'Limite do verde (a partir de; com "menor \xE9 melhor": at\xE9)',
+            section: "KPI",
+            display: "number"
+          },
+          limiteAmarelo: {
+            type: "number",
+            label: 'Limite do amarelo (a partir de; com "menor \xE9 melhor": at\xE9)',
+            section: "KPI",
+            display: "number"
+          },
+          iconeDoKpi: {
+            type: "string",
+            label: "\xCDcone",
+            section: "KPI",
+            display: "select",
+            default: "nenhum",
+            values: listaDeValores([
+              { rotulo: "Nenhum", valor: "nenhum" },
+              { rotulo: "Seta", valor: "seta" },
+              { rotulo: "Estrela", valor: "estrela" },
+              { rotulo: "Carrinho", valor: "carrinho" },
+              { rotulo: "Pessoa", valor: "pessoa" },
+              { rotulo: "Moeda", valor: "moeda" },
+              { rotulo: "Gr\xE1fico", valor: "grafico" },
+              { rotulo: "Rel\xF3gio", valor: "relogio" },
+              { rotulo: "Alerta", valor: "alerta" },
+              { rotulo: "Alvo", valor: "alvo" }
+            ])
+          },
+          corDoIcone: {
+            type: "string",
+            label: "Cor do \xEDcone (vazio = destaque do tema)",
+            section: "KPI",
+            display: "color",
+            default: ""
+          },
+          kpisEmGrade: {
+            type: "boolean",
+            label: "V\xE1rios KPIs em grade (um cart\xE3o por medida)",
+            section: "KPI",
+            default: false
+          },
+          colunasDoKpi: {
+            type: "number",
+            label: "Colunas da grade (0 = autom\xE1tico)",
+            section: "KPI",
+            display: "range",
+            min: 0,
+            max: 8,
+            step: 1,
+            default: 0
+          },
+          linhasDoKpi: {
+            type: "number",
+            label: "Linhas da grade (0 = autom\xE1tico)",
+            section: "KPI",
+            display: "range",
+            min: 0,
+            max: 8,
+            step: 1,
+            default: 0
+          },
+          contadorAnimado: {
+            type: "boolean",
+            label: "Anima\xE7\xE3o de contagem do n\xFAmero",
+            section: "Anima\xE7\xE3o",
+            default: true
           }
         }
       ),
       {}
     ),
     exigencia: { medidasMin: 1, aceitaPivo: false, exigeLinhas: true },
+    // Título e subtítulo vão DENTRO do cartão (não no cabeçalho padrão).
+    cabecalhoProprio: true,
     opcoesDinamicas({ modelo }) {
       const saida = {};
       const medidas = modelo.medidas.map((m) => ({ nome: m.nome, rotulo: m.rotuloCurto }));
@@ -4724,133 +5089,265 @@
     },
     render(ctx) {
       const { modelo, config, tema, raiz, largura, altura } = ctx;
-      const medida = modelo.medidas.find((m) => m.nome === config.campoDoValor) || modelo.medidas[0] || null;
-      if (!medida) {
+      const medidaEscolhida = modelo.medidas.find((m) => m.nome === config.campoDoValor) || modelo.medidas[0] || null;
+      if (!medidaEscolhida) {
         ctx.mostrarVazio("Este indicador precisa de uma medida.");
         return;
       }
       const campoDoPeriodo = config.campoDoPeriodo === "" ? null : modelo.dimensoes.find((d) => d.nome === config.campoDoPeriodo) || modelo.dimensoes[0] || null;
-      const serie = lerSerie({ modelo, medida, campoDoPeriodo, config });
-      if (!serie.valores.length) {
-        ctx.mostrarVazio("Nenhuma linha tem valor num\xE9rico na medida escolhida.");
-        return;
-      }
-      const atual = serie.valores[serie.valores.length - 1];
-      const comparacao = escolherBase({ serie, config });
-      const incompleto = detectarPeriodoIncompleto(serie.contagens);
-      if (incompleto.suspeito && comparacao.base !== null) {
-        ctx.avisar(
-          `O \xFAltimo per\xEDodo tem ${incompleto.ultimo} linha(s) contra ${incompleto.mediana} nos anteriores: ele parece INCOMPLETO. Comparar um per\xEDodo em andamento com um per\xEDodo inteiro faz o indicador "cair" sempre \u2014 confira o filtro de data no Explore.`
-        );
+      let medidas = [medidaEscolhida];
+      let colunas = 1;
+      let linhas = 1;
+      if (config.kpisEmGrade === true && modelo.medidas.length > 1) {
+        medidas = modelo.medidas.slice();
+        const pedidasColunas = Math.max(0, Math.floor(Number(config.colunasDoKpi) || 0));
+        const pedidasLinhas = Math.max(0, Math.floor(Number(config.linhasDoKpi) || 0));
+        colunas = pedidasColunas || (pedidasLinhas ? Math.ceil(medidas.length / pedidasLinhas) : Math.ceil(Math.sqrt(medidas.length)));
+        linhas = pedidasLinhas || Math.ceil(medidas.length / colunas);
+        if (colunas * linhas < medidas.length) {
+          ctx.avisar(
+            `A grade ${linhas}\xD7${colunas} mostra ${colunas * linhas} de ${medidas.length} medidas; aumente linhas ou colunas para ver todas.`
+          );
+          medidas = medidas.slice(0, colunas * linhas);
+        }
       }
       ctx.limparRaiz();
       injetarEstilo(raiz, CSS, "kv");
-      const caixa = criarEl("div", { classe: "kv-raiz", pai: raiz });
-      const rot = lerRotulos(config, tema);
-      const formatar = formatadorDoRotulo(rot, medida.valueFormat);
-      const textoDoTitulo = config.titulo || medida.rotulo || medida.rotuloCurto;
-      const nomeNoNumero = rot.conteudo === "nome" || rot.conteudo === "nomeValor";
-      const larguraUtil = Math.max(40, largura - 24);
-      const ajustarTexto = (texto, tamanho) => {
-        let t = rot.truncar > 0 ? truncar(texto, rot.truncar) : String(texto);
-        if (rot.evitarColisao) {
-          const cabe = Math.max(4, Math.floor(larguraUtil / (tamanho * 0.58)));
-          t = truncar(t, cabe);
-        }
-        return t;
-      };
-      const secundarios = [];
-      const criarTitulo = () => {
-        if (!rot.mostrar || nomeNoNumero) return;
-        const el = criarEl("div", { classe: "kv-titulo", pai: caixa });
-        definirTexto(el, ajustarTexto(textoDoTitulo, rot.tamanho));
-        estilizarRotulo(el, rot, { corAutomatica: tema.textoSuave });
-        if (rot.posicao === "foraComLinha") {
-          el.style.borderBottom = `1px solid ${tema.borda}`;
-          el.style.paddingBottom = "2px";
-        }
-        secundarios.push({ el, altura: rot.tamanho * 1.4, prioridade: 3 });
-      };
-      const tituloAbaixo = rot.posicao === "dentro" || rot.posicao === "centro";
-      if (!tituloAbaixo) criarTitulo();
-      const textoDoNumero = textoDoRotulo(Object.assign({}, rot, { truncar: 0 }), {
-        valor: atual,
-        nome: textoDoTitulo,
-        // "Percentual": o atual como % da base de comparação (ex.: % da meta).
-        total: comparacao.base,
-        valueFormat: medida.valueFormat
-      });
-      const numero = criarEl("div", { classe: "kv-numero", pai: caixa });
-      numero.style.color = tema.texto;
-      const tamanhoDoNumero = tamanhoQueCabe(textoDoNumero, largura - 24, altura);
-      numero.style.fontSize = `${tamanhoDoNumero}px`;
-      definirTexto(numero, textoDoNumero);
-      if (tituloAbaixo) criarTitulo();
-      const resultado = calcularVariacao({ atual, base: comparacao.base });
-      const menorEhMelhor = config.menorEhMelhor === true;
-      const bom = resultado.diferenca === null ? null : ehBoaNoticia(resultado.diferenca, menorEhMelhor);
-      if (comparacao.base !== null && rot.mostrar) {
-        const linha = criarEl("div", { classe: "kv-variacao", pai: caixa });
-        estilizarRotulo(linha, rot, { corAutomatica: tema.texto });
-        const cor = config.colorirVariacao === false || bom === null ? rot.cor || tema.texto : bom ? tema.positivo : tema.negativo;
-        const seta = criarEl("span", { classe: "kv-seta", pai: linha });
-        seta.style.color = cor;
-        seta.style.fontSize = "1.4em";
-        definirTexto(seta, resultado.diferenca > 0 ? "\u25B2" : resultado.diferenca < 0 ? "\u25BC" : "\u25A0");
-        const percentual = criarEl("span", { pai: linha });
-        percentual.style.color = cor;
-        percentual.style.fontWeight = "600";
-        percentual.style.fontSize = "1.4em";
-        definirTexto(
-          percentual,
-          resultado.relativa === null ? "\u2014" : `${resultado.relativa >= 0 ? "+" : ""}${formatarPercentual(resultado.relativa, 1)}`
-        );
-        if (config.mostrarVariacaoAbsoluta !== false) {
-          const absoluta = criarEl("span", { pai: linha });
-          absoluta.style.color = rot.cor || tema.textoSuave;
-          definirTexto(
-            absoluta,
-            `(${resultado.diferenca >= 0 ? "+" : ""}${formatar(resultado.diferenca)})`
-          );
-        }
-        secundarios.push({ el: linha, altura: rot.tamanho * 1.4 * 1.4, prioridade: 2 });
-        const base = criarEl("div", { classe: "kv-base", pai: caixa });
-        definirTexto(base, ajustarTexto(`contra ${comparacao.rotulo}: ${formatar(comparacao.base)}`, rot.tamanho));
-        estilizarRotulo(base, rot, { corAutomatica: tema.textoSuave });
-        secundarios.push({ el: base, altura: rot.tamanho * 1.4, prioridade: 1 });
-      }
-      if (rot.evitarColisao && secundarios.length) {
-        const alturaDaSpark = config.mostrarSparkline !== false && serie.valores.length > 1 ? Math.max(18, Math.min(60, altura * 0.18)) : 0;
-        let ocupado = tamanhoDoNumero * 1.05 + alturaDaSpark + secundarios.reduce((s, r) => s + r.altura, 0);
-        for (const r of secundarios.slice().sort((a, b) => a.prioridade - b.prioridade)) {
-          if (ocupado <= altura - 16) break;
-          r.el.style.display = "none";
-          ocupado -= r.altura;
-        }
-      }
-      if (config.mostrarSparkline !== false && serie.valores.length > 1) {
-        desenharSparkline({
-          pai: caixa,
-          valores: serie.valores,
-          largura: Math.min(420, largura - 24),
-          altura: Math.max(18, Math.min(60, altura * 0.18)),
-          cor: bom === null ? tema.destaque : bom ? tema.positivo : tema.negativo,
-          tema
+      const grade = criarEl("div", { classe: "kv-grade", pai: raiz });
+      grade.style.gridTemplateColumns = `repeat(${colunas}, minmax(0, 1fr))`;
+      grade.style.gridTemplateRows = `repeat(${linhas}, minmax(0, 1fr))`;
+      const larguraDoCartao = Math.max(80, Math.floor(largura / colunas) - (colunas > 1 ? 8 : 0));
+      const alturaDoCartao = Math.max(60, Math.floor(altura / linhas) - (linhas > 1 ? 8 : 0));
+      medidas.forEach((medida, indice) => {
+        desenharCartao({
+          ctx,
+          pai: grade,
+          medida,
+          campoDoPeriodo,
+          largura: larguraDoCartao,
+          altura: alturaDoCartao,
+          emGrade: medidas.length > 1,
+          indice
         });
-      }
-      const nota = criarEl("div", { classe: "kv-nota", pai: caixa });
+      });
+      const serie = lerSerie({ modelo, medida: medidaEscolhida, campoDoPeriodo, config });
+      const nota = criarEl("div", { classe: "kv-nota", pai: raiz });
       nota.style.color = tema.textoSuave;
+      const incompleto = detectarPeriodoIncompleto(serie.contagens);
       definirTexto(
         nota,
         [
           serie.rotuloDoAtual ? `per\xEDodo: ${serie.rotuloDoAtual}` : null,
           `${serie.valores.length} per\xEDodo(s) na s\xE9rie`,
-          menorEhMelhor ? "menor \xE9 melhor: a cor est\xE1 invertida, o sinal n\xE3o" : null,
-          comparacao.base !== null && !incompleto.suspeito ? "a compara\xE7\xE3o sup\xF5e per\xEDodos completos" : null
+          config.menorEhMelhor === true ? "menor \xE9 melhor: a cor est\xE1 invertida, o sinal n\xE3o" : null,
+          config.baseDaComparacao !== "nenhuma" && !incompleto.suspeito ? "a compara\xE7\xE3o sup\xF5e per\xEDodos completos" : null
         ].filter(Boolean).join(" \xB7 ")
       );
     }
   });
+  function desenharCartao({ ctx, pai, medida, campoDoPeriodo, largura, altura, emGrade, indice }) {
+    const { modelo, config, tema } = ctx;
+    const serie = lerSerie({ modelo, medida, campoDoPeriodo, config });
+    const layout = ["compacto", "horizontal"].includes(config.layoutDoCartao) ? config.layoutDoCartao : "grande";
+    const cartao = criarEl("div", { classe: `kv-cartao kv-raiz kv-${layout}`, pai });
+    cartao.setAttribute("data-item", `kpi-${indice}`);
+    if (emGrade) {
+      cartao.style.border = `1px solid ${tema.borda}`;
+      cartao.style.borderRadius = "6px";
+    }
+    if (!serie.valores.length) {
+      criarEl("div", { classe: "kv-base", pai: cartao, texto: `${medida.rotuloCurto}: sem valor num\xE9rico` });
+      return;
+    }
+    const atual = serie.valores[serie.valores.length - 1];
+    const comparacao = escolherBase({ serie, config });
+    const incompleto = detectarPeriodoIncompleto(serie.contagens);
+    if (incompleto.suspeito && comparacao.base !== null) {
+      ctx.avisar(
+        `${emGrade ? `${medida.rotuloCurto}: ` : ""}o \xFAltimo per\xEDodo tem ${incompleto.ultimo} linha(s) contra ${incompleto.mediana} nos anteriores: ele parece INCOMPLETO. Comparar um per\xEDodo em andamento com um per\xEDodo inteiro faz o indicador "cair" sempre \u2014 confira o filtro de data no Explore.`
+      );
+    }
+    const rot = lerRotulos(config, tema);
+    const formatar = formatadorDoNumero(config, rot, medida.valueFormat);
+    const textoDoTitulo = emGrade ? medida.rotuloCurto || medida.rotulo : config.titulo || medida.rotulo || medida.rotuloCurto;
+    const textoDoSubtitulo = emGrade ? "" : String(config.subtitulo || "").trim();
+    const nomeNoNumero = rot.conteudo === "nome" || rot.conteudo === "nomeValor";
+    const larguraDoTexto = layout === "horizontal" ? largura * 0.55 : largura;
+    const larguraUtil = Math.max(40, larguraDoTexto - 24);
+    const ajustarTexto = (texto2, tamanho) => {
+      let t = rot.truncar > 0 ? truncar(texto2, rot.truncar) : String(texto2);
+      if (rot.evitarColisao) t = truncar(t, Math.max(4, Math.floor(larguraUtil / (tamanho * 0.58))));
+      return t;
+    };
+    if (config.iconeDoKpi && config.iconeDoKpi !== "nenhum" && ICONES[config.iconeDoKpi]) {
+      const lado = layout === "compacto" ? 20 : Math.max(20, Math.min(40, altura * 0.14));
+      desenharIcone({ pai: cartao, nome: config.iconeDoKpi, lado, cor: config.corDoIcone || tema.destaque });
+    }
+    const texto = criarEl("div", { classe: "kv-texto", pai: cartao });
+    const secundarios = [];
+    const criarTitulo = () => {
+      if (!rot.mostrar || nomeNoNumero) return;
+      const el = criarEl("div", { classe: "kv-titulo", pai: texto });
+      definirTexto(el, ajustarTexto(textoDoTitulo, rot.tamanho));
+      estilizarRotulo(el, rot, { corAutomatica: tema.textoSuave });
+      if (rot.posicao === "foraComLinha") {
+        el.style.borderBottom = `1px solid ${tema.borda}`;
+        el.style.paddingBottom = "2px";
+      }
+      secundarios.push({ el, altura: rot.tamanho * 1.4, prioridade: 3 });
+      if (textoDoSubtitulo) {
+        const sub = criarEl("div", { classe: "kv-subtitulo", pai: texto });
+        definirTexto(sub, ajustarTexto(textoDoSubtitulo, rot.tamanho - 1));
+        estilizarRotulo(sub, Object.assign({}, rot, { tamanho: Math.max(7, rot.tamanho - 1) }), { corAutomatica: tema.textoSuave });
+        secundarios.push({ el: sub, altura: rot.tamanho * 1.3, prioridade: 2.5 });
+      }
+    };
+    const tituloAbaixo = rot.posicao === "dentro" || rot.posicao === "centro";
+    if (!tituloAbaixo) criarTitulo();
+    const rotDoNumero = Object.assign({}, rot, { truncar: 0 });
+    const textoDoNumero = (v) => rot.conteudo === "valor" || rot.conteudo === void 0 ? formatar(v) : textoDoRotulo(rotDoNumero, { valor: v, nome: textoDoTitulo, total: comparacao.base, valueFormat: medida.valueFormat, textoDoValor: formatar(v) });
+    const textoFinal = textoDoNumero(atual);
+    const numero = criarEl("div", { classe: "kv-numero", pai: texto });
+    numero.style.color = corPorLimite(atual, config, tema) || tema.texto;
+    const maximo = layout === "compacto" ? 40 : 96;
+    const tamanhoDoNumero = tamanhoQueCabe(textoFinal, larguraDoTexto - 24, altura * (layout === "compacto" ? 0.7 : 1), { maximo });
+    numero.style.fontSize = `${tamanhoDoNumero}px`;
+    const animacao = opcoesDeAnimacao(config, { primeiraRenderizacao: ctx.primeiraRenderizacao });
+    definirTexto(numero, textoFinal);
+    if (textoFinal === formatar(atual) && Number.isFinite(atual)) {
+      const anterior = ctx.estado.ultimosValores && ctx.estado.ultimosValores[medida.nome];
+      animarContador({ elemento: numero, de: Number.isFinite(anterior) ? anterior : 0, para: atual, formatar, animacao });
+    }
+    ctx.estado.ultimosValores = Object.assign({}, ctx.estado.ultimosValores, { [medida.nome]: atual });
+    if (tituloAbaixo) criarTitulo();
+    const resultado = calcularVariacao({ atual, base: comparacao.base });
+    const menorEhMelhor = config.menorEhMelhor === true;
+    const bom = resultado.diferenca === null ? null : ehBoaNoticia(resultado.diferenca, menorEhMelhor);
+    const corBoa = config.corPositiva || tema.positivo;
+    const corRuim = config.corNegativa || tema.negativo;
+    if (comparacao.base !== null && rot.mostrar) {
+      const linha = criarEl("div", { classe: "kv-variacao", pai: texto });
+      estilizarRotulo(linha, rot, { corAutomatica: tema.texto });
+      const cor = config.colorirVariacao === false || bom === null ? rot.cor || tema.texto : bom ? corBoa : corRuim;
+      const seta = criarEl("span", { classe: "kv-seta", pai: linha });
+      seta.style.color = cor;
+      seta.style.fontSize = "1.4em";
+      definirTexto(seta, resultado.diferenca > 0 ? "\u25B2" : resultado.diferenca < 0 ? "\u25BC" : "\u25A0");
+      const percentual = criarEl("span", { classe: "kv-percentual", pai: linha });
+      percentual.style.color = cor;
+      percentual.style.fontWeight = "600";
+      percentual.style.fontSize = "1.4em";
+      definirTexto(
+        percentual,
+        resultado.relativa === null ? "\u2014" : `${resultado.relativa >= 0 ? "+" : ""}${formatarPercentual(resultado.relativa, 1)}`
+      );
+      if (config.mostrarVariacaoAbsoluta !== false) {
+        const absoluta = criarEl("span", { classe: "kv-absoluta", pai: linha });
+        absoluta.style.color = rot.cor || tema.textoSuave;
+        definirTexto(absoluta, `(${resultado.diferenca >= 0 ? "+" : ""}${formatar(resultado.diferenca)})`);
+      }
+      secundarios.push({ el: linha, altura: rot.tamanho * 1.4 * 1.4, prioridade: 2 });
+      if (layout !== "compacto") {
+        const base = criarEl("div", { classe: "kv-base", pai: texto });
+        definirTexto(base, ajustarTexto(`contra ${comparacao.rotulo}: ${formatar(comparacao.base)}`, rot.tamanho));
+        estilizarRotulo(base, rot, { corAutomatica: tema.textoSuave });
+        secundarios.push({ el: base, altura: rot.tamanho * 1.4, prioridade: 1 });
+      }
+    }
+    const meta = Number(config.meta);
+    if (config.mostrarProgressoDaMeta === true && Number.isFinite(meta) && meta !== 0) {
+      const fracao = atual / meta;
+      const barra = criarEl("div", { classe: "kv-progresso", pai: texto });
+      barra.style.background = comOpacidade(tema.texto, 0.12);
+      const preenchido = criarEl("div", { classe: "kv-progresso-barra", pai: barra });
+      preenchido.style.width = `${Math.max(0, Math.min(1, fracao)) * 100}%`;
+      const atingiu = menorEhMelhor ? atual <= meta : atual >= meta;
+      preenchido.style.background = corPorLimite(atual, config, tema) || (atingiu ? corBoa : tema.destaque);
+      const legenda = criarEl("div", { classe: "kv-progresso-texto", pai: texto });
+      legenda.style.color = tema.textoSuave;
+      definirTexto(legenda, `${formatarPercentual(fracao, 0)} da meta (${formatar(meta)})`);
+    }
+    const mostrarSpark = config.mostrarSparkline !== false && serie.valores.length > 1;
+    const alturaDaSpark = mostrarSpark ? Math.max(18, Math.min(60, altura * 0.18)) : 0;
+    if (rot.evitarColisao && secundarios.length) {
+      let ocupado = tamanhoDoNumero * 1.05 + (layout === "horizontal" ? 0 : alturaDaSpark) + secundarios.reduce((s, r) => s + r.altura, 0);
+      for (const r of secundarios.slice().sort((a, b) => a.prioridade - b.prioridade)) {
+        if (ocupado <= altura - 16) break;
+        r.el.style.display = "none";
+        ocupado -= r.altura;
+      }
+    }
+    if (mostrarSpark) {
+      const larguraDaSpark = layout === "horizontal" ? Math.max(40, largura * 0.4 - 16) : Math.min(420, largura - 24);
+      desenharSparkline({
+        pai: cartao,
+        valores: serie.valores,
+        largura: larguraDaSpark,
+        altura: layout === "horizontal" ? Math.max(24, Math.min(80, altura * 0.5)) : alturaDaSpark,
+        cor: bom === null ? tema.destaque : bom ? corBoa : corRuim,
+        tema,
+        tipo: config.tipoDeSparkline || "area"
+      });
+    }
+    const ultimaLinha = modelo.linhas[modelo.linhas.length - 1];
+    const celula = ultimaLinha ? modelo.celula(ultimaLinha, medida.nome) : null;
+    cartao.style.cursor = celula && ctx.ponte.temDrill(celula) ? "pointer" : "";
+    ctx.eventos.on(
+      cartao,
+      "click",
+      (ev) => ctx.cliqueNoItem(ev, celula, {
+        titulo: textoDoTitulo,
+        linhas: [
+          { rotulo: medida.rotuloCurto, valor: formatar(atual) },
+          ...comparacao.base !== null ? [{ rotulo: `contra ${comparacao.rotulo}`, valor: formatar(comparacao.base) }] : []
+        ],
+        variaveis: { categoria: textoDoTitulo, valor: formatar(atual) }
+      })
+    );
+  }
+  function formatadorDoNumero(config, rot, valueFormat) {
+    const estilo = config.formatoDoNumero || "auto";
+    if (estilo === "auto") return formatadorDoRotulo(rot, valueFormat);
+    const casas = Number(config.casasDoNumero);
+    return criarFormatadorNumerico({
+      estilo,
+      casas: Number.isFinite(casas) ? casas : 1,
+      simboloDaMoeda: config.simboloDaMoeda !== void 0 && config.simboloDaMoeda !== null ? String(config.simboloDaMoeda) : "R$ "
+    });
+  }
+  function corPorLimite(valor, config, tema) {
+    if (config.usarLimites !== true || !Number.isFinite(valor)) return null;
+    const verde = Number(config.limiteVerde);
+    const amarelo = Number(config.limiteAmarelo);
+    if (!Number.isFinite(verde) || !Number.isFinite(amarelo)) return null;
+    const menor = config.menorEhMelhor === true;
+    if (menor ? valor <= verde : valor >= verde) return config.corPositiva || tema.positivo;
+    if (menor ? valor <= amarelo : valor >= amarelo) return tema.atencao || "#D97706";
+    return config.corNegativa || tema.negativo;
+  }
+  var ICONES = {
+    seta: "M5 12h14M13 6l6 6-6 6",
+    estrela: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z",
+    carrinho: "M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2M9 20h.01M17 20h.01",
+    pessoa: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7",
+    moeda: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11",
+    grafico: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+    relogio: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
+    alerta: "M12 3l10 18H2zM12 10v5M12 18v.01",
+    alvo: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"
+  };
+  function desenharIcone({ pai, nome, lado, cor }) {
+    const svg = criarSvgEl("svg", {
+      pai,
+      classe: "kv-icone",
+      atributos: { width: lado, height: lado, viewBox: "0 0 24 24", "aria-hidden": "true", "data-icone": nome }
+    });
+    criarSvgEl("path", {
+      pai: svg,
+      atributos: { d: ICONES[nome], fill: "none", stroke: cor, "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round" }
+    });
+    return svg;
+  }
   function lerSerie({ modelo, medida, campoDoPeriodo, config = {} }) {
     if (!campoDoPeriodo) {
       const valores = [];
@@ -4951,7 +5448,7 @@
     const porAltura = altura * 0.42;
     return Math.max(minimo, Math.min(maximo, Math.floor(Math.min(porLargura, porAltura))));
   }
-  function desenharSparkline({ pai, valores, largura, altura, cor, tema }) {
+  function desenharSparkline({ pai, valores, largura, altura, cor, tema, tipo = "area" }) {
     const svg = criarSvgEl("svg", {
       pai,
       classe: "kv-spark",
@@ -4968,16 +5465,41 @@
       config: {},
       eixo: "Y"
     });
+    if (tipo === "barras") {
+      const minimo = Math.min(0, ...valores);
+      const maximo = Math.max(0, ...valores);
+      const faixa = maximo - minimo || 1;
+      const larguraDaBarra = Math.max(1, largura / valores.length - 1);
+      const zero3 = altura - (0 - minimo) / faixa * altura;
+      valores.forEach((v, i) => {
+        const y2 = altura - (v - minimo) / faixa * altura;
+        criarSvgEl("rect", {
+          pai: svg,
+          classe: "kv-barra",
+          atributos: {
+            x: i * (largura / valores.length),
+            y: Math.min(y2, zero3),
+            width: larguraDaBarra,
+            height: Math.max(1, Math.abs(zero3 - y2)),
+            fill: i === valores.length - 1 ? cor : comOpacidade(cor, 0.45)
+          }
+        });
+      });
+      return;
+    }
     const area = geradorDeArea({
       x: (_, i) => escalaX(String(i)),
       y0: () => altura,
       y1: (v) => escalaY(v),
       curva: "monotone"
     });
-    criarSvgEl("path", {
-      pai: svg,
-      atributos: { d: area(valores) || "", fill: comOpacidade(cor, 0.18) }
-    });
+    if (tipo !== "linha") {
+      criarSvgEl("path", {
+        pai: svg,
+        classe: "kv-area",
+        atributos: { d: area(valores) || "", fill: comOpacidade(cor, 0.18) }
+      });
+    }
     const linha = geradorDeLinha({
       x: (_, i) => escalaX(String(i)),
       y: (v) => escalaY(v),

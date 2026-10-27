@@ -100,7 +100,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [ ] diagrama_venn
 - [ ] upset_plot
 - [ ] treemap_carteira
-- [ ] kpi_vivo
+- [x] kpi_vivo
 - [ ] heatmap_denso
 - [ ] dumbbell
 - [ ] drawdown

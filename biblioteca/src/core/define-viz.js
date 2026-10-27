@@ -91,6 +91,9 @@ export function defineViz(declaracao) {
     // true = o gráfico anima sozinho (bar_race, tabela); a animação
     // genérica de entrada (módulo 2.7) não roda por cima.
     animacaoPropria = false,
+    // true = o gráfico desenha título/subtítulo dentro do próprio desenho
+    // (kpi_vivo): o cabeçalho padrão não repete o título.
+    cabecalhoProprio = false,
   } = declaracao;
 
   if (typeof render !== 'function') {
@@ -150,7 +153,7 @@ export function defineViz(declaracao) {
       const concluir = typeof done === 'function' ? done : () => {};
       try {
         executarAtualizacao.call(this, {
-          declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria },
+          declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
           data,
           element,
           config,
@@ -202,7 +205,7 @@ function limparPendencias(bl) {
 }
 
 function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-  const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria } = declaracao;
+  const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
   const ponte = criarPonte(this, opcoes);
   ponte.limparErros();
 
@@ -254,7 +257,7 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
 
   // Cabeçalho (título/subtítulo).
-  aplicarCabecalho(bl, configFinal, tema);
+  aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
 
   // Validação do formato de dados.
   const problema = validarModelo(modelo, exigencia);

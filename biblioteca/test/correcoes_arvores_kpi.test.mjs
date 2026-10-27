@@ -418,7 +418,8 @@ test('kpi_vivo — conteúdo, posição, truncar e colisão', () => {
     assert.match(nv.palco.querySelector('.kv-numero').textContent, /^Receita: /);
     assert.equal(nv.palco.querySelector('.kv-titulo'), null, 'o nome já está no número');
     assert.match(pct.palco.querySelector('.kv-numero').textContent, /%$/);
-    const filhos = Array.from(abaixo.palco.querySelector('.kv-raiz').children).map((e) => e.className);
+    const filhos = // (Fase C: os textos agora ficam dentro de .kv-texto no cartão.)
+    Array.from(abaixo.palco.querySelector('.kv-texto').children).map((e) => e.className);
     assert.ok(filhos.indexOf('kv-titulo') > filhos.indexOf('kv-numero'), `"dentro" = título abaixo; ordem ${filhos}`);
     assert.ok(trunc.palco.querySelector('.kv-titulo').textContent.length <= 6);
     assert.ok(

@@ -3029,3 +3029,23 @@ falhavam no código anterior; o de "1 tooltip" é regressão).
   true por padrão); linha do controle #2563EB → #4276BE (paleta); contorno
   branco 1 px.
 - Ids novos: só dinâmicos `cor_<série>` (default '').
+
+### kpi_vivo — recursos novos (Fase C, concluído)
+- Render reescrito como `desenharCartao` (um por medida), o que permite a
+  grade. Opções NOVAS: `layoutDoCartao` (grande/compacto/horizontal),
+  `tipoDeSparkline` (área/linha/barras; default área = visual anterior),
+  `formatoDoNumero` + `casasDoNumero` + `simboloDaMoeda` (moeda, %,
+  compacto K/M/B; "Automático" mantém o comportamento anterior),
+  `corPositiva`/`corNegativa`, `mostrarProgressoDaMeta` (usa `meta`),
+  `usarLimites` + `limiteVerde` + `limiteAmarelo` (tetos com "menor é
+  melhor"), `iconeDoKpi` (9 ícones SVG embutidos) + `corDoIcone`,
+  `kpisEmGrade` + `colunasDoKpi` + `linhasDoKpi`, `contadorAnimado`.
+  `subtitulo` (id do kit) passa a ser desenhado DENTRO do cartão.
+- **Defeito achado:** o título saía duas vezes (cabeçalho padrão e
+  cartão), porque o KPI reaproveita o id `titulo`. Novo `cabecalhoProprio`
+  no defineViz: o cabeçalho padrão não desenha título/subtítulo.
+- Clique no cartão: ação do clique (drill da medida na última linha).
+- Contagem animada (sem reduced-motion e com animação ligada); o texto
+  final é escrito antes (o número nunca fica vazio).
+- `test/correcoes_kpi_recursos.test.mjs` (5; os 5 falham no bundle
+  anterior). Teste antigo ajustado: textos agora dentro de `.kv-texto`.
