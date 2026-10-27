@@ -2681,3 +2681,28 @@ Duas coisas para a próxima sessão, nesta ordem:
 ### Etapa A.0 — arquivamento (em andamento)
 Vou: criar e enviar a tag `antes-da-limpeza`, mover os 32 gráficos para
 `_arquivados/` e tirar do registro, build, testes e varreduras.
+
+### Etapa A.0 — arquivamento (concluída)
+- Tag `antes-da-limpeza` criada em c9e7506 e enviada ao GitHub.
+- Os 32 gráficos existiam (nenhum "nunca construído"). Movidos com
+  `git mv` para `_arquivados/src/charts/<id>/`, `_arquivados/dist/<id>.js` e
+  `_arquivados/test/` (inclui `candlestick`, `funis` e `medidores`, que
+  testavam só arquivados). Os testes de `arvore_radial` saíram de
+  `test/arvores.test.mjs` para `_arquivados/test/arvore_radial.test.mjs`.
+- Entradas retiradas de `config/charts.json` guardadas em
+  `_arquivados/config/charts.arquivados.json`. MANIFEST, `test/gerado` e
+  harness são regenerados pelo build a partir do registro (22 gráficos).
+- **Defeito achado no caminho:** `arvores_multiplas` importava
+  `montarLinhas` de `arvore_radial/index.js`, o que embutia o `defineViz`
+  do arvore_radial no bundle (o arquivo registrava DUAS visualizações). A
+  função foi para a base `_arvore`; o bundle agora registra só uma.
+- **Decisão:** as fixtures ficam em `test/fixtures/index.mjs` (arquivo
+  único compartilhado); não foram separadas por gráfico. Fixtures que só os
+  arquivados usavam continuam lá, inofensivas.
+- Bases compartilhadas mantidas em `src/charts` (regra 5.3) e que ficaram
+  SEM USO: `_dispersao`, `_distribuicao`, `_funil`, `_medidor`, `_polar`.
+- `_arquivados/` fica fora do build (só lê o registro), dos testes
+  (`test/*.test.mjs`) e da checagem (`src/` e `dist/`): conferido.
+- Build 22/22; `npm test` 525/525; `npm run seguranca` sem violação.
+
+PRÓXIMA AÇÃO EXATA: A.1 — gerar `docs/opcoes/<id>.antes.json` para os 22.

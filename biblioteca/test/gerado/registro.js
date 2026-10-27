@@ -78,91 +78,6 @@ window.REGISTRO_BL = [
     "explore": "1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô."
   },
   {
-    "id": "theme_river",
-    "label": "ThemeRiver",
-    "tier": 1,
-    "arquivo": "../dist/theme_river.js",
-    "existe": true,
-    "fixtures": [
-      "comPivo",
-      "duasDimensoes",
-      "temporal",
-      "semPivo",
-      "vazio",
-      "somenteNulos"
-    ],
-    "explore": "1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas."
-  },
-  {
-    "id": "funil_variacoes",
-    "label": "Funis (Estilos)",
-    "tier": 1,
-    "arquivo": "../dist/funil_variacoes.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "rotulosLongos",
-      "somenteNulos",
-      "vazio"
-    ],
-    "explore": "1 dimensao com as etapas e 1 medida, ou varias medidas (uma por etapa). Nao aceita pivo."
-  },
-  {
-    "id": "funil_comparativo",
-    "label": "Funil Comparativo",
-    "tier": 1,
-    "arquivo": "../dist/funil_comparativo.js",
-    "existe": true,
-    "fixtures": [
-      "comPivo",
-      "duasDimensoes",
-      "vazio"
-    ],
-    "explore": "1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos."
-  },
-  {
-    "id": "gauge_variacoes",
-    "label": "Medidores (Estilos)",
-    "tier": 1,
-    "arquivo": "../dist/gauge_variacoes.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "somenteNulos",
-      "vazio"
-    ],
-    "explore": "1 medida (o valor). Opcionalmente uma segunda medida para o alvo. Nao aceita pivo."
-  },
-  {
-    "id": "gauge_grid",
-    "label": "Medidores em Grade",
-    "tier": 1,
-    "arquivo": "../dist/gauge_grid.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "rotulosLongos",
-      "somenteNulos",
-      "vazio"
-    ],
-    "explore": "1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo."
-  },
-  {
-    "id": "arvore_radial",
-    "label": "Árvore Radial",
-    "tier": 1,
-    "arquivo": "../dist/arvore_radial.js",
-    "existe": true,
-    "fixtures": [
-      "hierarquia",
-      "paiFilho",
-      "duasDimensoes",
-      "semPivo",
-      "vazio"
-    ],
-    "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho."
-  },
-  {
     "id": "arvores_multiplas",
     "label": "Múltiplas Árvores",
     "tier": 1,
@@ -207,33 +122,6 @@ window.REGISTRO_BL = [
     "explore": "Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao."
   },
   {
-    "id": "candlestick_ohlc",
-    "label": "Candlestick / OHLC",
-    "tier": 2,
-    "arquivo": "../dist/candlestick_ohlc.js",
-    "existe": true,
-    "fixtures": [
-      "ohlc",
-      "vazio"
-    ],
-    "explore": "1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume."
-  },
-  {
-    "id": "linha_bandas",
-    "label": "Linha com Bandas",
-    "tier": 2,
-    "arquivo": "../dist/linha_bandas.js",
-    "existe": true,
-    "fixtures": [
-      "ohlc",
-      "temporal",
-      "comPivo",
-      "semPivo",
-      "vazio"
-    ],
-    "explore": "1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela."
-  },
-  {
     "id": "drawdown",
     "label": "Drawdown",
     "tier": 2,
@@ -248,34 +136,6 @@ window.REGISTRO_BL = [
     "explore": "1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie)."
   },
   {
-    "id": "retorno_acumulado",
-    "label": "Retorno Acumulado (Base 100)",
-    "tier": 2,
-    "arquivo": "../dist/retorno_acumulado.js",
-    "existe": true,
-    "fixtures": [
-      "temporal",
-      "comPivo",
-      "ohlc",
-      "vazio"
-    ],
-    "explore": "1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie)."
-  },
-  {
-    "id": "fluxo_caixa",
-    "label": "Fluxo de Caixa",
-    "tier": 2,
-    "arquivo": "../dist/fluxo_caixa.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "temporal",
-      "ohlc",
-      "vazio"
-    ],
-    "explore": "1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo."
-  },
-  {
     "id": "pareto",
     "label": "Pareto",
     "tier": 2,
@@ -288,20 +148,6 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (as categorias) e 1 medida. Nao aceita pivo."
-  },
-  {
-    "id": "lorenz_gini",
-    "label": "Curva de Lorenz / Gini",
-    "tier": 2,
-    "arquivo": "../dist/lorenz_gini.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "grande5k",
-      "rotulosLongos",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo."
   },
   {
     "id": "treemap_carteira",
@@ -319,19 +165,6 @@ window.REGISTRO_BL = [
     "explore": "1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor."
   },
   {
-    "id": "ponte_variacao",
-    "label": "Ponte de Variação",
-    "tier": 2,
-    "arquivo": "../dist/ponte_variacao.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "rotulosLongos",
-      "vazio"
-    ],
-    "explore": "1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo."
-  },
-  {
     "id": "risco_retorno",
     "label": "Risco x Retorno",
     "tier": 2,
@@ -344,45 +177,6 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo."
-  },
-  {
-    "id": "violin",
-    "label": "Violin Plot",
-    "tier": 3,
-    "arquivo": "../dist/violin.js",
-    "existe": true,
-    "fixtures": [
-      "grande5k",
-      "conjuntosPorItem",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo."
-  },
-  {
-    "id": "ridgeline",
-    "label": "Ridgeline",
-    "tier": 3,
-    "arquivo": "../dist/ridgeline.js",
-    "existe": true,
-    "fixtures": [
-      "grande5k",
-      "conjuntosPorItem",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
-  },
-  {
-    "id": "beeswarm",
-    "label": "Beeswarm",
-    "tier": 3,
-    "arquivo": "../dist/beeswarm.js",
-    "existe": true,
-    "fixtures": [
-      "grande5k",
-      "conjuntosPorItem",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
   },
   {
     "id": "grafico_controle",
@@ -398,102 +192,6 @@ window.REGISTRO_BL = [
     "explore": "1 dimensao temporal (os periodos, em ordem) e 1 medida."
   },
   {
-    "id": "dispersao_regressao",
-    "label": "Dispersao com Regressao",
-    "tier": 3,
-    "arquivo": "../dist/dispersao_regressao.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "grande5k",
-      "ohlc",
-      "vazio"
-    ],
-    "explore": "2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto."
-  },
-  {
-    "id": "qq_plot",
-    "label": "Q-Q Plot (Normalidade)",
-    "tier": 3,
-    "arquivo": "../dist/qq_plot.js",
-    "existe": true,
-    "fixtures": [
-      "grande5k",
-      "semPivo",
-      "ohlc",
-      "vazio"
-    ],
-    "explore": "1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto."
-  },
-  {
-    "id": "densidade_ecdf",
-    "label": "Densidade e ECDF",
-    "tier": 3,
-    "arquivo": "../dist/densidade_ecdf.js",
-    "existe": true,
-    "fixtures": [
-      "grande5k",
-      "conjuntosPorItem",
-      "vazio"
-    ],
-    "explore": "1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes."
-  },
-  {
-    "id": "intervalo_confianca",
-    "label": "Intervalo de Confianca",
-    "tier": 3,
-    "arquivo": "../dist/intervalo_confianca.js",
-    "existe": true,
-    "fixtures": [
-      "conjuntosPorItem",
-      "grande5k",
-      "semPivo",
-      "vazio"
-    ],
-    "explore": "1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao."
-  },
-  {
-    "id": "matriz_dispersao",
-    "label": "Matriz de Dispersao",
-    "tier": 3,
-    "arquivo": "../dist/matriz_dispersao.js",
-    "existe": true,
-    "fixtures": [
-      "ohlc",
-      "semPivo",
-      "grande5k",
-      "vazio"
-    ],
-    "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha."
-  },
-  {
-    "id": "correlacao_matriz",
-    "label": "Matriz de Correlacao",
-    "tier": 3,
-    "arquivo": "../dist/correlacao_matriz.js",
-    "existe": true,
-    "fixtures": [
-      "ohlc",
-      "grande5k",
-      "semPivo",
-      "vazio"
-    ],
-    "explore": "2 ou mais medidas com VARIAS linhas."
-  },
-  {
-    "id": "boxplot_avancado",
-    "label": "Boxplot Avancado",
-    "tier": 3,
-    "arquivo": "../dist/boxplot_avancado.js",
-    "existe": true,
-    "fixtures": [
-      "conjuntosPorItem",
-      "grande5k",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria."
-  },
-  {
     "id": "heatmap_denso",
     "label": "Heatmap Denso",
     "tier": 4,
@@ -507,21 +205,6 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida."
-  },
-  {
-    "id": "small_multiples",
-    "label": "Small Multiples",
-    "tier": 4,
-    "arquivo": "../dist/small_multiples.js",
-    "existe": true,
-    "fixtures": [
-      "comPivo",
-      "duasDimensoes",
-      "temporal",
-      "grande5k",
-      "vazio"
-    ],
-    "explore": "1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas)."
   },
   {
     "id": "barras_ranking_denso",
@@ -553,20 +236,6 @@ window.REGISTRO_BL = [
     "explore": "1 dimensao (o nome) e 1 ou mais medidas."
   },
   {
-    "id": "parallel_coords",
-    "label": "Coordenadas Paralelas",
-    "tier": 4,
-    "arquivo": "../dist/parallel_coords.js",
-    "existe": true,
-    "fixtures": [
-      "ohlc",
-      "grande5k",
-      "semPivo",
-      "vazio"
-    ],
-    "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro."
-  },
-  {
     "id": "bump_chart",
     "label": "Bump Chart",
     "tier": 4,
@@ -595,20 +264,6 @@ window.REGISTRO_BL = [
     "explore": "1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas)."
   },
   {
-    "id": "horizon_chart",
-    "label": "Horizon Chart",
-    "tier": 4,
-    "arquivo": "../dist/horizon_chart.js",
-    "existe": true,
-    "fixtures": [
-      "comPivo",
-      "duasDimensoes",
-      "temporal",
-      "vazio"
-    ],
-    "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas)."
-  },
-  {
     "id": "bar_race",
     "label": "Bar Chart Race",
     "tier": 5,
@@ -623,19 +278,6 @@ window.REGISTRO_BL = [
     "explore": "1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas)."
   },
   {
-    "id": "motion_bubbles",
-    "label": "Bolhas em Movimento",
-    "tier": 5,
-    "arquivo": "../dist/motion_bubbles.js",
-    "existe": true,
-    "fixtures": [
-      "duasDimensoes",
-      "grande5k",
-      "vazio"
-    ],
-    "explore": "2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho)."
-  },
-  {
     "id": "kpi_vivo",
     "label": "KPI Vivo",
     "tier": 5,
@@ -648,89 +290,6 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline."
-  },
-  {
-    "id": "parallel_sets",
-    "label": "Conjuntos Paralelos",
-    "tier": 5,
-    "arquivo": "../dist/parallel_sets.js",
-    "existe": true,
-    "fixtures": [
-      "duasDimensoes",
-      "hierarquia",
-      "grande5k",
-      "vazio"
-    ],
-    "explore": "2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas)."
-  },
-  {
-    "id": "arc_diagram",
-    "label": "Diagrama de Arcos",
-    "tier": 5,
-    "arquivo": "../dist/arc_diagram.js",
-    "existe": true,
-    "fixtures": [
-      "duasDimensoes",
-      "paiFilho",
-      "hierarquia",
-      "vazio"
-    ],
-    "explore": "2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao."
-  },
-  {
-    "id": "nightingale",
-    "label": "Rosa de Nightingale",
-    "tier": 5,
-    "arquivo": "../dist/nightingale.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "temporal",
-      "rotulosLongos",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as fatias) e 1 medida (o raio)."
-  },
-  {
-    "id": "radial_bar",
-    "label": "Barras Radiais",
-    "tier": 5,
-    "arquivo": "../dist/radial_bar.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "rotulosLongos",
-      "temporal",
-      "vazio"
-    ],
-    "explore": "1 dimensao (os aneis) e 1 medida (o angulo)."
-  },
-  {
-    "id": "lollipop",
-    "label": "Grafico de Pirulito",
-    "tier": 5,
-    "arquivo": "../dist/lollipop.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "temporal",
-      "rotulosLongos",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as categorias) e 1 medida."
-  },
-  {
-    "id": "waffle",
-    "label": "Waffle",
-    "tier": 5,
-    "arquivo": "../dist/waffle.js",
-    "existe": true,
-    "fixtures": [
-      "semPivo",
-      "rotulosLongos",
-      "vazio"
-    ],
-    "explore": "1 dimensao (as partes) e 1 medida."
   },
   {
     "id": "dumbbell",

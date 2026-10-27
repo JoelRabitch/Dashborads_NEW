@@ -1,7 +1,7 @@
 /*!
  * Drawdown — visualização customizada para o Looker
  * id: drawdown
- * versão: 0.1.0 | build: 2026-10-22 22:53:46 | commit: 8660be6
+ * versão: 0.1.0 | build: 2026-10-27 13:34:47 | commit: c9e7506
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

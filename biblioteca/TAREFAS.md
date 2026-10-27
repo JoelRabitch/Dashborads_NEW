@@ -81,7 +81,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [-] arquivado: theme_river, funil_variacoes, funil_comparativo, gauge_variacoes, gauge_grid, arvore_radial, candlestick_ohlc, linha_bandas, retorno_acumulado, fluxo_caixa, lorenz_gini, ponte_variacao, violin, ridgeline, beeswarm, dispersao_regressao, qq_plot, densidade_ecdf, intervalo_confianca, matriz_dispersao, correlacao_matriz, boxplot_avancado, small_multiples, parallel_coords, horizon_chart, motion_bubbles, parallel_sets, arc_diagram, nightingale, radial_bar, lollipop, waffle
 
 ### Fase A
-- [ ] A.0 Tag `antes-da-limpeza` + arquivamento dos 32 (seção 5)
+- [x] A.0 Tag `antes-da-limpeza` + arquivamento dos 32 (seção 5)
 - [ ] A.1 Opções "antes" em `docs/opcoes/<id>.antes.json` (22 gráficos)
 - [ ] 2.1 Rótulos (função única)
 - [ ] 2.2 Aba Cores

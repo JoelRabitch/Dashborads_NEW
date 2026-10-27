@@ -344,3 +344,24 @@ export function criarCoresDaArvore(raiz, config, tema) {
     return corPorRamo.get(atual) || corUnica;
   };
 }
+
+/**
+ * Linhas do tooltip de um nó. Mora na base (e não num gráfico) porque
+ * importar de um gráfico registrado embute o `defineViz` dele no bundle.
+ */
+export function montarLinhas(no, campoDoValor, formatar) {
+  const linhas = [];
+  if (campoDoValor) linhas.push({ rotulo: campoDoValor.rotuloCurto, valor: formatar(no.value || 0) });
+  linhas.push({ rotulo: 'Nível', valor: String(no.depth) });
+  if (no.children && no.children.length) {
+    linhas.push({ rotulo: 'Filhos diretos', valor: String(no.children.length) });
+    linhas.push({ rotulo: 'Descendentes', valor: String(no.descendants().length - 1) });
+  }
+  if (no.parent && no.parent.value) {
+    linhas.push({
+      rotulo: `Dentro de ${no.parent.data.rotulo}`,
+      valor: `${((100 * (no.value || 0)) / no.parent.value).toFixed(1)}%`,
+    });
+  }
+  return linhas;
+}

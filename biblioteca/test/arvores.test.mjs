@@ -1,5 +1,5 @@
 /**
- * arvores.test.mjs — testes do módulo de hierarquia e das duas árvores.
+ * arvores.test.mjs — testes do módulo de hierarquia e das árvores mantidas (arvores_multiplas e org_chart).
  *
  * A maior parte do risco está em `core/hierarquia.js`, não no desenho: um
  * ciclo trava o layout do d3 sem mensagem nenhuma, e um nó cujo superior
@@ -186,54 +186,6 @@ test('hierarquia — profundidade máxima poda sem perder valor', (t) => {
     'podar não pode mudar o total: o valor dos filhos sobe para o nó cortado'
   );
   t.diagnostic(`${inteira.quantidadeDeNos} → ${podada.quantidadeDeNos} nós, total preservado`);
-});
-
-test('arvore_radial — desenha um nó por item e uma ligação a menos', (t) => {
-  for (const fixture of ['hierarquia', 'paiFilho']) {
-    const r = renderizar('arvore_radial', fixture);
-    try {
-      assert.ok(r.nos.length > 2, `${fixture}: faltaram nós`);
-      assert.equal(
-        r.ligacoes.length,
-        r.nos.length - 1,
-        `${fixture}: numa árvore há sempre um nó a mais do que ligações`
-      );
-      for (const ligacao of r.ligacoes) {
-        assert.ok(!/NaN/.test(ligacao.getAttribute('d') || ''), `${fixture}: ligação com NaN`);
-      }
-      assert.equal(r.amb.chamadasDeApi.erros.length, 0);
-      t.diagnostic(`${fixture}: ${r.nos.length} nós`);
-    } finally {
-      r.fim();
-    }
-  }
-});
-
-test('arvore_radial — as três formas de ligação desenham', (t) => {
-  for (const forma of ['curva', 'cotovelo', 'reta']) {
-    const r = renderizar('arvore_radial', 'hierarquia', { formaDaLigacao: forma });
-    try {
-      assert.ok(r.ligacoes.length > 0, `forma ${forma}: nenhuma ligação`);
-      for (const ligacao of r.ligacoes) {
-        const d = ligacao.getAttribute('d') || '';
-        assert.ok(d.length > 8 && !/NaN/.test(d), `forma ${forma}: caminho inválido`);
-      }
-    } finally {
-      r.fim();
-    }
-  }
-  t.diagnostic('curva, cotovelo e reta conferidas');
-});
-
-test('arvore_radial — tamanho por valor produz nós de raios diferentes', (t) => {
-  const r = renderizar('arvore_radial', 'hierarquia', { tamanhoPorValor: true });
-  try {
-    const raios = new Set(r.nos.map((n) => Number(n.getAttribute('r')).toFixed(2)));
-    assert.ok(raios.size > 3, `esperado vários raios distintos, veio ${raios.size}`);
-  } finally {
-    r.fim();
-  }
-  t.diagnostic('nós dimensionados pelo valor');
 });
 
 test('arvores_multiplas — uma árvore por ramo, com título e valor', (t) => {

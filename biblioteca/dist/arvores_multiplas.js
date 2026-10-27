@@ -1,7 +1,7 @@
 /*!
  * Múltiplas Árvores — visualização customizada para o Looker
  * id: arvores_multiplas
- * versão: 0.1.0 | build: 2026-10-22 22:53:46 | commit: 8660be6
+ * versão: 0.1.0 | build: 2026-10-27 13:34:47 | commit: c9e7506
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3482,12 +3482,6 @@
       }
     };
   }
-  function layoutRadial(raiz, { raioMaximo, config }) {
-    const fabrica = (config.layoutDaArvore === "tree" ? tree_default : cluster_default)();
-    fabrica.size([2 * Math.PI, raioMaximo]);
-    fabrica.separation((a, b) => (a.parent === b.parent ? 1 : 2) / Math.max(1, a.depth));
-    return fabrica(raiz);
-  }
   function layoutHorizontal(raiz, { largura, altura, config }) {
     const fabrica = (config.layoutDaArvore === "tree" ? tree_default : cluster_default)();
     fabrica.size([altura, largura]);
@@ -3626,98 +3620,6 @@
       return corPorRamo.get(atual) || corUnica;
     };
   }
-
-  // src/charts/arvore_radial/index.js
-  var arvore_radial_default = defineViz({
-    id: "arvore_radial",
-    label: "\xC1rvore Radial",
-    opcoes: montarOpcoes(
-      blocoDeCores({ comEscalaPorValor: false }),
-      blocoDeRotulos(),
-      blocoDeTooltip(),
-      blocoDeAnimacao(),
-      blocoDeTema(),
-      blocoAvancado(),
-      opcoesDeHierarquia(),
-      opcoesDeArvore({ layoutPadrao: "cluster" }),
-      {
-        margemParaRotulos: {
-          type: "number",
-          label: "Espa\xE7o reservado para os nomes das folhas (px)",
-          section: "\xC1rvore",
-          display: "range",
-          min: 0,
-          max: 260,
-          step: 10,
-          default: 110
-        }
-      }
-    ),
-    exigencia: { dimensoesMin: 1, aceitaPivo: false, exigeLinhas: true },
-    opcoesDinamicas({ modelo }) {
-      return opcoesDinamicasDeHierarquia(modelo);
-    },
-    render(ctx) {
-      const { modelo, config, tema, raiz: elementoRaiz, largura, altura } = ctx;
-      const { raiz, avisos, campoDoValor, quantidadeDeNos } = construirHierarquia(modelo, config);
-      for (const aviso of avisos) ctx.avisar(aviso);
-      if (!raiz || quantidadeDeNos < 2) {
-        ctx.mostrarVazio(
-          "N\xE3o consegui montar uma hierarquia. Use v\xE1rias dimens\xF5es (uma por n\xEDvel) ou um par de campos id/superior, e confira a se\xE7\xE3o Dados."
-        );
-        return;
-      }
-      ctx.limparRaiz();
-      injetarEstilo(elementoRaiz, CSS_ARVORE, "av");
-      const area = criarEl("div", { classe: "av-area", pai: elementoRaiz });
-      const svg = criarSvgEl("svg", {
-        pai: area,
-        atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` }
-      });
-      const margem = Number(config.margemParaRotulos);
-      const reservado = Number.isFinite(margem) ? margem : 110;
-      const raioMaximo = Math.max(10, Math.min(largura, altura) / 2 - reservado);
-      layoutRadial(raiz, { raioMaximo, config });
-      const cores = criarCoresDaArvore(raiz, config, tema);
-      const formatar = formatadorDeValueFormat(campoDoValor && campoDoValor.valueFormat, {
-        casas: Number(config.casasDecimaisDoRotulo) || 0
-      });
-      const tooltip = config.mostrarTooltip === false ? null : criarTooltip(elementoRaiz, tema);
-      ctx.estado.tooltip = tooltip;
-      const { nos } = desenharArvore({
-        svg,
-        raiz,
-        modo: "radial",
-        deslocamento: { x: largura / 2, y: altura / 2 },
-        config,
-        tema,
-        formatar,
-        cores,
-        aoInteragir(elemento, no) {
-          if (tooltip) {
-            ctx.eventos.on(elemento, "pointerenter", (ev) => {
-              tooltip.mostrar(
-                { titulo: no.data.rotulo, linhas: montarLinhas(no, campoDoValor, formatar) },
-                ev.clientX,
-                ev.clientY
-              );
-            });
-            ctx.eventos.on(elemento, "pointermove", (ev) => tooltip.mover(ev.clientX, ev.clientY));
-            ctx.eventos.on(elemento, "pointerleave", () => tooltip.esconder());
-          }
-          ctx.eventos.on(elemento, "click", (ev) => {
-            if (no.data.indiceDaLinha < 0 || !no.data.campo) return;
-            const celula = modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome);
-            if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
-          });
-        }
-      });
-      if (!nos.length) ctx.avisar("Nenhum n\xF3 foi desenhado: confira o tamanho do n\xF3 na se\xE7\xE3o \xC1rvore.");
-    },
-    aoDestruir({ estado }) {
-      if (estado && estado.tooltip) estado.tooltip.destruir();
-    }
-  });
   function montarLinhas(no, campoDoValor, formatar) {
     const linhas = [];
     if (campoDoValor) linhas.push({ rotulo: campoDoValor.rotuloCurto, valor: formatar(no.value || 0) });

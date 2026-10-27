@@ -25,6 +25,19 @@ build.
 > Fixe a URL num **commit específico** (nunca em `@main`), para a
 > visualização não mudar sozinha depois de testada.
 
+## Gráficos mantidos (22)
+
+`tabela_completa`, `diagrama_venn`, `upset_plot`, `treemap_carteira`,
+`kpi_vivo`, `heatmap_denso`, `dumbbell`, `drawdown`, `dot_plot_denso`,
+`bump_chart`, `slope_chart`, `bar_race`, `barras_ranking_denso`,
+`arvores_multiplas`, `org_chart`, `pareto`, `marimekko`,
+`quadrant_scatter`, `matriz_2x2`, `matriz_bcg`, `risco_retorno`,
+`grafico_controle`.
+
+Outros 32 gráficos da primeira versão foram arquivados em
+[`_arquivados/`](_arquivados/) (fora do build e dos testes). O estado antes
+da limpeza está na tag Git `antes-da-limpeza`.
+
 ## Como trabalhar aqui
 
 ```bash

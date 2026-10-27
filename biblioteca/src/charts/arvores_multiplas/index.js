@@ -36,8 +36,8 @@ import {
   layoutHorizontal,
   desenharArvore,
   criarCoresDaArvore,
+  montarLinhas,
 } from '../_arvore/index.js';
-import { montarLinhas } from '../arvore_radial/index.js';
 
 /** Acima disso cada árvore fica pequena demais para dizer alguma coisa. */
 const MAXIMO_DE_ARVORES = 24;

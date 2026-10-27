@@ -1,0 +1,478 @@
+{
+  "descricao": "Entradas retiradas de config/charts.json no arquivamento (PROMPT_AGENTE v2). Não são construídas nem testadas.",
+  "graficos": [
+    {
+      "id": "theme_river",
+      "label": "ThemeRiver",
+      "tier": 1,
+      "pasta": "theme_river",
+      "resumo": "Streamgraph: areas empilhadas com base ondulada (wiggle/silhouette) mostrando composicao ao longo do tempo. Series vindas do pivo, da 2a dimensao ou de varias medidas.",
+      "explore": "1 dimensao no eixo (de preferencia temporal) e 1 medida. As series vem do pivo, de uma 2a dimensao ou de varias medidas.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "semPivo",
+        "vazio",
+        "somenteNulos"
+      ]
+    },
+    {
+      "id": "funil_variacoes",
+      "label": "Funis (Estilos)",
+      "tier": 1,
+      "pasta": "funil_variacoes",
+      "resumo": "Funil em cinco estilos (classico, piramide, barras centralizadas, barras a esquerda e area continua) com taxa de conversao entre etapas.",
+      "explore": "1 dimensao com as etapas e 1 medida, ou varias medidas (uma por etapa). Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "funil_comparativo",
+      "label": "Funil Comparativo",
+      "tier": 1,
+      "pasta": "funil_comparativo",
+      "resumo": "Varios funis lado a lado, um por segmento, compartilhando a mesma escala para a largura ser comparavel entre segmentos.",
+      "explore": "1 dimensao com as etapas, 1 medida e um pivo (ou uma 2a dimensao) com os segmentos.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "vazio"
+      ]
+    },
+    {
+      "id": "gauge_variacoes",
+      "label": "Medidores (Estilos)",
+      "tier": 1,
+      "pasta": "gauge_variacoes",
+      "resumo": "Um medidor em cinco estilos (arco de 270 graus, semicirculo, circulo completo, barra linear e bullet chart), com faixas coloridas, alvo e agulha.",
+      "explore": "1 medida (o valor). Opcionalmente uma segunda medida para o alvo. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "gauge_grid",
+      "label": "Medidores em Grade",
+      "tier": 1,
+      "pasta": "gauge_grid",
+      "resumo": "Um medidor pequeno por item de uma dimensao, numa grade responsiva, todos compartilhando a mesma escala para serem comparaveis.",
+      "explore": "1 dimensao (um medidor por valor) e 1 medida. Opcionalmente uma segunda medida para o alvo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "arvore_radial",
+      "label": "Árvore Radial",
+      "tier": 1,
+      "pasta": "arvore_radial",
+      "resumo": "Hierarquia inteira num circulo: raiz no centro, um anel por nivel e as folhas na borda com os nomes acompanhando o raio.",
+      "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "hierarquia",
+        "paiFilho",
+        "duasDimensoes",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "candlestick_ohlc",
+      "label": "Candlestick / OHLC",
+      "tier": 2,
+      "pasta": "candlestick_ohlc",
+      "resumo": "Velas japonesas ou barras OHLC por periodo, com cores de alta e baixa, media movel opcional e faixa de volume com escala propria.",
+      "explore": "1 dimensao temporal e 4 medidas (abertura, maxima, minima, fechamento). Uma 5a medida opcional vira o volume.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "vazio"
+      ]
+    },
+    {
+      "id": "linha_bandas",
+      "label": "Linha com Bandas",
+      "tier": 2,
+      "pasta": "linha_bandas",
+      "resumo": "Linha central com faixa de incerteza em volta, vinda de tres medidas, de um percentual fixo, do desvio padrao da serie ou do minimo/maximo entre as series do pivo.",
+      "explore": "1 dimensao no eixo e 1 ou mais medidas. Com tres medidas a banda e um dado de verdade; nos outros modos ela e calculada e o grafico diz isso na tela.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "ohlc",
+        "temporal",
+        "comPivo",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "retorno_acumulado",
+      "label": "Retorno Acumulado (Base 100)",
+      "tier": 2,
+      "pasta": "retorno_acumulado",
+      "resumo": "Cada serie reescalada para comecar no mesmo ponto (100 por padrao), passando a comparar crescimento relativo em vez de valores absolutos.",
+      "explore": "1 dimensao temporal ordenada e 1 ou mais medidas. Aceita pivo (uma curva por serie).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "temporal",
+        "comPivo",
+        "ohlc",
+        "vazio"
+      ]
+    },
+    {
+      "id": "fluxo_caixa",
+      "label": "Fluxo de Caixa",
+      "tier": 2,
+      "pasta": "fluxo_caixa",
+      "resumo": "Barras de entradas e saidas por periodo com a linha do saldo acumulado por cima e destaque para os periodos de saldo negativo.",
+      "explore": "1 dimensao temporal ordenada e 1 ou 2 medidas (entradas e saidas, ou uma medida com sinal). Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "temporal",
+        "ohlc",
+        "vazio"
+      ]
+    },
+    {
+      "id": "lorenz_gini",
+      "label": "Curva de Lorenz / Gini",
+      "tier": 2,
+      "pasta": "lorenz_gini",
+      "resumo": "Curva de Lorenz com a linha de igualdade e o coeficiente de Gini em destaque, medindo o quanto o total esta concentrado em poucas categorias.",
+      "explore": "1 dimensao (as categorias) e 1 medida nao negativa. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "grande5k",
+        "rotulosLongos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "ponte_variacao",
+      "label": "Ponte de Variação",
+      "tier": 2,
+      "pasta": "ponte_variacao",
+      "resumo": "Waterfall: barras flutuantes ligando um valor inicial a um final, com cada contribuicao no caminho e os totais ancorados no zero.",
+      "explore": "1 dimensao com as etapas (na ordem) e 1 medida com a contribuicao de cada uma. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "violin",
+      "label": "Violin Plot",
+      "tier": 3,
+      "pasta": "violin",
+      "resumo": "Densidade da distribuicao espelhada nos dois lados de um eixo, uma por categoria, com mediana e intervalo interquartil dentro.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria — a consulta nao pode vir agregada a um valor por grupo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
+    },
+    {
+      "id": "ridgeline",
+      "label": "Ridgeline",
+      "tier": 3,
+      "pasta": "ridgeline",
+      "resumo": "Uma curva de densidade por categoria, empilhadas com sobreposicao parcial e compartilhando o mesmo eixo X.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
+    },
+    {
+      "id": "beeswarm",
+      "label": "Beeswarm",
+      "tier": 3,
+      "pasta": "beeswarm",
+      "resumo": "Um ponto por observacao, espalhado perpendicularmente ao eixo para nao se cobrirem: a distribuicao sem nada estimado.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
+    },
+    {
+      "id": "dispersao_regressao",
+      "label": "Dispersao com Regressao",
+      "tier": 3,
+      "pasta": "dispersao_regressao",
+      "resumo": "Nuvem de pontos com reta ajustada, R2, equacao e banda de incerteza nomeada (da reta ou de predicao).",
+      "explore": "2 medidas (X e Y) e, opcionalmente, 1 dimensao que identifica cada ponto.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "grande5k",
+        "ohlc",
+        "vazio"
+      ]
+    },
+    {
+      "id": "qq_plot",
+      "label": "Q-Q Plot (Normalidade)",
+      "tier": 3,
+      "pasta": "qq_plot",
+      "resumo": "Quantis observados contra quantis teoricos da normal, com reta robusta, envelope pontual de 95% e o nome da forma (caudas pesadas, assimetria).",
+      "explore": "1 medida com VARIAS linhas (as observacoes). Opcionalmente 1 dimensao que identifica cada ponto.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "semPivo",
+        "ohlc",
+        "vazio"
+      ]
+    },
+    {
+      "id": "densidade_ecdf",
+      "label": "Densidade e ECDF",
+      "tier": 3,
+      "pasta": "densidade_ecdf",
+      "resumo": "Duas vistas da mesma distribuicao no mesmo eixo X: a densidade estimada (que depende da banda) e a acumulada empirica (exata, sem parametro).",
+      "explore": "1 medida com VARIAS linhas. Opcionalmente 1 dimensao para comparar distribuicoes.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "grande5k",
+        "conjuntosPorItem",
+        "vazio"
+      ]
+    },
+    {
+      "id": "intervalo_confianca",
+      "label": "Intervalo de Confianca",
+      "tier": 3,
+      "pasta": "intervalo_confianca",
+      "resumo": "Estimativa por categoria com barra de erro, por tres caminhos declarados, e o modo de COMPARACAO (~83,4%) em que a sobreposicao corresponde ao teste.",
+      "explore": "1 dimensao e 1 medida. Opcionalmente medidas de limite inferior/superior, ou de n e desvio-padrao.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "conjuntosPorItem",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "matriz_dispersao",
+      "label": "Matriz de Dispersao",
+      "tier": 3,
+      "pasta": "matriz_dispersao",
+      "resumo": "SPLOM: dispersao no triangulo inferior, densidade na diagonal e o r de Pearson no superior, todos os pontos num canvas so.",
+      "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada linha.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "semPivo",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "correlacao_matriz",
+      "label": "Matriz de Correlacao",
+      "tier": 3,
+      "pasta": "correlacao_matriz",
+      "resumo": "Mapa de calor de todas as medidas contra todas, com escala divergente fixa em [-1,+1], Pearson e/ou Spearman e agrupamento por similaridade.",
+      "explore": "2 ou mais medidas com VARIAS linhas.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "boxplot_avancado",
+      "label": "Boxplot Avancado",
+      "tier": 3,
+      "pasta": "boxplot_avancado",
+      "resumo": "Boxplot com entalhe de confianca da mediana, largura proporcional a raiz de n, observacoes individuais e denuncia de distribuicoes com mais de um pico.",
+      "explore": "1 dimensao (as categorias) e 1 medida com VARIAS linhas por categoria.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "conjuntosPorItem",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "small_multiples",
+      "label": "Small Multiples",
+      "tier": 4,
+      "pasta": "small_multiples",
+      "resumo": "Grade de mini-graficos, um por serie, todos na MESMA escala — o que torna as formas comparaveis. Escala livre existe como opcao e e declarada na tela.",
+      "explore": "1 dimensao no eixo e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "parallel_coords",
+      "label": "Coordenadas Paralelas",
+      "tier": 4,
+      "pasta": "parallel_coords",
+      "resumo": "Um eixo por medida e uma linha quebrada por registro, em canvas, com escovacao por eixo e ordenacao automatica que poe pares correlacionados lado a lado.",
+      "explore": "2 ou mais medidas. Opcionalmente 1 dimensao que identifica cada registro.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "horizon_chart",
+      "label": "Horizon Chart",
+      "tier": 4,
+      "pasta": "horizon_chart",
+      "resumo": "Series temporais empilhadas com a area DOBRADA em faixas de mesma altura: cabe trinta series numa tela mantendo a leitura de pico e vale.",
+      "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
+    },
+    {
+      "id": "motion_bubbles",
+      "label": "Bolhas em Movimento",
+      "tier": 5,
+      "pasta": "motion_bubbles",
+      "resumo": "X, Y, tamanho e cor animados no tempo (Rosling), com a AREA proporcional ao valor, rastro opcional e escalas fixas entre periodos.",
+      "explore": "2 dimensoes (o item e o tempo) e 2 ou mais medidas (X, Y e opcionalmente o tamanho).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "duasDimensoes",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "parallel_sets",
+      "label": "Conjuntos Paralelos",
+      "tier": 5,
+      "pasta": "parallel_sets",
+      "resumo": "Fitas mostrando como a populacao se reparte entre categorias de varias dimensoes, com conservacao do total e ordenacao automatica que reduz cruzamentos.",
+      "explore": "2 ou mais dimensoes. Opcionalmente 1 medida para a largura (o padrao e contagem de linhas).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "duasDimensoes",
+        "hierarquia",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "arc_diagram",
+      "label": "Diagrama de Arcos",
+      "tier": 5,
+      "pasta": "arc_diagram",
+      "resumo": "Nos numa linha e arcos ligando quem se relaciona, com ordenacao por vizinhanca que reduz cruzamentos e contagem publicada na nota.",
+      "explore": "2 dimensoes (origem e destino). Opcionalmente 1 medida para o peso da ligacao.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "duasDimensoes",
+        "paiFilho",
+        "hierarquia",
+        "vazio"
+      ]
+    },
+    {
+      "id": "nightingale",
+      "label": "Rosa de Nightingale",
+      "tier": 5,
+      "pasta": "nightingale",
+      "resumo": "Fatias de angulo igual e raio variavel, com AREA proporcional ao valor por padrao (o original exagera, e o modo em uso vai declarado).",
+      "explore": "1 dimensao (as fatias) e 1 medida (o raio).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "temporal",
+        "rotulosLongos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "radial_bar",
+      "label": "Barras Radiais",
+      "tier": 5,
+      "pasta": "radial_bar",
+      "resumo": "Barras enroladas num circulo: o valor e o ANGULO varrido (nao o comprimento do arco, que depende do raio — e isso vai declarado).",
+      "explore": "1 dimensao (os aneis) e 1 medida (o angulo).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "temporal",
+        "vazio"
+      ]
+    },
+    {
+      "id": "lollipop",
+      "label": "Grafico de Pirulito",
+      "tier": 5,
+      "pasta": "lollipop",
+      "resumo": "A barra de Tufte com menos tinta: haste a partir do ZERO (porque haste e comprimento) e circulo de tamanho fixo marcando o valor.",
+      "explore": "1 dimensao (as categorias) e 1 medida.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "temporal",
+        "rotulosLongos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "waffle",
+      "label": "Waffle",
+      "tier": 5,
+      "pasta": "waffle",
+      "resumo": "Grade de quadradinhos trocando comparacao de angulos por CONTAGEM, com a unidade de cada celula declarada e sobras repartidas pelo maior resto.",
+      "explore": "1 dimensao (as partes) e 1 medida.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "vazio"
+      ]
+    }
+  ]
+}
