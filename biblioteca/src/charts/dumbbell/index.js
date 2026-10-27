@@ -18,19 +18,42 @@
  * depende de onde o eixo começa. Por isso o corte é permitido aqui sem
  * distorcer o que a barra afirma — e a nota diz exatamente isso, porque
  * é o tipo de coisa que o leitor atento vai querer conferir.
+ *
+ * Correções v2 (módulos 6.1–6.4):
+ *   - "Escrever" continua escolhendo O QUE escrever (diferença, as duas
+ *     medidas, nada); o estilo vem do bloco de rótulos pela função única
+ *     (`core/rotulos.js`): "Mostrar rótulos", tamanho, cor, negrito,
+ *     rotação, posição (fora/dentro/centro), conteúdo, formato, casas e
+ *     truncar têm efeito;
+ *   - aba Cores: as cores das duas pontas vêm de `paletaDoConfig`
+ *     ("Inverter ordem das cores"), com opacidade e contorno; a barra
+ *     ganha o contorno do painel; guias na cor da grade do tema;
+ *   - forma dos pontos (opção nova `formaDoPonto`) pela função única de
+ *     marcadores, refletida na legenda;
+ *   - tooltip único (`ctx.tooltip()`) com os valores no texto do Looker;
+ *     clique pela "Ação do clique" (`ctx.cliqueNoItem`).
+ *
+ * Campos: 1 dimensão (o nome) + 2 medidas (o "antes" e o "depois").
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { comOpacidade, coresDaPaleta } from '../../core/theme.js';
+import { comOpacidade } from '../../core/theme.js';
 import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
+import { paletaDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, formatadorDoRotulo } from '../../core/rotulos.js';
+import { formaDoMarcador } from '../../core/shapes.js';
 import {
   CSS_LISTA_VIRTUAL,
   criarListaVirtual,
   itemDoEvento,
   montarEscala,
   calcularDiferenca,
+  desenharGuias,
+  criarPontoHtml,
+  criarRotuloHtml,
+  criarChipDeForma,
+  celulaComLinks,
 } from '../_lista_virtual/index.js';
 import {
   montarOpcoes,
@@ -42,13 +65,14 @@ import {
   blocoDeTooltip,
   blocoDeTema,
   blocoAvancado,
+  blocoDePontosELinhas,
 } from '../../core/options-kit.js';
 
 const CSS = `
 .db-nome{flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .db-trilho{flex:1 1 auto;position:relative;height:100%;min-width:20px;}
 .db-barra{position:absolute;top:50%;transform:translateY(-50%);border-radius:2px;}
-.db-ponto{position:absolute;top:50%;transform:translate(-50%,-50%);border-radius:50%;}
+.db-ponto{position:absolute;top:50%;transform:translate(-50%,-50%);line-height:0;}
 .db-guia{position:absolute;top:0;bottom:0;width:1px;}
 .db-valor{position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;font-variant-numeric:tabular-nums;}
 .db-escala{flex:0 0 auto;display:flex;padding:0 8px;font-size:10px;opacity:.75;}
@@ -124,6 +148,9 @@ export default defineViz({
           step: 1,
           default: 10,
         },
+        // Novo (correções v2): a forma dos pontos, com os valores do
+        // options-kit (padrão círculo, que é o desenho de antes).
+        formaDoPonto: blocoDePontosELinhas({ secao: 'Halteres', comLinha: false }).formaDoPonto,
         espessuraDaBarra: {
           type: 'number',
           label: 'Espessura da barra (px)',
@@ -240,6 +267,11 @@ export default defineViz({
         indiceDaLinha: i,
         nome: modelo.texto(modelo.linhas[i], campoDoNome.nome, undefined, '∅'),
         valores: [a, b],
+        // Texto do Looker das duas medidas (tooltip e rótulo "automático").
+        textos: [
+          modelo.texto(modelo.linhas[i], antes.nome, undefined, ''),
+          modelo.texto(modelo.linhas[i], depois.nome, undefined, ''),
+        ],
         diferenca: b - a,
         diferencaRelativa: a === 0 ? null : (b - a) / Math.abs(a),
       });
@@ -273,16 +305,17 @@ export default defineViz({
     ctx.limparRaiz();
     injetarEstilo(raiz, CSS_LISTA_VIRTUAL + CSS, 'db');
 
-    const casas = Number(config.casasDecimaisDoRotulo);
-    const formatarAntes = formatadorDeValueFormat(antes.valueFormat, {
-      casas: Number.isFinite(casas) ? casas : 1,
-    });
-    const formatarDepois = formatadorDeValueFormat(depois.valueFormat, {
-      casas: Number.isFinite(casas) ? casas : 1,
-    });
+    // Rótulos: lidos a cada desenho (o config chega normalizado).
+    const rot = lerRotulos(config, tema);
+    // Números derivados (diferença, régua) usam o value_format do campo.
+    const formatarAntes = formatadorDeValueFormat(antes.valueFormat, { casas: rot.casas });
+    const formatarDepois = formatadorDeValueFormat(depois.valueFormat, { casas: rot.casas });
 
-    const paleta = coresDaPaleta(config.paleta);
+    // Aba Cores: paleta (com "Inverter"), opacidade e contorno do painel.
+    const paleta = paletaDoConfig(config);
     const cores = { antes: paleta[0], depois: paleta[1] || paleta[0] };
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+    const forma = formaDoMarcador(config.formaDoPonto);
     const menorEhMelhor = config.menorEhMelhor === true;
     const corDaBarra = (item) => {
       if (config.corPorDirecao === false) return comOpacidade(tema.texto, 0.35);
@@ -296,8 +329,7 @@ export default defineViz({
     const tamanhoDoPonto = Math.max(4, Number(config.tamanhoDoPonto) || 10);
     const espessura = Math.max(1, Number(config.espessuraDaBarra) || 4);
 
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    const tooltip = ctx.tooltip();
 
     const lista = criarListaVirtual({
       ctx,
@@ -309,7 +341,7 @@ export default defineViz({
       montarLinha: (item) =>
         montarLinha({
           item, escala, cores, corDaBarra, larguraDoNome, tamanhoDoPonto, espessura,
-          tema, config, formatarAntes, formatarDepois,
+          tema, config, rot, contorno, forma, valueFormat: antes.valueFormat,
         }),
     });
 
@@ -328,8 +360,8 @@ export default defineViz({
       { cor: cores.depois, rotulo: depois.rotuloCurto },
     ]) {
       const chip = criarEl('span', { classe: 'db-chip', pai: legenda });
-      const bolinha = criarEl('span', { classe: 'db-bolinha', pai: chip });
-      bolinha.style.background = lado.cor;
+      // O chip tem a forma do ponto: a legenda acompanha o desenho.
+      criarChipDeForma(chip, { forma, cor: lado.cor });
       const texto = criarEl('span', { pai: chip });
       definirTexto(texto, truncar(lado.rotulo, 18));
     }
@@ -365,6 +397,32 @@ export default defineViz({
     );
 
     // ---------- Interação ----------
+    // Valores no texto do Looker; só a diferença (derivada) é formatada
+    // pelo value_format do campo.
+    const conteudoDe = (item) => {
+      const diferencaPct =
+        item.diferencaRelativa === null
+          ? 'não existe (começou em zero)'
+          : `${item.diferencaRelativa >= 0 ? '+' : ''}${formatarPercentual(item.diferencaRelativa, 1)}`;
+      const diferenca = `${item.diferenca >= 0 ? '+' : ''}${formatarAntes(item.diferenca)}`;
+      return {
+        titulo: item.nome,
+        linhas: [
+          { rotulo: antes.rotuloCurto, valor: item.textos[0] || formatarAntes(item.valores[0]), cor: cores.antes },
+          { rotulo: depois.rotuloCurto, valor: item.textos[1] || formatarDepois(item.valores[1]), cor: cores.depois },
+          { rotulo: 'Diferença', valor: diferenca, cor: corDaBarra(item) },
+          { rotulo: 'Diferença %', valor: diferencaPct },
+          { rotulo: 'Posição na lista', valor: `${item.posicao} de ${itens.length}` },
+        ],
+        variaveis: {
+          categoria: item.nome,
+          valor: diferenca,
+          serie: `${antes.rotuloCurto} → ${depois.rotuloCurto}`,
+          percentual: item.diferencaRelativa === null ? '' : diferencaPct,
+        },
+      };
+    };
+
     if (tooltip) {
       ctx.eventos.on(lista.conteudo, 'pointermove', (ev) => {
         const item = itemDoEvento(ev, itens);
@@ -372,45 +430,24 @@ export default defineViz({
           tooltip.esconder();
           return;
         }
-        tooltip.mostrar(
-          {
-            titulo: item.nome,
-            linhas: [
-              { rotulo: antes.rotuloCurto, valor: formatarAntes(item.valores[0]), cor: cores.antes },
-              { rotulo: depois.rotuloCurto, valor: formatarDepois(item.valores[1]), cor: cores.depois },
-              {
-                rotulo: 'Diferença',
-                valor: `${item.diferenca >= 0 ? '+' : ''}${formatarAntes(item.diferenca)}`,
-                cor: corDaBarra(item),
-              },
-              {
-                rotulo: 'Diferença %',
-                valor:
-                  item.diferencaRelativa === null
-                    ? 'não existe (começou em zero)'
-                    : `${item.diferencaRelativa >= 0 ? '+' : ''}${formatarPercentual(item.diferencaRelativa, 1)}`,
-              },
-              { rotulo: 'Posição na lista', valor: `${item.posicao} de ${itens.length}` },
-            ],
-          },
-          ev.clientX,
-          ev.clientY
-        );
+        tooltip.mostrar(conteudoDe(item), ev.clientX, ev.clientY);
       });
       ctx.eventos.on(lista.conteudo, 'pointerleave', () => tooltip.esconder());
     }
 
+    // Clique: "Ação do clique" (drill com links; sem links, fixa o tooltip).
     ctx.eventos.on(lista.conteudo, 'click', (ev) => {
       const item = itemDoEvento(ev, itens);
       if (!item) return;
-      const celula = modelo.celula(modelo.linhas[item.indiceDaLinha], campoDoNome.nome);
-      if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+      const linha = modelo.linhas[item.indiceDaLinha];
+      ctx.cliqueNoItem(
+        ev,
+        celulaComLinks(modelo, linha, [campoDoNome.nome, antes.nome, depois.nome]),
+        conteudoDe(item)
+      );
     });
   },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
-  },
+  // Sem aoDestruir: o tooltip é o único do gráfico e o defineViz o remove.
 });
 
 /* ------------------------------------------------------------------ */
@@ -444,9 +481,37 @@ export function ordenarItens(itens, modo = 'diferenca') {
   return itens;
 }
 
+/**
+ * Texto do rótulo de um haltere, pela função única de rótulos.
+ * - "diferenca": a diferença com sinal (+/−), no formato e nas casas do
+ *   rótulo; "percentual" vira a diferença relativa ao "antes";
+ * - "ambas": "antes → depois" (texto do Looker no formato automático).
+ */
+export function textoDoHaltere({ item, rot, modo, valueFormat }) {
+  const fmt = formatadorDoRotulo(rot, valueFormat);
+  if (modo === 'ambas') {
+    const auto = rot.formato === 'auto';
+    const a = auto && item.textos ? item.textos[0] : fmt(item.valores[0]);
+    const b = auto && item.textos ? item.textos[1] : fmt(item.valores[1]);
+    return textoDoRotulo(
+      { ...rot, formato: 'auto' },
+      { valor: item.diferenca, nome: item.nome, textoDoValor: `${a} → ${b}`, percentual: item.diferencaRelativa }
+    );
+  }
+  return textoDoRotulo(
+    { ...rot, formato: 'auto' },
+    {
+      valor: item.diferenca,
+      nome: item.nome,
+      textoDoValor: `${item.diferenca >= 0 ? '+' : ''}${fmt(item.diferenca)}`,
+      percentual: item.diferencaRelativa,
+    }
+  );
+}
+
 function montarLinha({
   item, escala, cores, corDaBarra, larguraDoNome, tamanhoDoPonto, espessura,
-  tema, config, formatarAntes, formatarDepois,
+  tema, config, rot, contorno, forma, valueFormat,
 }) {
   const linha = document.createElement('div');
   linha.className = 'db-linha';
@@ -465,14 +530,13 @@ function montarLinha({
   trilho.className = 'db-trilho';
   linha.appendChild(trilho);
 
-  for (const marca of escala.marcas) {
-    if (marca.p === 0 || marca.p === 1) continue;
-    const guia = document.createElement('div');
-    guia.className = 'db-guia';
-    guia.style.left = `${marca.p * 100}%`;
-    guia.style.background = comOpacidade(tema.borda, 0.7);
-    trilho.appendChild(guia);
-  }
+  // Guias na cor da grade do tema ("Cor das linhas de grade").
+  desenharGuias(
+    trilho,
+    escala.marcas.filter((m) => m.p !== 0 && m.p !== 1).map((m) => m.p),
+    tema,
+    'db-guia'
+  );
 
   const pA = escala.posicao(item.valores[0]);
   const pB = escala.posicao(item.valores[1]);
@@ -490,6 +554,7 @@ function montarLinha({
       barra.style.width = `${largura * 100}%`;
       barra.style.height = `${espessura}px`;
       barra.style.background = corDaBarra(item);
+      aplicarContorno(barra, contorno);
       trilho.appendChild(barra);
     }
   }
@@ -499,30 +564,46 @@ function montarLinha({
     { p: pB, cor: cores.depois, medida: 'depois' },
   ]) {
     if (lado.p === null) continue;
-    const ponto = document.createElement('div');
-    ponto.className = 'db-ponto';
+    // Ponto pela função única de marcadores (forma, opacidade, contorno).
+    const ponto = criarPontoHtml({
+      classe: 'db-ponto',
+      forma,
+      diametro: tamanhoDoPonto,
+      cor: lado.cor,
+      config,
+      contorno,
+    });
     ponto.style.left = `${lado.p * 100}%`;
-    ponto.style.width = `${tamanhoDoPonto}px`;
-    ponto.style.height = `${tamanhoDoPonto}px`;
-    ponto.style.background = lado.cor;
     ponto.dataset.medida = lado.medida;
     trilho.appendChild(ponto);
   }
 
+  // "Escrever" escolhe o quê; "Mostrar rótulos" e o resto do bloco de
+  // rótulos decidem se aparece e como.
   const modo = config.escreverValores || 'diferenca';
-  if (modo !== 'nenhum' && pA !== null && pB !== null) {
-    const texto =
-      modo === 'ambas'
-        ? `${formatarAntes(item.valores[0])} → ${formatarDepois(item.valores[1])}`
-        : `${item.diferenca >= 0 ? '+' : ''}${formatarAntes(item.diferenca)}`;
-
-    const valor = document.createElement('div');
-    valor.className = 'db-valor';
-    valor.textContent = texto;
-    valor.style.left = `${Math.max(pA, pB) * 100}%`;
-    valor.style.transform = 'translate(10px, -50%)';
-    valor.style.color = tema.textoSuave;
-    trilho.appendChild(valor);
+  if (rot.mostrar && modo !== 'nenhum' && pA !== null && pB !== null) {
+    const texto = textoDoHaltere({ item, rot, modo, valueFormat });
+    const maior = Math.max(pA, pB);
+    const menor = Math.min(pA, pB);
+    const posicao = rot.posicao === 'dentro' || rot.posicao === 'centro' ? rot.posicao : 'fora';
+    let esquerda = maior;
+    let deslocamento = `translate(${tamanhoDoPonto / 2 + 5}px, -50%)`;
+    if (posicao === 'dentro') {
+      esquerda = menor;
+      deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 5}px), -50%)`;
+    } else if (posicao === 'centro') {
+      // No meio da barra, um pouco acima dela para não cobri-la.
+      esquerda = (menor + maior) / 2;
+      deslocamento = `translate(-50%, calc(-50% - ${Math.max(espessura, 4)}px))`;
+    }
+    const valor = criarRotuloHtml(trilho, rot, {
+      texto,
+      classe: 'db-valor',
+      transformBase: deslocamento,
+      posicao,
+      corAutomatica: tema.textoSuave,
+    });
+    if (valor) valor.style.left = `${esquerda * 100}%`;
   }
 
   return linha;

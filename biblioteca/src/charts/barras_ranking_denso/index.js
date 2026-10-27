@@ -15,17 +15,37 @@
  *    quer saber que ele é o 437º, não que é o 1º da lista filtrada.
  *    Renumerar os resultados da busca seria a mentira deste gráfico, e é
  *    o comportamento padrão da maioria das tabelas.
+ *
+ * Correções v2 (módulos 6.1–6.3):
+ *   - o valor escrito na barra é um RÓTULO de dado e passa pela função
+ *     única de rótulos (`core/rotulos.js`): "Mostrar rótulos", tamanho,
+ *     cor, negrito, rotação, posição (dentro/fora/centro/auto), conteúdo,
+ *     formato, casas e truncar agora têm efeito. Antes o valor era escrito
+ *     sempre, com estilo fixo;
+ *   - a cor vem de `paletaDoConfig` (respeita "Inverter ordem das
+ *     cores"), com opacidade e contorno do painel; as linhas de grade
+ *     verticais (opção nova `mostrarGrade`) usam a "Cor das linhas de
+ *     grade" do tema e a barra de topo usa a "Cor das bordas";
+ *   - tooltip ÚNICO do gráfico (`ctx.tooltip()`), com o valor no texto do
+ *     Looker; o clique segue a "Ação do clique" (`ctx.cliqueNoItem`).
+ *
+ * Campos: 1 dimensão (o nome) + 1 medida (a barra); com mais de uma, o
+ * painel ganha "Dimensão do nome" e "Medida da barra".
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { coresDaPaleta, comOpacidade, textoLegivelSobre } from '../../core/theme.js';
+import { comOpacidade, textoLegivelSobre } from '../../core/theme.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
+import { paletaDoConfig, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, posicaoEfetiva, larguraDoTexto } from '../../core/rotulos.js';
 import {
   CSS_LISTA_VIRTUAL,
   criarListaVirtual,
   itemDoEvento,
+  desenharGuias,
+  criarRotuloHtml,
+  celulaComLinks,
 } from '../_lista_virtual/index.js';
 import {
   montarOpcoes,
@@ -133,6 +153,13 @@ export default defineViz({
           section: 'Formato',
           default: true,
         },
+        // Novo (correções v2): guias verticais na cor da grade do tema.
+        mostrarGrade: {
+          type: 'boolean',
+          label: 'Linhas de grade verticais',
+          section: 'Formato',
+          default: true,
+        },
       }
     ),
     { mostrarTooltip: true }
@@ -196,6 +223,9 @@ export default defineViz({
         indiceDaLinha: i,
         nome: modelo.texto(modelo.linhas[i], campoDoNome.nome, undefined, '∅'),
         valor,
+        // O texto do Looker (textForCell): é o que o tooltip e o rótulo em
+        // formato "automático" mostram — nunca o número cru.
+        texto: modelo.texto(modelo.linhas[i], medida.nome, undefined, ''),
       });
     }
 
@@ -223,19 +253,23 @@ export default defineViz({
     ctx.limparRaiz();
     injetarEstilo(raiz, CSS_LISTA_VIRTUAL + CSS, 'br');
 
-    const casas = Number(config.casasDecimaisDoRotulo);
-    const formatar = formatadorDeValueFormat(medida.valueFormat, {
-      casas: Number.isFinite(casas) ? casas : 1,
-    });
+    // Rótulos: lidos a cada desenho (o config chega normalizado).
+    const rot = lerRotulos(config, tema);
+    // Números DERIVADOS (referência, diferença) usam o value_format do campo.
+    const formatar = formatadorDeValueFormat(medida.valueFormat, { casas: rot.casas });
+    const total = valores.reduce((a, b) => a + b, 0);
 
     const alturaDaLinha = Math.max(12, Number(config.alturaDaLinha) || 22);
     const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 160);
-    const cor = coresDaPaleta(config.paleta)[0];
+    const cor = paletaDoConfig(config)[0];
     const corDeDestaque = tema.destaque;
     const topN = Math.max(0, Number(config.destacarTop) || 0);
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+    // Largura estimada do trilho (o jsdom e o primeiro desenho não medem):
+    // serve só para decidir se o rótulo cabe dentro da barra.
+    const larguraDoTrilho = Math.max(60, ctx.largura - larguraDoNome - 60);
 
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    const tooltip = ctx.tooltip();
 
     const lista = criarListaVirtual({
       ctx,
@@ -258,7 +292,11 @@ export default defineViz({
           corDeDestaque,
           tema,
           config,
-          formatar,
+          rot,
+          total,
+          contorno,
+          larguraDoTrilho,
+          valueFormat: medida.valueFormat,
         }),
     });
 
@@ -287,6 +325,30 @@ export default defineViz({
     );
 
     // ---------- Interação ----------
+    // Conteúdo do tooltip: o valor é o texto do Looker (item.texto); só os
+    // números derivados passam pelo value_format do campo.
+    const conteudoDe = (item) => {
+      const percentual = total ? `${((item.valor / total) * 100).toFixed(1)}%` : '';
+      const valor = item.texto || formatar(item.valor);
+      return {
+        titulo: item.nome,
+        linhas: [
+          { rotulo: 'Posição no ranking', valor: `${item.posicao} de ${itens.length}` },
+          { rotulo: medida.rotuloCurto, valor, cor },
+          { rotulo: 'Do maior', valor: `${((item.valor / (maximo || 1)) * 100).toFixed(1)}%` },
+          ...(referencia !== null
+            ? [
+                {
+                  rotulo: 'Contra a referência',
+                  valor: `${item.valor >= referencia ? '+' : ''}${formatar(item.valor - referencia)}`,
+                },
+              ]
+            : []),
+        ],
+        variaveis: { categoria: item.nome, valor, serie: medida.rotuloCurto, percentual },
+      };
+    };
+
     if (tooltip) {
       ctx.eventos.on(lista.conteudo, 'pointermove', (ev) => {
         const item = itemDoEvento(ev, itens);
@@ -294,41 +356,21 @@ export default defineViz({
           tooltip.esconder();
           return;
         }
-        tooltip.mostrar(
-          {
-            titulo: item.nome,
-            linhas: [
-              { rotulo: 'Posição no ranking', valor: `${item.posicao} de ${itens.length}` },
-              { rotulo: medida.rotuloCurto, valor: formatar(item.valor), cor },
-              { rotulo: 'Do maior', valor: `${((item.valor / (maximo || 1)) * 100).toFixed(1)}%` },
-              ...(referencia !== null
-                ? [
-                    {
-                      rotulo: 'Contra a referência',
-                      valor: `${item.valor >= referencia ? '+' : ''}${formatar(item.valor - referencia)}`,
-                    },
-                  ]
-                : []),
-            ],
-          },
-          ev.clientX,
-          ev.clientY
-        );
+        tooltip.mostrar(conteudoDe(item), ev.clientX, ev.clientY);
       });
       ctx.eventos.on(lista.conteudo, 'pointerleave', () => tooltip.esconder());
     }
 
+    // Clique: "Ação do clique" do painel (drill / fixar / nada). A célula
+    // do drill é a do nome; se ela não tiver links, a da medida.
     ctx.eventos.on(lista.conteudo, 'click', (ev) => {
       const item = itemDoEvento(ev, itens);
       if (!item) return;
-      const celula = modelo.celula(modelo.linhas[item.indiceDaLinha], campoDoNome.nome);
-      if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+      const linha = modelo.linhas[item.indiceDaLinha];
+      ctx.cliqueNoItem(ev, celulaComLinks(modelo, linha, [campoDoNome.nome, medida.nome]), conteudoDe(item));
     });
   },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
-  },
+  // Sem aoDestruir: o tooltip é o único do gráfico e o defineViz o remove.
 });
 
 /* ------------------------------------------------------------------ */
@@ -381,7 +423,8 @@ export function geometriaDaBarra({ valor, maximo, minimo }) {
 
 function montarLinha({
   item, alturaDaLinha, larguraDoNome, maximo, minimo, temNegativos,
-  referencia, topN, cor, corDeDestaque, tema, config, formatar,
+  referencia, topN, cor, corDeDestaque, tema, config, rot, total, contorno,
+  larguraDoTrilho, valueFormat,
 }) {
   const linha = document.createElement('div');
   linha.className = 'br-linha';
@@ -414,12 +457,15 @@ function montarLinha({
 
   const geometria = geometriaDaBarra({ valor: item.valor, maximo, minimo });
 
+  if (config.mostrarGrade !== false) desenharGuias(trilho, [0.25, 0.5, 0.75], tema, 'br-guia');
+
   const barra = document.createElement('div');
   barra.className = 'br-barra';
   barra.style.left = `${geometria.inicio * 100}%`;
   barra.style.width = `${geometria.largura * 100}%`;
   barra.style.height = `${Math.max(3, alturaDaLinha - 7)}px`;
-  barra.style.background = corDaBarra;
+  aplicarPreenchimento(barra, corDaBarra, config);
+  aplicarContorno(barra, contorno);
   trilho.appendChild(barra);
 
   if (temNegativos) {
@@ -439,23 +485,38 @@ function montarLinha({
     trilho.appendChild(marca);
   }
 
-  // O rótulo entra DENTRO da barra quando cabe e fora quando não cabe —
-  // e, dentro, com a cor que é legível sobre a barra, não com a do tema.
-  const texto = formatar(item.valor);
-  const cabeDentro = geometria.largura > 0.18 && texto.length * 7 < geometria.largura * 400;
-  const valorEl = document.createElement('div');
-  valorEl.className = 'br-valor';
-  valorEl.textContent = texto;
-  if (cabeDentro) {
-    valorEl.style.left = `${(geometria.inicio + geometria.largura) * 100}%`;
-    valorEl.style.transform = 'translate(calc(-100% - 4px), -50%)';
-    valorEl.style.color = textoLegivelSobre(corDaBarra, tema);
-  } else {
-    valorEl.style.left = `${(geometria.inicio + geometria.largura) * 100}%`;
-    valorEl.style.transform = 'translate(4px, -50%)';
-    valorEl.style.color = tema.textoSuave;
+  // Rótulo do valor (função única de rótulos). Em "auto", entra DENTRO da
+  // barra quando cabe e fora quando não cabe — e, dentro, com a cor que é
+  // legível sobre a barra, não com a do tema.
+  if (rot.mostrar) {
+    const texto = textoDoRotulo(rot, {
+      valor: item.valor,
+      nome: item.nome,
+      total,
+      valueFormat,
+      textoDoValor: item.texto,
+    });
+    const cabeDentro = larguraDoTexto(texto, rot.tamanho) + 8 < geometria.largura * larguraDoTrilho;
+    const posicao = posicaoEfetiva(rot, { cabeDentro });
+    // A "ponta" da barra: à direita para positivos, à esquerda para negativos.
+    const ponta = geometria.paraDireita ? geometria.inicio + geometria.largura : geometria.inicio;
+    const paraDentro = geometria.paraDireita ? 'translate(calc(-100% - 4px), -50%)' : 'translate(4px, -50%)';
+    const paraFora = geometria.paraDireita ? 'translate(4px, -50%)' : 'translate(calc(-100% - 4px), -50%)';
+    let esquerda = ponta;
+    let deslocamento = posicao === 'dentro' ? paraDentro : paraFora;
+    if (posicao === 'centro') {
+      esquerda = geometria.inicio + geometria.largura / 2;
+      deslocamento = 'translate(-50%, -50%)';
+    }
+    const valorEl = criarRotuloHtml(trilho, rot, {
+      texto,
+      classe: 'br-valor',
+      transformBase: deslocamento,
+      posicao,
+      corAutomatica: posicao === 'fora' ? tema.textoSuave : textoLegivelSobre(corDaBarra, tema),
+    });
+    if (valorEl) valorEl.style.left = `${esquerda * 100}%`;
   }
-  trilho.appendChild(valorEl);
 
   return linha;
 }

@@ -2977,3 +2977,28 @@ pequeno, contorno no tema escuro.
 - Conferir no Looker real: região certa do Venn sob o mouse (usa
   getBoundingClientRect, zerado no jsdom) e o visual do destaque (máscaras
   SVG que o jsdom não desenha).
+
+### Frente concluída: barras_ranking_denso, dot_plot_denso, dumbbell, heatmap_denso, bar_race
+`test/correcoes_listas.test.mjs` (38; 37 falhavam com os bundles do HEAD —
+evidência em `tmp/correcoes_listas.antes.txt`, fora do git).
+- Base `_lista_virtual`: guias de grade (`tema.grade`), pontos em SVG pela
+  função única de marcadores (antes eram `div` redondos — por isso a forma
+  "não mudava"), rótulos HTML estilizados, chip de legenda com a forma,
+  barra de topo com `tema.borda` (a "cor de borda" passa a ter efeito).
+- barras_ranking_denso: valor era escrito sempre, com estilo fixo; não
+  havia linha de grade, então a cor da grade não tinha onde aparecer.
+  Agora rótulos (auto/dentro/fora/centro), inverter/opacidade/contorno,
+  guias em 25/50/75%, tooltip pelo texto do Looker, clique pela ação.
+- dot_plot_denso e dumbbell: forma do ponto, cores pela paleta (inverter),
+  contorno, guias na cor da grade, rótulos, tooltip, clique.
+- heatmap_denso: o bloco de rótulos era declarado e nenhum valor era
+  escrito; agora cada célula recebe o valor (SVG ou canvas), com colisão.
+- bar_race: rank 1, 2, 3… configurável, rótulos pela função única, 4 guias
+  na cor da grade, cores (cor própria antiga continua valendo), contorno.
+  Marcado com `animacaoPropria` (anima os quadros sozinho).
+- Ids NOVOS: `mostrarGrade` (barras_ranking_denso, bar_race),
+  `formaDoPonto` (dot_plot_denso, dumbbell), `mostrarRank`,
+  `tamanhoDoRank` (bar_race).
+- Mudanças visuais no padrão: heatmap escreve valores onde cabem; contorno
+  branco de 1 px nas barras/pontos (default do kit); guias e rank ligados.
+- Ficou de fora: bar_race sem tooltip (não declara o bloco).

@@ -20,14 +20,35 @@
  *    transformaria "não sei" em "quase nada", que é uma afirmação.
  * 3. **A grade desaparece sozinha.** Abaixo de ~3 px por célula, a linha
  *    de separação come a própria célula e o mapa escurece por inteiro.
+ *
+ * Correções v2 (módulos 6.1 e 6.3):
+ *   - o bloco de rótulos era declarado e nunca lido: o mapa não escrevia
+ *     valor nenhum. Agora cada célula recebe o valor pela função única de
+ *     rótulos (`core/rotulos.js`) — mostrar/ocultar, tamanho, cor (vazio =
+ *     legível sobre a célula), negrito, rotação, conteúdo, formato, casas
+ *     e truncar. "Esconder rótulos que se sobrepõem" pula as células onde
+ *     o texto não cabe. Em SVG (grades pequenas) o texto é um <text>; em
+ *     canvas (grades grandes) é `fillText` com a mesma fonte e cor
+ *     (`desenharRotulosNoCanvas`);
+ *   - tooltip único (`ctx.tooltip()`) com o valor no texto do Looker;
+ *     clique pela "Ação do clique" (`ctx.cliqueNoItem`), usando a célula
+ *     da medida (ou a da linha, se só ela tiver links).
+ *
+ * Campos: 1 dimensão (linhas) + 1 dimensão ou pivô (colunas) + 1 medida.
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo, prepararCanvas } from '../../core/dom.js';
 import { calcularMargens, areaDeDesenho, larguraAproximada } from '../../core/eixos.js';
-import { interpoladorContinuo, opcoesDeEscalaContinua, ESCALAS_CONTINUAS, comOpacidade } from '../../core/theme.js';
+import {
+  interpoladorContinuo,
+  opcoesDeEscalaContinua,
+  ESCALAS_CONTINUAS,
+  comOpacidade,
+  textoLegivelSobre,
+} from '../../core/theme.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo, larguraDoTexto } from '../../core/rotulos.js';
 import { limparEOrdenar, quantil } from '../../core/estatistica.js';
 import {
   montarOpcoes,
@@ -57,6 +78,12 @@ const LADO_MINIMO_PARA_GRADE = 3;
 
 /** Teto de segurança: acima disso nem o canvas desenha em tempo razoável. */
 const MAXIMO_DE_CELULAS = 400000;
+
+/**
+ * Teto de rótulos de célula quando o usuário DESLIGA "esconder rótulos que
+ * se sobrepõem": texto em 100 mil células travaria o desenho.
+ */
+const MAXIMO_DE_ROTULOS = 20000;
 
 export default defineViz({
   id: 'heatmap_denso',
@@ -183,10 +210,21 @@ export default defineViz({
     injetarEstilo(raiz, CSS, 'hd');
     const area = criarEl('div', { classe: 'hd-area', pai: raiz });
 
-    const casas = Number(config.casasDecimaisDoRotulo);
-    const formatar = formatadorDeValueFormat(medida.valueFormat, {
-      casas: Number.isFinite(casas) ? casas : 1,
-    });
+    // Rótulos de célula: lidos a cada desenho (config normalizado).
+    const rot = lerRotulos(config, tema);
+    // Régua e números derivados: value_format do campo.
+    const formatar = formatadorDeValueFormat(medida.valueFormat, { casas: rot.casas });
+    // Texto do Looker de uma célula (i, j): tooltip e rótulo "automático".
+    const textoDaCelula = (i, j) => {
+      const origem = grade.origens[i * colunas.length + j];
+      if (origem < 0) return '';
+      return ctx.modelo.texto(
+        ctx.modelo.linhas[origem],
+        medida.nome,
+        grade.usarPivo ? colunas[j].chave : undefined,
+        ''
+      );
+    };
 
     const fonte = Math.max(8, tema.tamanhoBase - 1);
     const comLegenda = config.mostrarLegendaDeCor !== false;
@@ -278,7 +316,46 @@ export default defineViz({
       }
     }
 
-    // ---------- Rótulos ----------
+    // ---------- Valores nas células (rótulos de dado) ----------
+    // Com "evitar colisão" ligado, uma célula mais baixa que o texto não
+    // recebe rótulo — e, se nenhuma cabe, nem montamos a lista.
+    let rotulosDesenhados = 0;
+    let rotulosCortados = false;
+    if (rot.mostrar && (!rot.evitarColisao || alturaDaCelula >= rot.tamanho + 2)) {
+      let total = 0;
+      for (let k = 0; k < valores.length; k++) if (!Number.isNaN(valores[k])) total += valores[k];
+      const celulasComValor = [];
+      for (let i = 0; i < linhas.length; i++) {
+        for (let j = 0; j < colunas.length; j++) {
+          const v = valores[i * colunas.length + j];
+          if (Number.isNaN(v)) continue;
+          if (!rot.evitarColisao && celulasComValor.length >= MAXIMO_DE_ROTULOS) {
+            rotulosCortados = true;
+            break;
+          }
+          celulasComValor.push({
+            x: retangulo.esquerda + j * larguraDaCelula,
+            y: retangulo.cima + i * alturaDaCelula,
+            largura: larguraDaCelula,
+            altura: alturaDaCelula,
+            valor: v,
+            nome: `${linhas[i].rotulo} · ${colunas[j].rotulo}`,
+            textoDoValor: textoDaCelula(i, j),
+            corDeFundo: escala.cor(v),
+          });
+        }
+      }
+      const opcoesDoRotulo = { total, valueFormat: medida.valueFormat };
+      if (usarCanvas) {
+        if (contextoDoCanvas) {
+          rotulosDesenhados = desenharRotulosNoCanvas(contextoDoCanvas, rot, celulasComValor, opcoesDoRotulo);
+        }
+      } else {
+        rotulosDesenhados = desenharRotulosNoSvg(svg, rot, celulasComValor, opcoesDoRotulo);
+      }
+    }
+
+    // ---------- Rótulos dos eixos ----------
     const saltoDeLinha = saltoPorEspaco(linhas.length, alturaDaCelula, fonte * 1.1);
     for (let i = 0; i < linhas.length; i += saltoDeLinha) {
       const texto = criarSvgEl('text', {
@@ -345,11 +422,16 @@ export default defineViz({
     if (!comGrade && config.mostrarGrade !== false) {
       partes.push('grade omitida: a célula ficou menor que a linha');
     }
+    if (rot.mostrar && !rotulosDesenhados && rot.evitarColisao && (!usarCanvas || contextoDoCanvas)) {
+      partes.push('valores omitidos: não cabem nas células');
+    }
+    if (rotulosCortados) {
+      partes.push(`valores escritos só nas ${MAXIMO_DE_ROTULOS.toLocaleString('pt-BR')} primeiras células`);
+    }
     definirTexto(nota, partes.join(' · '));
 
     // ---------- Interação ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    const tooltip = ctx.tooltip();
 
     // Busca O(1): a posição do mouse vira índice por divisão, não por
     // varredura. Com 100 mil células, varrer a cada movimento travaria.
@@ -361,6 +443,31 @@ export default defineViz({
       return { i, j, valor: valores[i * colunas.length + j] };
     };
 
+    // Conteúdo do tooltip: o valor é o texto do Looker da célula.
+    const conteudoDe = (alvo) => {
+      const semDado = Number.isNaN(alvo.valor);
+      const valor = semDado ? 'sem dado nesta combinação' : textoDaCelula(alvo.i, alvo.j) || formatar(alvo.valor);
+      return {
+        titulo: linhas[alvo.i].rotulo,
+        linhas: [
+          { rotulo: grade.rotuloDaColuna, valor: colunas[alvo.j].rotulo },
+          {
+            rotulo: medida.rotuloCurto,
+            valor,
+            cor: semDado ? undefined : escala.cor(alvo.valor),
+          },
+          ...(semDado
+            ? []
+            : [{ rotulo: 'Posição na escala', valor: escala.descricaoDoValor(alvo.valor) }]),
+        ],
+        variaveis: {
+          categoria: linhas[alvo.i].rotulo,
+          serie: colunas[alvo.j].rotulo,
+          valor: semDado ? '' : valor,
+        },
+      };
+    };
+
     ctx.eventos.on(area, 'pointermove', (ev) => {
       if (!tooltip) return;
       const alvo = celulaEm(ev);
@@ -368,47 +475,119 @@ export default defineViz({
         tooltip.esconder();
         return;
       }
-      const semDado = Number.isNaN(alvo.valor);
-      tooltip.mostrar(
-        {
-          titulo: linhas[alvo.i].rotulo,
-          linhas: [
-            { rotulo: grade.rotuloDaColuna, valor: colunas[alvo.j].rotulo },
-            {
-              rotulo: medida.rotuloCurto,
-              valor: semDado ? 'sem dado nesta combinação' : formatar(alvo.valor),
-              cor: semDado ? undefined : escala.cor(alvo.valor),
-            },
-            ...(semDado
-              ? []
-              : [{ rotulo: 'Posição na escala', valor: escala.descricaoDoValor(alvo.valor) }]),
-          ],
-        },
-        ev.clientX,
-        ev.clientY
-      );
+      tooltip.mostrar(conteudoDe(alvo), ev.clientX, ev.clientY);
     });
 
     ctx.eventos.on(area, 'pointerleave', () => {
       if (tooltip) tooltip.esconder();
     });
 
+    // Clique: "Ação do clique". A célula do drill é a da MEDIDA naquela
+    // combinação (é ela que o Looker liga ao detalhe); se ela não tiver
+    // links, a da dimensão da linha; sem nenhum link, fixa o tooltip.
     ctx.eventos.on(area, 'click', (ev) => {
       const alvo = celulaEm(ev);
       if (!alvo || !campoDaLinha) return;
-      const indiceDaLinha = linhas[alvo.i].indiceDaLinha;
+      const origem = grade.origens[alvo.i * colunas.length + alvo.j];
+      const indiceDaLinha = origem >= 0 ? origem : linhas[alvo.i].indiceDaLinha;
       if (indiceDaLinha === undefined) return;
-      const celula = ctx.modelo.celula(ctx.modelo.linhas[indiceDaLinha], campoDaLinha.nome);
-      if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+      const linhaDoModelo = ctx.modelo.linhas[indiceDaLinha];
+      const candidatas = [
+        origem >= 0
+          ? ctx.modelo.celula(linhaDoModelo, medida.nome, grade.usarPivo ? colunas[alvo.j].chave : undefined)
+          : null,
+        ctx.modelo.celula(linhaDoModelo, campoDaLinha.nome),
+      ].filter(Boolean);
+      const celula = candidatas.find((c) => Array.isArray(c.links) && c.links.length) || candidatas[0] || null;
+      ctx.cliqueNoItem(ev, celula, conteudoDe(alvo));
     });
 
     ctx.estado.contextoDoCanvas = contextoDoCanvas;
   },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
-  },
+  // Sem aoDestruir: o tooltip é o único do gráfico e o defineViz o remove.
 });
+
+/* ------------------------------------------------------------------ */
+
+/**
+ * Prepara os rótulos das células: texto (função única de rótulos),
+ * centro, cor e se cabe. Com "evitar colisão" ligado, a célula onde o
+ * texto não cabe fica sem rótulo — num mapa de células, sobrepor é
+ * invadir a célula vizinha.
+ *
+ * @param {object} rot resultado de lerRotulos
+ * @param {Array<{x,y,largura,altura,valor,nome,textoDoValor?,corDeFundo}>} celulas
+ */
+export function prepararRotulosDasCelulas(rot, celulas, { total, valueFormat } = {}) {
+  const saida = [];
+  if (!rot || !rot.mostrar) return saida;
+  for (const c of celulas) {
+    const texto = textoDoRotulo(rot, {
+      valor: c.valor,
+      nome: c.nome,
+      total,
+      valueFormat,
+      textoDoValor: c.textoDoValor,
+    });
+    if (!texto) continue;
+    if (rot.evitarColisao) {
+      // Girado, o texto ocupa a projeção da largura nos dois eixos.
+      const largura = larguraDoTexto(texto, rot.tamanho);
+      const angulo = (Math.abs(rot.rotacao || 0) * Math.PI) / 180;
+      const ocupaX = largura * Math.cos(angulo) + rot.tamanho * Math.sin(angulo);
+      const ocupaY = largura * Math.sin(angulo) + rot.tamanho * Math.cos(angulo);
+      if (ocupaX + 4 > c.largura || ocupaY + 2 > c.altura) continue;
+    }
+    saida.push({
+      texto,
+      cx: c.x + c.largura / 2,
+      cy: c.y + c.altura / 2,
+      cor: rot.cor || textoLegivelSobre(c.corDeFundo, { texto: rot.corDoTema }),
+    });
+  }
+  return saida;
+}
+
+/** Rótulos das células em SVG (grades pequenas). @returns quantos desenhou */
+export function desenharRotulosNoSvg(svg, rot, celulas, opcoes = {}) {
+  const rotulos = prepararRotulosDasCelulas(rot, celulas, opcoes);
+  for (const r of rotulos) {
+    const t = criarSvgEl('text', {
+      pai: svg,
+      classe: 'hd-valor',
+      atributos: { x: r.cx, y: r.cy, 'text-anchor': 'middle', 'dominant-baseline': 'central' },
+    });
+    definirTexto(t, r.texto);
+    estilizarRotulo(t, rot, { corAutomatica: r.cor, x: r.cx, y: r.cy });
+  }
+  return rotulos.length;
+}
+
+/**
+ * Rótulos das células no canvas (grades grandes): mesma fonte, tamanho,
+ * negrito, cor e rotação do SVG, por `fillText`. @returns quantos desenhou
+ */
+export function desenharRotulosNoCanvas(pincel, rot, celulas, opcoes = {}) {
+  if (!pincel) return 0;
+  const rotulos = prepararRotulosDasCelulas(rot, celulas, opcoes);
+  pincel.font = `${rot.negrito ? '700' : '400'} ${rot.tamanho}px ${rot.fonte || 'sans-serif'}`;
+  pincel.textAlign = 'center';
+  pincel.textBaseline = 'middle';
+  const radianos = ((rot.rotacao || 0) * Math.PI) / 180;
+  for (const r of rotulos) {
+    pincel.fillStyle = r.cor;
+    if (radianos) {
+      pincel.save();
+      pincel.translate(r.cx, r.cy);
+      pincel.rotate(radianos);
+      pincel.fillText(r.texto, 0, 0);
+      pincel.restore();
+    } else {
+      pincel.fillText(r.texto, r.cx, r.cy);
+    }
+  }
+  return rotulos.length;
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -432,7 +611,8 @@ export function saltoPorEspaco(quantidade, lado, espacoNecessario) {
  * diferente de zero, que significa "zero".
  *
  * @returns {{linhas, colunas, valores:Float64Array, medida, campoDaLinha,
- *            ausentes:number, rotuloDaColuna:string}|{erro:string}}
+ *            ausentes:number, origens:Int32Array, usarPivo:boolean,
+ *            rotuloDaColuna:string}|{erro:string}}
  */
 export function lerGrade(ctx) {
   const { modelo, config } = ctx;
@@ -534,14 +714,20 @@ export function lerGrade(ctx) {
   // linha × coluna não é única). Nesse caso o mapa mostra só a última, e
   // isso precisa ser dito: sem o aviso, metade dos dados some em silêncio.
   let colisoes = 0;
+  // De que linha da consulta veio cada célula (-1 = sem dado): é o que dá
+  // acesso ao texto do Looker (rótulo e tooltip) e à célula do drill.
+  const origens = new Int32Array(totalDeCelulas).fill(-1);
+  let linhaAtual = -1;
 
   const gravar = (k, v) => {
     if (Number.isNaN(valores[k])) preenchidas += 1;
     else colisoes += 1;
     valores[k] = v;
+    origens[k] = linhaAtual;
   };
 
   for (const linha of modelo.linhas) {
+    linhaAtual += 1;
     const i = indiceDaLinha.get(String(modelo.valorBruto(linha, campoDaLinha.nome)));
     if (i === undefined) continue;
 
@@ -581,6 +767,8 @@ export function lerGrade(ctx) {
     medida,
     campoDaLinha,
     ausentes: totalDeCelulas - preenchidas,
+    origens,
+    usarPivo,
     rotuloDaColuna: usarPivo ? 'Pivô' : campoDaColuna.rotuloCurto,
   };
 }

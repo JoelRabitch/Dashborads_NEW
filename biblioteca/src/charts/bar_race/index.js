@@ -18,12 +18,31 @@
  * movimento recebe o gráfico PARADO no último período, com o controle
  * manual funcionando. Acessibilidade aqui não é um extra — animação
  * involuntária é um gatilho real para parte dos usuários.
+ *
+ * Correções v2 (módulos 6.1, 6.2 e seção 7):
+ *   - o valor ao lado da barra é um RÓTULO de dado e passa pela função
+ *     única de rótulos (`core/rotulos.js`): "Mostrar rótulos", tamanho,
+ *     cor, negrito, rotação, posição (fora/dentro/centro), conteúdo,
+ *     formato, casas e truncar têm efeito. Antes era escrito sempre, com
+ *     estilo fixo;
+ *   - aba Cores: paleta via `corDoItem` ("Inverter ordem das cores"; a
+ *     cor própria `cor_<série>` continua valendo), opacidade e contorno;
+ *   - linhas de grade verticais (opção nova `mostrarGrade`) na "Cor das
+ *     linhas de grade" do tema — antes não havia grade, então a opção não
+ *     tinha onde aparecer;
+ *   - número do rank (1, 2, 3…) à esquerda de cada barra, pela ordem do
+ *     quadro corrente (opções novas `mostrarRank` e `tamanhoDoRank`).
+ *
+ * Campos: 1 dimensão de tempo (o eixo) + séries de um pivô, de uma
+ * segunda dimensão ou de várias medidas.
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { coresDaPaleta } from '../../core/theme.js';
-import { formatadorDeValueFormat, truncar } from '../../core/format.js';
+import { textoLegivelSobre } from '../../core/theme.js';
+import { truncar } from '../../core/format.js';
+import { corDoItem, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo, lerNumero } from '../../core/rotulos.js';
 import { extrairMatriz, tratarNulos, opcaoDeOrigemDasSeries } from '../../core/series.js';
 import { formatarData } from '../../core/format.js';
 import {
@@ -49,6 +68,8 @@ const CSS = `
 .bc-nome{flex:0 0 auto;text-align:right;overflow:hidden;white-space:nowrap;}
 .bc-retangulo{flex:0 0 auto;border-radius:2px;height:100%;}
 .bc-valor{flex:0 0 auto;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.bc-rank{flex:0 0 auto;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;}
+.bc-grade{position:absolute;top:0;bottom:0;width:1px;pointer-events:none;}
 .bc-nota{flex:0 0 auto;padding:2px 8px 4px;font-size:10px;opacity:.75;}
 `;
 
@@ -100,11 +121,37 @@ export default defineViz({
           step: 10,
           default: 140,
         },
+        // Novos (correções v2, seção 7): o número do rank em cada barra.
+        mostrarRank: {
+          type: 'boolean',
+          label: 'Mostrar o número do rank (1, 2, 3…)',
+          section: 'Corrida',
+          default: true,
+        },
+        tamanhoDoRank: {
+          type: 'number',
+          label: 'Tamanho do número do rank (px, 0 = acompanha a barra)',
+          section: 'Corrida',
+          display: 'range',
+          min: 0,
+          max: 40,
+          step: 1,
+          default: 0,
+        },
+        // Novo (correções v2): guias verticais na cor da grade do tema.
+        mostrarGrade: {
+          type: 'boolean',
+          label: 'Linhas de grade verticais',
+          section: 'Formato',
+          default: true,
+        },
       }
     ),
     { limiteDeSeries: 60 }
   ),
   exigencia: { dimensoesMin: 1, medidasMin: 1, aceitaPivo: true, exigeLinhas: true },
+  // O bar_race anima os quadros sozinho: a animação genérica (2.7) não entra.
+  animacaoPropria: true,
 
   render(ctx) {
     const { modelo, config, tema, raiz } = ctx;
@@ -142,10 +189,9 @@ export default defineViz({
     injetarEstilo(raiz, CSS_ANIMACAO + CSS, 'bc');
     const caixa = criarEl('div', { classe: 'bc-raiz', pai: raiz });
 
-    const casas = Number(config.casasDecimaisDoRotulo);
-    const formatar = formatadorDeValueFormat(matriz.medida && matriz.medida.valueFormat, {
-      casas: Number.isFinite(casas) ? casas : 1,
-    });
+    // Rótulos: lidos a cada desenho (o config chega normalizado).
+    const rot = lerRotulos(config, tema);
+    const valueFormat = matriz.medida && matriz.medida.valueFormat;
     const ehData = !!(matriz.campoDaCategoria && matriz.campoDaCategoria.ehData);
     const rotuloDoPeriodo = (categoria) =>
       ehData ? formatarData(categoria.valorBruto, config.formatoDeData || 'auto') : categoria.rotulo;
@@ -154,14 +200,35 @@ export default defineViz({
     const nota = criarEl('div', { classe: 'bc-nota', pai: caixa });
     nota.style.color = tema.textoSuave;
 
+    // Aba Cores: a cor própria da série (chave antiga, sem sanitizar, e a
+    // do corDoItem) ou a paleta na ordem escolhida ("Inverter").
     const cores = new Map();
-    const paleta = coresDaPaleta(config.paleta);
     series.forEach((s, i) => {
-      cores.set(s.chave, config[`cor_${s.chave}`] || paleta[i % paleta.length]);
+      cores.set(s.chave, config[`cor_${s.chave}`] || corDoItem(config, i, s.chave));
     });
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
 
     const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 140);
+    const mostrarRank = config.mostrarRank !== false;
+    const tamanhoDoRank = Math.max(0, lerNumero(config.tamanhoDoRank, 0));
+    // A coluna do rank cabe "25" no tamanho escolhido (ou no da barra).
+    const larguraDoRank = mostrarRank ? Math.max(18, Math.ceil((tamanhoDoRank || tema.tamanhoBase) * 1.4)) : 0;
+    // Onde a barra começa: rank + espaço + nome + espaço (o gap do flex é 6).
+    const inicioDaBarra = (mostrarRank ? larguraDoRank + 6 : 0) + larguraDoNome + 6;
     const barras = new Map();
+
+    // Linhas de grade: criadas uma vez por desenho completo; cada quadro só
+    // as reposiciona (a largura útil pode mudar com a pista).
+    const fracoesDaGrade = [0.25, 0.5, 0.75, 1];
+    const guias =
+      config.mostrarGrade === false
+        ? []
+        : fracoesDaGrade.map(() => {
+            const g = criarEl('div', { classe: 'bc-grade', pai: pista });
+            g.setAttribute('data-grade', '1');
+            g.style.background = tema.grade;
+            return g;
+          });
 
     const desenhar = (instante) => {
       const alturaDisponivel = Math.max(20, pista.clientHeight || ctx.altura - 60);
@@ -176,16 +243,28 @@ export default defineViz({
         : Math.max(...quadro.map((item) => item.valor), 0) || 1;
 
       const larguraDaPista = Math.max(60, pista.clientWidth || ctx.largura);
-      const larguraUtil = Math.max(20, larguraDaPista - larguraDoNome - 70);
+      const larguraUtil = Math.max(20, larguraDaPista - inicioDaBarra - 64);
+      guias.forEach((g, k) => {
+        g.style.left = `${inicioDaBarra + fracoesDaGrade[k] * larguraUtil}px`;
+      });
+      // Total do quadro: base do "percentual" no conteúdo do rótulo.
+      const totalDoQuadro = quadro.reduce((a, item) => a + item.valor, 0);
 
       const vistos = new Set();
+      let rank = 0;
       for (const item of quadro) {
         if (item.posicao > visiveis - 0.5) continue;
         vistos.add(item.chave);
+        // O quadro vem ordenado pela posição interpolada: o rank é a ordem
+        // em que as barras aparecem agora, de cima para baixo.
+        rank += 1;
 
         let barra = barras.get(item.chave);
         if (!barra) {
-          barra = montarBarra({ tema, larguraDoNome, cor: cores.get(item.chave) });
+          barra = montarBarra({
+            tema, config, rot, contorno, larguraDoNome, larguraDoRank, mostrarRank, tamanhoDoRank,
+            cor: cores.get(item.chave),
+          });
           pista.appendChild(barra.raiz);
           barras.set(item.chave, barra);
         }
@@ -194,9 +273,18 @@ export default defineViz({
         barra.raiz.style.height = `${alturaDaBarra}px`;
         barra.raiz.style.fontSize = `${Math.max(9, Math.min(tema.tamanhoBase, alturaDaBarra - 6))}px`;
         barra.raiz.style.width = `${larguraDaPista}px`;
-        barra.retangulo.style.width = `${Math.max(1, (item.valor / maior) * larguraUtil)}px`;
+        const larguraDaBarra = Math.max(1, (item.valor / maior) * larguraUtil);
+        barra.retangulo.style.width = `${larguraDaBarra}px`;
         definirTexto(barra.nome, truncar(item.rotulo, Math.max(5, Math.floor(larguraDoNome / 7))));
-        definirTexto(barra.valor, formatar(item.valor));
+        barra.nome.title = item.rotulo;
+        if (barra.rank) definirTexto(barra.rank, String(rank));
+        if (rot.mostrar) {
+          definirTexto(
+            barra.valor,
+            textoDoRotulo(rot, { valor: item.valor, nome: item.rotulo, total: totalDoQuadro, valueFormat })
+          );
+          posicionarValor(barra, rot, larguraDaBarra);
+        }
       }
 
       // Quem saiu do top N sai do DOM: manter barras invisíveis acumularia
@@ -253,9 +341,22 @@ export default defineViz({
 
 /* ------------------------------------------------------------------ */
 
-function montarBarra({ tema, larguraDoNome, cor }) {
+function montarBarra({
+  tema, config, rot, contorno, larguraDoNome, larguraDoRank, mostrarRank, tamanhoDoRank, cor,
+}) {
   const raiz = document.createElement('div');
   raiz.className = 'bc-barra';
+
+  // Número do rank (texto atualizado a cada quadro).
+  let rank = null;
+  if (mostrarRank) {
+    rank = document.createElement('div');
+    rank.className = 'bc-rank';
+    rank.style.width = `${larguraDoRank}px`;
+    rank.style.color = tema.textoSuave;
+    if (tamanhoDoRank > 0) rank.style.fontSize = `${tamanhoDoRank}px`;
+    raiz.appendChild(rank);
+  }
 
   const nome = document.createElement('div');
   nome.className = 'bc-nome';
@@ -265,15 +366,41 @@ function montarBarra({ tema, larguraDoNome, cor }) {
 
   const retangulo = document.createElement('div');
   retangulo.className = 'bc-retangulo';
-  retangulo.style.background = cor;
+  aplicarPreenchimento(retangulo, cor, config);
+  aplicarContorno(retangulo, contorno);
   raiz.appendChild(retangulo);
 
+  // Rótulo do valor: estilo aplicado UMA vez (a função única acrescenta a
+  // rotação ao transform; cada quadro só troca o texto e o deslocamento).
   const valor = document.createElement('div');
   valor.className = 'bc-valor';
-  valor.style.color = tema.textoSuave;
+  if (rot.mostrar) {
+    const posicao = rot.posicao === 'dentro' || rot.posicao === 'centro' ? rot.posicao : 'fora';
+    valor.dataset.posicao = posicao;
+    estilizarRotulo(valor, rot, {
+      corAutomatica: posicao === 'fora' ? tema.textoSuave : textoLegivelSobre(cor, tema),
+    });
+    valor.style.transform = '';
+  } else {
+    valor.style.display = 'none';
+  }
   raiz.appendChild(valor);
 
-  return { raiz, nome, retangulo, valor };
+  return { raiz, rank, nome, retangulo, valor, cor };
+}
+
+/**
+ * Desloca o rótulo do valor conforme a posição: "fora" fica depois da
+ * barra (o fluxo normal do flex); "dentro" volta para dentro da ponta;
+ * "centro" vai para o meio da barra. A rotação do painel vem por último.
+ */
+function posicionarValor(barra, rot, larguraDaBarra) {
+  const posicao = barra.valor.dataset.posicao;
+  let base = '';
+  if (posicao === 'dentro') base = 'translateX(calc(-100% - 10px))';
+  else if (posicao === 'centro') base = `translateX(calc(-50% - ${larguraDaBarra / 2 + 6}px))`;
+  const giro = rot.rotacao ? `rotate(${rot.rotacao}deg)` : '';
+  barra.valor.style.transform = `${base} ${giro}`.trim();
 }
 
 /**

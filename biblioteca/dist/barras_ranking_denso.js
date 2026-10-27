@@ -1,7 +1,7 @@
 /*!
  * Barras de Ranking Denso — visualização customizada para o Looker
  * id: barras_ranking_denso
- * versão: 0.1.0 | build: 2026-10-27 13:46:04 | commit: 3a8b5dd
+ * versão: 0.1.0 | build: 2026-10-27 14:08:08 | commit: 81b7337
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -107,7 +107,11 @@
         const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
-        const completas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const completas = {};
+        Object.keys(juntas).sort((a, b) => (Number(juntas[a].order) || 0) - (Number(juntas[b].order) || 0)).forEach((k) => {
+          completas[k] = juntas[k];
+        });
         instancia._blOpcoesRegistradas = completas;
         instancia.trigger("registerOptions", completas);
         return true;
@@ -420,7 +424,7 @@
     var group = locale2.grouping === void 0 || locale2.thousands === void 0 ? identity_default : formatGroup_default(map.call(locale2.grouping, Number), locale2.thousands + ""), currencyPrefix = locale2.currency === void 0 ? "" : locale2.currency[0] + "", currencySuffix = locale2.currency === void 0 ? "" : locale2.currency[1] + "", decimal = locale2.decimal === void 0 ? "." : locale2.decimal + "", numerals = locale2.numerals === void 0 ? identity_default : formatNumerals_default(map.call(locale2.numerals, String)), percent = locale2.percent === void 0 ? "%" : locale2.percent + "", minus = locale2.minus === void 0 ? "\u2212" : locale2.minus + "", nan = locale2.nan === void 0 ? "NaN" : locale2.nan + "";
     function newFormat(specifier, options) {
       specifier = formatSpecifier(specifier);
-      var fill = specifier.fill, align = specifier.align, sign = specifier.sign, symbol = specifier.symbol, zero = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
+      var fill = specifier.fill, align = specifier.align, sign2 = specifier.sign, symbol = specifier.symbol, zero = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
       if (type === "n") comma = true, type = "g";
       else if (!formatTypes_default[type]) precision === void 0 && (precision = 12), trim = true, type = "g";
       if (zero || fill === "0" && align === "=") zero = true, fill = "0", align = "=";
@@ -437,9 +441,9 @@
           var valueNegative = value < 0 || 1 / value < 0;
           value = isNaN(value) ? nan : formatType(Math.abs(value), precision);
           if (trim) value = formatTrim_default(value);
-          if (valueNegative && +value === 0 && sign !== "+") valueNegative = false;
-          valuePrefix = (valueNegative ? sign === "(" ? sign : minus : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
-          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
+          if (valueNegative && +value === 0 && sign2 !== "+") valueNegative = false;
+          valuePrefix = (valueNegative ? sign2 === "(" ? sign2 : minus : sign2 === "-" || sign2 === "(" ? "" : sign2) + valuePrefix;
+          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign2 === "(" ? ")" : "");
           if (maybeSuffix) {
             i = -1, n = value.length;
             while (++i < n) {
@@ -2055,6 +2059,142 @@
       }
     };
   }
+  function blocoDeAnimacao(opcoes = {}) {
+    const { secao = "Anima\xE7\xE3o", padraoAtiva = true, duracaoPadrao = 600 } = opcoes;
+    return {
+      animacaoAtiva: {
+        type: "boolean",
+        label: "Ativar anima\xE7\xF5es",
+        section: secao,
+        default: padraoAtiva
+      },
+      duracaoDaAnimacao: {
+        type: "number",
+        label: "Dura\xE7\xE3o (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 3e3,
+        step: 50,
+        default: duracaoPadrao
+      },
+      atrasoDaAnimacao: {
+        type: "number",
+        label: "Atraso inicial (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 2e3,
+        step: 50,
+        default: 0
+      },
+      cascataDaAnimacao: {
+        type: "number",
+        label: "Cascata entre itens (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 200,
+        step: 5,
+        default: 20
+      },
+      suavizacaoDaAnimacao: {
+        type: "string",
+        label: "Curva da anima\xE7\xE3o",
+        section: secao,
+        display: "select",
+        default: "saida",
+        values: listaDeValores([
+          { rotulo: "Linear", valor: "linear" },
+          { rotulo: "Suave na sa\xEDda", valor: "saida" },
+          { rotulo: "Suave na entrada", valor: "entrada" },
+          { rotulo: "Suave nos dois lados", valor: "ambos" },
+          { rotulo: "El\xE1stica", valor: "elastica" },
+          { rotulo: "Com quique", valor: "quique" }
+        ])
+      },
+      quandoAnimar: {
+        type: "string",
+        label: "Quando animar",
+        section: secao,
+        display: "select",
+        default: "sempre",
+        values: listaDeValores([
+          { rotulo: "A cada atualiza\xE7\xE3o", valor: "sempre" },
+          { rotulo: "S\xF3 na primeira carga", valor: "primeira" }
+        ])
+      },
+      contadorAnimado: {
+        type: "boolean",
+        label: "N\xFAmeros sobem/descem at\xE9 o valor (contador)",
+        section: secao,
+        default: true
+      }
+    };
+  }
+  function blocoDeInteracao(opcoes = {}) {
+    const {
+      secao = "Intera\xE7\xE3o",
+      comZoom = true,
+      comBrush = false,
+      comBusca = false,
+      comSelecao = true
+    } = opcoes;
+    const bloco = {
+      permitirDrill: {
+        type: "boolean",
+        label: "Clique abre o drill do Looker",
+        section: secao,
+        default: true
+      },
+      destacarAoPassarMouse: {
+        type: "boolean",
+        label: "Destacar ao passar o mouse",
+        section: secao,
+        default: true
+      }
+    };
+    if (comZoom) {
+      bloco.permitirZoom = { type: "boolean", label: "Permitir zoom", section: secao, default: false };
+      bloco.permitirArrastar = {
+        type: "boolean",
+        label: "Permitir arrastar (pan)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBrush) {
+      bloco.permitirBrush = {
+        type: "boolean",
+        label: "Permitir sele\xE7\xE3o por \xE1rea (brush)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBusca) {
+      bloco.mostrarBusca = {
+        type: "boolean",
+        label: "Mostrar caixa de busca",
+        section: secao,
+        default: false
+      };
+    }
+    if (comSelecao) {
+      bloco.permitirSelecao = {
+        type: "boolean",
+        label: "Permitir selecionar itens (clique)",
+        section: secao,
+        default: true
+      };
+      bloco.usarCrossfilter = {
+        type: "boolean",
+        label: "Usar cross-filter do Looker quando dispon\xEDvel",
+        section: secao,
+        default: false
+      };
+    }
+    return bloco;
+  }
   function blocoDeTema(opcoes = {}) {
     const { secao = "Tema" } = opcoes;
     return {
@@ -2157,6 +2297,110 @@
         default: false
       }
     };
+  }
+  var JUNTAR_EIXOS_E_TEXTO = true;
+  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABA_POR_SECAO = {
+    Dados: "Dados",
+    Medidas: "Dados",
+    Formato: "Visual",
+    Cores: "Visual",
+    Cor: "Visual",
+    Tema: "Visual",
+    Refer\u00EAncias: "Visual",
+    Eixos: "Eixos",
+    R\u00F3tulos: "Texto",
+    Legenda: "Texto",
+    Intera\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Anima\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Avan\u00E7ado: "Avan\xE7ado"
+  };
+  var PREFIXO_POR_SECAO = {
+    Cores: "Cor",
+    Cor: "Cor",
+    R\u00F3tulos: "R\xF3tulo",
+    Legenda: "Legenda",
+    Anima\u00E7\u00E3o: "Anima\xE7\xE3o",
+    Refer\u00EAncias: "Refer\xEAncia"
+  };
+  var DESTINO_POR_ID = {
+    titulo: ["Texto", "T\xEDtulo"],
+    subtitulo: ["Texto", "T\xEDtulo"],
+    textoSemDados: ["Texto", "Aviso"],
+    mostrarAvisos: ["Texto", "Aviso"],
+    posicaoDosAvisos: ["Texto", "Aviso"],
+    tema: ["Visual", "Tema"],
+    corDeFundo: ["Visual", "Cor"],
+    corDoTexto: ["Visual", "Cor"],
+    corDaBorda: ["Visual", "Cor"],
+    corDaGrade: ["Visual", "Cor"],
+    familiaDaFonte: ["Visual", "Tema"],
+    tamanhoDaFonte: ["Visual", "Tema"],
+    formatoDoEixo: ["Eixos", "Eixo"],
+    casasDecimaisDoEixo: ["Eixos", "Eixo"],
+    usarEixoSecundario: ["Eixos", "Eixo"],
+    tratamentoDeNulos: ["Dados", ""],
+    textoParaNulo: ["Dados", ""]
+  };
+  function abaPeloId(id, opcao) {
+    const t = id.toLowerCase();
+    if (/debug|json/.test(t)) return "Avan\xE7ado";
+    if (/tooltip|drill|clique|hover|destacar(no|ao)|anima|duracao|atraso|cascata|tocando|repetir|busca|recolher|expandi|interativ|crossfilter|selec|zoom|arrastar|copiar|exportar|redimensionar|ordenar$|permitir/.test(t)) {
+      return "Intera\xE7\xE3o";
+    }
+    if (/eixo/.test(t)) return "Eixos";
+    if (/rotulo|escrever|mostrarvalor|mostrarpercentual|mostrarposicao|mostrarrank|titulo|legenda|aviso|texto|mostrartotais|mostrarcontagem|nome$/.test(t)) {
+      return "Texto";
+    }
+    if (opcao && opcao.display === "color") return "Visual";
+    if (/^cor|cor$|cores|paleta|opacidade|forma|tamanho|espessura|raio|altura|largura|espaco|contorno|borda|grade|zebra|fundo|estilo|densidade|layout|orientacao|curva|ligacao|preencher|pintar|zona|guias|ponto|sparkline|icone|cartao|arranjo|colunasdagrade|escala/.test(t)) {
+      return "Visual";
+    }
+    return "Dados";
+  }
+  function organizarAbas(opcoes) {
+    const itens = [];
+    let i = 0;
+    for (const [id, original] of Object.entries(opcoes || {})) {
+      if (!original || typeof original !== "object") continue;
+      if (original._organizada) {
+        itens.push([id, original]);
+        continue;
+      }
+      const opcao = { ...original };
+      const secaoAntiga = opcao.section || "Avan\xE7ado";
+      let aba;
+      let prefixo;
+      if (DESTINO_POR_ID[id]) {
+        [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Coluna: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
+      } else if (ABA_POR_SECAO[secaoAntiga]) {
+        aba = ABA_POR_SECAO[secaoAntiga];
+        prefixo = PREFIXO_POR_SECAO[secaoAntiga];
+        if (aba === "Eixos") prefixo = /X$|X[A-Z]/.test(id) ? "Eixo X" : /Y$|Y[A-Z]/.test(id) ? "Eixo Y" : "Eixo";
+        if (secaoAntiga === "Intera\xE7\xE3o") prefixo = /tooltip|Tooltip|HtmlDoLooker/.test(id) ? "Tooltip" : "Clique";
+        if (secaoAntiga === "Tema") prefixo = "Tema";
+      } else {
+        aba = abaPeloId(id, opcao);
+        prefixo = secaoAntiga;
+      }
+      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
+      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
+        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      }
+      opcao.section = aba;
+      const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;
+      opcao.order = (ABAS.indexOf(aba) + 1) * 1e4 + ordemAntiga;
+      Object.defineProperty(opcao, "_organizada", { value: true, enumerable: false });
+      itens.push([id, opcao]);
+      i += 1;
+    }
+    itens.sort((a, b) => a[1].order - b[1].order);
+    const saida = {};
+    for (const [id, opcao] of itens) saida[id] = opcao;
+    return saida;
   }
   function opcaoDeEscolhaDeCampo(chave, rotulo, campos, opcoes = {}) {
     const { secao = "Dados", incluirNenhum = false, padrao = null } = opcoes;
@@ -2324,10 +2568,137 @@
       }
     };
   }
+  function preferindoMenosMovimento() {
+    try {
+      return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (_) {
+      return false;
+    }
+  }
   function cancelarQuadro(id) {
     if (id === null || id === void 0) return;
     if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
     else clearTimeout(id);
+  }
+
+  // src/core/animate.js
+  var SUAVIZACOES = {
+    linear: (t) => t,
+    entrada: (t) => t * t * t,
+    saida: (t) => 1 - Math.pow(1 - t, 3),
+    ambos: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    elastica: (t) => {
+      if (t === 0 || t === 1) return t;
+      const p = 0.3;
+      return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
+    },
+    quique: (t) => {
+      const n1 = 7.5625;
+      const d1 = 2.75;
+      if (t < 1 / d1) return n1 * t * t;
+      if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+      if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+      return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    }
+  };
+  function suavizacaoPorNome(nome) {
+    return SUAVIZACOES[nome] || SUAVIZACOES.saida;
+  }
+  function opcoesDeAnimacao(config = {}, { primeiraRenderizacao = true } = {}) {
+    var _a, _b, _c;
+    const menosMovimento = preferindoMenosMovimento();
+    const ligada = config.animacaoAtiva !== false && !menosMovimento && (config.quandoAnimar !== "primeira" || primeiraRenderizacao);
+    return {
+      ligada,
+      menosMovimento,
+      duracao: ligada ? Math.max(0, Number((_a = config.duracaoDaAnimacao) != null ? _a : 600)) : 0,
+      atraso: ligada ? Math.max(0, Number((_b = config.atrasoDaAnimacao) != null ? _b : 0)) : 0,
+      cascata: ligada ? Math.max(0, Number((_c = config.cascataDaAnimacao) != null ? _c : 20)) : 0,
+      suavizacao: suavizacaoPorNome(config.suavizacaoDaAnimacao),
+      contador: ligada && config.contadorAnimado !== false
+    };
+  }
+  var ANIMACOES_HABILITADAS = true;
+  var CURVAS_CSS = {
+    linear: "linear",
+    saida: "cubic-bezier(.33,1,.68,1)",
+    entrada: "cubic-bezier(.32,0,.67,0)",
+    ambos: "cubic-bezier(.65,0,.35,1)",
+    elastica: "cubic-bezier(.34,1.56,.64,1)",
+    quique: "cubic-bezier(.34,1.8,.64,1)"
+  };
+  var CSS_ANIMACAO_GENERICA = `
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+@keyframes bl-surgir-html{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+`;
+  var SELETOR_DE_MARCAS = "svg rect, svg path, svg circle, svg ellipse, svg polygon, svg polyline, svg line, svg text, svg image, .bl-anima";
+  var MAXIMO_DE_MARCAS = 600;
+  function animarEntradaGenerica(area, config = {}, { primeiraRenderizacao = true } = {}) {
+    if (!area || !ANIMACOES_HABILITADAS) return 0;
+    const op = opcoesDeAnimacao(config, { primeiraRenderizacao });
+    if (!op.ligada || op.duracao <= 0) return 0;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-animacao"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-animacao");
+      style.textContent = CSS_ANIMACAO_GENERICA;
+      raiz.appendChild(style);
+    }
+    const curva = CURVAS_CSS[config.suavizacaoDaAnimacao] || CURVAS_CSS.saida;
+    let marcas = Array.from(area.querySelectorAll(SELETOR_DE_MARCAS));
+    if (marcas.length > MAXIMO_DE_MARCAS) marcas = Array.from(area.querySelectorAll("svg, .bl-anima"));
+    const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
+    marcas.forEach((el, i) => {
+      const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms backwards`;
+    });
+    return marcas.length;
+  }
+
+  // src/core/interaction.js
+  function criarFiltroDeBusca(termo) {
+    const t = normalizarTexto(termo);
+    if (!t) return () => true;
+    return (texto) => normalizarTexto(texto).includes(t);
+  }
+  function normalizarTexto(texto) {
+    return String(texto != null ? texto : "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  }
+  var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
+  var CSS_DESTAQUE = `
+.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:opacity .15s ease;}
+.bl-hover-ativo [data-item]:not(.bl-sob-mouse), .bl-hover-ativo .bl-marcador:not(.bl-sob-mouse){opacity:.3;}
+@media (prefers-reduced-motion: reduce){.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:none;}}
+`;
+  function ligarDestaqueAoPassar({ area, eventos, config = {} }) {
+    if (!area || config.destacarAoPassarMouse === false) return false;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-destaque"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-destaque");
+      style.textContent = CSS_DESTAQUE;
+      raiz.appendChild(style);
+    }
+    let acesos = [];
+    const apagar = () => {
+      for (const el of acesos) el.classList.remove("bl-sob-mouse");
+      acesos = [];
+      area.classList.remove("bl-hover-ativo");
+    };
+    eventos.on(area, "pointerover", (ev) => {
+      const alvo = ev.target && ev.target.closest ? ev.target.closest(SELETOR_DE_ITENS) : null;
+      if (!alvo || !area.contains(alvo)) {
+        apagar();
+        return;
+      }
+      apagar();
+      const chave = alvo.getAttribute("data-item");
+      acesos = chave ? Array.from(area.querySelectorAll("[data-item]")).filter((e) => e.getAttribute("data-item") === chave) : [alvo];
+      for (const el of acesos) el.classList.add("bl-sob-mouse");
+      area.classList.add("bl-hover-ativo");
+    });
+    eventos.on(area, "pointerleave", apagar);
+    return true;
   }
 
   // src/core/tooltip.js
@@ -2662,14 +3033,19 @@
 
   // src/core/define-viz.js
   var CSS_BASE = `
-.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;}
+.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+  display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;}
+.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
 .bl-titulo{font-weight:600;line-height:1.2;}
 .bl-subtitulo{opacity:.7;line-height:1.2;}
-.bl-area{position:relative;width:100%;height:100%;}
-.bl-aviso{position:absolute;left:8px;right:8px;top:6px;z-index:5;padding:4px 8px;border-radius:4px;
-  font-size:11px;line-height:1.35;pointer-events:none;}
+.bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
+.bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
+  border-radius:4px;font-size:11px;line-height:1.35;}
+.bl-aviso-texto{flex:1 1 auto;}
+.bl-aviso-fechar{flex:0 0 auto;border:none;background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-size:13px;line-height:1;padding:0 2px;opacity:.75;}
+.bl-aviso-fechar:hover{opacity:1;}
 .bl-vazio{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
   text-align:center;padding:16px;opacity:.75;font-size:13px;}
 `;
@@ -2677,15 +3053,24 @@
     const {
       id,
       label,
-      opcoes = {},
+      opcoes: opcoesDeclaradas = {},
       exigencia = {},
       opcoesDinamicas = null,
       render,
-      aoDestruir = null
+      aoDestruir = null,
+      // true = o gráfico anima sozinho (bar_race, tabela); a animação
+      // genérica de entrada (módulo 2.7) não roda por cima.
+      animacaoPropria = false,
+      // true = o gráfico desenha título/subtítulo dentro do próprio desenho
+      // (kpi_vivo): o cabeçalho padrão não repete o título.
+      cabecalhoProprio = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
+    const opcoes = organizarAbas(
+      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
+    );
     const definicao = {
       id,
       label,
@@ -2697,9 +3082,8 @@
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
         const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
         const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+        const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
-        const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-        avisoEl.style.display = "none";
         this._bl = {
           element,
           raiz,
@@ -2728,7 +3112,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
             data,
             element,
             config,
@@ -2773,7 +3157,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
     const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
@@ -2782,15 +3166,14 @@
     const bl = this._bl;
     limparPendencias(bl);
     esconderTooltipsDe(bl.raiz);
-    bl.avisoEl.style.display = "none";
-    definirTexto(bl.avisoEl, "");
+    limparAviso(bl);
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -2809,13 +3192,14 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, configFinal, tema);
+    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
       ponte.mostrarErro(problema.titulo, problema.mensagem);
       return;
     }
+    posicionarAviso(bl, configFinal, id);
     for (const aviso of modelo.avisos) mostrarAviso(bl, tema, aviso);
     const { largura, altura } = medir(bl.area);
     const ctx = {
@@ -2878,10 +3262,10 @@
       redesenhar() {
         limparPendencias(bl);
         esconderTooltipsDe(bl.raiz);
-        bl.avisoEl.style.display = "none";
-        definirTexto(bl.avisoEl, "");
+        limparAviso(bl);
         try {
           render(ctx);
+          ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
@@ -2899,14 +3283,26 @@
       ctx.altura = tamanho.altura;
       bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
+      limparAviso(bl);
       try {
         render(ctx);
+        ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
     render(ctx);
+    ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
+    if (!animacaoPropria) {
+      animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
+    }
     bl.primeiraRenderizacao = false;
+  }
+  function opcoesDeAnimacaoPadrao() {
+    const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
+    delete bloco.contadorAnimado;
+    bloco.destacarAoPassarMouse = blocoDeInteracao({ comZoom: false, comSelecao: false }).destacarAoPassarMouse;
+    return bloco;
   }
   function definicaoCreateManual(element) {
     limpar(element);
@@ -2915,9 +3311,8 @@
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
     const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
     const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+    const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
-    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-    avisoEl.style.display = "none";
     this._bl = {
       element,
       raiz,
@@ -2946,14 +3341,74 @@
     bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
     bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
   }
+  function criarAviso(raiz) {
+    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
+    avisoEl.setAttribute("role", "status");
+    criarEl("span", { classe: "bl-aviso-texto", pai: avisoEl });
+    const fechar = criarEl("button", { classe: "bl-aviso-fechar", pai: avisoEl, texto: "\xD7" });
+    fechar.type = "button";
+    fechar.setAttribute("aria-label", "Fechar aviso");
+    fechar.title = "Fechar aviso";
+    fechar.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const bl = avisoEl._bl;
+      if (bl) bl.estado.avisoFechado = textoDoAviso(bl);
+      avisoEl.style.display = "none";
+    });
+    avisoEl.style.display = "none";
+    return avisoEl;
+  }
+  function textoDoAviso(bl) {
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    return t ? t.textContent : "";
+  }
+  function limparAviso(bl) {
+    bl.avisoEl._bl = bl;
+    bl.avisoEl.style.display = "none";
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    if (t) definirTexto(t, "");
+  }
+  function posicionarAviso(bl, config, id) {
+    bl.idDoGrafico = id;
+    const ligado = config.mostrarAvisos !== false;
+    bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
+    if (bl.posicaoDoAviso === "rodape") {
+      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+    } else if (bl.avisoEl.nextSibling !== bl.area) {
+      bl.raiz.insertBefore(bl.avisoEl, bl.area);
+    }
+  }
   function mostrarAviso(bl, tema, mensagem) {
     if (!mensagem) return;
-    const atual = bl.avisoEl.textContent;
-    definirTexto(bl.avisoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
-    bl.avisoEl.style.display = "block";
+    bl.avisosNoConsole = bl.avisosNoConsole || /* @__PURE__ */ new Set();
+    if (!bl.avisosNoConsole.has(mensagem) && typeof console !== "undefined" && console.warn) {
+      bl.avisosNoConsole.add(mensagem);
+      console.warn(`[${bl.idDoGrafico || "biblioteca-looker"}] aviso: ${mensagem}`);
+    }
+    const textoEl = bl.avisoEl.querySelector(".bl-aviso-texto");
+    const atual = textoEl.textContent;
+    definirTexto(textoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
+    const fechadoPeloUsuario = !!bl.estado.avisoFechado && bl.estado.avisoFechado === textoEl.textContent;
+    bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
   }
+  var OPCOES_DE_AVISO = {
+    mostrarAvisos: {
+      type: "boolean",
+      label: "Mostrar avisos (eles sempre v\xE3o tamb\xE9m para o console)",
+      section: "Texto",
+      default: true
+    },
+    posicaoDosAvisos: {
+      type: "string",
+      label: "Posi\xE7\xE3o dos avisos",
+      section: "Texto",
+      display: "select",
+      default: "topo",
+      values: [{ Topo: "topo" }, { Rodap\u00E9: "rodape" }, { Oculto: "oculto" }]
+    }
+  };
   function mostrarEstadoVazio(bl, tema, mensagem) {
     limpar(bl.area);
     const caixa = criarEl("div", { classe: "bl-vazio", pai: bl.area, texto: mensagem });
@@ -2977,14 +3432,644 @@
     });
   }
 
-  // src/core/interaction.js
-  function criarFiltroDeBusca(termo) {
-    const t = normalizarTexto(termo);
-    if (!t) return () => true;
-    return (texto) => normalizarTexto(texto).includes(t);
+  // node_modules/d3-shape/src/math.js
+  var epsilon = 1e-12;
+  var pi = Math.PI;
+  var halfPi = pi / 2;
+  var tau = 2 * pi;
+
+  // node_modules/d3-shape/src/curve/linear.js
+  function Linear(context) {
+    this._context = context;
   }
-  function normalizarTexto(texto) {
-    return String(texto != null ? texto : "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  Linear.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default:
+          this._context.lineTo(x, y);
+          break;
+      }
+    }
+  };
+  function linear_default(context) {
+    return new Linear(context);
+  }
+
+  // node_modules/d3-shape/src/curve/basis.js
+  function point(that, x, y) {
+    that._context.bezierCurveTo(
+      (2 * that._x0 + that._x1) / 3,
+      (2 * that._y0 + that._y1) / 3,
+      (that._x0 + 2 * that._x1) / 3,
+      (that._y0 + 2 * that._y1) / 3,
+      (that._x0 + 4 * that._x1 + x) / 6,
+      (that._y0 + 4 * that._y1 + y) / 6
+    );
+  }
+  function Basis(context) {
+    this._context = context;
+  }
+  Basis.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 3:
+          point(this, this._x1, this._y1);
+        // falls through
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
+        // falls through
+        default:
+          point(this, x, y);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x;
+      this._y0 = this._y1, this._y1 = y;
+    }
+  };
+  function basis_default2(context) {
+    return new Basis(context);
+  }
+
+  // node_modules/d3-shape/src/curve/cardinal.js
+  function point2(that, x, y) {
+    that._context.bezierCurveTo(
+      that._x1 + that._k * (that._x2 - that._x0),
+      that._y1 + that._k * (that._y2 - that._y0),
+      that._x2 + that._k * (that._x1 - x),
+      that._y2 + that._k * (that._y1 - y),
+      that._x2,
+      that._y2
+    );
+  }
+  function Cardinal(context, tension) {
+    this._context = context;
+    this._k = (1 - tension) / 6;
+  }
+  Cardinal.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          point2(this, this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          this._x1 = x, this._y1 = y;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point2(this, x, y);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
+    }
+  };
+  var cardinal_default = (function custom(tension) {
+    function cardinal(context) {
+      return new Cardinal(context, tension);
+    }
+    cardinal.tension = function(tension2) {
+      return custom(+tension2);
+    };
+    return cardinal;
+  })(0);
+
+  // node_modules/d3-shape/src/curve/catmullRom.js
+  function point3(that, x, y) {
+    var x1 = that._x1, y1 = that._y1, x2 = that._x2, y2 = that._y2;
+    if (that._l01_a > epsilon) {
+      var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
+      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
+      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
+    }
+    if (that._l23_a > epsilon) {
+      var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
+      x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
+      y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m;
+    }
+    that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2);
+  }
+  function CatmullRom(context, alpha) {
+    this._context = context;
+    this._alpha = alpha;
+  }
+  CatmullRom.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          this.point(this._x2, this._y2);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      if (this._point) {
+        var x23 = this._x2 - x, y23 = this._y2 - y;
+        this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
+      }
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point3(this, x, y);
+          break;
+      }
+      this._l01_a = this._l12_a, this._l12_a = this._l23_a;
+      this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a;
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
+    }
+  };
+  var catmullRom_default = (function custom2(alpha) {
+    function catmullRom(context) {
+      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
+    }
+    catmullRom.alpha = function(alpha2) {
+      return custom2(+alpha2);
+    };
+    return catmullRom;
+  })(0.5);
+
+  // node_modules/d3-shape/src/curve/monotone.js
+  function sign(x) {
+    return x < 0 ? -1 : 1;
+  }
+  function slope3(that, x2, y2) {
+    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
+    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
+  }
+  function slope2(that, t) {
+    var h = that._x1 - that._x0;
+    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
+  }
+  function point4(that, t0, t1) {
+    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
+    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
+  }
+  function MonotoneX(context) {
+    this._context = context;
+  }
+  MonotoneX.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+        case 3:
+          point4(this, this._t0, slope2(this, this._t0));
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      var t1 = NaN;
+      x = +x, y = +y;
+      if (x === this._x1 && y === this._y1) return;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          point4(this, slope2(this, t1 = slope3(this, x, y)), t1);
+          break;
+        default:
+          point4(this, this._t0, t1 = slope3(this, x, y));
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x;
+      this._y0 = this._y1, this._y1 = y;
+      this._t0 = t1;
+    }
+  };
+  function MonotoneY(context) {
+    this._context = new ReflectContext(context);
+  }
+  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x, y) {
+    MonotoneX.prototype.point.call(this, y, x);
+  };
+  function ReflectContext(context) {
+    this._context = context;
+  }
+  ReflectContext.prototype = {
+    moveTo: function(x, y) {
+      this._context.moveTo(y, x);
+    },
+    closePath: function() {
+      this._context.closePath();
+    },
+    lineTo: function(x, y) {
+      this._context.lineTo(y, x);
+    },
+    bezierCurveTo: function(x1, y1, x2, y2, x, y) {
+      this._context.bezierCurveTo(y1, x1, y2, x2, y, x);
+    }
+  };
+  function monotoneX(context) {
+    return new MonotoneX(context);
+  }
+  function monotoneY(context) {
+    return new MonotoneY(context);
+  }
+
+  // node_modules/d3-shape/src/curve/natural.js
+  function Natural(context) {
+    this._context = context;
+  }
+  Natural.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = [];
+      this._y = [];
+    },
+    lineEnd: function() {
+      var x = this._x, y = this._y, n = x.length;
+      if (n) {
+        this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0]);
+        if (n === 2) {
+          this._context.lineTo(x[1], y[1]);
+        } else {
+          var px = controlPoints(x), py = controlPoints(y);
+          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
+            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1]);
+          }
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
+      this._line = 1 - this._line;
+      this._x = this._y = null;
+    },
+    point: function(x, y) {
+      this._x.push(+x);
+      this._y.push(+y);
+    }
+  };
+  function controlPoints(x) {
+    var i, n = x.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
+    a[0] = 0, b[0] = 2, r[0] = x[0] + 2 * x[1];
+    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x[i] + 2 * x[i + 1];
+    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x[n - 1] + x[n];
+    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
+    a[n - 1] = r[n - 1] / b[n - 1];
+    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
+    b[n - 1] = (x[n] + a[n - 1]) / 2;
+    for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1];
+    return [a, b];
+  }
+  function natural_default(context) {
+    return new Natural(context);
+  }
+
+  // node_modules/d3-shape/src/curve/step.js
+  function Step(context, t) {
+    this._context = context;
+    this._t = t;
+  }
+  Step.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = this._y = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._t <= 0) {
+            this._context.lineTo(this._x, y);
+            this._context.lineTo(x, y);
+          } else {
+            var x1 = this._x * (1 - this._t) + x * this._t;
+            this._context.lineTo(x1, this._y);
+            this._context.lineTo(x1, y);
+          }
+          break;
+        }
+      }
+      this._x = x, this._y = y;
+    }
+  };
+  function step_default(context) {
+    return new Step(context, 0.5);
+  }
+  function stepAfter(context) {
+    return new Step(context, 1);
+  }
+
+  // src/core/shapes.js
+  var CURVAS = {
+    linear: linear_default,
+    monotone: monotoneX,
+    monotoneY,
+    basis: basis_default2,
+    catmull: catmullRom_default.alpha(0.5),
+    cardinal: cardinal_default,
+    natural: natural_default,
+    step: step_default,
+    stepAfter
+  };
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
+    return null;
+  }
+
+  // src/core/rotulos.js
+  function lerBooleano(valor, padrao) {
+    if (valor === void 0 || valor === null || valor === "") return padrao;
+    if (valor === true || valor === false) return valor;
+    if (valor === "true") return true;
+    if (valor === "false") return false;
+    return !!valor;
+  }
+  function lerNumero(valor, padrao) {
+    const n = numeroOuNulo(valor);
+    return n === null ? padrao : n;
+  }
+  function lerTexto(valor, padrao = "") {
+    if (valor === void 0 || valor === null) return padrao;
+    const t = String(valor).trim();
+    return t === "" ? padrao : t;
+  }
+  function lerRotulos(config = {}, tema = {}, padroes = {}) {
+    const { padraoVisivel = true, tamanhoPadrao = 11, casasPadrao = 1 } = padroes;
+    return {
+      mostrar: lerBooleano(config.mostrarRotulos, padraoVisivel),
+      tamanho: Math.max(6, Math.min(48, lerNumero(config.tamanhoDoRotulo, tamanhoPadrao))),
+      cor: lerTexto(config.corDoRotulo, ""),
+      // vazio = automática
+      negrito: lerBooleano(config.negritoNoRotulo, false),
+      rotacao: lerNumero(config.rotacaoDoRotulo, 0),
+      evitarColisao: lerBooleano(config.evitarColisaoDeRotulos, true),
+      truncar: Math.max(0, lerNumero(config.truncarRotulo, 0)),
+      posicao: lerTexto(config.posicaoDoRotulo, "auto"),
+      conteudo: lerTexto(config.conteudoDoRotulo, "valor"),
+      formato: lerTexto(config.formatoDoRotulo, "auto"),
+      casas: Math.max(0, Math.min(6, Math.round(lerNumero(config.casasDecimaisDoRotulo, casasPadrao)))),
+      fonte: tema.fonte,
+      corDoTema: tema.texto
+    };
+  }
+  function formatadorDoRotulo(rot, valueFormat) {
+    if (!rot || rot.formato === "auto") {
+      return formatadorDeValueFormat(valueFormat, { casas: rot ? rot.casas : 1 });
+    }
+    return criarFormatadorNumerico({ estilo: rot.formato, casas: rot.casas });
+  }
+  function textoDoRotulo(rot, dado = {}) {
+    const { valor, nome = "", total, valueFormat, textoDoValor } = dado;
+    const formatar = formatadorDoRotulo(rot, valueFormat);
+    const n = numeroOuNulo(valor);
+    const textoValor = rot.formato === "auto" && textoDoValor !== void 0 && textoDoValor !== null && textoDoValor !== "" ? String(textoDoValor) : n === null ? "" : formatar(n);
+    let fracao = numeroOuNulo(dado.percentual);
+    if (fracao === null && n !== null && numeroOuNulo(total)) fracao = n / Number(total);
+    const textoPct = fracao === null ? "" : `${(fracao * 100).toFixed(rot.casas)}%`;
+    let texto;
+    switch (rot.conteudo) {
+      case "nome":
+        texto = String(nome);
+        break;
+      case "nomeValor":
+        texto = nome !== "" && textoValor !== "" ? `${nome}: ${textoValor}` : String(nome || textoValor);
+        break;
+      case "percentual":
+        texto = textoPct || textoValor;
+        break;
+      case "valorPercentual":
+        texto = textoPct ? `${textoValor} (${textoPct})` : textoValor;
+        break;
+      case "valor":
+      default:
+        texto = textoValor;
+        break;
+    }
+    return rot.truncar > 0 ? truncar(texto, rot.truncar) : texto;
+  }
+  function estilizarRotulo(el, rot, extra = {}) {
+    if (!el || !rot) return el;
+    const cor = rot.cor || extra.corAutomatica || rot.corDoTema;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      el.setAttribute("font-size", String(rot.tamanho));
+      if (cor) el.setAttribute("fill", cor);
+      el.setAttribute("font-weight", rot.negrito ? "700" : "400");
+      if (rot.fonte) el.setAttribute("font-family", rot.fonte);
+      if (rot.rotacao) {
+        const x = extra.x !== void 0 ? extra.x : Number(el.getAttribute("x")) || 0;
+        const y = extra.y !== void 0 ? extra.y : Number(el.getAttribute("y")) || 0;
+        const anterior = el.getAttribute("transform");
+        const giro = `rotate(${rot.rotacao},${x},${y})`;
+        el.setAttribute("transform", anterior ? `${anterior} ${giro}` : giro);
+      }
+    } else {
+      el.style.fontSize = `${rot.tamanho}px`;
+      if (cor) el.style.color = cor;
+      el.style.fontWeight = rot.negrito ? "700" : "400";
+      if (rot.rotacao) {
+        const anterior = el.style.transform || "";
+        el.style.transform = `${anterior} rotate(${rot.rotacao}deg)`.trim();
+      }
+    }
+    el.setAttribute("data-rotulo", "1");
+    return el;
+  }
+  function larguraDoTexto(texto, tamanho) {
+    return String(texto || "").length * tamanho * 0.58;
+  }
+  function posicaoEfetiva(rot, { cabeDentro = true } = {}) {
+    const p = rot ? rot.posicao : "auto";
+    if (p === "dentro" || p === "centro") return p;
+    if (p === "fora" || p === "foraComLinha") return "fora";
+    return cabeDentro ? "dentro" : "fora";
+  }
+
+  // src/core/cores.js
+  function paletaDoConfig(config = {}) {
+    const cores = coresDaPaleta(config.paleta).slice();
+    if (lerBooleano(config.inverterPaleta, false)) cores.reverse();
+    return cores;
+  }
+  function opacidadeDoConfig(config = {}, padrao = 1) {
+    return Math.max(0, Math.min(1, lerNumero(config.opacidade, padrao)));
+  }
+  function lerContorno(config = {}, tema = {}, { corPadrao } = {}) {
+    const espessura = Math.max(0, lerNumero(config.espessuraDoContorno, 1));
+    return {
+      mostrar: lerBooleano(config.mostrarContorno, true) && espessura > 0,
+      // '#FFFFFF' é o DEFAULT declarado (não pode mudar): quando o gráfico
+      // informa uma cor padrão, o branco default vale como 'automática'.
+      cor: ((c) => c && !(corPadrao && c.toUpperCase() === "#FFFFFF") ? c : corPadrao || tema.fundo || "#FFFFFF")(
+        lerTexto(config.corDoContorno, "")
+      ),
+      espessura,
+      estilo: lerTexto(config.tracejadoDoContorno, "solido")
+    };
+  }
+  function aplicarContorno(el, contorno) {
+    if (!el || !contorno) return el;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      if (!contorno.mostrar) {
+        el.setAttribute("stroke", "none");
+        el.removeAttribute("stroke-dasharray");
+        return el;
+      }
+      el.setAttribute("stroke", contorno.cor);
+      el.setAttribute("stroke-width", String(contorno.espessura));
+      const traco = tracejadoPorEstilo(contorno.estilo, contorno.espessura);
+      if (traco) el.setAttribute("stroke-dasharray", traco);
+      else el.removeAttribute("stroke-dasharray");
+    } else {
+      el.style.border = contorno.mostrar ? `${contorno.espessura}px ${contorno.estilo === "tracejado" ? "dashed" : contorno.estilo === "pontilhado" ? "dotted" : "solid"} ${contorno.cor}` : "none";
+    }
+    return el;
+  }
+  function aplicarPreenchimento(el, cor, config = {}, padraoOpacidade = 1) {
+    if (!el) return el;
+    const opacidade = opacidadeDoConfig(config, padraoOpacidade);
+    if (el.namespaceURI === "http://www.w3.org/2000/svg") {
+      el.setAttribute("fill", cor);
+      el.setAttribute("fill-opacity", String(opacidade));
+    } else {
+      el.style.background = cor;
+      el.style.opacity = String(opacidade);
+    }
+    return el;
   }
 
   // src/charts/_lista_virtual/index.js
@@ -3013,6 +4098,7 @@
     const { tema, raiz } = ctx;
     const caixa = criarEl("div", { classe: "lv-raiz", pai: raiz });
     const topo = criarEl("div", { classe: "lv-topo", pai: caixa });
+    topo.style.borderBottom = `1px solid ${tema.borda}`;
     let campoDeBusca = null;
     if (comBusca) {
       campoDeBusca = criarEl("input", { classe: "lv-busca", pai: topo });
@@ -3101,6 +4187,36 @@
     const posicao = Number(linha.dataset.posicao);
     if (!Number.isFinite(posicao)) return null;
     return itens[posicao - 1] || null;
+  }
+  function celulaComLinks(modelo, linha, campos) {
+    const celulas = campos.map((c) => modelo.celula(linha, c)).filter(Boolean);
+    return celulas.find((c) => Array.isArray(c.links) && c.links.length) || celulas[0] || null;
+  }
+  function desenharGuias(trilho, fracoes, tema, classe = "lv-guia") {
+    for (const p of fracoes) {
+      const guia = document.createElement("div");
+      guia.className = classe;
+      guia.setAttribute("data-grade", "1");
+      guia.style.position = "absolute";
+      guia.style.top = "0";
+      guia.style.bottom = "0";
+      guia.style.width = "1px";
+      guia.style.left = `${p * 100}%`;
+      guia.style.background = tema.grade;
+      trilho.appendChild(guia);
+    }
+  }
+  function criarRotuloHtml(pai, rot, { texto, classe, transformBase = "", corAutomatica, posicao } = {}) {
+    if (!rot || !rot.mostrar || texto === "" || texto === null || texto === void 0) return null;
+    const el = document.createElement("div");
+    el.className = classe;
+    el.textContent = String(texto);
+    if (transformBase) el.style.transform = transformBase;
+    if (posicao) el.dataset.posicao = posicao;
+    estilizarRotulo(el, rot, { corAutomatica });
+    if (rot.fonte) el.style.fontFamily = rot.fonte;
+    pai.appendChild(el);
+    return el;
   }
 
   // src/charts/barras_ranking_denso/index.js
@@ -3194,6 +4310,13 @@
             label: "Mostrar a posi\xE7\xE3o no ranking",
             section: "Formato",
             default: true
+          },
+          // Novo (correções v2): guias verticais na cor da grade do tema.
+          mostrarGrade: {
+            type: "boolean",
+            label: "Linhas de grade verticais",
+            section: "Formato",
+            default: true
           }
         }
       ),
@@ -3245,7 +4368,10 @@
         itens.push({
           indiceDaLinha: i,
           nome: modelo.texto(modelo.linhas[i], campoDoNome.nome, void 0, "\u2205"),
-          valor
+          valor,
+          // O texto do Looker (textForCell): é o que o tooltip e o rótulo em
+          // formato "automático" mostram — nunca o número cru.
+          texto: modelo.texto(modelo.linhas[i], medida.nome, void 0, "")
         });
       }
       if (!itens.length) {
@@ -3265,17 +4391,17 @@
       const referencia = calcularReferencia(valores, config);
       ctx.limparRaiz();
       injetarEstilo(raiz, CSS_LISTA_VIRTUAL + CSS, "br");
-      const casas = Number(config.casasDecimaisDoRotulo);
-      const formatar = formatadorDeValueFormat(medida.valueFormat, {
-        casas: Number.isFinite(casas) ? casas : 1
-      });
+      const rot = lerRotulos(config, tema);
+      const formatar = formatadorDeValueFormat(medida.valueFormat, { casas: rot.casas });
+      const total = valores.reduce((a, b) => a + b, 0);
       const alturaDaLinha = Math.max(12, Number(config.alturaDaLinha) || 22);
       const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 160);
-      const cor = coresDaPaleta(config.paleta)[0];
+      const cor = paletaDoConfig(config)[0];
       const corDeDestaque = tema.destaque;
       const topN = Math.max(0, Number(config.destacarTop) || 0);
-      const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-      ctx.estado.tooltip = tooltip;
+      const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+      const larguraDoTrilho = Math.max(60, ctx.largura - larguraDoNome - 60);
+      const tooltip = ctx.tooltip();
       const lista = criarListaVirtual({
         ctx,
         itens,
@@ -3296,7 +4422,11 @@
           corDeDestaque,
           tema,
           config,
-          formatar
+          rot,
+          total,
+          contorno,
+          larguraDoTrilho,
+          valueFormat: medida.valueFormat
         })
       });
       lista.raiz.classList.add("br-raiz");
@@ -3317,6 +4447,25 @@
           "a posi\xE7\xE3o no ranking n\xE3o muda com a busca"
         ].filter(Boolean).join(" \xB7 ")
       );
+      const conteudoDe = (item) => {
+        const percentual = total ? `${(item.valor / total * 100).toFixed(1)}%` : "";
+        const valor = item.texto || formatar(item.valor);
+        return {
+          titulo: item.nome,
+          linhas: [
+            { rotulo: "Posi\xE7\xE3o no ranking", valor: `${item.posicao} de ${itens.length}` },
+            { rotulo: medida.rotuloCurto, valor, cor },
+            { rotulo: "Do maior", valor: `${(item.valor / (maximo || 1) * 100).toFixed(1)}%` },
+            ...referencia !== null ? [
+              {
+                rotulo: "Contra a refer\xEAncia",
+                valor: `${item.valor >= referencia ? "+" : ""}${formatar(item.valor - referencia)}`
+              }
+            ] : []
+          ],
+          variaveis: { categoria: item.nome, valor, serie: medida.rotuloCurto, percentual }
+        };
+      };
       if (tooltip) {
         ctx.eventos.on(lista.conteudo, "pointermove", (ev) => {
           const item = itemDoEvento(ev, itens);
@@ -3324,37 +4473,18 @@
             tooltip.esconder();
             return;
           }
-          tooltip.mostrar(
-            {
-              titulo: item.nome,
-              linhas: [
-                { rotulo: "Posi\xE7\xE3o no ranking", valor: `${item.posicao} de ${itens.length}` },
-                { rotulo: medida.rotuloCurto, valor: formatar(item.valor), cor },
-                { rotulo: "Do maior", valor: `${(item.valor / (maximo || 1) * 100).toFixed(1)}%` },
-                ...referencia !== null ? [
-                  {
-                    rotulo: "Contra a refer\xEAncia",
-                    valor: `${item.valor >= referencia ? "+" : ""}${formatar(item.valor - referencia)}`
-                  }
-                ] : []
-              ]
-            },
-            ev.clientX,
-            ev.clientY
-          );
+          tooltip.mostrar(conteudoDe(item), ev.clientX, ev.clientY);
         });
         ctx.eventos.on(lista.conteudo, "pointerleave", () => tooltip.esconder());
       }
       ctx.eventos.on(lista.conteudo, "click", (ev) => {
         const item = itemDoEvento(ev, itens);
         if (!item) return;
-        const celula = modelo.celula(modelo.linhas[item.indiceDaLinha], campoDoNome.nome);
-        if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+        const linha = modelo.linhas[item.indiceDaLinha];
+        ctx.cliqueNoItem(ev, celulaComLinks(modelo, linha, [campoDoNome.nome, medida.nome]), conteudoDe(item));
       });
-    },
-    aoDestruir({ estado }) {
-      if (estado && estado.tooltip) estado.tooltip.destruir();
     }
+    // Sem aoDestruir: o tooltip é o único do gráfico e o defineViz o remove.
   });
   function ordenarItens(itens, ordem = "desc") {
     if (ordem === "asc") itens.sort((a, b) => a.valor - b.valor);
@@ -3399,7 +4529,11 @@
     corDeDestaque,
     tema,
     config,
-    formatar
+    rot,
+    total,
+    contorno,
+    larguraDoTrilho,
+    valueFormat
   }) {
     const linha = document.createElement("div");
     linha.className = "br-linha";
@@ -3426,12 +4560,14 @@
     trilho.className = "br-trilho";
     linha.appendChild(trilho);
     const geometria = geometriaDaBarra({ valor: item.valor, maximo, minimo });
+    if (config.mostrarGrade !== false) desenharGuias(trilho, [0.25, 0.5, 0.75], tema, "br-guia");
     const barra = document.createElement("div");
     barra.className = "br-barra";
     barra.style.left = `${geometria.inicio * 100}%`;
     barra.style.width = `${geometria.largura * 100}%`;
     barra.style.height = `${Math.max(3, alturaDaLinha - 7)}px`;
-    barra.style.background = corDaBarra;
+    aplicarPreenchimento(barra, corDaBarra, config);
+    aplicarContorno(barra, contorno);
     trilho.appendChild(barra);
     if (temNegativos) {
       const zero = document.createElement("div");
@@ -3448,21 +4584,34 @@
       marca.style.background = comOpacidade(tema.atencao, 0.7);
       trilho.appendChild(marca);
     }
-    const texto = formatar(item.valor);
-    const cabeDentro = geometria.largura > 0.18 && texto.length * 7 < geometria.largura * 400;
-    const valorEl = document.createElement("div");
-    valorEl.className = "br-valor";
-    valorEl.textContent = texto;
-    if (cabeDentro) {
-      valorEl.style.left = `${(geometria.inicio + geometria.largura) * 100}%`;
-      valorEl.style.transform = "translate(calc(-100% - 4px), -50%)";
-      valorEl.style.color = textoLegivelSobre(corDaBarra, tema);
-    } else {
-      valorEl.style.left = `${(geometria.inicio + geometria.largura) * 100}%`;
-      valorEl.style.transform = "translate(4px, -50%)";
-      valorEl.style.color = tema.textoSuave;
+    if (rot.mostrar) {
+      const texto = textoDoRotulo(rot, {
+        valor: item.valor,
+        nome: item.nome,
+        total,
+        valueFormat,
+        textoDoValor: item.texto
+      });
+      const cabeDentro = larguraDoTexto(texto, rot.tamanho) + 8 < geometria.largura * larguraDoTrilho;
+      const posicao = posicaoEfetiva(rot, { cabeDentro });
+      const ponta = geometria.paraDireita ? geometria.inicio + geometria.largura : geometria.inicio;
+      const paraDentro = geometria.paraDireita ? "translate(calc(-100% - 4px), -50%)" : "translate(4px, -50%)";
+      const paraFora = geometria.paraDireita ? "translate(4px, -50%)" : "translate(calc(-100% - 4px), -50%)";
+      let esquerda = ponta;
+      let deslocamento = posicao === "dentro" ? paraDentro : paraFora;
+      if (posicao === "centro") {
+        esquerda = geometria.inicio + geometria.largura / 2;
+        deslocamento = "translate(-50%, -50%)";
+      }
+      const valorEl = criarRotuloHtml(trilho, rot, {
+        texto,
+        classe: "br-valor",
+        transformBase: deslocamento,
+        posicao,
+        corAutomatica: posicao === "fora" ? tema.textoSuave : textoLegivelSobre(corDaBarra, tema)
+      });
+      if (valorEl) valorEl.style.left = `${esquerda * 100}%`;
     }
-    trilho.appendChild(valorEl);
     return linha;
   }
 })();

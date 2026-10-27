@@ -16,19 +16,43 @@
  * qualquer diferença entre valores próximos. Mas o leitor treinado em
  * barras lê distância da borda — então, quando o eixo não começa em zero,
  * o gráfico diz isso em voz alta.
+ *
+ * Correções v2 (módulos 6.1–6.4):
+ *   - "Escrever os valores" continua escolhendo O QUE escrever; o estilo
+ *     e o resto vêm do bloco de rótulos pela função única
+ *     (`core/rotulos.js`): "Mostrar rótulos" desliga, e tamanho, cor,
+ *     negrito, rotação, posição (fora = à direita do último ponto, dentro
+ *     = à esquerda do primeiro, centro = no meio), conteúdo, formato,
+ *     casas e truncar têm efeito;
+ *   - aba Cores: paleta via `paletaDoConfig` ("Inverter ordem das cores"),
+ *     opacidade e contorno nos pontos; guias na cor da grade do tema;
+ *   - forma do ponto (opção nova `formaDoPonto`): o ponto é desenhado
+ *     pela função única de marcadores (um <svg> mínimo dentro da linha),
+ *     e a legenda acompanha a forma;
+ *   - tooltip único (`ctx.tooltip()`) com os valores no texto do Looker;
+ *     clique pela "Ação do clique" (`ctx.cliqueNoItem`).
+ *
+ * Campos: 1 dimensão (o nome) + 1 a 4 medidas (um ponto por medida).
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { coresDaPaleta, comOpacidade } from '../../core/theme.js';
+import { comOpacidade } from '../../core/theme.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
+import { paletaDoConfig, lerContorno } from '../../core/cores.js';
+import { lerRotulos, textoDoRotulo, formatadorDoRotulo } from '../../core/rotulos.js';
+import { formaDoMarcador } from '../../core/shapes.js';
 import {
   CSS_LISTA_VIRTUAL,
   criarListaVirtual,
   itemDoEvento,
   montarEscala,
   calcularDiferenca,
+  desenharGuias,
+  criarPontoHtml,
+  criarRotuloHtml,
+  criarChipDeForma,
+  celulaComLinks,
 } from '../_lista_virtual/index.js';
 import {
   montarOpcoes,
@@ -40,6 +64,7 @@ import {
   blocoDeTooltip,
   blocoDeTema,
   blocoAvancado,
+  blocoDePontosELinhas,
 } from '../../core/options-kit.js';
 
 // A escala do trilho e a conta da diferença moram em `_lista_virtual/`,
@@ -50,7 +75,7 @@ export { montarEscala, calcularDiferenca } from '../_lista_virtual/index.js';
 const CSS = `
 .dp-nome{flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dp-trilho{flex:1 1 auto;position:relative;height:100%;min-width:20px;}
-.dp-ponto{position:absolute;top:50%;transform:translate(-50%,-50%);border-radius:50%;}
+.dp-ponto{position:absolute;top:50%;transform:translate(-50%,-50%);line-height:0;}
 .dp-ligacao{position:absolute;top:50%;transform:translateY(-50%);height:2px;border-radius:1px;}
 .dp-guia{position:absolute;top:0;bottom:0;width:1px;}
 .dp-valor{position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;font-variant-numeric:tabular-nums;}
@@ -117,6 +142,9 @@ export default defineViz({
           step: 1,
           default: 9,
         },
+        // Novo (correções v2): a forma do ponto, com os valores do
+        // options-kit (padrão círculo, que é o desenho de antes).
+        formaDoPonto: blocoDePontosELinhas({ secao: 'Dot plot', comLinha: false }).formaDoPonto,
         ligarPontos: {
           type: 'boolean',
           label: 'Ligar os pontos da mesma linha',
@@ -225,6 +253,8 @@ export default defineViz({
         indiceDaLinha: i,
         nome: modelo.texto(modelo.linhas[i], campoDoNome.nome, undefined, '∅'),
         valores,
+        // Texto do Looker de cada medida (tooltip e rótulo "automático").
+        textos: medidas.map((m) => modelo.texto(modelo.linhas[i], m.nome, undefined, '')),
       });
     }
 
@@ -246,21 +276,24 @@ export default defineViz({
     ctx.limparRaiz();
     injetarEstilo(raiz, CSS_LISTA_VIRTUAL + CSS, 'dp');
 
-    const casas = Number(config.casasDecimaisDoRotulo);
-    const formatadores = medidas.map((m) =>
-      formatadorDeValueFormat(m.valueFormat, { casas: Number.isFinite(casas) ? casas : 1 })
-    );
+    // Rótulos: lidos a cada desenho (o config chega normalizado).
+    const rot = lerRotulos(config, tema);
+    // Números derivados (diferença, régua) usam o value_format do campo.
+    const formatadores = medidas.map((m) => formatadorDeValueFormat(m.valueFormat, { casas: rot.casas }));
     const formatar = formatadores[0];
+    const totalDaPrimeira = itens.reduce((a, i) => a + (i.valores[0] === null ? 0 : i.valores[0]), 0);
 
-    const paleta = coresDaPaleta(config.paleta);
+    // Aba Cores: paleta (com "Inverter"), opacidade e contorno do painel.
+    const paleta = paletaDoConfig(config);
     const cores = medidas.map((_, i) => paleta[i % paleta.length]);
+    const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+    const forma = formaDoMarcador(config.formaDoPonto);
 
     const alturaDaLinha = Math.max(12, Number(config.alturaDaLinha) || 22);
     const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 160);
     const tamanhoDoPonto = Math.max(4, Number(config.tamanhoDoPonto) || 9);
 
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    const tooltip = ctx.tooltip();
 
     const lista = criarListaVirtual({
       ctx,
@@ -272,7 +305,7 @@ export default defineViz({
       montarLinha: (item) =>
         montarLinha({
           item, medidas, cores, escala, tamanhoDoPonto, larguraDoNome,
-          tema, config, formatadores,
+          tema, config, rot, contorno, forma, totalDaPrimeira,
         }),
     });
 
@@ -289,8 +322,8 @@ export default defineViz({
       legenda.style.color = tema.texto;
       medidas.forEach((medida, i) => {
         const chip = criarEl('span', { classe: 'dp-chip', pai: legenda });
-        const bolinha = criarEl('span', { classe: 'dp-bolinha', pai: chip });
-        bolinha.style.background = cores[i];
+        // O chip tem a forma do ponto: a legenda acompanha o desenho.
+        criarChipDeForma(chip, { forma, cor: cores[i] });
         const texto = criarEl('span', { pai: chip });
         definirTexto(texto, truncar(medida.rotuloCurto, 18));
       });
@@ -324,6 +357,37 @@ export default defineViz({
     );
 
     // ---------- Interação ----------
+    // Valores no texto do Looker; só a diferença (derivada) é formatada
+    // pelo value_format do campo.
+    const conteudoDe = (item) => {
+      const linhas = medidas.map((medida, i) => ({
+        rotulo: medida.rotuloCurto,
+        valor: item.valores[i] === null ? 'sem dado' : item.textos[i] || formatadores[i](item.valores[i]),
+        cor: cores[i],
+      }));
+      const diferenca = calcularDiferenca(item);
+      if (diferenca !== null) {
+        linhas.push({
+          rotulo: `Diferença (${medidas[medidas.length - 1].rotuloCurto} − ${medidas[0].rotuloCurto})`,
+          valor: `${diferenca >= 0 ? '+' : ''}${formatar(diferenca)}`,
+        });
+      }
+      linhas.push({ rotulo: 'Posição na lista', valor: `${item.posicao} de ${itens.length}` });
+      return {
+        titulo: item.nome,
+        linhas,
+        variaveis: {
+          categoria: item.nome,
+          valor: linhas[0].valor,
+          serie: medidas[0].rotuloCurto,
+          percentual:
+            totalDaPrimeira && item.valores[0] !== null
+              ? `${((item.valores[0] / totalDaPrimeira) * 100).toFixed(1)}%`
+              : '',
+        },
+      };
+    };
+
     if (tooltip) {
       ctx.eventos.on(lista.conteudo, 'pointermove', (ev) => {
         const item = itemDoEvento(ev, itens);
@@ -331,35 +395,21 @@ export default defineViz({
           tooltip.esconder();
           return;
         }
-        const linhas = medidas.map((medida, i) => ({
-          rotulo: medida.rotuloCurto,
-          valor: item.valores[i] === null ? 'sem dado' : formatadores[i](item.valores[i]),
-          cor: cores[i],
-        }));
-        const diferenca = calcularDiferenca(item);
-        if (diferenca !== null) {
-          linhas.push({
-            rotulo: `Diferença (${medidas[medidas.length - 1].rotuloCurto} − ${medidas[0].rotuloCurto})`,
-            valor: `${diferenca >= 0 ? '+' : ''}${formatar(diferenca)}`,
-          });
-        }
-        linhas.push({ rotulo: 'Posição na lista', valor: `${item.posicao} de ${itens.length}` });
-        tooltip.mostrar({ titulo: item.nome, linhas }, ev.clientX, ev.clientY);
+        tooltip.mostrar(conteudoDe(item), ev.clientX, ev.clientY);
       });
       ctx.eventos.on(lista.conteudo, 'pointerleave', () => tooltip.esconder());
     }
 
+    // Clique: "Ação do clique" (drill com links; sem links, fixa o tooltip).
     ctx.eventos.on(lista.conteudo, 'click', (ev) => {
       const item = itemDoEvento(ev, itens);
       if (!item) return;
-      const celula = modelo.celula(modelo.linhas[item.indiceDaLinha], campoDoNome.nome);
-      if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+      const linha = modelo.linhas[item.indiceDaLinha];
+      const campos = [campoDoNome.nome, ...medidas.map((m) => m.nome)];
+      ctx.cliqueNoItem(ev, celulaComLinks(modelo, linha, campos), conteudoDe(item));
     });
   },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
-  },
+  // Sem aoDestruir: o tooltip é o único do gráfico e o defineViz o remove.
 });
 
 /* ------------------------------------------------------------------ */
@@ -396,8 +446,41 @@ export function ordenarItens(itens, modo = 'primeira') {
   return itens;
 }
 
+/**
+ * Texto do rótulo de uma linha, pela função única de rótulos.
+ * - "primeira": o valor da 1ª medida (texto do Looker no formato auto);
+ * - "diferenca": a diferença com sinal (+/−), formatada com o formato e as
+ *   casas do rótulo; "percentual" vira a diferença relativa à 1ª medida.
+ */
+export function textoDoValor({ item, medidas, rot, modoDoValor, totalDaPrimeira }) {
+  if (modoDoValor === 'diferenca') {
+    const diferenca = calcularDiferenca(item);
+    if (diferenca === null) return '';
+    const numero = formatadorDoRotulo(rot, medidas[0].valueFormat)(diferenca);
+    const base = item.valores[0];
+    return textoDoRotulo(
+      { ...rot, formato: 'auto' },
+      {
+        valor: diferenca,
+        nome: item.nome,
+        textoDoValor: `${diferenca >= 0 ? '+' : ''}${numero}`,
+        percentual: base ? diferenca / Math.abs(base) : null,
+      }
+    );
+  }
+  if (item.valores[0] === null) return '';
+  return textoDoRotulo(rot, {
+    valor: item.valores[0],
+    nome: item.nome,
+    total: totalDaPrimeira,
+    valueFormat: medidas[0].valueFormat,
+    textoDoValor: item.textos ? item.textos[0] : undefined,
+  });
+}
+
 function montarLinha({
-  item, medidas, cores, escala, tamanhoDoPonto, larguraDoNome, tema, config, formatadores,
+  item, medidas, cores, escala, tamanhoDoPonto, larguraDoNome, tema, config,
+  rot, contorno, forma, totalDaPrimeira,
 }) {
   const linha = document.createElement('div');
   linha.className = 'dp-linha';
@@ -417,14 +500,9 @@ function montarLinha({
   linha.appendChild(trilho);
 
   if (config.mostrarGuias !== false) {
-    for (const marca of escala.marcas) {
-      if (marca.p === 0 || marca.p === 1) continue;
-      const guia = document.createElement('div');
-      guia.className = 'dp-guia';
-      guia.style.left = `${marca.p * 100}%`;
-      guia.style.background = comOpacidade(tema.borda, 0.7);
-      trilho.appendChild(guia);
-    }
+    // Guias na cor da grade do tema ("Cor das linhas de grade").
+    const internas = escala.marcas.filter((m) => m.p !== 0 && m.p !== 1).map((m) => m.p);
+    desenharGuias(trilho, internas, tema, 'dp-guia');
   }
 
   const posicoes = item.valores.map((v) => escala.posicao(v));
@@ -443,36 +521,46 @@ function montarLinha({
 
   posicoes.forEach((p, i) => {
     if (p === null) return;
-    const ponto = document.createElement('div');
-    ponto.className = 'dp-ponto';
+    // Ponto pela função única de marcadores (forma, opacidade, contorno).
+    const ponto = criarPontoHtml({
+      classe: 'dp-ponto',
+      forma,
+      diametro: tamanhoDoPonto,
+      cor: cores[i],
+      config,
+      contorno,
+    });
     ponto.style.left = `${p * 100}%`;
-    ponto.style.width = `${tamanhoDoPonto}px`;
-    ponto.style.height = `${tamanhoDoPonto}px`;
-    ponto.style.background = cores[i];
     ponto.dataset.medida = medidas[i].nome;
     trilho.appendChild(ponto);
   });
 
+  // "Escrever os valores" escolhe o quê; "Mostrar rótulos" e o resto do
+  // bloco de rótulos decidem se aparece e como.
   const modoDoValor = config.escreverValores || 'nenhum';
-  if (modoDoValor !== 'nenhum' && validas.length) {
-    const diferenca = calcularDiferenca(item);
-    const texto =
-      modoDoValor === 'diferenca'
-        ? diferenca === null
-          ? ''
-          : `${diferenca >= 0 ? '+' : ''}${formatadores[0](diferenca)}`
-        : item.valores[0] === null
-          ? ''
-          : formatadores[0](item.valores[0]);
-
+  if (rot.mostrar && modoDoValor !== 'nenhum' && validas.length) {
+    const texto = textoDoValor({ item, medidas, rot, modoDoValor, totalDaPrimeira });
     if (texto) {
-      const valorEl = document.createElement('div');
-      valorEl.className = 'dp-valor';
-      valorEl.textContent = texto;
-      valorEl.style.left = `${Math.max(...validas) * 100}%`;
-      valorEl.style.transform = 'translate(8px, -50%)';
-      valorEl.style.color = tema.textoSuave;
-      trilho.appendChild(valorEl);
+      const maior = Math.max(...validas);
+      const menor = Math.min(...validas);
+      const posicao = rot.posicao === 'dentro' || rot.posicao === 'centro' ? rot.posicao : 'fora';
+      let esquerda = maior;
+      let deslocamento = `translate(${tamanhoDoPonto / 2 + 4}px, -50%)`;
+      if (posicao === 'dentro') {
+        esquerda = menor;
+        deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 4}px), -50%)`;
+      } else if (posicao === 'centro') {
+        esquerda = (menor + maior) / 2;
+        deslocamento = 'translate(-50%, -50%)';
+      }
+      const valorEl = criarRotuloHtml(trilho, rot, {
+        texto,
+        classe: 'dp-valor',
+        transformBase: deslocamento,
+        posicao,
+        corAutomatica: tema.textoSuave,
+      });
+      if (valorEl) valorEl.style.left = `${esquerda * 100}%`;
     }
   }
 
