@@ -29,7 +29,14 @@
 import { registrarVisualizacao, criarPonte, recursosDoLooker } from './looker-adapter.js';
 import { construirModelo, validarModelo } from './data-model.js';
 import { resolverTema } from './theme.js';
-import { aplicarConfiguracaoJson, normalizarConfig, compararChaves, organizarAbas } from './options-kit.js';
+import {
+  aplicarConfiguracaoJson,
+  normalizarConfig,
+  compararChaves,
+  organizarAbas,
+  blocoDeAnimacao,
+} from './options-kit.js';
+import { animarEntradaGenerica } from './animate.js';
 import {
   esconderTooltipsDe,
   destruirTooltipsDe,
@@ -79,6 +86,9 @@ export function defineViz(declaracao) {
     opcoesDinamicas = null,
     render,
     aoDestruir = null,
+    // true = o gráfico anima sozinho (bar_race, tabela); a animação
+    // genérica de entrada (módulo 2.7) não roda por cima.
+    animacaoPropria = false,
   } = declaracao;
 
   if (typeof render !== 'function') {
@@ -86,8 +96,11 @@ export function defineViz(declaracao) {
   }
 
   // Abas padronizadas (módulo 2.8): só section/order/label mudam aqui.
-  // As opções de aviso (2.5) entram em todo gráfico.
-  const opcoes = organizarAbas(Object.assign({}, opcoesDeclaradas, OPCOES_DE_AVISO));
+  // Entram em TODO gráfico: as opções de aviso (2.5) e as de animação (2.7)
+  // que ele ainda não declara (as declaradas mantêm os próprios defaults).
+  const opcoes = organizarAbas(
+    Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
+  );
 
   const definicao = {
     id,
@@ -135,7 +148,7 @@ export function defineViz(declaracao) {
       const concluir = typeof done === 'function' ? done : () => {};
       try {
         executarAtualizacao.call(this, {
-          declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir },
+          declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria },
           data,
           element,
           config,
@@ -187,7 +200,7 @@ function limparPendencias(bl) {
 }
 
 function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-  const { id, opcoes, exigencia, opcoesDinamicas, render } = declaracao;
+  const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria } = declaracao;
   const ponte = criarPonte(this, opcoes);
   ponte.limparErros();
 
@@ -353,7 +366,19 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   };
 
   render(ctx);
+  // Entrada/atualização animada (módulo 2.7): depois do desenho, em todos
+  // os gráficos que não animam por conta própria.
+  if (!animacaoPropria) {
+    animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
+  }
   bl.primeiraRenderizacao = false;
+}
+
+/** As opções de animação que todo gráfico ganha (sem o contador). */
+function opcoesDeAnimacaoPadrao() {
+  const bloco = blocoDeAnimacao({ secao: 'Animação' });
+  delete bloco.contadorAnimado;
+  return bloco;
 }
 
 /** Cria a estrutura base quando `create` não rodou (ambiente de teste). */

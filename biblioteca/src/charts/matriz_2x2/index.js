@@ -6,7 +6,10 @@
  * no ponto médio (e não na média), que é como se lê uma matriz de esforço
  * × impacto ou urgência × importância.
  *
- * O desenho mora em `../_quadrantes/`.
+ * O desenho mora em `../_quadrantes/`, inclusive as correções v2:
+ * a "Forma" muda o desenho dos pontos (marcadores SVG), nome e cor de cada
+ * quadrante valem no fundo, no nome e nos pontos, e os rótulos seguem todas
+ * as opções da seção Rótulos.
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -27,6 +30,7 @@ import {
   opcoesDinamicasDeCampos,
   renderizarQuadrantes,
   destruirQuadrantes,
+  comRotulosDePonto,
 } from '../_quadrantes/index.js';
 
 const NOMES_PADRAO = {
@@ -39,7 +43,7 @@ const NOMES_PADRAO = {
 export default defineViz({
   id: 'matriz_2x2',
   label: 'Matriz 2x2',
-  opcoes: comDefaults(
+  opcoes: comRotulosDePonto(comDefaults(
     montarOpcoes(
       blocoDeCores(),
       blocoDeEixos(),
@@ -60,7 +64,7 @@ export default defineViz({
       gradeEixoY: false,
       mostrarContagemPorQuadrante: false,
     }
-  ),
+  )),
   exigencia: { dimensoesMin: 1, medidasMin: 2, aceitaPivo: false, exigeLinhas: true },
 
   opcoesDinamicas({ modelo }) {

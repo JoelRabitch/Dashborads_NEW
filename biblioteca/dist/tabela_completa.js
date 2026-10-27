@@ -1,7 +1,7 @@
 /*!
  * Tabela Completa — visualização customizada para o Looker
  * id: tabela_completa
- * versão: 0.1.0 | build: 2026-10-27 13:52:33 | commit: 6a777db
+ * versão: 0.1.0 | build: 2026-10-27 14:01:17 | commit: 442b80e
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -107,7 +107,11 @@
         const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
-        const completas = Object.assign({}, opcoesEstaticas2 || {}, dinamicas);
+        const juntas = Object.assign({}, opcoesEstaticas2 || {}, dinamicas);
+        const completas = {};
+        Object.keys(juntas).sort((a, b) => (Number(juntas[a].order) || 0) - (Number(juntas[b].order) || 0)).forEach((k) => {
+          completas[k] = juntas[k];
+        });
         instancia._blOpcoesRegistradas = completas;
         instancia.trigger("registerOptions", completas);
         return true;
@@ -1554,6 +1558,79 @@
     }
     return saida;
   }
+  function blocoDeAnimacao(opcoes = {}) {
+    const { secao = "Anima\xE7\xE3o", padraoAtiva = true, duracaoPadrao = 600 } = opcoes;
+    return {
+      animacaoAtiva: {
+        type: "boolean",
+        label: "Ativar anima\xE7\xF5es",
+        section: secao,
+        default: padraoAtiva
+      },
+      duracaoDaAnimacao: {
+        type: "number",
+        label: "Dura\xE7\xE3o (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 3e3,
+        step: 50,
+        default: duracaoPadrao
+      },
+      atrasoDaAnimacao: {
+        type: "number",
+        label: "Atraso inicial (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 2e3,
+        step: 50,
+        default: 0
+      },
+      cascataDaAnimacao: {
+        type: "number",
+        label: "Cascata entre itens (ms)",
+        section: secao,
+        display: "range",
+        min: 0,
+        max: 200,
+        step: 5,
+        default: 20
+      },
+      suavizacaoDaAnimacao: {
+        type: "string",
+        label: "Curva da anima\xE7\xE3o",
+        section: secao,
+        display: "select",
+        default: "saida",
+        values: listaDeValores([
+          { rotulo: "Linear", valor: "linear" },
+          { rotulo: "Suave na sa\xEDda", valor: "saida" },
+          { rotulo: "Suave na entrada", valor: "entrada" },
+          { rotulo: "Suave nos dois lados", valor: "ambos" },
+          { rotulo: "El\xE1stica", valor: "elastica" },
+          { rotulo: "Com quique", valor: "quique" }
+        ])
+      },
+      quandoAnimar: {
+        type: "string",
+        label: "Quando animar",
+        section: secao,
+        display: "select",
+        default: "sempre",
+        values: listaDeValores([
+          { rotulo: "A cada atualiza\xE7\xE3o", valor: "sempre" },
+          { rotulo: "S\xF3 na primeira carga", valor: "primeira" }
+        ])
+      },
+      contadorAnimado: {
+        type: "boolean",
+        label: "N\xFAmeros sobem/descem at\xE9 o valor (contador)",
+        section: secao,
+        default: true
+      }
+    };
+  }
   function blocoDeTema(opcoes = {}) {
     const { secao = "Tema" } = opcoes;
     return {
@@ -1656,6 +1733,110 @@
         default: false
       }
     };
+  }
+  var JUNTAR_EIXOS_E_TEXTO = true;
+  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABA_POR_SECAO = {
+    Dados: "Dados",
+    Medidas: "Dados",
+    Formato: "Visual",
+    Cores: "Visual",
+    Cor: "Visual",
+    Tema: "Visual",
+    Refer\u00EAncias: "Visual",
+    Eixos: "Eixos",
+    R\u00F3tulos: "Texto",
+    Legenda: "Texto",
+    Intera\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Anima\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Avan\u00E7ado: "Avan\xE7ado"
+  };
+  var PREFIXO_POR_SECAO = {
+    Cores: "Cor",
+    Cor: "Cor",
+    R\u00F3tulos: "R\xF3tulo",
+    Legenda: "Legenda",
+    Anima\u00E7\u00E3o: "Anima\xE7\xE3o",
+    Refer\u00EAncias: "Refer\xEAncia"
+  };
+  var DESTINO_POR_ID = {
+    titulo: ["Texto", "T\xEDtulo"],
+    subtitulo: ["Texto", "T\xEDtulo"],
+    textoSemDados: ["Texto", "Aviso"],
+    mostrarAvisos: ["Texto", "Aviso"],
+    posicaoDosAvisos: ["Texto", "Aviso"],
+    tema: ["Visual", "Tema"],
+    corDeFundo: ["Visual", "Cor"],
+    corDoTexto: ["Visual", "Cor"],
+    corDaBorda: ["Visual", "Cor"],
+    corDaGrade: ["Visual", "Cor"],
+    familiaDaFonte: ["Visual", "Tema"],
+    tamanhoDaFonte: ["Visual", "Tema"],
+    formatoDoEixo: ["Eixos", "Eixo"],
+    casasDecimaisDoEixo: ["Eixos", "Eixo"],
+    usarEixoSecundario: ["Eixos", "Eixo"],
+    tratamentoDeNulos: ["Dados", ""],
+    textoParaNulo: ["Dados", ""]
+  };
+  function abaPeloId(id, opcao) {
+    const t = id.toLowerCase();
+    if (/debug|json/.test(t)) return "Avan\xE7ado";
+    if (/tooltip|drill|clique|hover|destacar(no|ao)|anima|duracao|atraso|cascata|tocando|repetir|busca|recolher|expandi|interativ|crossfilter|selec|zoom|arrastar|copiar|exportar|redimensionar|ordenar$|permitir/.test(t)) {
+      return "Intera\xE7\xE3o";
+    }
+    if (/eixo/.test(t)) return "Eixos";
+    if (/rotulo|escrever|mostrarvalor|mostrarpercentual|mostrarposicao|mostrarrank|titulo|legenda|aviso|texto|mostrartotais|mostrarcontagem|nome$/.test(t)) {
+      return "Texto";
+    }
+    if (opcao && opcao.display === "color") return "Visual";
+    if (/^cor|cor$|cores|paleta|opacidade|forma|tamanho|espessura|raio|altura|largura|espaco|contorno|borda|grade|zebra|fundo|estilo|densidade|layout|orientacao|curva|ligacao|preencher|pintar|zona|guias|ponto|sparkline|icone|cartao|arranjo|colunasdagrade|escala/.test(t)) {
+      return "Visual";
+    }
+    return "Dados";
+  }
+  function organizarAbas(opcoes) {
+    const itens = [];
+    let i = 0;
+    for (const [id, original] of Object.entries(opcoes || {})) {
+      if (!original || typeof original !== "object") continue;
+      if (original._organizada) {
+        itens.push([id, original]);
+        continue;
+      }
+      const opcao = { ...original };
+      const secaoAntiga = opcao.section || "Avan\xE7ado";
+      let aba;
+      let prefixo;
+      if (DESTINO_POR_ID[id]) {
+        [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Coluna: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
+      } else if (ABA_POR_SECAO[secaoAntiga]) {
+        aba = ABA_POR_SECAO[secaoAntiga];
+        prefixo = PREFIXO_POR_SECAO[secaoAntiga];
+        if (aba === "Eixos") prefixo = /X$|X[A-Z]/.test(id) ? "Eixo X" : /Y$|Y[A-Z]/.test(id) ? "Eixo Y" : "Eixo";
+        if (secaoAntiga === "Intera\xE7\xE3o") prefixo = /tooltip|Tooltip|HtmlDoLooker/.test(id) ? "Tooltip" : "Clique";
+        if (secaoAntiga === "Tema") prefixo = "Tema";
+      } else {
+        aba = abaPeloId(id, opcao);
+        prefixo = secaoAntiga;
+      }
+      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
+      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
+        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      }
+      opcao.section = aba;
+      const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;
+      opcao.order = (ABAS.indexOf(aba) + 1) * 1e4 + ordemAntiga;
+      Object.defineProperty(opcao, "_organizada", { value: true, enumerable: false });
+      itens.push([id, opcao]);
+      i += 1;
+    }
+    itens.sort((a, b) => a[1].order - b[1].order);
+    const saida = {};
+    for (const [id, opcao] of itens) saida[id] = opcao;
+    return saida;
   }
   function sanitizarChave(texto) {
     return String(texto).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
@@ -1825,6 +2006,80 @@
     if (id === null || id === void 0) return;
     if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
     else clearTimeout(id);
+  }
+
+  // src/core/animate.js
+  var SUAVIZACOES = {
+    linear: (t) => t,
+    entrada: (t) => t * t * t,
+    saida: (t) => 1 - Math.pow(1 - t, 3),
+    ambos: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    elastica: (t) => {
+      if (t === 0 || t === 1) return t;
+      const p = 0.3;
+      return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
+    },
+    quique: (t) => {
+      const n1 = 7.5625;
+      const d1 = 2.75;
+      if (t < 1 / d1) return n1 * t * t;
+      if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+      if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+      return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    }
+  };
+  function suavizacaoPorNome(nome) {
+    return SUAVIZACOES[nome] || SUAVIZACOES.saida;
+  }
+  function opcoesDeAnimacao(config = {}, { primeiraRenderizacao = true } = {}) {
+    var _a, _b, _c;
+    const menosMovimento = preferindoMenosMovimento();
+    const ligada = config.animacaoAtiva !== false && !menosMovimento && (config.quandoAnimar !== "primeira" || primeiraRenderizacao);
+    return {
+      ligada,
+      menosMovimento,
+      duracao: ligada ? Math.max(0, Number((_a = config.duracaoDaAnimacao) != null ? _a : 600)) : 0,
+      atraso: ligada ? Math.max(0, Number((_b = config.atrasoDaAnimacao) != null ? _b : 0)) : 0,
+      cascata: ligada ? Math.max(0, Number((_c = config.cascataDaAnimacao) != null ? _c : 20)) : 0,
+      suavizacao: suavizacaoPorNome(config.suavizacaoDaAnimacao),
+      contador: ligada && config.contadorAnimado !== false
+    };
+  }
+  var ANIMACOES_HABILITADAS = true;
+  var CURVAS_CSS = {
+    linear: "linear",
+    saida: "cubic-bezier(.33,1,.68,1)",
+    entrada: "cubic-bezier(.32,0,.67,0)",
+    ambos: "cubic-bezier(.65,0,.35,1)",
+    elastica: "cubic-bezier(.34,1.56,.64,1)",
+    quique: "cubic-bezier(.34,1.8,.64,1)"
+  };
+  var CSS_ANIMACAO_GENERICA = `
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+@keyframes bl-surgir-html{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+`;
+  var SELETOR_DE_MARCAS = "svg rect, svg path, svg circle, svg ellipse, svg polygon, svg polyline, svg line, svg text, svg image, .bl-anima";
+  var MAXIMO_DE_MARCAS = 600;
+  function animarEntradaGenerica(area, config = {}, { primeiraRenderizacao = true } = {}) {
+    if (!area || !ANIMACOES_HABILITADAS) return 0;
+    const op = opcoesDeAnimacao(config, { primeiraRenderizacao });
+    if (!op.ligada || op.duracao <= 0) return 0;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-animacao"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-animacao");
+      style.textContent = CSS_ANIMACAO_GENERICA;
+      raiz.appendChild(style);
+    }
+    const curva = CURVAS_CSS[config.suavizacaoDaAnimacao] || CURVAS_CSS.saida;
+    let marcas = Array.from(area.querySelectorAll(SELETOR_DE_MARCAS));
+    if (marcas.length > MAXIMO_DE_MARCAS) marcas = Array.from(area.querySelectorAll("svg, .bl-anima"));
+    const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
+    marcas.forEach((el, i) => {
+      const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms both`;
+    });
+    return marcas.length;
   }
 
   // src/core/tooltip.js
@@ -2159,14 +2414,19 @@
 
   // src/core/define-viz.js
   var CSS_BASE = `
-.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;}
+.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+  display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;}
+.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
 .bl-titulo{font-weight:600;line-height:1.2;}
 .bl-subtitulo{opacity:.7;line-height:1.2;}
-.bl-area{position:relative;width:100%;height:100%;}
-.bl-aviso{position:absolute;left:8px;right:8px;top:6px;z-index:5;padding:4px 8px;border-radius:4px;
-  font-size:11px;line-height:1.35;pointer-events:none;}
+.bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
+.bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
+  border-radius:4px;font-size:11px;line-height:1.35;}
+.bl-aviso-texto{flex:1 1 auto;}
+.bl-aviso-fechar{flex:0 0 auto;border:none;background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-size:13px;line-height:1;padding:0 2px;opacity:.75;}
+.bl-aviso-fechar:hover{opacity:1;}
 .bl-vazio{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
   text-align:center;padding:16px;opacity:.75;font-size:13px;}
 `;
@@ -2174,15 +2434,21 @@
     const {
       id,
       label,
-      opcoes = {},
+      opcoes: opcoesDeclaradas = {},
       exigencia = {},
       opcoesDinamicas = null,
       render,
-      aoDestruir = null
+      aoDestruir = null,
+      // true = o gráfico anima sozinho (bar_race, tabela); a animação
+      // genérica de entrada (módulo 2.7) não roda por cima.
+      animacaoPropria = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
+    const opcoes = organizarAbas(
+      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
+    );
     const definicao = {
       id,
       label,
@@ -2194,9 +2460,8 @@
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
         const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
         const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+        const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
-        const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-        avisoEl.style.display = "none";
         this._bl = {
           element,
           raiz,
@@ -2225,7 +2490,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria },
             data,
             element,
             config,
@@ -2270,7 +2535,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria } = declaracao;
     const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
@@ -2279,15 +2544,14 @@
     const bl = this._bl;
     limparPendencias(bl);
     esconderTooltipsDe(bl.raiz);
-    bl.avisoEl.style.display = "none";
-    definirTexto(bl.avisoEl, "");
+    limparAviso(bl);
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -2313,6 +2577,7 @@
       ponte.mostrarErro(problema.titulo, problema.mensagem);
       return;
     }
+    posicionarAviso(bl, configFinal, id);
     for (const aviso of modelo.avisos) mostrarAviso(bl, tema, aviso);
     const { largura, altura } = medir(bl.area);
     const ctx = {
@@ -2375,8 +2640,7 @@
       redesenhar() {
         limparPendencias(bl);
         esconderTooltipsDe(bl.raiz);
-        bl.avisoEl.style.display = "none";
-        definirTexto(bl.avisoEl, "");
+        limparAviso(bl);
         try {
           render(ctx);
         } catch (e) {
@@ -2396,6 +2660,7 @@
       ctx.altura = tamanho.altura;
       bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
+      limparAviso(bl);
       try {
         render(ctx);
       } catch (e) {
@@ -2403,7 +2668,15 @@
       }
     };
     render(ctx);
+    if (!animacaoPropria) {
+      animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
+    }
     bl.primeiraRenderizacao = false;
+  }
+  function opcoesDeAnimacaoPadrao() {
+    const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
+    delete bloco.contadorAnimado;
+    return bloco;
   }
   function definicaoCreateManual(element) {
     limpar(element);
@@ -2412,9 +2685,8 @@
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
     const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
     const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+    const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
-    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-    avisoEl.style.display = "none";
     this._bl = {
       element,
       raiz,
@@ -2443,14 +2715,74 @@
     bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
     bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
   }
+  function criarAviso(raiz) {
+    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
+    avisoEl.setAttribute("role", "status");
+    criarEl("span", { classe: "bl-aviso-texto", pai: avisoEl });
+    const fechar = criarEl("button", { classe: "bl-aviso-fechar", pai: avisoEl, texto: "\xD7" });
+    fechar.type = "button";
+    fechar.setAttribute("aria-label", "Fechar aviso");
+    fechar.title = "Fechar aviso";
+    fechar.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const bl = avisoEl._bl;
+      if (bl) bl.estado.avisoFechado = textoDoAviso(bl);
+      avisoEl.style.display = "none";
+    });
+    avisoEl.style.display = "none";
+    return avisoEl;
+  }
+  function textoDoAviso(bl) {
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    return t ? t.textContent : "";
+  }
+  function limparAviso(bl) {
+    bl.avisoEl._bl = bl;
+    bl.avisoEl.style.display = "none";
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    if (t) definirTexto(t, "");
+  }
+  function posicionarAviso(bl, config, id) {
+    bl.idDoGrafico = id;
+    const ligado = config.mostrarAvisos !== false;
+    bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
+    if (bl.posicaoDoAviso === "rodape") {
+      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+    } else if (bl.avisoEl.nextSibling !== bl.area) {
+      bl.raiz.insertBefore(bl.avisoEl, bl.area);
+    }
+  }
   function mostrarAviso(bl, tema, mensagem) {
     if (!mensagem) return;
-    const atual = bl.avisoEl.textContent;
-    definirTexto(bl.avisoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
-    bl.avisoEl.style.display = "block";
+    bl.avisosNoConsole = bl.avisosNoConsole || /* @__PURE__ */ new Set();
+    if (!bl.avisosNoConsole.has(mensagem) && typeof console !== "undefined" && console.warn) {
+      bl.avisosNoConsole.add(mensagem);
+      console.warn(`[${bl.idDoGrafico || "biblioteca-looker"}] aviso: ${mensagem}`);
+    }
+    const textoEl = bl.avisoEl.querySelector(".bl-aviso-texto");
+    const atual = textoEl.textContent;
+    definirTexto(textoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
+    const fechadoPeloUsuario = !!bl.estado.avisoFechado && bl.estado.avisoFechado === textoEl.textContent;
+    bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
   }
+  var OPCOES_DE_AVISO = {
+    mostrarAvisos: {
+      type: "boolean",
+      label: "Mostrar avisos (eles sempre v\xE3o tamb\xE9m para o console)",
+      section: "Texto",
+      default: true
+    },
+    posicaoDosAvisos: {
+      type: "string",
+      label: "Posi\xE7\xE3o dos avisos",
+      section: "Texto",
+      display: "select",
+      default: "topo",
+      values: [{ Topo: "topo" }, { Rodap\u00E9: "rodape" }, { Oculto: "oculto" }]
+    }
+  };
   function mostrarEstadoVazio(bl, tema, mensagem) {
     limpar(bl.area);
     const caixa = criarEl("div", { classe: "bl-vazio", pai: bl.area, texto: mensagem });
@@ -4754,6 +5086,9 @@
     // A tabela aceita praticamente qualquer consulta: com ou sem pivô, só
     // dimensões, só medidas ou os dois.
     exigencia: { aceitaPivo: true, exigeLinhas: true },
+    // A tabela anima as próprias linhas (animarEntradaDasLinhas) e a
+    // virtualização redesenha ao rolar: a animação genérica não entra.
+    animacaoPropria: true,
     opcoesDinamicas({ modelo, config }) {
       const { colunas } = construirColunas(modelo, config);
       return opcoesPorColuna(resumoDeColunas(colunas), colunasNumericasParaOpcoes(colunas));

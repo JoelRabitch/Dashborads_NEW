@@ -13,13 +13,25 @@
  * O layout é calculado sobre a árvore VISÍVEL (depois de recolher), e não
  * sobre a árvore inteira — senão sobraria um buraco no lugar dos nós
  * escondidos.
+ *
+ * Campos: um par id/superior (ou uma dimensão por nível), opcionalmente
+ * uma dimensão para a segunda linha do cartão e uma medida.
+ *
+ * Opções (correções v2): o bloco "Rótulos" inteiro vale para os textos do
+ * cartão (ver `desenharTextosDoCartao`); a aba Cores vale para o cartão
+ * (paleta com "Inverter ordem", opacidade, contorno — com a cor padrão do
+ * painel, o contorno segue a cor do ramo); as ligações usam a cor de borda
+ * do tema. Tooltip único do gráfico (`ctx.tooltip()`), valor no formato
+ * do campo. Clique no cartão segue a "Ação do clique"; clique no botão
+ * +/− recolhe ou abre a área (e não dispara o drill).
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { criarTooltip } from '../../core/tooltip.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
-import { coresDaPaleta, comOpacidade, textoLegivelSobre } from '../../core/theme.js';
+import { textoLegivelSobre } from '../../core/theme.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo } from '../../core/rotulos.js';
+import { paletaDoConfig, corDoItem, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
 import { hierarchy as d3Hierarchy, tree as d3Tree } from 'd3-hierarchy';
 import {
   construirHierarquia,
@@ -37,6 +49,9 @@ import {
   blocoAvancado,
   opcaoDeEscolhaDeCampo,
 } from '../../core/options-kit.js';
+
+/** Default declarado de "Cor do contorno" (blocoDeCores): tratado como "automática". */
+const COR_PADRAO_DO_CONTORNO = '#FFFFFF';
 
 const CSS = `
 .oc-area{position:relative;width:100%;height:100%;overflow:auto;}
@@ -267,9 +282,12 @@ export default defineViz({
       },
     });
 
-    const paleta = coresDaPaleta(config.paleta);
+    // ---------- Cores (6.2) ----------
+    // Paleta pelo caminho único: respeita "Inverter ordem das cores" (antes
+    // lia-se `coresDaPaleta(config.paleta)` direto e a opção não fazia nada).
+    const paleta = paletaDoConfig(config);
     const corPorRamo = new Map();
-    (visivel.children || []).forEach((filho, i) => corPorRamo.set(filho, paleta[i % paleta.length]));
+    (visivel.children || []).forEach((filho, i) => corPorRamo.set(filho, corDoItem(config, i)));
     const corDo = (no) => {
       if (!no.parent) return config.corUnica || tema.textoSuave;
       let atual = no;
@@ -277,13 +295,26 @@ export default defineViz({
       return corPorRamo.get(atual) || paleta[0] || tema.destaque;
     };
 
-    const formatar = formatadorDeValueFormat(campoDoValor && campoDoValor.valueFormat, {
-      casas: Number(config.casasDecimaisDoRotulo) || 0,
-    });
+    // Contorno do cartão. A "Cor do contorno" do painel tem default
+    // #FFFFFF — branco sobre cartão branco faria o cartão sumir. Enquanto o
+    // usuário não escolher outra cor, o contorno é a cor do ramo (como
+    // antes); mostrar, espessura e estilo valem sempre.
+    const contornoDoPainel = lerContorno(config, tema);
+    const corEscolhida = String(config.corDoContorno || '').trim().toUpperCase();
+    const contornoAutomatico = corEscolhida === '' || corEscolhida === COR_PADRAO_DO_CONTORNO;
+
+    // Tooltip: valor derivado (soma da área) no formato do campo no Looker,
+    // independente das opções de rótulo.
+    const valueFormat = campoDoValor ? campoDoValor.valueFormat : undefined;
+    const formatar = formatadorDeValueFormat(valueFormat);
+    // Rótulos (6.1): relidos a cada desenho.
+    const rot = lerRotulos(config, tema);
+    const totalGeral = raiz.value || 0;
 
     const posicaoDe = (no) => (deCimaParaBaixo ? { x: no.x, y: no.y } : { x: no.y, y: no.x });
 
     // ---------- Ligações ----------
+    // Na cor de borda do tema (a cor do ramo já está no cartão).
     const grupoDeLigacoes = criarSvgEl('g', { pai: svg });
     for (const no of nos) {
       if (!no.parent) continue;
@@ -294,15 +325,15 @@ export default defineViz({
         classe: 'oc-ligacao',
         atributos: {
           d: cotovelo(pai, filho, deCimaParaBaixo, alturaDoCartao, larguraDoCartao),
-          stroke: comOpacidade(corDo(no), 0.55),
+          stroke: tema.bordaForte || tema.borda,
           'stroke-width': 1.5,
         },
       });
     }
 
     // ---------- Cartões ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(elementoRaiz, tema);
-    ctx.estado.tooltip = tooltip;
+    // Tooltip ÚNICO do gráfico (criado uma vez pelo núcleo).
+    const tooltip = ctx.tooltip();
 
     const campoDoCargo = modelo.dimensoes.find((d) => d.nome === config.campoDoCargo) || null;
 
@@ -320,55 +351,43 @@ export default defineViz({
       const grupo = criarSvgEl('g', { pai: svg, classe: 'oc-cartao' });
       const preenchido = config.preencherCartao === true;
 
-      criarSvgEl('rect', {
+      const caixa = criarSvgEl('rect', {
         pai: grupo,
+        classe: 'oc-caixa',
         atributos: {
           x: x - larguraDoCartao / 2,
           y: y - alturaDoCartao / 2,
           width: larguraDoCartao,
           height: alturaDoCartao,
           rx: Number(config.raioDoCartao) || 0,
-          fill: preenchido ? cor : tema.fundoElevado,
-          stroke: cor,
-          'stroke-width': 1.5,
         },
       });
+      aplicarPreenchimento(caixa, preenchido ? cor : tema.fundoElevado, config);
+      aplicarContorno(caixa, contornoAutomatico ? Object.assign({}, contornoDoPainel, { cor }) : contornoDoPainel);
 
-      const corDoTexto = preenchido ? textoLegivelSobre(cor, tema) : tema.texto;
-      const linhasDeTexto = [];
-      linhasDeTexto.push({ texto: no.data.rotulo, peso: '600', tamanho: Math.max(9, tema.tamanhoBase) });
-
-      if (campoDoCargo && no.data.indiceDaLinha >= 0) {
-        const cargo = modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, undefined, '');
-        if (cargo) linhasDeTexto.push({ texto: cargo, peso: '400', tamanho: Math.max(8, tema.tamanhoBase - 2) });
-      }
-
-      const extras = [];
-      if (config.mostrarValorNoCartao !== false && campoDoValor) extras.push(formatar(completo.valor));
-      if (config.mostrarContagemDeEquipe !== false && completo.descendentes > 0) {
-        extras.push(`${completo.descendentes} abaixo`);
-      }
-      if (extras.length) {
-        linhasDeTexto.push({ texto: extras.join(' · '), peso: '400', tamanho: Math.max(8, tema.tamanhoBase - 2), suave: true });
-      }
-
-      const alturaDaLinha = alturaDoCartao / (linhasDeTexto.length + 0.6);
-      linhasDeTexto.forEach((linha, i) => {
-        const el = criarSvgEl('text', {
-          pai: grupo,
-          classe: 'oc-texto',
-          atributos: {
-            x,
-            y: y - alturaDoCartao / 2 + alturaDaLinha * (i + 0.9),
-            'text-anchor': 'middle',
-            'dominant-baseline': 'central',
-            'font-size': linha.tamanho,
-            'font-weight': linha.peso,
-            fill: linha.suave && !preenchido ? tema.textoSuave : corDoTexto,
-          },
+      if (rot.mostrar) {
+        desenharTextosDoCartao({
+          grupo,
+          no,
+          x,
+          y,
+          rot,
+          tema,
+          cor,
+          preenchido,
+          completo,
+          larguraDoCartao,
+          alturaDoCartao,
+          valueFormat,
+          totalGeral,
+          mostrarValor: config.mostrarValorNoCartao !== false && !!campoDoValor,
+          mostrarContagem: config.mostrarContagemDeEquipe !== false,
+          cargo:
+            campoDoCargo && no.data.indiceDaLinha >= 0
+              ? modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, undefined, '')
+              : '',
         });
-        definirTexto(el, truncar(linha.texto, Math.floor(larguraDoCartao / (linha.tamanho * 0.56))));
-      });
+      }
 
       // Botão de recolher: só faz sentido em quem tem filhos.
       if (config.permitirRecolher !== false && completo.filhos > 0) {
@@ -396,6 +415,7 @@ export default defineViz({
         if (estaRecolhido) sinal.setAttribute('font-size', 8);
 
         ctx.eventos.on(botao, 'click', (ev) => {
+          // Não deixa o clique chegar ao cartão (que abriria o drill).
           ev.stopPropagation();
           if (recolhidos.has(caminho)) recolhidos.delete(caminho);
           else recolhidos.add(caminho);
@@ -403,23 +423,28 @@ export default defineViz({
         });
       }
 
+      const conteudo = () => {
+        const linhas = [];
+        if (campoDoValor) linhas.push({ rotulo: campoDoValor.rotuloCurto, valor: formatar(completo.valor), cor });
+        linhas.push({ rotulo: 'Nível', valor: String(no.depth) });
+        if (completo.filhos) linhas.push({ rotulo: 'Subordinados diretos', valor: String(completo.filhos) });
+        if (completo.descendentes) linhas.push({ rotulo: 'Total abaixo', valor: String(completo.descendentes) });
+        return { titulo: no.data.rotulo, linhas };
+      };
+
       if (tooltip) {
-        ctx.eventos.on(grupo, 'pointerenter', (ev) => {
-          const linhas = [];
-          if (campoDoValor) linhas.push({ rotulo: campoDoValor.rotuloCurto, valor: formatar(completo.valor), cor });
-          linhas.push({ rotulo: 'Nível', valor: String(no.depth) });
-          if (completo.filhos) linhas.push({ rotulo: 'Subordinados diretos', valor: String(completo.filhos) });
-          if (completo.descendentes) linhas.push({ rotulo: 'Total abaixo', valor: String(completo.descendentes) });
-          tooltip.mostrar({ titulo: no.data.rotulo, linhas }, ev.clientX, ev.clientY);
-        });
+        ctx.eventos.on(grupo, 'pointerenter', (ev) => tooltip.mostrar(conteudo(), ev.clientX, ev.clientY));
         ctx.eventos.on(grupo, 'pointermove', (ev) => tooltip.mover(ev.clientX, ev.clientY));
         ctx.eventos.on(grupo, 'pointerleave', () => tooltip.esconder());
       }
 
+      // "Ação do clique" (drill do Looker / fixar tooltip / nenhuma).
       ctx.eventos.on(grupo, 'click', (ev) => {
-        if (no.data.indiceDaLinha < 0 || !no.data.campo) return;
-        const celula = modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome);
-        if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+        const celula =
+          no.data.indiceDaLinha >= 0 && no.data.campo
+            ? modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome)
+            : null;
+        ctx.cliqueNoItem(ev, celula, conteudo());
       });
     }
 
@@ -430,12 +455,100 @@ export default defineViz({
     }
   },
 
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
-  },
 });
 
 /* ------------------------------------------------------------------ */
+
+/**
+ * Textos de um cartão, pelo bloco "Rótulos" do painel (correções v2, 6.1).
+ *
+ * Linhas: nome (classe `oc-nome`), segunda linha (campo do cargo) e a
+ * linha de valor/contagem. Mapeamento das opções:
+ *   - tamanho: o nome usa "Tamanho do rótulo"; as outras linhas, 2px menos;
+ *   - cor / negrito / rotação: todas as linhas (`estilizarRotulo`). Sem
+ *     negrito, o nome continua seminegrito (600), como antes;
+ *   - posição: auto/centro = centralizado; dentro = alinhado à esquerda;
+ *     fora / fora com linha = alinhado à direita;
+ *   - conteúdo: "valor" (padrão) = valor na linha de baixo; "nome" = sem
+ *     valor; "nomeValor" = "nome: valor" na primeira linha; "percentual" e
+ *     "valorPercentual" = percentual do total da organização;
+ *   - formato / casas: o número do cartão (`textoDoRotulo`);
+ *   - truncar: limite de caracteres (além do que a largura do cartão já
+ *     impõe);
+ *   - esconder sobrepostos: linha que não cabe na altura do cartão some
+ *     (prioridade: nome, cargo, valor).
+ */
+function desenharTextosDoCartao({
+  grupo,
+  no,
+  x,
+  y,
+  rot,
+  tema,
+  cor,
+  preenchido,
+  completo,
+  larguraDoCartao,
+  alturaDoCartao,
+  valueFormat,
+  totalGeral,
+  mostrarValor,
+  mostrarContagem,
+  cargo,
+}) {
+  const semCorte = Object.assign({}, rot, { truncar: 0 });
+  const tamanhoMenor = Math.max(6, rot.tamanho - 2);
+  const linhas = [];
+
+  let nome = String(no.data.rotulo || '');
+  if (mostrarValor && rot.conteudo === 'nomeValor') {
+    nome = textoDoRotulo(semCorte, { valor: completo.valor, nome, valueFormat });
+  }
+  linhas.push({ texto: nome, tamanho: rot.tamanho, nome: true });
+  if (cargo) linhas.push({ texto: cargo, tamanho: tamanhoMenor });
+
+  const extras = [];
+  if (mostrarValor && rot.conteudo !== 'nome' && rot.conteudo !== 'nomeValor') {
+    extras.push(textoDoRotulo(semCorte, { valor: completo.valor, total: totalGeral, valueFormat }));
+  }
+  if (mostrarContagem && completo.descendentes > 0) extras.push(`${completo.descendentes} abaixo`);
+  if (extras.length) linhas.push({ texto: extras.join(' · '), tamanho: tamanhoMenor, suave: true });
+
+  const corDoTexto = preenchido ? textoLegivelSobre(cor, tema) : tema.texto;
+  const ancora =
+    rot.posicao === 'dentro' ? 'start' : rot.posicao === 'fora' || rot.posicao === 'foraComLinha' ? 'end' : 'middle';
+  const margem = 8;
+  const tx = ancora === 'start' ? x - larguraDoCartao / 2 + margem : ancora === 'end' ? x + larguraDoCartao / 2 - margem : x;
+  const alturaDaLinha = alturaDoCartao / (linhas.length + 0.6);
+  let ocupado = 0;
+
+  linhas.forEach((linha, i) => {
+    const ty = y - alturaDoCartao / 2 + alturaDaLinha * (i + 0.9);
+    const el = criarSvgEl('text', {
+      pai: grupo,
+      classe: linha.nome ? 'oc-texto oc-nome' : 'oc-texto',
+      atributos: { x: tx, y: ty, 'text-anchor': ancora, 'dominant-baseline': 'central' },
+    });
+    const larguraUtil = larguraDoCartao - (ancora === 'middle' ? 0 : margem * 2);
+    let limite = Math.max(1, Math.floor(larguraUtil / (linha.tamanho * 0.56)));
+    if (rot.truncar > 0) limite = Math.min(limite, rot.truncar);
+    definirTexto(el, truncar(linha.texto, limite));
+
+    estilizarRotulo(el, rot, {
+      corAutomatica: linha.suave && !preenchido ? tema.textoSuave : corDoTexto,
+      x: tx,
+      y: ty,
+    });
+    el.setAttribute('font-size', String(linha.tamanho));
+    if (linha.nome && !rot.negrito) el.setAttribute('font-weight', '600');
+
+    ocupado += linha.tamanho * 1.15;
+    if (rot.evitarColisao && ocupado > alturaDoCartao - 4 && i > 0) {
+      el.setAttribute('display', 'none');
+    }
+  });
+}
+
 
 /**
  * Identidade estável de um nó entre renderizações.

@@ -1,26 +1,57 @@
 /**
  * _quadrantes — base compartilhada dos gráficos que partem o plano em quatro.
  *
- * `quadrant_scatter`, `matriz_2x2` e `matriz_bcg` são o mesmo desenho com
- * convenções diferentes: duas medidas nos eixos, duas divisórias, quatro
- * quadrantes nomeados. Em vez de três cópias quase iguais (que iriam
- * divergindo a cada correção), o desenho mora aqui e cada gráfico entrega
- * só o seu PERFIL: nomes padrão dos quadrantes, cortes padrão e o que é
- * obrigatório na consulta.
+ * `quadrant_scatter`, `matriz_2x2`, `matriz_bcg` e `risco_retorno` são o
+ * mesmo desenho com convenções diferentes: duas medidas nos eixos, duas
+ * divisórias, quatro quadrantes nomeados. Em vez de cópias quase iguais
+ * (que iriam divergindo a cada correção), o desenho mora aqui e cada
+ * gráfico entrega só o seu PERFIL: nomes padrão dos quadrantes, cortes
+ * padrão e o que é obrigatório na consulta.
  *
  * A pasta começa com `_` pela mesma convenção de `_template`: não é um
  * gráfico registrado, é código compartilhado.
+ *
+ * Correções v2 (módulos 2.1–2.4), todas relidas do config a cada desenho:
+ *   - Rótulos dos pontos passam pela função única (`core/rotulos.js`):
+ *     mostrar, tamanho, cor, negrito, rotação, posição, conteúdo, formato,
+ *     casas, truncar ("0 = não truncar" agora é zero mesmo) e "esconder
+ *     rótulos que se sobrepõem". `quantosRotulosDePonto` continua valendo.
+ *     Antes, negrito/rotação/posição/conteúdo/formato/colisão eram
+ *     declarados no painel e nunca lidos.
+ *   - Cores pela leitura única (`core/cores.js`): paleta com "Inverter
+ *     ordem", opacidade do painel (× opacidade do ponto), contorno
+ *     (mostrar/cor/espessura/estilo) e "Como colorir" da aba Cores. A cor
+ *     do quadrante vale no fundo, no nome e nos pontos, em qualquer formato
+ *     de cor CSS (o fundo usa `fill-opacity`, não conversão para rgba).
+ *   - Tooltip único do gráfico (`ctx.tooltip()`), com os valores como o
+ *     Looker mostra (`modelo.texto` = textForCell/rendered) — antes o
+ *     tamanho e a cor saíam crus ("-6.18841"). Clique pela "Ação do
+ *     clique" (`ctx.cliqueNoItem`).
+ *   - Pontos desenhados com a função única de marcadores
+ *     (`criarMarcadorSvg`), então a "Forma" muda o desenho. Acima de
+ *     LIMITE_DE_PONTOS_EM_SVG pontos o desenho cai para canvas (mesma
+ *     forma, via `desenharSimboloNoCanvas`), por desempenho.
  */
 
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo, prepararCanvas } from '../../core/dom.js';
-import { escalaNumerica, estatisticas } from '../../core/scales.js';
-import { calcularMargens, areaDeDesenho, desenharEixos } from '../../core/eixos.js';
-import { coresDaPaleta, comOpacidade, interpoladorContinuo } from '../../core/theme.js';
-import { formatadorDeValueFormat, truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
-import { desenharSimboloNoCanvas } from '../../core/shapes.js';
+import { escalaNumerica, escalaDeCores, estatisticas } from '../../core/scales.js';
+import { calcularMargens, areaDeDesenho, desenharEixos, formatadorDoEixo } from '../../core/eixos.js';
+import { textoLegivelSobre } from '../../core/theme.js';
+import { formatadorDeValueFormat, criarFormatadorNumerico, truncar } from '../../core/format.js';
+import { criarMarcadorSvg, desenharSimboloNoCanvas, formaDoMarcador, tracejadoPorEstilo } from '../../core/shapes.js';
 import { acharMaisProximo } from '../../core/interaction.js';
 import { listaDeValores, opcaoDeEscolhaDeCampo } from '../../core/options-kit.js';
+import {
+  lerRotulos,
+  textoDoRotulo,
+  estilizarRotulo,
+  esconderColisoes,
+  larguraDoTexto,
+  lerTexto,
+  lerNumero,
+  lerBooleano,
+} from '../../core/rotulos.js';
+import { paletaDoConfig, opacidadeDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
 
 export const CSS_QUADRANTES = `
 .qd-area{position:relative;width:100%;height:100%;}
@@ -29,6 +60,13 @@ export const CSS_QUADRANTES = `
 .qd-rotulo-quadrante{font-weight:600;opacity:.8;}
 .qd-rotulo-ponto{pointer-events:none;}
 `;
+
+/**
+ * Até quantos pontos o desenho é em SVG (um `<path>` por ponto, com a
+ * forma escolhida). Acima disso vai para canvas: 5.000 elementos SVG
+ * engasgam o navegador num dashboard.
+ */
+export const LIMITE_DE_PONTOS_EM_SVG = 2000;
 
 export const MODOS_DE_DIVISORIA = [
   { rotulo: 'Média', valor: 'media' },
@@ -163,12 +201,16 @@ export function opcoesDePontos({ tamanhoPadrao = 7, secao = 'Pontos' } = {}) {
       section: secao,
       display: 'select',
       default: 'circulo',
+      // Estrela e wye entraram nas correções v2 (a função única de
+      // marcadores desenha as sete formas); os valores antigos continuam.
       values: listaDeValores([
         { rotulo: 'Círculo', valor: 'circulo' },
         { rotulo: 'Quadrado', valor: 'quadrado' },
         { rotulo: 'Losango', valor: 'losango' },
         { rotulo: 'Triângulo', valor: 'triangulo' },
         { rotulo: 'Cruz', valor: 'cruz' },
+        { rotulo: 'Estrela', valor: 'estrela' },
+        { rotulo: 'Y (wye)', valor: 'wye' },
       ]),
     },
     opacidadeDoPonto: {
@@ -205,6 +247,53 @@ export function opcoesDePontos({ tamanhoPadrao = 7, secao = 'Pontos' } = {}) {
       default: 12,
     },
   };
+}
+
+/**
+ * Valores de "O que mostrar no rótulo" para esta família.
+ *
+ * Num gráfico de dispersão o rótulo identifica o PONTO, e o padrão do
+ * bloco de rótulos ("valor") sempre mostrou o nome do item — dashboards
+ * salvos dependem disso, e o default não pode mudar. Então aqui "valor"
+ * continua sendo o nome (e o texto da opção diz isso), e entram valores
+ * novos para quem quer número: eixo Y, eixo X ou os dois. Os ids e o
+ * default da opção não mudam; só os textos e a lista de valores.
+ */
+const CONTEUDOS_DO_ROTULO_DE_PONTO = [
+  { rotulo: 'Automático (nome do ponto)', valor: 'valor' },
+  { rotulo: 'Nome do ponto', valor: 'nome' },
+  { rotulo: 'Nome e valor do eixo Y', valor: 'nomeValor' },
+  { rotulo: 'Valor do eixo Y', valor: 'valorY' },
+  { rotulo: 'Valor do eixo X', valor: 'valorX' },
+  { rotulo: 'Valores X e Y', valor: 'valoresXY' },
+  { rotulo: 'Percentual do total do eixo Y', valor: 'percentual' },
+  { rotulo: 'Valor do eixo Y e percentual', valor: 'valorPercentual' },
+];
+
+/**
+ * Ajusta o bloco de rótulos já montado para a semântica de pontos
+ * (lista de conteúdos acima e posição descrita em relação ao ponto).
+ * Não mexe em id, type nem default.
+ */
+export function comRotulosDePonto(opcoes) {
+  const saida = Object.assign({}, opcoes);
+  if (saida.conteudoDoRotulo) {
+    saida.conteudoDoRotulo = Object.assign({}, saida.conteudoDoRotulo, {
+      values: listaDeValores(CONTEUDOS_DO_ROTULO_DE_PONTO),
+    });
+  }
+  if (saida.posicaoDoRotulo) {
+    saida.posicaoDoRotulo = Object.assign({}, saida.posicaoDoRotulo, {
+      values: listaDeValores([
+        { rotulo: 'Automática (à direita do ponto)', valor: 'auto' },
+        { rotulo: 'Sobre o ponto', valor: 'dentro' },
+        { rotulo: 'À direita do ponto', valor: 'fora' },
+        { rotulo: 'Centrado no ponto', valor: 'centro' },
+        { rotulo: 'Afastado, com linha-guia', valor: 'foraComLinha' },
+      ]),
+    });
+  }
+  return saida;
 }
 
 /** Selects de "qual medida vai em cada papel", montados com os campos reais. */
@@ -294,7 +383,35 @@ export function quadranteDaPosicao(px, py, xDoCorte, yDoCorte) {
 
 export function nomeDoQuadrante(chave, config, nomesPadrao) {
   if (!chave) return '';
-  return config[`rotulo_${chave}`] || nomesPadrao[chave] || '';
+  // `lerTexto`: só espaços conta como vazio (volta ao nome padrão).
+  return lerTexto(config[`rotulo_${chave}`], '') || nomesPadrao[chave] || '';
+}
+
+/**
+ * Como colorir os pontos. "Cor dos pontos" (opção própria) manda; se ela
+ * está no padrão ("pelo quadrante"), vale o "Como colorir" da aba Cores —
+ * antes essa opção da aba Cores era declarada e ignorada.
+ * @returns {'quadrante'|'unica'|'medida'}
+ */
+export function modoDeColorir(config) {
+  const proprio = lerTexto(config.colorirPor, 'quadrante');
+  if (proprio === 'unica' || proprio === 'medida') return proprio;
+  const daAba = lerTexto(config.modoDeCor, 'categoria');
+  if (daAba === 'unica') return 'unica';
+  if (daAba === 'valor') return 'medida';
+  return 'quadrante';
+}
+
+/**
+ * Cor de cada quadrante: a escolhida no painel (qualquer cor CSS) ou a
+ * paleta na posição do quadrante — já respeitando "Inverter ordem das
+ * cores".
+ */
+export function coresDosQuadrantes(config) {
+  const paleta = paletaDoConfig(config);
+  return new Map(
+    QUADRANTES.map((q, i) => [q.chave, lerTexto(config[`cor_${q.chave}`], '') || paleta[i % paleta.length]])
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -307,10 +424,16 @@ export function nomeDoQuadrante(chave, config, nomesPadrao) {
  * @param {object} ctx contexto do defineViz
  * @param {object} perfil
  * @param {object} perfil.nomesPadrao nomes dos quatro quadrantes
- * @param {boolean} [perfil.tamanhoObrigatorio] exige medida de tamanho
  * @param {Function} [perfil.ajustarPontos] gancho para transformar os
- *        valores antes de escalar (a BCG usa para participação relativa)
- * @param {string} [perfil.prefixoCss] prefixo das classes (para os testes)
+ *        valores antes de escalar (a BCG usa para participação relativa).
+ *        Quem muda `ponto.x`/`ponto.y` deve apagar `ponto.textoX`/`textoY`
+ *        (o texto do Looker deixa de valer para o valor transformado).
+ * @param {Function} [perfil.ajustarConfig] gancho para mexer na config
+ *        depois de conhecer os pontos e antes das escalas
+ * @param {Function} [perfil.formatadorX] `(config, campoX) => fn|null`:
+ *        formatador do eixo X quando o valor não é o do campo (BCG)
+ * @param {Function} [perfil.linhasDoTooltip] `(ponto) => [{rotulo, valor}]`
+ *        linhas extras do tooltip (o risco_retorno põe o Sharpe)
  */
 export function renderizarQuadrantes(ctx, perfil) {
   const { modelo, config, tema, raiz, largura, altura } = ctx;
@@ -337,6 +460,10 @@ export function renderizarQuadrantes(ctx, perfil) {
       indice: i,
       x,
       y,
+      // Textos como o Looker mostra (textForCell/rendered): tooltip e
+      // rótulo em formato "automático" usam estes, nunca o número cru.
+      textoX: modelo.texto(linha, campoX.nome, undefined, ''),
+      textoY: modelo.texto(linha, campoY.nome, undefined, ''),
       tamanho: campoTamanho ? modelo.valorNumerico(linha, campoTamanho.nome) : null,
       valorDaCor: campoCor ? modelo.valorNumerico(linha, campoCor.nome) : null,
       rotulo: campoRotulo ? modelo.texto(linha, campoRotulo.nome, undefined, '') : `#${i + 1}`,
@@ -364,17 +491,26 @@ export function renderizarQuadrantes(ctx, perfil) {
   injetarEstilo(raiz, CSS_QUADRANTES, 'qd');
   const area = criarEl('div', { classe: 'qd-area', pai: raiz });
 
-  const casas = Number(config.casasDecimaisDoRotulo);
-  const casasSeguras = Number.isFinite(casas) ? casas : 1;
-  const formatarX = perfil.formatarX || formatadorDeValueFormat(campoX.valueFormat, { casas: casasSeguras });
-  const formatarY = perfil.formatarY || formatadorDeValueFormat(campoY.valueFormat, { casas: casasSeguras });
+  // Formatadores. Eixo: "Casas decimais nos eixos" (antes usava as casas
+  // do RÓTULO); "Formato dos números nos eixos" é aplicado por
+  // `formatadorDoEixo`/`desenharEixos`. Tooltip: o value_format do campo.
+  const casasDoEixo = Math.max(0, Math.min(6, Math.round(lerNumero(config.casasDecimaisDoEixo, 1))));
+  const formatoProprioX = typeof perfil.formatadorX === 'function' ? perfil.formatadorX(config, campoX) : null;
+  const formatarX = formatoProprioX || formatadorDeValueFormat(campoX.valueFormat, { casas: casasDoEixo });
+  const formatarY = formatadorDeValueFormat(campoY.valueFormat, { casas: casasDoEixo });
+  const formatarXNoTooltip = formatoProprioX || formatadorDeValueFormat(campoX.valueFormat);
+  const formatarYNoTooltip = formatadorDeValueFormat(campoY.valueFormat);
 
   const valoresX = pontos.map((p) => p.x);
   const valoresY = pontos.map((p) => p.y);
 
+  // As margens medem os textos que o eixo VAI mostrar (com o formato do
+  // painel), senão um formato mais largo seria cortado.
+  const formatoDoEixoX = formatadorDoEixo(config, formatarX);
+  const formatoDoEixoY = formatadorDoEixo(config, formatarY);
   const margens = calcularMargens({
-    rotulosY: valoresY.map(formatarY),
-    rotulosX: valoresX.map(formatarX),
+    rotulosY: valoresY.map(formatoDoEixoY),
+    rotulosX: valoresX.map(formatoDoEixoX),
     config,
     tema,
   });
@@ -404,31 +540,31 @@ export function renderizarQuadrantes(ctx, perfil) {
     ponto.quadrante = quadranteDaPosicao(ponto.px, ponto.py, xDoCorte, yDoCorte);
   }
 
-  const paleta = coresDaPaleta(config.paleta);
-  const corDoQuadrante = new Map(
-    QUADRANTES.map((q, i) => [q.chave, config[`cor_${q.chave}`] || paleta[i % paleta.length]])
-  );
+  const paleta = paletaDoConfig(config);
+  const corDoQuadrante = coresDosQuadrantes(config);
 
-  // Três camadas: fundo dos quadrantes, canvas dos pontos, SVG do texto.
+  // Camadas: SVG do fundo (quadrantes + pontos), canvas dos pontos só
+  // quando são muitos, e SVG de cima (eixos, divisórias, textos).
+  const usarSvg = pontos.length <= LIMITE_DE_PONTOS_EM_SVG;
   const svgFundo = criarSvgEl('svg', {
     pai: area,
     classe: 'qd-svg',
     atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` },
   });
-  const canvas = criarEl('canvas', { classe: 'qd-canvas', pai: area });
+  const canvas = usarSvg ? null : criarEl('canvas', { classe: 'qd-canvas', pai: area });
   const svg = criarSvgEl('svg', {
     pai: area,
     classe: 'qd-svg',
     atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` },
   });
 
-  if (config.pintarQuadrantes !== false && xDoCorte !== null && yDoCorte !== null) {
+  if (lerBooleano(config.pintarQuadrantes, true) && xDoCorte !== null && yDoCorte !== null) {
     desenharFundoDosQuadrantes({ svg: svgFundo, retangulo, xDoCorte, yDoCorte, corDoQuadrante });
   }
 
   desenharEixos({ svg, escalaX, escalaY, area: retangulo, config, tema, formatarX, formatarY });
 
-  const corDasDivisorias = config.corDasDivisorias || tema.bordaForte;
+  const corDasDivisorias = lerTexto(config.corDasDivisorias, '') || tema.bordaForte;
   if (xDoCorte !== null) {
     desenharDivisoria(svg, xDoCorte, retangulo.cima, xDoCorte, retangulo.cima + retangulo.altura, corDasDivisorias);
   }
@@ -443,25 +579,32 @@ export function renderizarQuadrantes(ctx, perfil) {
     );
   }
 
-  const { ctx: pincel } = prepararCanvas(canvas, largura, altura);
+  // ---------- Cor e tamanho de cada ponto ----------
+  const modo = modoDeColorir(config);
   const escalaDeTamanho = montarEscalaDeTamanho(pontos, config);
-  const escalaDeCor = montarEscalaDeCor(pontos, config, campoCor);
-  const corFixa = config.corUnica || paleta[0];
+  const escalaDeCor = modo === 'medida' ? montarEscalaDeCor(pontos, config, tema, !!campoCor) : null;
+  const corFixa = lerTexto(config.corUnica, '') || paleta[0];
 
   for (const ponto of pontos) {
-    ponto.raio = escalaDeTamanho(ponto.tamanho);
+    // `diametro`: o tamanho VISUAL do marcador. (`raio` fica como apelido
+    // por compatibilidade: sempre guardou o diâmetro, apesar do nome.)
+    ponto.diametro = escalaDeTamanho(ponto.tamanho);
+    ponto.raio = ponto.diametro;
     ponto.cor =
-      config.colorirPor === 'medida' && escalaDeCor
-        ? escalaDeCor(ponto.valorDaCor)
-        : config.colorirPor === 'unica'
-        ? corFixa
-        : corDoQuadrante.get(ponto.quadrante) || corFixa;
+      modo === 'medida' && escalaDeCor
+        ? escalaDeCor(campoCor ? ponto.valorDaCor : ponto.y)
+        : modo === 'unica'
+          ? corFixa
+          : corDoQuadrante.get(ponto.quadrante) || corFixa;
   }
 
-  if (pincel) {
-    desenharPontos(pincel, pontos, config, tema);
+  const estiloDosPontos = lerEstiloDosPontos(config, tema);
+  if (usarSvg) {
+    desenharPontosSvg(svgFundo, pontos, estiloDosPontos);
   } else {
-    ctx.avisar('O navegador não forneceu contexto 2D; os pontos não foram desenhados.');
+    const { ctx: pincel } = prepararCanvas(canvas, largura, altura);
+    if (pincel) desenharPontosNoCanvas(pincel, pontos, estiloDosPontos);
+    else ctx.avisar('O navegador não forneceu contexto 2D; os pontos não foram desenhados.');
   }
 
   if (xDoCorte !== null && yDoCorte !== null) {
@@ -478,11 +621,50 @@ export function renderizarQuadrantes(ctx, perfil) {
     });
   }
 
-  desenharRotulosDosPontos({ svg, pontos, config, tema, corteX, corteY, temRotulo: !!campoRotulo });
+  desenharRotulosDosPontos({
+    svg,
+    pontos,
+    config,
+    tema,
+    corteX,
+    corteY,
+    temRotulo: !!campoRotulo,
+    campoX,
+    campoY,
+    formatoProprioX,
+  });
 
   // ---------- Interação ----------
-  const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
+  // Tooltip ÚNICO do gráfico (null se desligado); não é destruído por
+  // desenho — o define-viz esconde no redesenho e remove no destroy.
+  const tooltip = ctx.tooltip();
   ctx.estado.tooltip = tooltip;
+
+  const conteudoDoPonto = (alvo) => {
+    const linha = modelo.linhas[alvo.indice];
+    const textoX = alvo.textoX || formatarXNoTooltip(alvo.x);
+    const textoY = alvo.textoY || formatarYNoTooltip(alvo.y);
+    const linhas = [
+      { rotulo: campoX.rotuloCurto, valor: textoX },
+      { rotulo: campoY.rotuloCurto, valor: textoY },
+    ];
+    if (campoTamanho && alvo.tamanho !== null) {
+      linhas.push({ rotulo: campoTamanho.rotuloCurto, valor: modelo.texto(linha, campoTamanho.nome, undefined, '') });
+    }
+    if (campoCor && alvo.valorDaCor !== null) {
+      linhas.push({ rotulo: campoCor.rotuloCurto, valor: modelo.texto(linha, campoCor.nome, undefined, '') });
+    }
+    if (typeof perfil.linhasDoTooltip === 'function') {
+      for (const extra of perfil.linhasDoTooltip(alvo) || []) if (extra) linhas.push(extra);
+    }
+    const nome = nomeDoQuadrante(alvo.quadrante, config, nomesPadrao);
+    if (nome) linhas.push({ rotulo: 'Quadrante', valor: nome, cor: alvo.cor });
+    return {
+      titulo: alvo.rotulo,
+      linhas,
+      variaveis: { categoria: alvo.rotulo, valor: textoY, serie: nome },
+    };
+  };
 
   const acharPonto = (ev) => {
     const caixa = area.getBoundingClientRect();
@@ -504,41 +686,34 @@ export function renderizarQuadrantes(ctx, perfil) {
       return;
     }
     area.style.cursor = 'pointer';
-    if (!tooltip) return;
-    const linhas = [
-      { rotulo: campoX.rotuloCurto, valor: formatarX(alvo.x) },
-      { rotulo: campoY.rotuloCurto, valor: formatarY(alvo.y) },
-    ];
-    if (campoTamanho && alvo.tamanho !== null) {
-      linhas.push({ rotulo: campoTamanho.rotuloCurto, valor: String(alvo.tamanho) });
-    }
-    if (campoCor && alvo.valorDaCor !== null) {
-      linhas.push({ rotulo: campoCor.rotuloCurto, valor: String(alvo.valorDaCor) });
-    }
-    const nome = nomeDoQuadrante(alvo.quadrante, config, nomesPadrao);
-    if (nome) linhas.push({ rotulo: 'Quadrante', valor: nome, cor: alvo.cor });
-    tooltip.mostrar({ titulo: alvo.rotulo, linhas }, ev.clientX, ev.clientY);
+    if (tooltip) tooltip.mostrar(conteudoDoPonto(alvo), ev.clientX, ev.clientY);
   });
 
   ctx.eventos.on(area, 'pointerleave', () => {
     if (tooltip) tooltip.esconder();
   });
 
+  // "Ação do clique": drill do Looker se a célula tem links; senão fixa o
+  // tooltip (ou o que o usuário escolheu no painel).
   ctx.eventos.on(area, 'click', (ev) => {
     const alvo = acharPonto(ev);
-    if (!alvo || !campoRotulo) return;
-    const celula = modelo.celula(modelo.linhas[alvo.indice], campoRotulo.nome);
-    if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+    if (!alvo) return;
+    const celula = campoRotulo ? modelo.celula(modelo.linhas[alvo.indice], campoRotulo.nome) : null;
+    ctx.cliqueNoItem(ev, celula, conteudoDoPonto(alvo));
   });
 
   // `svg` e `area` saem daqui para quem quiser desenhar POR CIMA dos
   // pontos — uma reta de referência, uma fronteira, uma anotação.
-  return { pontos, corteX, corteY, escalaX, escalaY, retangulo, svg, area, tooltip };
+  return { pontos, corteX, corteY, escalaX, escalaY, retangulo, svg, area, tooltip, estiloDosPontos };
 }
 
-/** Limpa o tooltip criado por `renderizarQuadrantes`. */
-export function destruirQuadrantes({ estado }) {
-  if (estado && estado.tooltip) estado.tooltip.destruir();
+/**
+ * Compatibilidade: antes destruía o tooltip criado por desenho. Agora o
+ * tooltip é único por gráfico e o define-viz o remove no destroy; aqui só
+ * soltamos a referência.
+ */
+export function destruirQuadrantes({ estado } = {}) {
+  if (estado) estado.tooltip = null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -554,6 +729,7 @@ function escolherMedida(modelo, nomeEscolhido, posicaoPadrao) {
 function desenharDivisoria(svg, x1, y1, x2, y2, cor) {
   criarSvgEl('line', {
     pai: svg,
+    classe: 'qd-divisoria',
     atributos: { x1, y1, x2, y2, stroke: cor, 'stroke-width': 1.5, 'stroke-dasharray': '6 4' },
   });
 }
@@ -578,9 +754,21 @@ function desenharFundoDosQuadrantes({ svg, retangulo, xDoCorte, yDoCorte, corDoQ
 
   for (const [chave, [x, y, w, h]] of Object.entries(caixas)) {
     if (!(w > 0) || !(h > 0)) continue;
+    // `fill` + `fill-opacity` em vez de converter para rgba(): funciona com
+    // qualquer cor CSS que o seletor do Looker devolver (antes, um formato
+    // que `comOpacidade` não entendia pintava o quadrante OPACO).
     criarSvgEl('rect', {
       pai: svg,
-      atributos: { x, y, width: w, height: h, fill: comOpacidade(corDoQuadrante.get(chave), 0.1) },
+      classe: 'qd-fundo',
+      atributos: {
+        x,
+        y,
+        width: w,
+        height: h,
+        fill: corDoQuadrante.get(chave),
+        'fill-opacity': 0.1,
+        'data-quadrante': chave,
+      },
     });
   }
 }
@@ -612,6 +800,9 @@ function desenharRotulosDosQuadrantes({
     superiorEsquerdo: { x: esquerda + margem, y: cima + margem, ancora: 'start', base: 'hanging' },
   };
 
+  const pintar = lerBooleano(config.pintarQuadrantes, true);
+  const comContagem = lerBooleano(config.mostrarContagemPorQuadrante, true);
+
   for (const q of QUADRANTES) {
     // Quadrante sem espaço na tela: o nome ficaria por cima do eixo.
     if (q.x === 1 && direita - xDoCorte < 44) continue;
@@ -622,7 +813,7 @@ function desenharRotulosDosQuadrantes({
     const nome = nomeDoQuadrante(q.chave, config, nomesPadrao);
     if (!nome) continue;
     const quantos = contagem.get(q.chave) || 0;
-    const texto = config.mostrarContagemPorQuadrante !== false ? `${nome} (${quantos})` : nome;
+    const texto = comContagem ? `${nome} (${quantos})` : nome;
     const posicao = posicoes[q.chave];
 
     const el = criarSvgEl('text', {
@@ -634,54 +825,147 @@ function desenharRotulosDosQuadrantes({
         'text-anchor': posicao.ancora,
         'dominant-baseline': posicao.base,
         'font-size': Math.max(9, tema.tamanhoBase),
-        fill: config.pintarQuadrantes !== false ? corDoQuadrante.get(q.chave) : tema.textoSuave,
+        'font-family': tema.fonte,
+        fill: pintar ? corDoQuadrante.get(q.chave) : tema.textoSuave,
+        'data-quadrante': q.chave,
       },
     });
     definirTexto(el, texto);
   }
 }
 
-function desenharRotulosDosPontos({ svg, pontos, config, tema, corteX, corteY, temRotulo }) {
-  const quantos = Number(config.quantosRotulosDePonto) || 0;
-  if (quantos <= 0 || !temRotulo || config.mostrarRotulos === false) return;
-
-  const distancia = (p) =>
-    corteX === null || corteY === null
-      ? Math.hypot(p.x, p.y)
-      : Math.hypot(p.x - corteX, p.y - corteY);
-
-  const destaque = pontos.slice().sort((a, b) => distancia(b) - distancia(a)).slice(0, quantos);
-  const limite = Number(config.truncarRotulo) || 18;
-
-  for (const ponto of destaque) {
-    const texto = criarSvgEl('text', {
-      pai: svg,
-      classe: 'qd-rotulo-ponto',
-      atributos: {
-        x: ponto.px + ponto.raio / 2 + 3,
-        y: ponto.py,
-        'dominant-baseline': 'central',
-        'font-size': Number(config.tamanhoDoRotulo) || Math.max(8, tema.tamanhoBase - 2),
-        fill: config.corDoRotulo || tema.texto,
-      },
-    });
-    definirTexto(texto, truncar(ponto.rotulo, limite));
+/**
+ * Texto do rótulo de um ponto conforme "O que mostrar no rótulo" (ver
+ * CONTEUDOS_DO_ROTULO_DE_PONTO). Formato "automático" = texto do Looker.
+ */
+export function textoDoRotuloDoPonto(rot, ponto, { campoX, campoY, totalY, formatoProprioX }) {
+  const dadoY = {
+    valor: ponto.y,
+    nome: ponto.rotulo,
+    total: totalY,
+    valueFormat: campoY && campoY.valueFormat,
+    textoDoValor: ponto.textoY,
+  };
+  const dadoX = {
+    valor: ponto.x,
+    nome: ponto.rotulo,
+    valueFormat: campoX && campoX.valueFormat,
+    // Valor transformado pelo perfil (BCG): usa o formatador do perfil.
+    textoDoValor: ponto.textoX || (formatoProprioX ? formatoProprioX(ponto.x) : undefined),
+  };
+  const so = (conteudo, extra = {}) => Object.assign({}, rot, { conteudo }, extra);
+  switch (rot.conteudo) {
+    case 'valorY':
+      return textoDoRotulo(so('valor'), dadoY);
+    case 'valorX':
+      return textoDoRotulo(so('valor'), dadoX);
+    case 'valoresXY': {
+      const t = `${textoDoRotulo(so('valor', { truncar: 0 }), dadoX)}; ${textoDoRotulo(so('valor', { truncar: 0 }), dadoY)}`;
+      return rot.truncar > 0 ? truncar(t, rot.truncar) : t;
+    }
+    case 'nomeValor':
+    case 'percentual':
+    case 'valorPercentual':
+      return textoDoRotulo(rot, dadoY);
+    case 'nome':
+    case 'valor':
+    default:
+      // "valor" (o padrão do bloco) é o nome do ponto nesta família.
+      return textoDoRotulo(so('nome'), dadoY);
   }
 }
 
+function desenharRotulosDosPontos({ svg, pontos, config, tema, corteX, corteY, temRotulo, campoX, campoY, formatoProprioX }) {
+  const rot = lerRotulos(config, tema, { tamanhoPadrao: Math.max(8, (tema.tamanhoBase || 12) - 2) });
+  const quantos = Math.max(0, Math.round(lerNumero(config.quantosRotulosDePonto, 12)));
+  if (!rot.mostrar || quantos <= 0 || !temRotulo) return [];
+
+  // Rotula os mais distantes do cruzamento: são os que contam a história.
+  const distancia = (p) =>
+    corteX === null || corteY === null ? Math.hypot(p.x, p.y) : Math.hypot(p.x - corteX, p.y - corteY);
+  const destaque = pontos.slice().sort((a, b) => distancia(b) - distancia(a)).slice(0, quantos);
+  const totalY = pontos.reduce((s, p) => s + (Number.isFinite(p.y) ? p.y : 0), 0);
+
+  const caixas = [];
+  for (const ponto of destaque) {
+    const texto = textoDoRotuloDoPonto(rot, ponto, { campoX, campoY, totalY, formatoProprioX });
+    if (texto === '' || texto === null || texto === undefined) continue;
+
+    const meio = ponto.diametro / 2;
+    let x = ponto.px + meio + 3;
+    let y = ponto.py;
+    let ancora = 'start';
+    let corAutomatica = tema.texto;
+    let guia = null;
+
+    switch (rot.posicao) {
+      case 'dentro':
+      case 'centro':
+        x = ponto.px;
+        ancora = 'middle';
+        // Sobre o ponto: cor legível em cima da cor dele.
+        corAutomatica = textoLegivelSobre(ponto.cor, tema);
+        break;
+      case 'foraComLinha':
+        x = ponto.px + meio + 16;
+        y = ponto.py - 12;
+        guia = criarSvgEl('line', {
+          pai: svg,
+          classe: 'qd-linha-guia',
+          atributos: {
+            x1: ponto.px + meio * 0.7,
+            y1: ponto.py - meio * 0.7,
+            x2: x - 2,
+            y2: y,
+            stroke: tema.textoSuave,
+            'stroke-width': 1,
+          },
+        });
+        break;
+      default:
+        break; // auto / fora: à direita do ponto
+    }
+
+    const el = criarSvgEl('text', {
+      pai: svg,
+      classe: 'qd-rotulo-ponto',
+      atributos: { x, y, 'text-anchor': ancora, 'dominant-baseline': 'central' },
+    });
+    definirTexto(el, texto);
+    estilizarRotulo(el, rot, { corAutomatica, x, y });
+
+    const largura = larguraDoTexto(texto, rot.tamanho);
+    caixas.push({
+      el,
+      guia,
+      x: ancora === 'middle' ? x : x + largura / 2,
+      y,
+      largura,
+      altura: rot.tamanho * 1.2,
+    });
+  }
+
+  // A ordem é a prioridade: os mais distantes do cruzamento ficam.
+  esconderColisoes(caixas, rot);
+  for (const c of caixas) {
+    if (c.guia && c.el.getAttribute('display') === 'none') c.guia.setAttribute('display', 'none');
+  }
+  return caixas.map((c) => c.el);
+}
+
 function montarEscalaDeTamanho(pontos, config) {
-  const padrao = Number(config.tamanhoDoPonto) || 7;
+  const padrao = Math.max(1, lerNumero(config.tamanhoDoPonto, 7));
   const comTamanho = pontos.filter((p) => p.tamanho !== null && Number.isFinite(p.tamanho));
   if (!comTamanho.length) return () => padrao;
 
   const valores = comTamanho.map((p) => p.tamanho);
   const minimo = Math.min(...valores);
   const maximo = Math.max(...valores);
-  const maior = Number(config.tamanhoMaximoDoPonto) || 30;
+  const maior = Math.max(padrao, lerNumero(config.tamanhoMaximoDoPonto, 30));
   if (maximo === minimo) return () => padrao;
 
-  // Interpolamos a ÁREA, não o raio: dobrar o raio quadruplica a mancha e
-  // faria o leitor superestimar a diferença.
+  // Interpolamos a ÁREA, não o diâmetro: dobrar o diâmetro quadruplica a
+  // mancha e faria o leitor superestimar a diferença.
   return (valor) => {
     if (valor === null || !Number.isFinite(valor)) return padrao;
     const t = (valor - minimo) / (maximo - minimo);
@@ -689,39 +973,79 @@ function montarEscalaDeTamanho(pontos, config) {
   };
 }
 
-function montarEscalaDeCor(pontos, config, campoCor) {
-  if (config.colorirPor !== 'medida' || !campoCor) return null;
-  const valores = pontos.map((p) => p.valorDaCor).filter((v) => v !== null && Number.isFinite(v));
+/**
+ * Escala contínua da cor por medida. Usa `escalaDeCores` do núcleo, que
+ * já lê escala escolhida, cores próprias (mín/meio/máx), limites manuais e
+ * "Inverter ordem das cores".
+ */
+function montarEscalaDeCor(pontos, config, tema, temCampoDeCor) {
+  const valores = pontos
+    .map((p) => (temCampoDeCor ? p.valorDaCor : p.y))
+    .filter((v) => v !== null && Number.isFinite(v));
   if (!valores.length) return null;
-  const minimo = Math.min(...valores);
-  const maximo = Math.max(...valores);
-  const interpolar = interpoladorContinuo(config.escalaDeCor);
-  return (valor) => {
-    if (valor === null || !Number.isFinite(valor)) return '#9CA3AF';
-    const t = maximo === minimo ? 0.5 : (valor - minimo) / (maximo - minimo);
-    return interpolar(t);
+  const escala = escalaDeCores({ valores, config: Object.assign({}, config, { modoDeCor: 'valor' }), tema });
+  return (valor) => escala.cor(valor);
+}
+
+/** Forma, opacidade e contorno dos pontos, lidos do config deste desenho. */
+export function lerEstiloDosPontos(config, tema) {
+  // O padrão do bloco de cores é contorno branco; no tema escuro isso é um
+  // anel claro em volta de cada ponto. Branco "de fábrica" vira a cor do
+  // fundo (que é o que o gráfico fazia antes); outra cor escolhida vale.
+  const corEscolhida = lerTexto(config.corDoContorno, '');
+  const corPadrao = !corEscolhida || /^#fff(fff)?$/i.test(corEscolhida) ? tema.fundo : corEscolhida;
+  const contorno = lerContorno(Object.assign({}, config, { corDoContorno: corPadrao }), tema);
+  if (!lerBooleano(config.contornoDoPonto, true)) contorno.mostrar = false;
+  return {
+    forma: formaDoMarcador(config.formaDoPonto),
+    opacidade: Math.max(0, Math.min(1, lerNumero(config.opacidadeDoPonto, 0.8))) * opacidadeDoConfig(config, 1),
+    contorno,
   };
 }
 
-function desenharPontos(pincel, pontos, config, tema) {
-  const opacidade = Number.isFinite(Number(config.opacidadeDoPonto)) ? Number(config.opacidadeDoPonto) : 0.8;
-  const forma = config.formaDoPonto || 'circulo';
-  const contorno = config.contornoDoPonto !== false;
-
+function desenharPontosSvg(svg, pontos, estilo) {
+  const grupo = criarSvgEl('g', { pai: svg, classe: 'qd-pontos' });
   // Maiores primeiro: assim os pequenos não ficam escondidos atrás.
-  const ordenados = pontos.slice().sort((a, b) => b.raio - a.raio);
+  const ordenados = pontos.slice().sort((a, b) => b.diametro - a.diametro);
+  for (const ponto of ordenados) {
+    const el = criarMarcadorSvg(grupo, estilo.forma, ponto.px, ponto.py, ponto.diametro, {
+      classe: 'qd-ponto',
+      fill: ponto.cor,
+      'fill-opacity': estilo.opacidade,
+      'data-indice': ponto.indice,
+      'data-quadrante': ponto.quadrante || undefined,
+    });
+    aplicarContorno(el, estilo.contorno);
+  }
+}
+
+function desenharPontosNoCanvas(pincel, pontos, estilo) {
+  const { forma, opacidade, contorno } = estilo;
+  const ordenados = pontos.slice().sort((a, b) => b.diametro - a.diametro);
+  const traco = contorno.mostrar ? tracejadoPorEstilo(contorno.estilo, contorno.espessura) : null;
 
   for (const ponto of ordenados) {
     pincel.globalAlpha = opacidade;
     pincel.fillStyle = ponto.cor;
-    desenharSimboloNoCanvas(pincel, forma, ponto.px, ponto.py, ponto.raio);
+    desenharSimboloNoCanvas(pincel, forma, ponto.px, ponto.py, ponto.diametro);
     pincel.fill();
-    if (contorno && ponto.raio >= 6) {
+    if (contorno.mostrar) {
       pincel.globalAlpha = 1;
-      pincel.strokeStyle = tema.fundo;
-      pincel.lineWidth = 1;
+      pincel.strokeStyle = contorno.cor;
+      pincel.lineWidth = contorno.espessura;
+      if (typeof pincel.setLineDash === 'function') pincel.setLineDash(traco ? traco.split(',').map(Number) : []);
       pincel.stroke();
     }
   }
   pincel.globalAlpha = 1;
+  if (typeof pincel.setLineDash === 'function') pincel.setLineDash([]);
+}
+
+/** Formatador de razão (BCG: participação relativa, ex.: "1.25×"). */
+export function formatadorDeRazao(casas = 2) {
+  const f = criarFormatadorNumerico({ estilo: 'numero', casas });
+  return (v) => {
+    const t = f(v);
+    return t === '' ? '' : `${t}×`;
+  };
 }

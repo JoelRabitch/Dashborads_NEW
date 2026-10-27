@@ -210,3 +210,75 @@ export function animarTracado({ elementoPath, animacao, controlador, atrasoExtra
     },
   });
 }
+
+/* ------------------------------------------------------------------ */
+/* Animação genérica de entrada e atualização (módulo 2.7)              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Interruptor GLOBAL da biblioteca: false desliga toda animação de todos
+ * os gráficos no próximo build, sem mexer em painel nenhum. A opção
+ * "Ativar animações" (`animacaoAtiva`) é o interruptor de cada gráfico.
+ */
+export const ANIMACOES_HABILITADAS = true;
+
+/** Curvas do painel em CSS (a animação genérica usa CSS, não rAF). */
+const CURVAS_CSS = {
+  linear: 'linear',
+  saida: 'cubic-bezier(.33,1,.68,1)',
+  entrada: 'cubic-bezier(.32,0,.67,0)',
+  ambos: 'cubic-bezier(.65,0,.35,1)',
+  elastica: 'cubic-bezier(.34,1.56,.64,1)',
+  quique: 'cubic-bezier(.34,1.8,.64,1)',
+};
+
+const CSS_ANIMACAO_GENERICA = `
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+@keyframes bl-surgir-html{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+`;
+
+/** O que conta como "marca" para animar. */
+const SELETOR_DE_MARCAS =
+  'svg rect, svg path, svg circle, svg ellipse, svg polygon, svg polyline, svg line, svg text, svg image, .bl-anima';
+
+/** Acima disso, anima o SVG inteiro de uma vez (cascata custaria caro). */
+const MAXIMO_DE_MARCAS = 600;
+
+/**
+ * Por que é genérica: antes só o bar_race animava; os gráficos com a aba
+ * Animação (venn, upset, árvores, organograma) declaravam as opções e não
+ * animavam nada. Esta função roda DEPOIS de cada render, em todos os
+ * gráficos (define-viz), e faz as marcas surgirem com a duração, o atraso,
+ * a cascata e a curva escolhidos.
+ *
+ * Só OPACIDADE nos elementos SVG: `transform` em CSS substituiria o
+ * atributo `transform` dos marcadores e rótulos (eles pulariam para a
+ * origem durante a animação). Em HTML (`.bl-anima`) há também um leve
+ * deslocamento.
+ *
+ * @returns {number} quantos elementos receberam animação
+ */
+export function animarEntradaGenerica(area, config = {}, { primeiraRenderizacao = true } = {}) {
+  if (!area || !ANIMACOES_HABILITADAS) return 0;
+  const op = opcoesDeAnimacao(config, { primeiraRenderizacao });
+  if (!op.ligada || op.duracao <= 0) return 0;
+
+  const raiz = (area.closest && area.closest('.bl-raiz')) || area;
+  if (!raiz.querySelector('style[data-estilo="bl-animacao"]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-estilo', 'bl-animacao');
+    style.textContent = CSS_ANIMACAO_GENERICA;
+    raiz.appendChild(style);
+  }
+
+  const curva = CURVAS_CSS[config.suavizacaoDaAnimacao] || CURVAS_CSS.saida;
+  let marcas = Array.from(area.querySelectorAll(SELETOR_DE_MARCAS));
+  if (marcas.length > MAXIMO_DE_MARCAS) marcas = Array.from(area.querySelectorAll('svg, .bl-anima'));
+  // A cascata não pode alongar a entrada além de ~1,5x a duração.
+  const passo = marcas.length > 1 ? Math.min(op.cascata, (op.duracao * 1.5) / marcas.length) : 0;
+  marcas.forEach((el, i) => {
+    const nome = el.namespaceURI === 'http://www.w3.org/2000/svg' ? 'bl-surgir' : 'bl-surgir-html';
+    el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms both`;
+  });
+  return marcas.length;
+}

@@ -18,7 +18,8 @@ import { FIXTURES } from './fixtures/index.mjs';
 import { montarAmbiente, criarInstancia, configPadrao } from './ambiente.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DIR_DIST = join(resolve(__dirname, '..'), 'dist');
+// BL_DIST permite rodar contra outro diretório de bundles (reprodução).
+const DIR_DIST = process.env.BL_DIST || join(resolve(__dirname, '..'), 'dist');
 
 function renderizar(id, nomeDaFixture, ajustes = {}) {
   const amb = montarAmbiente();

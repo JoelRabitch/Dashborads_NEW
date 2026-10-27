@@ -13,8 +13,10 @@
  */
 
 import { criarSvgEl, definirTexto } from '../../core/dom.js';
-import { coresDaPaleta, comOpacidade } from '../../core/theme.js';
 import { truncar } from '../../core/format.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo, esconderColisoes, larguraDoTexto } from '../../core/rotulos.js';
+import { paletaDoConfig, corDoItem, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
+import { criarMarcadorSvg, formaDoMarcador } from '../../core/shapes.js';
 import { listaDeValores } from '../../core/options-kit.js';
 import { tree as d3Tree, cluster as d3Cluster } from 'd3-hierarchy';
 
@@ -202,11 +204,60 @@ function caminhoHorizontal(origem, destino, forma) {
 }
 
 /**
+ * Texto do rótulo de um nó conforme "O que mostrar no rótulo".
+ *
+ * Numa árvore o rótulo é, antes de tudo, o NOME do nó — e o default do
+ * painel ("valor") não pode trocar o nome por um número em dashboards
+ * salvos. Por isso o mapeamento aqui é:
+ *   - "valor" (padrão): o nome, e "nome (valor)" se "Incluir o valor no
+ *     rótulo" estiver ligado (comportamento de antes);
+ *   - "nome": só o nome;
+ *   - "nomeValor": "nome: valor";
+ *   - "percentual": "nome (x% do total)";
+ *   - "valorPercentual": "nome (valor · x%)".
+ * O valor sai de `textoDoRotulo` (formato e casas do painel). Só o NOME é
+ * truncado — truncar o número esconderia justamente o dado.
+ */
+export function textoDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor = false, limite = 24 } = {}) {
+  const nome = truncar(String(no.data.rotulo || ''), limite);
+  const semCorte = Object.assign({}, rot, { truncar: 0 });
+  const valor = no.value || 0;
+  const textoValor = () => textoDoRotulo(Object.assign({}, semCorte, { conteudo: 'valor' }), { valor, valueFormat });
+  const textoPct = () =>
+    textoDoRotulo(Object.assign({}, semCorte, { conteudo: 'percentual' }), { valor, total, valueFormat });
+  switch (rot.conteudo) {
+    case 'nome':
+      return nome;
+    case 'nomeValor':
+      return `${nome}: ${textoValor()}`;
+    case 'percentual':
+      return `${nome} (${textoPct()})`;
+    case 'valorPercentual':
+      return `${nome} (${textoValor()} · ${textoPct()})`;
+    case 'valor':
+    default:
+      return mostrarValor ? `${nome} (${textoValor()})` : nome;
+  }
+}
+
+/**
  * Desenha uma árvore já posicionada.
+ *
+ * Opções do painel lidas AQUI, a cada desenho (correções v2):
+ *   - rótulos (6.1): todo o bloco "Rótulos" via `lerRotulos`/`estilizarRotulo`
+ *     — mostrar, tamanho, cor, negrito, rotação, truncar, posição,
+ *     conteúdo, formato, casas e "esconder sobrepostos";
+ *   - cores (6.2): preenchimento + opacidade (`aplicarPreenchimento`) e
+ *     contorno (`lerContorno`/`aplicarContorno`); ligações na cor de borda
+ *     do tema;
+ *   - marcadores (6.4): nós pela função única `criarMarcadorSvg`
+ *     (círculo, ou `config.formaDoPonto` se o gráfico tiver essa opção).
  *
  * @param {object} params
  * @param {'radial'|'horizontal'} params.modo
- * @returns {{nos:Array<{no:object, elemento:Element}>}}
+ * @param {string} [params.valueFormat] value_format do campo do valor
+ * @param {number} [params.totalGeral] base do "percentual do total"
+ * @returns {{nos:Array<{no:object, elemento:Element}>, grupo:Element}}
  */
 export function desenharArvore({
   svg,
@@ -215,7 +266,8 @@ export function desenharArvore({
   deslocamento = { x: 0, y: 0 },
   config,
   tema,
-  formatar,
+  valueFormat,
+  totalGeral = null,
   cores,
   aoInteragir,
   compacto = false,
@@ -234,6 +286,8 @@ export function desenharArvore({
   const maiorValor = valorDeReferencia || raiz.value || 1;
 
   // --- Ligações (antes dos nós, para ficarem por baixo) ---
+  // Na cor de borda do tema: a cor do ramo já está nos nós, e a "Cor das
+  // bordas" do tema personalizado passa a valer também aqui.
   const grupoDeLigacoes = criarSvgEl('g', { pai: grupo, classe: 'av-ligacoes' });
   for (const no of raiz.descendants()) {
     if (!no.parent) continue;
@@ -245,7 +299,7 @@ export function desenharArvore({
       classe: 'av-ligacao',
       atributos: {
         d: modo === 'radial' ? caminhoRadial(no.parent, no, forma) : caminhoHorizontal(no.parent, no, forma),
-        stroke: comOpacidade(cores(no), 0.45),
+        stroke: tema.bordaForte || tema.borda,
         'stroke-width': espessura,
       },
     });
@@ -254,7 +308,13 @@ export function desenharArvore({
   // --- Nós ---
   const grupoDeNos = criarSvgEl('g', { pai: grupo, classe: 'av-nos' });
   const tamanhoBase = Number(config.tamanhoDoNo);
+  const formaDoNo = formaDoMarcador(config.formaDoPonto);
+  const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
+  const rot = lerRotulos(config, tema);
+  const limiteDoNome = rot.truncar > 0 ? rot.truncar : compacto ? 14 : 24;
+  const total = totalGeral || raiz.value || 0;
   const saida = [];
+  const caixasDeRotulo = [];
 
   for (const no of raiz.descendants()) {
     const [x, y] = modo === 'radial' ? paraCartesiano(no.x, no.y) : [no.y, no.x];
@@ -265,42 +325,45 @@ export function desenharArvore({
       : 4;
 
     if (raioDoNo > 0) {
-      const elemento = criarSvgEl('circle', {
-        pai: grupoDeNos,
+      const diametro = raioDoNo * 2;
+      const elemento = criarMarcadorSvg(grupoDeNos, formaDoNo, x, y, diametro, {
         classe: 'av-no',
-        atributos: { cx: x, cy: y, r: raioDoNo, fill: cores(no), stroke: tema.fundo, 'stroke-width': 1 },
+        'data-diametro': diametro.toFixed(2),
       });
+      aplicarPreenchimento(elemento, cores(no), config);
+      aplicarContorno(elemento, contorno);
       saida.push({ no, elemento });
       if (typeof aoInteragir === 'function') aoInteragir(elemento, no);
     }
 
     // --- Rótulo ---
+    if (!rot.mostrar) continue;
     const ehFolha = !no.children || !no.children.length;
     const querRotulo = ehFolha
       ? config.mostrarRotulosDeFolha !== false
       : config.mostrarRotulosInternos === true;
     if (!querRotulo || !no.data.rotulo) continue;
 
-    const texto = config.mostrarValorNoRotulo && formatar
-      ? `${no.data.rotulo} (${formatar(no.value || 0)})`
-      : no.data.rotulo;
+    const texto = textoDoRotuloDoNo(rot, no, {
+      valueFormat,
+      total,
+      mostrarValor: config.mostrarValorNoRotulo === true,
+      limite: limiteDoNome,
+    });
 
     const el = criarSvgEl('text', {
       pai: grupo,
       classe: 'av-rotulo',
-      atributos: {
-        'font-size': Number(config.tamanhoDoRotulo) || Math.max(8, tema.tamanhoBase - (compacto ? 3 : 1)),
-        fill: config.corDoRotulo || tema.texto,
-        'dominant-baseline': 'central',
-      },
+      atributos: { 'dominant-baseline': 'central' },
     });
+    definirTexto(el, texto);
 
+    const afastamento = Math.max(0, raioDoNo) + 4;
     if (modo === 'radial') {
       // No círculo, o texto acompanha o raio e vira de cabeça para baixo na
       // metade esquerda, senão fica ilegível.
       const viradoParaEsquerda = no.x >= Math.PI;
       const anguloEmGraus = (no.x * 180) / Math.PI - 90;
-      const afastamento = raioDoNo + 4;
       el.setAttribute(
         'transform',
         `rotate(${anguloEmGraus}) translate(${no.y + (viradoParaEsquerda ? -afastamento : afastamento)},0)${
@@ -308,21 +371,57 @@ export function desenharArvore({
         }`
       );
       el.setAttribute('text-anchor', viradoParaEsquerda ? 'end' : 'start');
-    } else {
-      el.setAttribute('x', x + (ehFolha ? raioDoNo + 4 : -(raioDoNo + 4)));
-      el.setAttribute('y', y);
-      el.setAttribute('text-anchor', ehFolha ? 'start' : 'end');
+      estilizarRotulo(el, rot, { x: 0, y: 0 });
+      continue;
     }
 
-    definirTexto(el, truncar(texto, Number(config.truncarRotulo) || (compacto ? 14 : 24)));
+    // "Posição do rótulo" no layout horizontal:
+    //   auto  = folha à direita do nó, nó interno à esquerda (como antes);
+    //   fora / foraComLinha = sempre à direita; dentro = sempre à esquerda;
+    //   centro = centralizado acima do nó.
+    let ancora;
+    let tx;
+    let ty = y;
+    if (rot.posicao === 'centro') {
+      ancora = 'middle';
+      tx = x;
+      ty = y - afastamento - rot.tamanho / 2;
+    } else {
+      const aDireita =
+        rot.posicao === 'fora' || rot.posicao === 'foraComLinha' ? true : rot.posicao === 'dentro' ? false : ehFolha;
+      ancora = aDireita ? 'start' : 'end';
+      tx = aDireita ? x + afastamento : x - afastamento;
+    }
+    el.setAttribute('x', tx);
+    el.setAttribute('y', ty);
+    el.setAttribute('text-anchor', ancora);
+    estilizarRotulo(el, rot, { x: tx, y: ty });
+
+    const largura = larguraDoTexto(texto, rot.tamanho);
+    caixasDeRotulo.push({
+      el,
+      peso: no.value || 0,
+      x: ancora === 'start' ? tx + largura / 2 : ancora === 'end' ? tx - largura / 2 : tx,
+      y: ty,
+      largura,
+      altura: rot.tamanho * 1.2,
+    });
   }
+
+  // "Esconder rótulos que se sobrepõem": os nós de maior valor ficam.
+  caixasDeRotulo.sort((a, b) => b.peso - a.peso);
+  esconderColisoes(caixasDeRotulo, rot);
 
   return { nos: saida, grupo };
 }
 
-/** Função de cor conforme a opção escolhida. */
+/**
+ * Função de cor conforme a opção escolhida. A paleta vem de
+ * `paletaDoConfig` — que respeita "Inverter ordem das cores" (antes era
+ * ignorado: lia-se `coresDaPaleta(config.paleta)` direto).
+ */
 export function criarCoresDaArvore(raiz, config, tema) {
-  const paleta = coresDaPaleta(config.paleta);
+  const paleta = paletaDoConfig(config);
   const corUnica = config.corUnica || paleta[0] || tema.destaque;
 
   if (config.colorirPor === 'unica') return () => corUnica;
@@ -334,7 +433,7 @@ export function criarCoresDaArvore(raiz, config, tema) {
   // Por ramo: todo descendente herda a cor do filho-da-raiz de que desce.
   const corPorRamo = new Map();
   (raiz.children || []).forEach((filho, i) => {
-    corPorRamo.set(filho, paleta[i % paleta.length]);
+    corPorRamo.set(filho, corDoItem(config, i));
   });
 
   return (no) => {

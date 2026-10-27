@@ -17,7 +17,8 @@ import { montarAmbiente, criarInstancia, configPadrao } from './ambiente.mjs';
 import { calcularSharpe } from '../src/charts/risco_retorno/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const BUNDLE = join(resolve(__dirname, '..'), 'dist', 'risco_retorno.js');
+// BL_DIST permite rodar contra outro diretório de bundles (reprodução).
+const BUNDLE = join(process.env.BL_DIST || join(resolve(__dirname, '..'), 'dist'), 'risco_retorno.js');
 
 const perto = (a, b) => Math.abs(a - b) < 1e-9;
 
@@ -132,7 +133,8 @@ test('risco_retorno — desenha a reta de Sharpe e destaca o melhor', (t) => {
       r.textos.some((texto) => /Melhor Sharpe/.test(texto)),
       'a reta precisa vir rotulada com o índice'
     );
-    assert.ok(r.palco.querySelector('canvas'), 'os pontos continuam no canvas');
+    assert.ok(r.palco.querySelector('.qd-ponto.bl-marcador'), 'os pontos continuam desenhados');
+    assert.ok(r.palco.querySelector('.rr-destaque'), 'faltou o destaque do melhor Sharpe');
     assert.ok(
       r.linhas.some((linha) => (linha.getAttribute('stroke-dasharray') || '').includes('6')),
       'faltou a reta tracejada de Sharpe'
@@ -171,7 +173,8 @@ test('risco_retorno — desligar a reta não quebra o gráfico', (t) => {
       !r.textos.some((texto) => /Melhor Sharpe/.test(texto)),
       'com a opção desligada, o rótulo não deveria aparecer'
     );
-    assert.ok(r.palco.querySelector('canvas'), 'a dispersão continua');
+    assert.ok(r.palco.querySelector('.qd-ponto.bl-marcador'), 'a dispersão continua');
+    assert.equal(r.palco.querySelector('.rr-destaque'), null, 'destaque desligado');
     assert.equal(r.amb.chamadasDeApi.erros.length, 0);
   } finally {
     r.fim();

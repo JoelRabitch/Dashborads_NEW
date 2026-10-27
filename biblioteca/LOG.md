@@ -2859,3 +2859,60 @@ Falta na tabela: aviso amarelo (2.5) e animação (2.7).
   ("x · x") porque não limpava antes de desenhar.
 - `test/avisos.test.mjs` (2): falham com o bundle antigo, passam no novo.
 - CONFERIR NO LOOKER REAL: o aviso no bar_race não cobre mais o botão.
+
+### 2.7 Animação — núcleo (concluído)
+- Causa: só o bar_race animava. Venn, upset, árvores e organograma
+  declaravam a aba Animação e NÃO animavam nada (as opções eram lidas só
+  por `animate.js`, que ninguém chamava).
+- `animate.animarEntradaGenerica`: roda no define-viz DEPOIS de cada render
+  em todo gráfico (exceto os com `animacaoPropria: true` — tabela e
+  bar_race, que animam sozinhos). Usa duração, atraso, cascata e curva do
+  painel (curvas mapeadas para CSS); "Só na primeira carga" respeitado;
+  `prefers-reduced-motion` desliga.
+- **Decisão:** só OPACIDADE em SVG (CSS `transform` substituiria o atributo
+  `transform` dos marcadores, que pulariam para a origem).
+- Interruptores: `animacaoAtiva` (por gráfico, agora presente em TODOS —
+  as opções de animação que o gráfico não declarava foram somadas como ids
+  novos, sem o contador) e `ANIMACOES_HABILITADAS` em `core/animate.js`
+  (global da biblioteca, vale no próximo build).
+- `test/animacao.test.mjs` (6): 5 falham com os bundles antigos.
+
+### Frentes concluídas: quadrantes (4) e árvores/org/KPI (3)
+**Quadrantes** (`_quadrantes`; quadrant_scatter, matriz_2x2, matriz_bcg,
+risco_retorno) — `test/correcoes_quadrantes.test.mjs` (13; 12 falhavam no
+bundle antigo):
+- Rótulos pelo módulo único; `truncarRotulo: 0` virava 18 (`|| 18`, o "0
+  tratado como ausente"). Decisão: `conteudoDoRotulo: 'valor'` continua
+  mostrando o NOME do ponto (compatibilidade); valores novos no select:
+  `valorY`, `valorX`, `valoresXY` (o id não muda).
+- Pontos: eram desenhados SÓ em canvas. Agora até 2.000 pontos são
+  marcadores SVG pela função única (`formaDoPonto` testada: troca a
+  forma no redesenho); acima disso canvas com a mesma forma. A causa
+  exata de "a forma não muda" no Looker real não foi provada — conferir.
+- Cores: inverter, opacidade (`opacidadeDoPonto` × `opacidade`), modo de
+  cor, contorno completo; quadrantes pintados com fill + fill-opacity
+  (aceita qualquer cor CSS; antes uma cor que `corParaRgb` não entendia
+  pintava o quadrante opaco).
+- Tooltip mostrava número cru ("-6.18841", "3.7036800000000003") —
+  reproduzido; agora texto do Looker. Clique: drill/fixar.
+- BCG: com participação relativa, X sai como razão ("1.03×").
+- "Aba de quadrantes bugada": hipótese forte = as seções próprias
+  ("Quadrantes", "Pontos", "Sharpe") caíam todas na base 1200 com `order`
+  colidindo entre abas; resolvido pela reorganização 2.8.
+**Árvores/org/KPI** — `test/correcoes_arvores_kpi.test.mjs` (21; 19
+falhavam no código antigo):
+- arvores_multiplas: todas as opções de rótulo (posição, conteúdo,
+  formato, colisão), inverter paleta, "cor por nível" (antes toda a mini
+  árvore saía na cor do ramo), opacidade, contorno, nós pela função única
+  de marcadores, tooltip com value_format do campo, clique pela ação.
+- org_chart: textos do cartão com tamanho/cor/negrito/rotação/posição/
+  conteúdo/formato; contorno e cores; o +/− de recolher não dispara drill.
+- kpi_vivo: **decisão:** o número principal é o "rótulo de dado" (formato,
+  casas, conteúdo); título/variação/base são os rótulos secundários
+  (mostrar, tamanho, cor, negrito, rotação, truncar, posição, colisão).
+- **Decisão (contorno):** o default de `corDoContorno` é '#FFFFFF' e não
+  pode mudar; nos gráficos onde branco fixo some no fundo, o branco
+  padrão é tratado como "automático" (cor do ramo / do fundo do tema).
+Precisa ser conferido no Looker real: forma dos pontos na matriz_2x2,
+drill real, tooltip fixo no iframe, canvas > 2.000 pontos, KPI em tile
+pequeno, contorno no tema escuro.

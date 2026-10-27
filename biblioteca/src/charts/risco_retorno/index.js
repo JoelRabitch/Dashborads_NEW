@@ -13,10 +13,16 @@
  * O desenho vem de `../_quadrantes/`, que já faz dispersão com eixos,
  * tamanho e cor por medida. O que muda aqui é a semântica e a reta de
  * Sharpe por cima.
+ *
+ * Rótulos, cores, forma dos pontos e tooltip seguem a base (correções v2);
+ * o tooltip ganha a linha "Índice de Sharpe" e o destaque do melhor ativo
+ * usa a mesma forma escolhida para os pontos.
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarSvgEl, definirTexto } from '../../core/dom.js';
+import { criarMarcadorSvg } from '../../core/shapes.js';
+import { criarFormatadorNumerico } from '../../core/format.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -34,6 +40,7 @@ import {
   opcoesDinamicasDeCampos,
   renderizarQuadrantes,
   destruirQuadrantes,
+  comRotulosDePonto,
 } from '../_quadrantes/index.js';
 
 /** Nomes que fazem sentido quando os eixos são risco e retorno. */
@@ -47,7 +54,7 @@ const NOMES_PADRAO = {
 export default defineViz({
   id: 'risco_retorno',
   label: 'Risco x Retorno',
-  opcoes: comDefaults(
+  opcoes: comRotulosDePonto(comDefaults(
     montarOpcoes(
       blocoDeCores(),
       blocoDeEixos(),
@@ -93,7 +100,7 @@ export default defineViz({
       quantosRotulosDePonto: 30,
       mostrarContagemPorQuadrante: false,
     }
-  ),
+  )),
   exigencia: { dimensoesMin: 1, medidasMin: 2, aceitaPivo: false, exigeLinhas: true },
 
   opcoesDinamicas({ modelo }) {
@@ -103,10 +110,23 @@ export default defineViz({
   render(ctx) {
     const { config, tema } = ctx;
 
-    const resultado = renderizarQuadrantes(ctx, { nomesPadrao: NOMES_PADRAO });
+    const resultado = renderizarQuadrantes(ctx, {
+      nomesPadrao: NOMES_PADRAO,
+      // O índice entra no tooltip; é calculado logo abaixo (antes do
+      // primeiro hover), por isso a função lê `ponto.sharpe` na hora.
+      linhasDoTooltip(ponto) {
+        if (ponto.sharpe === undefined) return [];
+        return [
+          {
+            rotulo: 'Índice de Sharpe',
+            valor: ponto.sharpe === null ? 'sem índice (risco ≤ 0)' : FORMATO_DO_SHARPE(ponto.sharpe),
+          },
+        ];
+      },
+    });
     if (!resultado) return;
 
-    const { pontos, escalaX, escalaY, retangulo, svg } = resultado;
+    const { pontos, escalaX, escalaY, retangulo, svg, estiloDosPontos } = resultado;
     const taxaLivre = numeroOuZero(config.taxaLivreDeRisco);
 
     const comSharpe = calcularSharpe(pontos, taxaLivre);
@@ -128,7 +148,7 @@ export default defineViz({
 
       criarSvgEl('line', {
         pai: svg,
-        classe: 'qd-rotulo-ponto',
+        classe: 'rr-reta-sharpe',
         atributos: {
           x1: x0,
           y1: y0,
@@ -143,32 +163,29 @@ export default defineViz({
 
       const rotulo = criarSvgEl('text', {
         pai: svg,
-        classe: 'qd-rotulo-ponto',
+        classe: 'rr-rotulo-sharpe',
         atributos: {
           x: direita - 4,
           y: Math.max(retangulo.cima + 10, Math.min(retangulo.cima + retangulo.altura - 4, yNaBorda - 5)),
           'text-anchor': 'end',
           'font-size': Math.max(9, tema.tamanhoBase - 1),
+          'font-family': tema.fonte,
           fill: config.corDaRetaDeSharpe || tema.texto,
         },
       });
-      definirTexto(rotulo, `Melhor Sharpe: ${comSharpe.melhor.sharpe.toFixed(2)}`);
+      definirTexto(rotulo, `Melhor Sharpe: ${FORMATO_DO_SHARPE(comSharpe.melhor.sharpe)}`);
     }
 
     // ---------- Destaque do melhor ----------
+    // Um anel com a MESMA forma dos pontos (função única de marcadores),
+    // 10 px maior que o ponto destacado.
     if (config.destacarMelhorSharpe !== false) {
       const melhor = comSharpe.melhor;
-      criarSvgEl('circle', {
-        pai: svg,
-        classe: 'qd-rotulo-ponto',
-        atributos: {
-          cx: escalaX(melhor.x),
-          cy: escalaY(melhor.y),
-          r: (melhor.raio || 6) / 2 + 5,
-          fill: 'none',
-          stroke: config.corDaRetaDeSharpe || tema.texto,
-          'stroke-width': 2,
-        },
+      criarMarcadorSvg(svg, estiloDosPontos.forma, escalaX(melhor.x), escalaY(melhor.y), (melhor.diametro || 6) + 10, {
+        classe: 'rr-destaque',
+        fill: 'none',
+        stroke: config.corDaRetaDeSharpe || tema.texto,
+        'stroke-width': 2,
       });
     }
 
@@ -184,6 +201,9 @@ export default defineViz({
 });
 
 /* ------------------------------------------------------------------ */
+
+/** O Sharpe é um número derivado (não vem do Looker): 2 casas. */
+const FORMATO_DO_SHARPE = criarFormatadorNumerico({ estilo: 'numero', casas: 2 });
 
 function numeroOuZero(texto) {
   const n = Number(String(texto ?? '0').replace(',', '.'));

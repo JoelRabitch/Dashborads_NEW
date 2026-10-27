@@ -1,7 +1,7 @@
 /*!
  * Organograma — visualização customizada para o Looker
  * id: org_chart
- * versão: 0.1.0 | build: 2026-10-27 13:46:04 | commit: 3a8b5dd
+ * versão: 0.1.0 | build: 2026-10-27 14:01:19 | commit: 442b80e
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -107,7 +107,11 @@
         const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
-        const completas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const completas = {};
+        Object.keys(juntas).sort((a, b) => (Number(juntas[a].order) || 0) - (Number(juntas[b].order) || 0)).forEach((k) => {
+          completas[k] = juntas[k];
+        });
         instancia._blOpcoesRegistradas = completas;
         instancia.trigger("registerOptions", completas);
         return true;
@@ -420,7 +424,7 @@
     var group = locale2.grouping === void 0 || locale2.thousands === void 0 ? identity_default : formatGroup_default(map.call(locale2.grouping, Number), locale2.thousands + ""), currencyPrefix = locale2.currency === void 0 ? "" : locale2.currency[0] + "", currencySuffix = locale2.currency === void 0 ? "" : locale2.currency[1] + "", decimal = locale2.decimal === void 0 ? "." : locale2.decimal + "", numerals = locale2.numerals === void 0 ? identity_default : formatNumerals_default(map.call(locale2.numerals, String)), percent = locale2.percent === void 0 ? "%" : locale2.percent + "", minus = locale2.minus === void 0 ? "\u2212" : locale2.minus + "", nan = locale2.nan === void 0 ? "NaN" : locale2.nan + "";
     function newFormat(specifier, options) {
       specifier = formatSpecifier(specifier);
-      var fill = specifier.fill, align = specifier.align, sign = specifier.sign, symbol = specifier.symbol, zero = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
+      var fill = specifier.fill, align = specifier.align, sign2 = specifier.sign, symbol = specifier.symbol, zero = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
       if (type === "n") comma = true, type = "g";
       else if (!formatTypes_default[type]) precision === void 0 && (precision = 12), trim = true, type = "g";
       if (zero || fill === "0" && align === "=") zero = true, fill = "0", align = "=";
@@ -437,9 +441,9 @@
           var valueNegative = value < 0 || 1 / value < 0;
           value = isNaN(value) ? nan : formatType(Math.abs(value), precision);
           if (trim) value = formatTrim_default(value);
-          if (valueNegative && +value === 0 && sign !== "+") valueNegative = false;
-          valuePrefix = (valueNegative ? sign === "(" ? sign : minus : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
-          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
+          if (valueNegative && +value === 0 && sign2 !== "+") valueNegative = false;
+          valuePrefix = (valueNegative ? sign2 === "(" ? sign2 : minus : sign2 === "-" || sign2 === "(" ? "" : sign2) + valuePrefix;
+          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign2 === "(" ? ")" : "");
           if (maybeSuffix) {
             i = -1, n = value.length;
             while (++i < n) {
@@ -1662,12 +1666,6 @@
     if (m) return [Number(m[1]), Number(m[2]), Number(m[3])];
     return null;
   }
-  function comOpacidade(cor, opacidade) {
-    const rgb2 = corParaRgb(cor);
-    if (!rgb2) return cor;
-    const a = Math.max(0, Math.min(1, Number(opacidade)));
-    return `rgba(${rgb2[0]},${rgb2[1]},${rgb2[2]},${a})`;
-  }
 
   // src/core/options-kit.js
   var SECOES = {
@@ -1706,7 +1704,7 @@
     const {
       comPaleta = true,
       comEscalaPorValor = true,
-      comOpacidade: comOpacidade2 = true,
+      comOpacidade = true,
       comContorno = true,
       opacidadePadrao = 1,
       secao = "Cores"
@@ -1805,7 +1803,7 @@
         display_size: "half"
       };
     }
-    if (comOpacidade2) {
+    if (comOpacidade) {
       bloco.opacidade = {
         type: "number",
         label: "Opacidade do preenchimento",
@@ -2231,6 +2229,110 @@
       }
     };
   }
+  var JUNTAR_EIXOS_E_TEXTO = true;
+  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABA_POR_SECAO = {
+    Dados: "Dados",
+    Medidas: "Dados",
+    Formato: "Visual",
+    Cores: "Visual",
+    Cor: "Visual",
+    Tema: "Visual",
+    Refer\u00EAncias: "Visual",
+    Eixos: "Eixos",
+    R\u00F3tulos: "Texto",
+    Legenda: "Texto",
+    Intera\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Anima\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Avan\u00E7ado: "Avan\xE7ado"
+  };
+  var PREFIXO_POR_SECAO = {
+    Cores: "Cor",
+    Cor: "Cor",
+    R\u00F3tulos: "R\xF3tulo",
+    Legenda: "Legenda",
+    Anima\u00E7\u00E3o: "Anima\xE7\xE3o",
+    Refer\u00EAncias: "Refer\xEAncia"
+  };
+  var DESTINO_POR_ID = {
+    titulo: ["Texto", "T\xEDtulo"],
+    subtitulo: ["Texto", "T\xEDtulo"],
+    textoSemDados: ["Texto", "Aviso"],
+    mostrarAvisos: ["Texto", "Aviso"],
+    posicaoDosAvisos: ["Texto", "Aviso"],
+    tema: ["Visual", "Tema"],
+    corDeFundo: ["Visual", "Cor"],
+    corDoTexto: ["Visual", "Cor"],
+    corDaBorda: ["Visual", "Cor"],
+    corDaGrade: ["Visual", "Cor"],
+    familiaDaFonte: ["Visual", "Tema"],
+    tamanhoDaFonte: ["Visual", "Tema"],
+    formatoDoEixo: ["Eixos", "Eixo"],
+    casasDecimaisDoEixo: ["Eixos", "Eixo"],
+    usarEixoSecundario: ["Eixos", "Eixo"],
+    tratamentoDeNulos: ["Dados", ""],
+    textoParaNulo: ["Dados", ""]
+  };
+  function abaPeloId(id, opcao) {
+    const t = id.toLowerCase();
+    if (/debug|json/.test(t)) return "Avan\xE7ado";
+    if (/tooltip|drill|clique|hover|destacar(no|ao)|anima|duracao|atraso|cascata|tocando|repetir|busca|recolher|expandi|interativ|crossfilter|selec|zoom|arrastar|copiar|exportar|redimensionar|ordenar$|permitir/.test(t)) {
+      return "Intera\xE7\xE3o";
+    }
+    if (/eixo/.test(t)) return "Eixos";
+    if (/rotulo|escrever|mostrarvalor|mostrarpercentual|mostrarposicao|mostrarrank|titulo|legenda|aviso|texto|mostrartotais|mostrarcontagem|nome$/.test(t)) {
+      return "Texto";
+    }
+    if (opcao && opcao.display === "color") return "Visual";
+    if (/^cor|cor$|cores|paleta|opacidade|forma|tamanho|espessura|raio|altura|largura|espaco|contorno|borda|grade|zebra|fundo|estilo|densidade|layout|orientacao|curva|ligacao|preencher|pintar|zona|guias|ponto|sparkline|icone|cartao|arranjo|colunasdagrade|escala/.test(t)) {
+      return "Visual";
+    }
+    return "Dados";
+  }
+  function organizarAbas(opcoes) {
+    const itens = [];
+    let i = 0;
+    for (const [id, original] of Object.entries(opcoes || {})) {
+      if (!original || typeof original !== "object") continue;
+      if (original._organizada) {
+        itens.push([id, original]);
+        continue;
+      }
+      const opcao = { ...original };
+      const secaoAntiga = opcao.section || "Avan\xE7ado";
+      let aba;
+      let prefixo;
+      if (DESTINO_POR_ID[id]) {
+        [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Coluna: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
+      } else if (ABA_POR_SECAO[secaoAntiga]) {
+        aba = ABA_POR_SECAO[secaoAntiga];
+        prefixo = PREFIXO_POR_SECAO[secaoAntiga];
+        if (aba === "Eixos") prefixo = /X$|X[A-Z]/.test(id) ? "Eixo X" : /Y$|Y[A-Z]/.test(id) ? "Eixo Y" : "Eixo";
+        if (secaoAntiga === "Intera\xE7\xE3o") prefixo = /tooltip|Tooltip|HtmlDoLooker/.test(id) ? "Tooltip" : "Clique";
+        if (secaoAntiga === "Tema") prefixo = "Tema";
+      } else {
+        aba = abaPeloId(id, opcao);
+        prefixo = secaoAntiga;
+      }
+      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
+      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
+        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      }
+      opcao.section = aba;
+      const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;
+      opcao.order = (ABAS.indexOf(aba) + 1) * 1e4 + ordemAntiga;
+      Object.defineProperty(opcao, "_organizada", { value: true, enumerable: false });
+      itens.push([id, opcao]);
+      i += 1;
+    }
+    itens.sort((a, b) => a[1].order - b[1].order);
+    const saida = {};
+    for (const [id, opcao] of itens) saida[id] = opcao;
+    return saida;
+  }
   function opcaoDeEscolhaDeCampo(chave, rotulo, campos, opcoes = {}) {
     const { secao = "Dados", incluirNenhum = false, padrao = null } = opcoes;
     const valores = [];
@@ -2246,6 +2348,9 @@
         values: valores
       }
     };
+  }
+  function sanitizarChave(texto) {
+    return String(texto).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
   }
   function normalizarConfig(config, opcoes) {
     const saida = Object.assign({}, config || {});
@@ -2394,10 +2499,91 @@
       }
     };
   }
+  function preferindoMenosMovimento() {
+    try {
+      return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (_) {
+      return false;
+    }
+  }
   function cancelarQuadro(id) {
     if (id === null || id === void 0) return;
     if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
     else clearTimeout(id);
+  }
+
+  // src/core/animate.js
+  var SUAVIZACOES = {
+    linear: (t) => t,
+    entrada: (t) => t * t * t,
+    saida: (t) => 1 - Math.pow(1 - t, 3),
+    ambos: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    elastica: (t) => {
+      if (t === 0 || t === 1) return t;
+      const p = 0.3;
+      return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
+    },
+    quique: (t) => {
+      const n1 = 7.5625;
+      const d1 = 2.75;
+      if (t < 1 / d1) return n1 * t * t;
+      if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+      if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+      return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    }
+  };
+  function suavizacaoPorNome(nome) {
+    return SUAVIZACOES[nome] || SUAVIZACOES.saida;
+  }
+  function opcoesDeAnimacao(config = {}, { primeiraRenderizacao = true } = {}) {
+    var _a, _b, _c;
+    const menosMovimento = preferindoMenosMovimento();
+    const ligada = config.animacaoAtiva !== false && !menosMovimento && (config.quandoAnimar !== "primeira" || primeiraRenderizacao);
+    return {
+      ligada,
+      menosMovimento,
+      duracao: ligada ? Math.max(0, Number((_a = config.duracaoDaAnimacao) != null ? _a : 600)) : 0,
+      atraso: ligada ? Math.max(0, Number((_b = config.atrasoDaAnimacao) != null ? _b : 0)) : 0,
+      cascata: ligada ? Math.max(0, Number((_c = config.cascataDaAnimacao) != null ? _c : 20)) : 0,
+      suavizacao: suavizacaoPorNome(config.suavizacaoDaAnimacao),
+      contador: ligada && config.contadorAnimado !== false
+    };
+  }
+  var ANIMACOES_HABILITADAS = true;
+  var CURVAS_CSS = {
+    linear: "linear",
+    saida: "cubic-bezier(.33,1,.68,1)",
+    entrada: "cubic-bezier(.32,0,.67,0)",
+    ambos: "cubic-bezier(.65,0,.35,1)",
+    elastica: "cubic-bezier(.34,1.56,.64,1)",
+    quique: "cubic-bezier(.34,1.8,.64,1)"
+  };
+  var CSS_ANIMACAO_GENERICA = `
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+@keyframes bl-surgir-html{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+`;
+  var SELETOR_DE_MARCAS = "svg rect, svg path, svg circle, svg ellipse, svg polygon, svg polyline, svg line, svg text, svg image, .bl-anima";
+  var MAXIMO_DE_MARCAS = 600;
+  function animarEntradaGenerica(area, config = {}, { primeiraRenderizacao = true } = {}) {
+    if (!area || !ANIMACOES_HABILITADAS) return 0;
+    const op = opcoesDeAnimacao(config, { primeiraRenderizacao });
+    if (!op.ligada || op.duracao <= 0) return 0;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-animacao"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-animacao");
+      style.textContent = CSS_ANIMACAO_GENERICA;
+      raiz.appendChild(style);
+    }
+    const curva = CURVAS_CSS[config.suavizacaoDaAnimacao] || CURVAS_CSS.saida;
+    let marcas = Array.from(area.querySelectorAll(SELETOR_DE_MARCAS));
+    if (marcas.length > MAXIMO_DE_MARCAS) marcas = Array.from(area.querySelectorAll("svg, .bl-anima"));
+    const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
+    marcas.forEach((el, i) => {
+      const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms both`;
+    });
+    return marcas.length;
   }
 
   // src/core/tooltip.js
@@ -2732,14 +2918,19 @@
 
   // src/core/define-viz.js
   var CSS_BASE = `
-.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;}
+.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+  display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;}
+.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
 .bl-titulo{font-weight:600;line-height:1.2;}
 .bl-subtitulo{opacity:.7;line-height:1.2;}
-.bl-area{position:relative;width:100%;height:100%;}
-.bl-aviso{position:absolute;left:8px;right:8px;top:6px;z-index:5;padding:4px 8px;border-radius:4px;
-  font-size:11px;line-height:1.35;pointer-events:none;}
+.bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
+.bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
+  border-radius:4px;font-size:11px;line-height:1.35;}
+.bl-aviso-texto{flex:1 1 auto;}
+.bl-aviso-fechar{flex:0 0 auto;border:none;background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-size:13px;line-height:1;padding:0 2px;opacity:.75;}
+.bl-aviso-fechar:hover{opacity:1;}
 .bl-vazio{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
   text-align:center;padding:16px;opacity:.75;font-size:13px;}
 `;
@@ -2747,15 +2938,21 @@
     const {
       id,
       label,
-      opcoes = {},
+      opcoes: opcoesDeclaradas = {},
       exigencia = {},
       opcoesDinamicas = null,
       render,
-      aoDestruir = null
+      aoDestruir = null,
+      // true = o gráfico anima sozinho (bar_race, tabela); a animação
+      // genérica de entrada (módulo 2.7) não roda por cima.
+      animacaoPropria = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
+    const opcoes = organizarAbas(
+      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
+    );
     const definicao = {
       id,
       label,
@@ -2767,9 +2964,8 @@
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
         const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
         const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+        const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
-        const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-        avisoEl.style.display = "none";
         this._bl = {
           element,
           raiz,
@@ -2798,7 +2994,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria },
             data,
             element,
             config,
@@ -2843,7 +3039,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria } = declaracao;
     const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
@@ -2852,15 +3048,14 @@
     const bl = this._bl;
     limparPendencias(bl);
     esconderTooltipsDe(bl.raiz);
-    bl.avisoEl.style.display = "none";
-    definirTexto(bl.avisoEl, "");
+    limparAviso(bl);
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -2886,6 +3081,7 @@
       ponte.mostrarErro(problema.titulo, problema.mensagem);
       return;
     }
+    posicionarAviso(bl, configFinal, id);
     for (const aviso of modelo.avisos) mostrarAviso(bl, tema, aviso);
     const { largura, altura } = medir(bl.area);
     const ctx = {
@@ -2948,8 +3144,7 @@
       redesenhar() {
         limparPendencias(bl);
         esconderTooltipsDe(bl.raiz);
-        bl.avisoEl.style.display = "none";
-        definirTexto(bl.avisoEl, "");
+        limparAviso(bl);
         try {
           render(ctx);
         } catch (e) {
@@ -2969,6 +3164,7 @@
       ctx.altura = tamanho.altura;
       bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
+      limparAviso(bl);
       try {
         render(ctx);
       } catch (e) {
@@ -2976,7 +3172,15 @@
       }
     };
     render(ctx);
+    if (!animacaoPropria) {
+      animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
+    }
     bl.primeiraRenderizacao = false;
+  }
+  function opcoesDeAnimacaoPadrao() {
+    const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
+    delete bloco.contadorAnimado;
+    return bloco;
   }
   function definicaoCreateManual(element) {
     limpar(element);
@@ -2985,9 +3189,8 @@
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
     const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
     const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+    const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
-    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-    avisoEl.style.display = "none";
     this._bl = {
       element,
       raiz,
@@ -3016,14 +3219,74 @@
     bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
     bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
   }
+  function criarAviso(raiz) {
+    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
+    avisoEl.setAttribute("role", "status");
+    criarEl("span", { classe: "bl-aviso-texto", pai: avisoEl });
+    const fechar = criarEl("button", { classe: "bl-aviso-fechar", pai: avisoEl, texto: "\xD7" });
+    fechar.type = "button";
+    fechar.setAttribute("aria-label", "Fechar aviso");
+    fechar.title = "Fechar aviso";
+    fechar.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const bl = avisoEl._bl;
+      if (bl) bl.estado.avisoFechado = textoDoAviso(bl);
+      avisoEl.style.display = "none";
+    });
+    avisoEl.style.display = "none";
+    return avisoEl;
+  }
+  function textoDoAviso(bl) {
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    return t ? t.textContent : "";
+  }
+  function limparAviso(bl) {
+    bl.avisoEl._bl = bl;
+    bl.avisoEl.style.display = "none";
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    if (t) definirTexto(t, "");
+  }
+  function posicionarAviso(bl, config, id) {
+    bl.idDoGrafico = id;
+    const ligado = config.mostrarAvisos !== false;
+    bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
+    if (bl.posicaoDoAviso === "rodape") {
+      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+    } else if (bl.avisoEl.nextSibling !== bl.area) {
+      bl.raiz.insertBefore(bl.avisoEl, bl.area);
+    }
+  }
   function mostrarAviso(bl, tema, mensagem) {
     if (!mensagem) return;
-    const atual = bl.avisoEl.textContent;
-    definirTexto(bl.avisoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
-    bl.avisoEl.style.display = "block";
+    bl.avisosNoConsole = bl.avisosNoConsole || /* @__PURE__ */ new Set();
+    if (!bl.avisosNoConsole.has(mensagem) && typeof console !== "undefined" && console.warn) {
+      bl.avisosNoConsole.add(mensagem);
+      console.warn(`[${bl.idDoGrafico || "biblioteca-looker"}] aviso: ${mensagem}`);
+    }
+    const textoEl = bl.avisoEl.querySelector(".bl-aviso-texto");
+    const atual = textoEl.textContent;
+    definirTexto(textoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
+    const fechadoPeloUsuario = !!bl.estado.avisoFechado && bl.estado.avisoFechado === textoEl.textContent;
+    bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
   }
+  var OPCOES_DE_AVISO = {
+    mostrarAvisos: {
+      type: "boolean",
+      label: "Mostrar avisos (eles sempre v\xE3o tamb\xE9m para o console)",
+      section: "Texto",
+      default: true
+    },
+    posicaoDosAvisos: {
+      type: "string",
+      label: "Posi\xE7\xE3o dos avisos",
+      section: "Texto",
+      display: "select",
+      default: "topo",
+      values: [{ Topo: "topo" }, { Rodap\u00E9: "rodape" }, { Oculto: "oculto" }]
+    }
+  };
   function mostrarEstadoVazio(bl, tema, mensagem) {
     limpar(bl.area);
     const caixa = criarEl("div", { classe: "bl-vazio", pai: bl.area, texto: mensagem });
@@ -3045,6 +3308,641 @@
       queryResponseBruto: queryResponse,
       config: configFinal
     });
+  }
+
+  // src/core/rotulos.js
+  function lerBooleano(valor, padrao) {
+    if (valor === void 0 || valor === null || valor === "") return padrao;
+    if (valor === true || valor === false) return valor;
+    if (valor === "true") return true;
+    if (valor === "false") return false;
+    return !!valor;
+  }
+  function lerNumero(valor, padrao) {
+    const n = numeroOuNulo(valor);
+    return n === null ? padrao : n;
+  }
+  function lerTexto(valor, padrao = "") {
+    if (valor === void 0 || valor === null) return padrao;
+    const t = String(valor).trim();
+    return t === "" ? padrao : t;
+  }
+  function lerRotulos(config = {}, tema = {}, padroes = {}) {
+    const { padraoVisivel = true, tamanhoPadrao = 11, casasPadrao = 1 } = padroes;
+    return {
+      mostrar: lerBooleano(config.mostrarRotulos, padraoVisivel),
+      tamanho: Math.max(6, Math.min(48, lerNumero(config.tamanhoDoRotulo, tamanhoPadrao))),
+      cor: lerTexto(config.corDoRotulo, ""),
+      // vazio = automática
+      negrito: lerBooleano(config.negritoNoRotulo, false),
+      rotacao: lerNumero(config.rotacaoDoRotulo, 0),
+      evitarColisao: lerBooleano(config.evitarColisaoDeRotulos, true),
+      truncar: Math.max(0, lerNumero(config.truncarRotulo, 0)),
+      posicao: lerTexto(config.posicaoDoRotulo, "auto"),
+      conteudo: lerTexto(config.conteudoDoRotulo, "valor"),
+      formato: lerTexto(config.formatoDoRotulo, "auto"),
+      casas: Math.max(0, Math.min(6, Math.round(lerNumero(config.casasDecimaisDoRotulo, casasPadrao)))),
+      fonte: tema.fonte,
+      corDoTema: tema.texto
+    };
+  }
+  function formatadorDoRotulo(rot, valueFormat) {
+    if (!rot || rot.formato === "auto") {
+      return formatadorDeValueFormat(valueFormat, { casas: rot ? rot.casas : 1 });
+    }
+    return criarFormatadorNumerico({ estilo: rot.formato, casas: rot.casas });
+  }
+  function textoDoRotulo(rot, dado = {}) {
+    const { valor, nome = "", total, valueFormat, textoDoValor } = dado;
+    const formatar = formatadorDoRotulo(rot, valueFormat);
+    const n = numeroOuNulo(valor);
+    const textoValor = rot.formato === "auto" && textoDoValor !== void 0 && textoDoValor !== null && textoDoValor !== "" ? String(textoDoValor) : n === null ? "" : formatar(n);
+    let fracao = numeroOuNulo(dado.percentual);
+    if (fracao === null && n !== null && numeroOuNulo(total)) fracao = n / Number(total);
+    const textoPct = fracao === null ? "" : `${(fracao * 100).toFixed(rot.casas)}%`;
+    let texto;
+    switch (rot.conteudo) {
+      case "nome":
+        texto = String(nome);
+        break;
+      case "nomeValor":
+        texto = nome !== "" && textoValor !== "" ? `${nome}: ${textoValor}` : String(nome || textoValor);
+        break;
+      case "percentual":
+        texto = textoPct || textoValor;
+        break;
+      case "valorPercentual":
+        texto = textoPct ? `${textoValor} (${textoPct})` : textoValor;
+        break;
+      case "valor":
+      default:
+        texto = textoValor;
+        break;
+    }
+    return rot.truncar > 0 ? truncar(texto, rot.truncar) : texto;
+  }
+  function estilizarRotulo(el, rot, extra = {}) {
+    if (!el || !rot) return el;
+    const cor = rot.cor || extra.corAutomatica || rot.corDoTema;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      el.setAttribute("font-size", String(rot.tamanho));
+      if (cor) el.setAttribute("fill", cor);
+      el.setAttribute("font-weight", rot.negrito ? "700" : "400");
+      if (rot.fonte) el.setAttribute("font-family", rot.fonte);
+      if (rot.rotacao) {
+        const x = extra.x !== void 0 ? extra.x : Number(el.getAttribute("x")) || 0;
+        const y = extra.y !== void 0 ? extra.y : Number(el.getAttribute("y")) || 0;
+        const anterior = el.getAttribute("transform");
+        const giro = `rotate(${rot.rotacao},${x},${y})`;
+        el.setAttribute("transform", anterior ? `${anterior} ${giro}` : giro);
+      }
+    } else {
+      el.style.fontSize = `${rot.tamanho}px`;
+      if (cor) el.style.color = cor;
+      el.style.fontWeight = rot.negrito ? "700" : "400";
+      if (rot.rotacao) {
+        const anterior = el.style.transform || "";
+        el.style.transform = `${anterior} rotate(${rot.rotacao}deg)`.trim();
+      }
+    }
+    el.setAttribute("data-rotulo", "1");
+    return el;
+  }
+
+  // node_modules/d3-shape/src/math.js
+  var epsilon = 1e-12;
+  var pi = Math.PI;
+  var halfPi = pi / 2;
+  var tau = 2 * pi;
+
+  // node_modules/d3-shape/src/curve/linear.js
+  function Linear(context) {
+    this._context = context;
+  }
+  Linear.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default:
+          this._context.lineTo(x, y);
+          break;
+      }
+    }
+  };
+  function linear_default(context) {
+    return new Linear(context);
+  }
+
+  // node_modules/d3-shape/src/curve/basis.js
+  function point(that, x, y) {
+    that._context.bezierCurveTo(
+      (2 * that._x0 + that._x1) / 3,
+      (2 * that._y0 + that._y1) / 3,
+      (that._x0 + 2 * that._x1) / 3,
+      (that._y0 + 2 * that._y1) / 3,
+      (that._x0 + 4 * that._x1 + x) / 6,
+      (that._y0 + 4 * that._y1 + y) / 6
+    );
+  }
+  function Basis(context) {
+    this._context = context;
+  }
+  Basis.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 3:
+          point(this, this._x1, this._y1);
+        // falls through
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
+        // falls through
+        default:
+          point(this, x, y);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x;
+      this._y0 = this._y1, this._y1 = y;
+    }
+  };
+  function basis_default2(context) {
+    return new Basis(context);
+  }
+
+  // node_modules/d3-shape/src/curve/cardinal.js
+  function point2(that, x, y) {
+    that._context.bezierCurveTo(
+      that._x1 + that._k * (that._x2 - that._x0),
+      that._y1 + that._k * (that._y2 - that._y0),
+      that._x2 + that._k * (that._x1 - x),
+      that._y2 + that._k * (that._y1 - y),
+      that._x2,
+      that._y2
+    );
+  }
+  function Cardinal(context, tension) {
+    this._context = context;
+    this._k = (1 - tension) / 6;
+  }
+  Cardinal.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          point2(this, this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          this._x1 = x, this._y1 = y;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point2(this, x, y);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
+    }
+  };
+  var cardinal_default = (function custom(tension) {
+    function cardinal(context) {
+      return new Cardinal(context, tension);
+    }
+    cardinal.tension = function(tension2) {
+      return custom(+tension2);
+    };
+    return cardinal;
+  })(0);
+
+  // node_modules/d3-shape/src/curve/catmullRom.js
+  function point3(that, x, y) {
+    var x1 = that._x1, y1 = that._y1, x2 = that._x2, y2 = that._y2;
+    if (that._l01_a > epsilon) {
+      var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
+      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
+      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
+    }
+    if (that._l23_a > epsilon) {
+      var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
+      x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
+      y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m;
+    }
+    that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2);
+  }
+  function CatmullRom(context, alpha) {
+    this._context = context;
+    this._alpha = alpha;
+  }
+  CatmullRom.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          this.point(this._x2, this._y2);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      if (this._point) {
+        var x23 = this._x2 - x, y23 = this._y2 - y;
+        this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
+      }
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point3(this, x, y);
+          break;
+      }
+      this._l01_a = this._l12_a, this._l12_a = this._l23_a;
+      this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a;
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
+    }
+  };
+  var catmullRom_default = (function custom2(alpha) {
+    function catmullRom(context) {
+      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
+    }
+    catmullRom.alpha = function(alpha2) {
+      return custom2(+alpha2);
+    };
+    return catmullRom;
+  })(0.5);
+
+  // node_modules/d3-shape/src/curve/monotone.js
+  function sign(x) {
+    return x < 0 ? -1 : 1;
+  }
+  function slope3(that, x2, y2) {
+    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
+    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
+  }
+  function slope2(that, t) {
+    var h = that._x1 - that._x0;
+    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
+  }
+  function point4(that, t0, t1) {
+    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
+    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
+  }
+  function MonotoneX(context) {
+    this._context = context;
+  }
+  MonotoneX.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+        case 3:
+          point4(this, this._t0, slope2(this, this._t0));
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      var t1 = NaN;
+      x = +x, y = +y;
+      if (x === this._x1 && y === this._y1) return;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          point4(this, slope2(this, t1 = slope3(this, x, y)), t1);
+          break;
+        default:
+          point4(this, this._t0, t1 = slope3(this, x, y));
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x;
+      this._y0 = this._y1, this._y1 = y;
+      this._t0 = t1;
+    }
+  };
+  function MonotoneY(context) {
+    this._context = new ReflectContext(context);
+  }
+  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x, y) {
+    MonotoneX.prototype.point.call(this, y, x);
+  };
+  function ReflectContext(context) {
+    this._context = context;
+  }
+  ReflectContext.prototype = {
+    moveTo: function(x, y) {
+      this._context.moveTo(y, x);
+    },
+    closePath: function() {
+      this._context.closePath();
+    },
+    lineTo: function(x, y) {
+      this._context.lineTo(y, x);
+    },
+    bezierCurveTo: function(x1, y1, x2, y2, x, y) {
+      this._context.bezierCurveTo(y1, x1, y2, x2, y, x);
+    }
+  };
+  function monotoneX(context) {
+    return new MonotoneX(context);
+  }
+  function monotoneY(context) {
+    return new MonotoneY(context);
+  }
+
+  // node_modules/d3-shape/src/curve/natural.js
+  function Natural(context) {
+    this._context = context;
+  }
+  Natural.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = [];
+      this._y = [];
+    },
+    lineEnd: function() {
+      var x = this._x, y = this._y, n = x.length;
+      if (n) {
+        this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0]);
+        if (n === 2) {
+          this._context.lineTo(x[1], y[1]);
+        } else {
+          var px = controlPoints(x), py = controlPoints(y);
+          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
+            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1]);
+          }
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
+      this._line = 1 - this._line;
+      this._x = this._y = null;
+    },
+    point: function(x, y) {
+      this._x.push(+x);
+      this._y.push(+y);
+    }
+  };
+  function controlPoints(x) {
+    var i, n = x.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
+    a[0] = 0, b[0] = 2, r[0] = x[0] + 2 * x[1];
+    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x[i] + 2 * x[i + 1];
+    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x[n - 1] + x[n];
+    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
+    a[n - 1] = r[n - 1] / b[n - 1];
+    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
+    b[n - 1] = (x[n] + a[n - 1]) / 2;
+    for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1];
+    return [a, b];
+  }
+  function natural_default(context) {
+    return new Natural(context);
+  }
+
+  // node_modules/d3-shape/src/curve/step.js
+  function Step(context, t) {
+    this._context = context;
+    this._t = t;
+  }
+  Step.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = this._y = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._t <= 0) {
+            this._context.lineTo(this._x, y);
+            this._context.lineTo(x, y);
+          } else {
+            var x1 = this._x * (1 - this._t) + x * this._t;
+            this._context.lineTo(x1, this._y);
+            this._context.lineTo(x1, y);
+          }
+          break;
+        }
+      }
+      this._x = x, this._y = y;
+    }
+  };
+  function step_default(context) {
+    return new Step(context, 0.5);
+  }
+  function stepAfter(context) {
+    return new Step(context, 1);
+  }
+
+  // src/core/shapes.js
+  var CURVAS = {
+    linear: linear_default,
+    monotone: monotoneX,
+    monotoneY,
+    basis: basis_default2,
+    catmull: catmullRom_default.alpha(0.5),
+    cardinal: cardinal_default,
+    natural: natural_default,
+    step: step_default,
+    stepAfter
+  };
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
+    return null;
+  }
+
+  // src/core/cores.js
+  function paletaDoConfig(config = {}) {
+    const cores = coresDaPaleta(config.paleta).slice();
+    if (lerBooleano(config.inverterPaleta, false)) cores.reverse();
+    return cores;
+  }
+  function corDoItem(config = {}, indice = 0, chave, { prefixo = "cor_" } = {}) {
+    if (chave !== void 0 && chave !== null) {
+      const propria = lerTexto(config[`${prefixo}${sanitizarChave(chave)}`], "");
+      if (propria) return propria;
+    }
+    const paleta = paletaDoConfig(config);
+    return paleta[(indice % paleta.length + paleta.length) % paleta.length];
+  }
+  function opacidadeDoConfig(config = {}, padrao = 1) {
+    return Math.max(0, Math.min(1, lerNumero(config.opacidade, padrao)));
+  }
+  function lerContorno(config = {}, tema = {}, { corPadrao } = {}) {
+    const espessura = Math.max(0, lerNumero(config.espessuraDoContorno, 1));
+    return {
+      mostrar: lerBooleano(config.mostrarContorno, true) && espessura > 0,
+      cor: lerTexto(config.corDoContorno, "") || corPadrao || tema.fundo || "#FFFFFF",
+      espessura,
+      estilo: lerTexto(config.tracejadoDoContorno, "solido")
+    };
+  }
+  function aplicarContorno(el, contorno) {
+    if (!el || !contorno) return el;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      if (!contorno.mostrar) {
+        el.setAttribute("stroke", "none");
+        el.removeAttribute("stroke-dasharray");
+        return el;
+      }
+      el.setAttribute("stroke", contorno.cor);
+      el.setAttribute("stroke-width", String(contorno.espessura));
+      const traco = tracejadoPorEstilo(contorno.estilo, contorno.espessura);
+      if (traco) el.setAttribute("stroke-dasharray", traco);
+      else el.removeAttribute("stroke-dasharray");
+    } else {
+      el.style.border = contorno.mostrar ? `${contorno.espessura}px ${contorno.estilo === "tracejado" ? "dashed" : contorno.estilo === "pontilhado" ? "dotted" : "solid"} ${contorno.cor}` : "none";
+    }
+    return el;
+  }
+  function aplicarPreenchimento(el, cor, config = {}, padraoOpacidade = 1) {
+    if (!el) return el;
+    const opacidade = opacidadeDoConfig(config, padraoOpacidade);
+    if (el.namespaceURI === "http://www.w3.org/2000/svg") {
+      el.setAttribute("fill", cor);
+      el.setAttribute("fill-opacity", String(opacidade));
+    } else {
+      el.style.background = cor;
+      el.style.opacity = String(opacidade);
+    }
+    return el;
   }
 
   // node_modules/d3-hierarchy/src/hierarchy/count.js
@@ -3688,6 +4586,7 @@
   }
 
   // src/charts/org_chart/index.js
+  var COR_PADRAO_DO_CONTORNO = "#FFFFFF";
   var CSS = `
 .oc-area{position:relative;width:100%;height:100%;overflow:auto;}
 .oc-cartao{cursor:pointer;}
@@ -3887,18 +4786,22 @@
           viewBox: `${minX} ${minY} ${maxX - minX} ${maxY - minY}`
         }
       });
-      const paleta = coresDaPaleta(config.paleta);
+      const paleta = paletaDoConfig(config);
       const corPorRamo = /* @__PURE__ */ new Map();
-      (visivel.children || []).forEach((filho, i) => corPorRamo.set(filho, paleta[i % paleta.length]));
+      (visivel.children || []).forEach((filho, i) => corPorRamo.set(filho, corDoItem(config, i)));
       const corDo = (no) => {
         if (!no.parent) return config.corUnica || tema.textoSuave;
         let atual = no;
         while (atual.parent && atual.parent.parent) atual = atual.parent;
         return corPorRamo.get(atual) || paleta[0] || tema.destaque;
       };
-      const formatar = formatadorDeValueFormat(campoDoValor && campoDoValor.valueFormat, {
-        casas: Number(config.casasDecimaisDoRotulo) || 0
-      });
+      const contornoDoPainel = lerContorno(config, tema);
+      const corEscolhida = String(config.corDoContorno || "").trim().toUpperCase();
+      const contornoAutomatico = corEscolhida === "" || corEscolhida === COR_PADRAO_DO_CONTORNO;
+      const valueFormat = campoDoValor ? campoDoValor.valueFormat : void 0;
+      const formatar = formatadorDeValueFormat(valueFormat);
+      const rot = lerRotulos(config, tema);
+      const totalGeral = raiz.value || 0;
       const posicaoDe = (no) => deCimaParaBaixo ? { x: no.x, y: no.y } : { x: no.y, y: no.x };
       const grupoDeLigacoes = criarSvgEl("g", { pai: svg });
       for (const no of nos) {
@@ -3910,13 +4813,12 @@
           classe: "oc-ligacao",
           atributos: {
             d: cotovelo(pai, filho, deCimaParaBaixo, alturaDoCartao, larguraDoCartao),
-            stroke: comOpacidade(corDo(no), 0.55),
+            stroke: tema.bordaForte || tema.borda,
             "stroke-width": 1.5
           }
         });
       }
-      const tooltip = config.mostrarTooltip === false ? null : criarTooltip(elementoRaiz, tema);
-      ctx.estado.tooltip = tooltip;
+      const tooltip = ctx.tooltip();
       const campoDoCargo = modelo.dimensoes.find((d) => d.nome === config.campoDoCargo) || null;
       for (const no of nos) {
         const { x, y } = posicaoDe(no);
@@ -3930,51 +4832,39 @@
         const estaRecolhido = recolhidos.has(caminho);
         const grupo = criarSvgEl("g", { pai: svg, classe: "oc-cartao" });
         const preenchido = config.preencherCartao === true;
-        criarSvgEl("rect", {
+        const caixa = criarSvgEl("rect", {
           pai: grupo,
+          classe: "oc-caixa",
           atributos: {
             x: x - larguraDoCartao / 2,
             y: y - alturaDoCartao / 2,
             width: larguraDoCartao,
             height: alturaDoCartao,
-            rx: Number(config.raioDoCartao) || 0,
-            fill: preenchido ? cor : tema.fundoElevado,
-            stroke: cor,
-            "stroke-width": 1.5
+            rx: Number(config.raioDoCartao) || 0
           }
         });
-        const corDoTexto = preenchido ? textoLegivelSobre(cor, tema) : tema.texto;
-        const linhasDeTexto = [];
-        linhasDeTexto.push({ texto: no.data.rotulo, peso: "600", tamanho: Math.max(9, tema.tamanhoBase) });
-        if (campoDoCargo && no.data.indiceDaLinha >= 0) {
-          const cargo = modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, void 0, "");
-          if (cargo) linhasDeTexto.push({ texto: cargo, peso: "400", tamanho: Math.max(8, tema.tamanhoBase - 2) });
-        }
-        const extras = [];
-        if (config.mostrarValorNoCartao !== false && campoDoValor) extras.push(formatar(completo.valor));
-        if (config.mostrarContagemDeEquipe !== false && completo.descendentes > 0) {
-          extras.push(`${completo.descendentes} abaixo`);
-        }
-        if (extras.length) {
-          linhasDeTexto.push({ texto: extras.join(" \xB7 "), peso: "400", tamanho: Math.max(8, tema.tamanhoBase - 2), suave: true });
-        }
-        const alturaDaLinha = alturaDoCartao / (linhasDeTexto.length + 0.6);
-        linhasDeTexto.forEach((linha, i) => {
-          const el = criarSvgEl("text", {
-            pai: grupo,
-            classe: "oc-texto",
-            atributos: {
-              x,
-              y: y - alturaDoCartao / 2 + alturaDaLinha * (i + 0.9),
-              "text-anchor": "middle",
-              "dominant-baseline": "central",
-              "font-size": linha.tamanho,
-              "font-weight": linha.peso,
-              fill: linha.suave && !preenchido ? tema.textoSuave : corDoTexto
-            }
+        aplicarPreenchimento(caixa, preenchido ? cor : tema.fundoElevado, config);
+        aplicarContorno(caixa, contornoAutomatico ? Object.assign({}, contornoDoPainel, { cor }) : contornoDoPainel);
+        if (rot.mostrar) {
+          desenharTextosDoCartao({
+            grupo,
+            no,
+            x,
+            y,
+            rot,
+            tema,
+            cor,
+            preenchido,
+            completo,
+            larguraDoCartao,
+            alturaDoCartao,
+            valueFormat,
+            totalGeral,
+            mostrarValor: config.mostrarValorNoCartao !== false && !!campoDoValor,
+            mostrarContagem: config.mostrarContagemDeEquipe !== false,
+            cargo: campoDoCargo && no.data.indiceDaLinha >= 0 ? modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, void 0, "") : ""
           });
-          definirTexto(el, truncar(linha.texto, Math.floor(larguraDoCartao / (linha.tamanho * 0.56))));
-        });
+        }
         if (config.permitirRecolher !== false && completo.filhos > 0) {
           const bx = deCimaParaBaixo ? x : x + larguraDoCartao / 2;
           const by = deCimaParaBaixo ? y + alturaDoCartao / 2 : y;
@@ -4005,22 +4895,22 @@
             ctx.redesenhar();
           });
         }
+        const conteudo = () => {
+          const linhas = [];
+          if (campoDoValor) linhas.push({ rotulo: campoDoValor.rotuloCurto, valor: formatar(completo.valor), cor });
+          linhas.push({ rotulo: "N\xEDvel", valor: String(no.depth) });
+          if (completo.filhos) linhas.push({ rotulo: "Subordinados diretos", valor: String(completo.filhos) });
+          if (completo.descendentes) linhas.push({ rotulo: "Total abaixo", valor: String(completo.descendentes) });
+          return { titulo: no.data.rotulo, linhas };
+        };
         if (tooltip) {
-          ctx.eventos.on(grupo, "pointerenter", (ev) => {
-            const linhas = [];
-            if (campoDoValor) linhas.push({ rotulo: campoDoValor.rotuloCurto, valor: formatar(completo.valor), cor });
-            linhas.push({ rotulo: "N\xEDvel", valor: String(no.depth) });
-            if (completo.filhos) linhas.push({ rotulo: "Subordinados diretos", valor: String(completo.filhos) });
-            if (completo.descendentes) linhas.push({ rotulo: "Total abaixo", valor: String(completo.descendentes) });
-            tooltip.mostrar({ titulo: no.data.rotulo, linhas }, ev.clientX, ev.clientY);
-          });
+          ctx.eventos.on(grupo, "pointerenter", (ev) => tooltip.mostrar(conteudo(), ev.clientX, ev.clientY));
           ctx.eventos.on(grupo, "pointermove", (ev) => tooltip.mover(ev.clientX, ev.clientY));
           ctx.eventos.on(grupo, "pointerleave", () => tooltip.esconder());
         }
         ctx.eventos.on(grupo, "click", (ev) => {
-          if (no.data.indiceDaLinha < 0 || !no.data.campo) return;
-          const celula = modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome);
-          if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+          const celula = no.data.indiceDaLinha >= 0 && no.data.campo ? modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome) : null;
+          ctx.cliqueNoItem(ev, celula, conteudo());
         });
       }
       if (recolhidos.size) {
@@ -4028,11 +4918,71 @@
         dica.style.color = tema.textoSuave;
         definirTexto(dica, `${recolhidos.size} \xE1rea(s) recolhida(s) \u2014 clique no + para abrir`);
       }
-    },
-    aoDestruir({ estado }) {
-      if (estado && estado.tooltip) estado.tooltip.destruir();
     }
   });
+  function desenharTextosDoCartao({
+    grupo,
+    no,
+    x,
+    y,
+    rot,
+    tema,
+    cor,
+    preenchido,
+    completo,
+    larguraDoCartao,
+    alturaDoCartao,
+    valueFormat,
+    totalGeral,
+    mostrarValor,
+    mostrarContagem,
+    cargo
+  }) {
+    const semCorte = Object.assign({}, rot, { truncar: 0 });
+    const tamanhoMenor = Math.max(6, rot.tamanho - 2);
+    const linhas = [];
+    let nome = String(no.data.rotulo || "");
+    if (mostrarValor && rot.conteudo === "nomeValor") {
+      nome = textoDoRotulo(semCorte, { valor: completo.valor, nome, valueFormat });
+    }
+    linhas.push({ texto: nome, tamanho: rot.tamanho, nome: true });
+    if (cargo) linhas.push({ texto: cargo, tamanho: tamanhoMenor });
+    const extras = [];
+    if (mostrarValor && rot.conteudo !== "nome" && rot.conteudo !== "nomeValor") {
+      extras.push(textoDoRotulo(semCorte, { valor: completo.valor, total: totalGeral, valueFormat }));
+    }
+    if (mostrarContagem && completo.descendentes > 0) extras.push(`${completo.descendentes} abaixo`);
+    if (extras.length) linhas.push({ texto: extras.join(" \xB7 "), tamanho: tamanhoMenor, suave: true });
+    const corDoTexto = preenchido ? textoLegivelSobre(cor, tema) : tema.texto;
+    const ancora = rot.posicao === "dentro" ? "start" : rot.posicao === "fora" || rot.posicao === "foraComLinha" ? "end" : "middle";
+    const margem = 8;
+    const tx = ancora === "start" ? x - larguraDoCartao / 2 + margem : ancora === "end" ? x + larguraDoCartao / 2 - margem : x;
+    const alturaDaLinha = alturaDoCartao / (linhas.length + 0.6);
+    let ocupado = 0;
+    linhas.forEach((linha, i) => {
+      const ty = y - alturaDoCartao / 2 + alturaDaLinha * (i + 0.9);
+      const el = criarSvgEl("text", {
+        pai: grupo,
+        classe: linha.nome ? "oc-texto oc-nome" : "oc-texto",
+        atributos: { x: tx, y: ty, "text-anchor": ancora, "dominant-baseline": "central" }
+      });
+      const larguraUtil = larguraDoCartao - (ancora === "middle" ? 0 : margem * 2);
+      let limite = Math.max(1, Math.floor(larguraUtil / (linha.tamanho * 0.56)));
+      if (rot.truncar > 0) limite = Math.min(limite, rot.truncar);
+      definirTexto(el, truncar(linha.texto, limite));
+      estilizarRotulo(el, rot, {
+        corAutomatica: linha.suave && !preenchido ? tema.textoSuave : corDoTexto,
+        x: tx,
+        y: ty
+      });
+      el.setAttribute("font-size", String(linha.tamanho));
+      if (linha.nome && !rot.negrito) el.setAttribute("font-weight", "600");
+      ocupado += linha.tamanho * 1.15;
+      if (rot.evitarColisao && ocupado > alturaDoCartao - 4 && i > 0) {
+        el.setAttribute("display", "none");
+      }
+    });
+  }
   function caminhoDoNo(no) {
     return no.ancestors().reverse().map((n) => n.data.chave).join("\0");
   }

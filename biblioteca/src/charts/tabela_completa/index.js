@@ -309,6 +309,9 @@ export default defineViz({
   // A tabela aceita praticamente qualquer consulta: com ou sem pivô, só
   // dimensões, só medidas ou os dois.
   exigencia: { aceitaPivo: true, exigeLinhas: true },
+  // A tabela anima as próprias linhas (animarEntradaDasLinhas) e a
+  // virtualização redesenha ao rolar: a animação genérica não entra.
+  animacaoPropria: true,
 
   opcoesDinamicas({ modelo, config }) {
     const { colunas } = construirColunas(modelo, config);

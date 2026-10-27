@@ -92,7 +92,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 ### Fase B
 - [x] 2.5 Aviso amarelo
 - [ ] 2.6 Interação do mouse
-- [ ] 2.7 Animação
+- [x] 2.7 Animação
 - [~] 2.8 Painel de opções (abas consolidadas)
 
 ### Fase C — por gráfico

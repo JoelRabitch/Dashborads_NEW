@@ -17,6 +17,9 @@
  *   ├───────────────────────┼───────────────────────┤
  *   │    Vaca leiteira      │       Abacaxi         │  crescimento baixo
  *   └───────────────────────┴───────────────────────┘
+ *
+ * Com "Converter a medida X em participação relativa" ligado, o X é uma
+ * razão e sai formatado como "1.25×" no eixo, no tooltip e no rótulo.
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -37,6 +40,8 @@ import {
   opcoesDinamicasDeCampos,
   renderizarQuadrantes,
   destruirQuadrantes,
+  comRotulosDePonto,
+  formatadorDeRazao,
 } from '../_quadrantes/index.js';
 
 const NOMES_PADRAO = {
@@ -49,7 +54,7 @@ const NOMES_PADRAO = {
 export default defineViz({
   id: 'matriz_bcg',
   label: 'Matriz BCG',
-  opcoes: comDefaults(
+  opcoes: comRotulosDePonto(comDefaults(
     montarOpcoes(
       blocoDeCores(),
       blocoDeEixos(),
@@ -87,7 +92,7 @@ export default defineViz({
       truncarRotulo: 22,
       mostrarContagemPorQuadrante: false,
     }
-  ),
+  )),
   exigencia: { dimensoesMin: 1, medidasMin: 2, aceitaPivo: false, exigeLinhas: true },
 
   opcoesDinamicas({ modelo }) {
@@ -122,8 +127,17 @@ export default defineViz({
         for (const ponto of pontos) {
           const maiorConcorrente = ponto.x === maior ? segundo : maior;
           ponto.x = ponto.x / maiorConcorrente;
+          // O texto do Looker era o valor ORIGINAL; a razão usa o
+          // formatador do perfil (abaixo) no eixo, no tooltip e no rótulo.
+          ponto.textoX = '';
         }
         return pontos;
+      },
+
+      // Participação relativa é uma RAZÃO ("1.25×"): formatar com o
+      // value_format da medida original (ex.: moeda) mostraria "$1.25".
+      formatadorX(config) {
+        return config.normalizarParticipacao ? formatadorDeRazao(2) : null;
       },
 
       ajustarConfig(config, pontos) {

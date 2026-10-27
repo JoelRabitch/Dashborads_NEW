@@ -16,7 +16,8 @@ import { FIXTURES } from './fixtures/index.mjs';
 import { montarAmbiente, criarInstancia, configPadrao } from './ambiente.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const BUNDLE = join(resolve(__dirname, '..'), 'dist', 'quadrant_scatter.js');
+// BL_DIST permite rodar contra outro diretório de bundles (reprodução).
+const BUNDLE = join(process.env.BL_DIST || join(resolve(__dirname, '..'), 'dist'), 'quadrant_scatter.js');
 
 function renderizar(nomeDaFixture, ajustes = {}) {
   const amb = montarAmbiente();
@@ -106,7 +107,7 @@ test('quadrant_scatter — sem divisórias não há quadrante nem fundo pintado'
   try {
     assert.equal(r.rotulos.length, 0, 'sem divisórias não deveria rotular quadrante');
     assert.equal(r.palco.querySelectorAll('rect').length, 0, 'sem divisórias não deveria pintar fundo');
-    assert.ok(r.palco.querySelector('canvas'), 'os pontos continuam sendo desenhados');
+    assert.ok(r.palco.querySelector('.qd-ponto.bl-marcador'), 'os pontos continuam sendo desenhados');
   } finally {
     r.fim();
   }
@@ -133,7 +134,10 @@ test('quadrant_scatter — eixos e pontos chegam ao DOM', (t) => {
   const r = renderizar('semPivo');
   try {
     assert.ok(r.palco.querySelectorAll('.bl-eixos text').length >= 4, 'faltaram rótulos nos eixos');
-    assert.ok(r.palco.querySelector('canvas'), 'os pontos precisam de um canvas');
+    // Até LIMITE_DE_PONTOS_EM_SVG os pontos são marcadores SVG (a forma
+    // escolhida muda o desenho); canvas só para volume grande.
+    assert.ok(r.palco.querySelector('.qd-ponto.bl-marcador'), 'os pontos precisam de marcadores');
+    assert.equal(r.palco.querySelector('canvas'), null, 'com poucos pontos não há canvas');
     assert.ok(
       r.palco.querySelectorAll('.qd-rotulo-ponto').length > 0,
       'os pontos mais distantes do cruzamento precisam vir rotulados'
@@ -141,5 +145,16 @@ test('quadrant_scatter — eixos e pontos chegam ao DOM', (t) => {
   } finally {
     r.fim();
   }
-  t.diagnostic('eixos, canvas e rótulos de ponto conferidos');
+  t.diagnostic('eixos, marcadores e rótulos de ponto conferidos');
+});
+
+test('quadrant_scatter — volume grande cai para canvas', (t) => {
+  const r = renderizar('grande5k');
+  try {
+    assert.ok(r.palco.querySelector('canvas'), 'com 5.000 pontos o desenho vai para canvas');
+    assert.equal(r.palco.querySelectorAll('.qd-ponto').length, 0, 'sem 5.000 elementos SVG');
+  } finally {
+    r.fim();
+  }
+  t.diagnostic('canvas no volume grande conferido');
 });

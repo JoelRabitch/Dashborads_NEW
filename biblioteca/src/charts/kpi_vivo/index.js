@@ -22,6 +22,23 @@
  *
  * E a sparkline existe porque o contexto muda a leitura: "+12%" depois de
  * três quedas é uma coisa, "+12%" no quarto mês de alta é outra.
+ *
+ * Campos: uma medida (o indicador) e, opcional, uma dimensão de tempo.
+ *
+ * Bloco "Rótulos" (correções v2 — antes nenhuma dessas opções era lida):
+ *   - o NÚMERO principal é o "rótulo de dado": "Formato do número no
+ *     rótulo" e "Casas decimais" o formatam quando o formato não é
+ *     "Automático" (em "Automático" vale o value_format do campo); "O que
+ *     mostrar" = valor (padrão) | nome | "nome: valor" | percentual (o
+ *     atual como % da base de comparação, ex.: % da meta) | "valor (%)".
+ *     O tamanho dele continua automático;
+ *   - título, variação e base são os rótulos secundários: "Mostrar
+ *     rótulos" (desligado = só o número e a sparkline), tamanho, cor,
+ *     negrito, rotação, truncar, posição (auto/fora = título acima;
+ *     dentro/centro = título abaixo do número; fora com linha-guia = acima
+ *     com linha separadora) e "Esconder rótulos que se sobrepõem" (corta o
+ *     texto que não cabe na largura e esconde base/variação/título, nessa
+ *     ordem, se não couberem na altura).
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -29,7 +46,8 @@ import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom
 import { escalaNumerica, escalaDePonto } from '../../core/scales.js';
 import { geradorDeLinha, geradorDeArea } from '../../core/shapes.js';
 import { comOpacidade } from '../../core/theme.js';
-import { formatadorDeValueFormat, formatarPercentual, formatarData } from '../../core/format.js';
+import { formatarPercentual, formatarData, truncar } from '../../core/format.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo, formatadorDoRotulo } from '../../core/rotulos.js';
 import { larguraAproximada } from '../../core/eixos.js';
 import {
   montarOpcoes,
@@ -200,39 +218,86 @@ export default defineViz({
     injetarEstilo(raiz, CSS, 'kv');
     const caixa = criarEl('div', { classe: 'kv-raiz', pai: raiz });
 
-    const casas = Number(config.casasDecimaisDoRotulo);
-    const formatar = formatadorDeValueFormat(medida.valueFormat, {
-      casas: Number.isFinite(casas) ? casas : 1,
+    // Rótulos (6.1), relidos a cada desenho. O que é "rótulo" no KPI:
+    //  * o NÚMERO principal é o dado: "Formato do número" e "Casas
+    //    decimais" o formatam quando o formato não é "auto" (em "auto" vale
+    //    o value_format do campo, como o Looker mostraria), e "O que
+    //    mostrar" escolhe o conteúdo dele. O tamanho do número continua
+    //    automático (o maior que cabe).
+    //  * título, variação e base são os rótulos SECUNDÁRIOS: mostrar,
+    //    tamanho, cor, negrito, rotação, truncar, posição e "esconder
+    //    sobrepostos" valem para eles.
+    const rot = lerRotulos(config, tema);
+    const formatar = formatadorDoRotulo(rot, medida.valueFormat);
+    const textoDoTitulo = config.titulo || medida.rotulo || medida.rotuloCurto;
+    // "nome" e "nomeValor" põem o nome no próprio número: o título sairia repetido.
+    const nomeNoNumero = rot.conteudo === 'nome' || rot.conteudo === 'nomeValor';
+    const larguraUtil = Math.max(40, largura - 24);
+
+    /** Texto secundário: truncar do painel + (opcional) cortar o que não cabe na largura. */
+    const ajustarTexto = (texto, tamanho) => {
+      let t = rot.truncar > 0 ? truncar(texto, rot.truncar) : String(texto);
+      if (rot.evitarColisao) {
+        const cabe = Math.max(4, Math.floor(larguraUtil / (tamanho * 0.58)));
+        t = truncar(t, cabe);
+      }
+      return t;
+    };
+
+    const secundarios = [];
+    const criarTitulo = () => {
+      if (!rot.mostrar || nomeNoNumero) return;
+      const el = criarEl('div', { classe: 'kv-titulo', pai: caixa });
+      definirTexto(el, ajustarTexto(textoDoTitulo, rot.tamanho));
+      estilizarRotulo(el, rot, { corAutomatica: tema.textoSuave });
+      // "Fora com linha-guia": título acima com uma linha separando do número.
+      if (rot.posicao === 'foraComLinha') {
+        el.style.borderBottom = `1px solid ${tema.borda}`;
+        el.style.paddingBottom = '2px';
+      }
+      secundarios.push({ el, altura: rot.tamanho * 1.4, prioridade: 3 });
+    };
+
+    // "Posição do rótulo": auto / fora / fora com linha = título ACIMA do
+    // número (como antes); dentro / centro = título logo ABAIXO do número.
+    const tituloAbaixo = rot.posicao === 'dentro' || rot.posicao === 'centro';
+    if (!tituloAbaixo) criarTitulo();
+
+    const textoDoNumero = textoDoRotulo(Object.assign({}, rot, { truncar: 0 }), {
+      valor: atual,
+      nome: textoDoTitulo,
+      // "Percentual": o atual como % da base de comparação (ex.: % da meta).
+      total: comparacao.base,
+      valueFormat: medida.valueFormat,
     });
-
-    const titulo = criarEl('div', { classe: 'kv-titulo', pai: caixa });
-    titulo.style.color = tema.textoSuave;
-    titulo.style.fontSize = `${Math.max(10, Math.min(16, tema.tamanhoBase + 1))}px`;
-    definirTexto(titulo, config.titulo || medida.rotulo || medida.rotuloCurto);
-
-    const textoDoNumero = formatar(atual);
     const numero = criarEl('div', { classe: 'kv-numero', pai: caixa });
     numero.style.color = tema.texto;
-    numero.style.fontSize = `${tamanhoQueCabe(textoDoNumero, largura - 24, altura)}px`;
+    const tamanhoDoNumero = tamanhoQueCabe(textoDoNumero, largura - 24, altura);
+    numero.style.fontSize = `${tamanhoDoNumero}px`;
     definirTexto(numero, textoDoNumero);
+
+    if (tituloAbaixo) criarTitulo();
 
     // ---------- Variação ----------
     const resultado = calcularVariacao({ atual, base: comparacao.base });
     const menorEhMelhor = config.menorEhMelhor === true;
     const bom = resultado.diferenca === null ? null : ehBoaNoticia(resultado.diferenca, menorEhMelhor);
 
-    if (comparacao.base !== null) {
+    if (comparacao.base !== null && rot.mostrar) {
       const linha = criarEl('div', { classe: 'kv-variacao', pai: caixa });
+      // O contêiner recebe o estilo do rótulo; seta e percentual são 40%
+      // maiores (em `em`), para "Tamanho do rótulo" escalar a linha toda.
+      estilizarRotulo(linha, rot, { corAutomatica: tema.texto });
       const cor =
         config.colorirVariacao === false || bom === null
-          ? tema.texto
+          ? rot.cor || tema.texto
           : bom
             ? tema.positivo
             : tema.negativo;
 
       const seta = criarEl('span', { classe: 'kv-seta', pai: linha });
       seta.style.color = cor;
-      seta.style.fontSize = `${Math.max(12, tema.tamanhoBase + 6)}px`;
+      seta.style.fontSize = '1.4em';
       // A SETA segue o sinal do número, nunca a opinião sobre ele: inverter
       // a seta em "menor é melhor" faria a queda parecer subida.
       definirTexto(seta, resultado.diferenca > 0 ? '▲' : resultado.diferenca < 0 ? '▼' : '■');
@@ -240,7 +305,7 @@ export default defineViz({
       const percentual = criarEl('span', { pai: linha });
       percentual.style.color = cor;
       percentual.style.fontWeight = '600';
-      percentual.style.fontSize = `${Math.max(12, tema.tamanhoBase + 6)}px`;
+      percentual.style.fontSize = '1.4em';
       definirTexto(
         percentual,
         resultado.relativa === null
@@ -250,19 +315,32 @@ export default defineViz({
 
       if (config.mostrarVariacaoAbsoluta !== false) {
         const absoluta = criarEl('span', { pai: linha });
-        absoluta.style.color = tema.textoSuave;
-        absoluta.style.fontSize = `${Math.max(10, tema.tamanhoBase)}px`;
+        absoluta.style.color = rot.cor || tema.textoSuave;
         definirTexto(
           absoluta,
           `(${resultado.diferenca >= 0 ? '+' : ''}${formatar(resultado.diferenca)})`
         );
       }
+      secundarios.push({ el: linha, altura: rot.tamanho * 1.4 * 1.4, prioridade: 2 });
 
-      // A BASE sempre declarada: sem ela, "+12%" é retórica.
+      // A BASE sempre declarada (enquanto houver rótulos): sem ela, "+12%" é retórica.
       const base = criarEl('div', { classe: 'kv-base', pai: caixa });
-      base.style.color = tema.textoSuave;
-      base.style.fontSize = `${Math.max(9, tema.tamanhoBase - 1)}px`;
-      definirTexto(base, `contra ${comparacao.rotulo}: ${formatar(comparacao.base)}`);
+      definirTexto(base, ajustarTexto(`contra ${comparacao.rotulo}: ${formatar(comparacao.base)}`, rot.tamanho));
+      estilizarRotulo(base, rot, { corAutomatica: tema.textoSuave });
+      secundarios.push({ el: base, altura: rot.tamanho * 1.4, prioridade: 1 });
+    }
+
+    // "Esconder rótulos que se sobrepõem": se número + rótulos + sparkline
+    // não cabem na altura, somem primeiro a base, depois a variação, por
+    // último o título — o número nunca some.
+    if (rot.evitarColisao && secundarios.length) {
+      const alturaDaSpark = config.mostrarSparkline !== false && serie.valores.length > 1 ? Math.max(18, Math.min(60, altura * 0.18)) : 0;
+      let ocupado = tamanhoDoNumero * 1.05 + alturaDaSpark + secundarios.reduce((s, r) => s + r.altura, 0);
+      for (const r of secundarios.slice().sort((a, b) => a.prioridade - b.prioridade)) {
+        if (ocupado <= altura - 16) break;
+        r.el.style.display = 'none';
+        ocupado -= r.altura;
+      }
     }
 
     // ---------- Sparkline ----------

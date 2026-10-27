@@ -8,11 +8,20 @@
  *
  * Cada mini-árvore usa o layout horizontal (da esquerda para a direita),
  * que aproveita melhor uma célula larga e baixa do que um círculo.
+ *
+ * Campos: uma dimensão por nível (ou um par id/superior) e, opcional, uma
+ * medida para o tamanho dos nós (seção Dados).
+ *
+ * Opções (correções v2): o bloco "Rótulos" inteiro vale para os nomes dos
+ * nós (ver `textoDoRotuloDoNo` em _arvore); a aba Cores vale para os nós
+ * (paleta com "Inverter ordem", "Cor dos nós" por ramo/nível/única,
+ * opacidade e contorno); as ligações usam a cor de borda do tema. O
+ * tooltip é o único do gráfico (`ctx.tooltip()`), com o valor no formato
+ * do campo; o clique segue a "Ação do clique" (drill / fixar / nenhuma).
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { criarTooltip } from '../../core/tooltip.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
 import { hierarchy as d3Hierarchy } from 'd3-hierarchy';
 import {
@@ -155,12 +164,14 @@ export default defineViz({
     // A cor sai da árvore INTEIRA, não de cada ramo: assim um ramo tem a
     // mesma cor aqui e na árvore radial do mesmo dado.
     const cores = criarCoresDaArvore(raiz, config, tema);
-    const formatar = formatadorDeValueFormat(campoDoValor && campoDoValor.valueFormat, {
-      casas: Number(config.casasDecimaisDoRotulo) || 0,
-    });
+    // Valor derivado (soma do ramo): formato do campo no Looker, nunca o
+    // número cru — e independente das opções de RÓTULO (que valem só para
+    // o texto desenhado).
+    const valueFormat = campoDoValor ? campoDoValor.valueFormat : undefined;
+    const formatar = formatadorDeValueFormat(valueFormat);
 
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(elementoRaiz, tema);
-    ctx.estado.tooltip = tooltip;
+    // Tooltip ÚNICO do gráfico (o núcleo cria uma vez e esconde a cada redesenho).
+    const tooltip = ctx.tooltip();
 
     // Referência comum do tamanho dos nós: sem ela, a maior folha de cada
     // ramo fica do mesmo tamanho e a comparação entre ramos some.
@@ -203,7 +214,13 @@ export default defineViz({
         .sum((no) => (no.filhos && no.filhos.length ? 0 : no.valor || 0))
         .sort((a, b) => (b.value || 0) - (a.value || 0));
 
-      const reservaDaDireita = config.mostrarRotulosDeFolha === false ? 12 : larguraDaCelula * 0.38;
+      // Cor de cada nó vem do nó equivalente na árvore INTEIRA: assim "Cor
+      // dos nós" por nível funciona (antes toda a mini-árvore recebia a cor
+      // do ramo, e "por nível" não mudava nada).
+      const globalPorDados = new Map(ramo.descendants().map((n) => [n.data, n]));
+      const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
+
+      const reservaDaDireita = config.mostrarRotulosDeFolha === false || config.mostrarRotulos === false ? 12 : larguraDaCelula * 0.38;
       layoutHorizontal(subRaiz, {
         largura: Math.max(20, larguraDaCelula - 24 - reservaDaDireita),
         altura: Math.max(20, alturaDaCelula - espacoDoTitulo - 12),
@@ -218,37 +235,32 @@ export default defineViz({
         config,
         valorDeReferencia: config.escalaPorArvore ? null : maiorGlobal,
         tema,
-        formatar,
-        cores: () => cores(ramo),
+        valueFormat,
+        totalGeral: maiorGlobal,
+        cores: corDoNo,
         compacto: true,
         aoInteragir(elemento, no) {
+          const conteudo = () => ({
+            titulo: `${ramo.data.rotulo} › ${no.data.rotulo}`,
+            linhas: montarLinhas(no, campoDoValor, formatar),
+          });
           if (tooltip) {
-            ctx.eventos.on(elemento, 'pointerenter', (ev) => {
-              tooltip.mostrar(
-                {
-                  titulo: `${ramo.data.rotulo} › ${no.data.rotulo}`,
-                  linhas: montarLinhas(no, campoDoValor, formatar),
-                },
-                ev.clientX,
-                ev.clientY
-              );
-            });
+            ctx.eventos.on(elemento, 'pointerenter', (ev) => tooltip.mostrar(conteudo(), ev.clientX, ev.clientY));
             ctx.eventos.on(elemento, 'pointermove', (ev) => tooltip.mover(ev.clientX, ev.clientY));
             ctx.eventos.on(elemento, 'pointerleave', () => tooltip.esconder());
           }
+          // "Ação do clique": drill se a célula tem links, senão fixa o
+          // tooltip (ou nada, conforme o painel). Expandir/colapsar fica
+          // para a Fase C.
           ctx.eventos.on(elemento, 'click', (ev) => {
-            if (no.data.indiceDaLinha < 0 || !no.data.campo) return;
-            const celulaDoLooker = modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome);
-            if (celulaDoLooker && ctx.ponte.temDrill(celulaDoLooker)) {
-              ctx.ponte.abrirDrill(celulaDoLooker, ev);
-            }
+            const celulaDoLooker =
+              no.data.indiceDaLinha >= 0 && no.data.campo
+                ? modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome)
+                : null;
+            ctx.cliqueNoItem(ev, celulaDoLooker, conteudo());
           });
         },
       });
     }
-  },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
   },
 });
