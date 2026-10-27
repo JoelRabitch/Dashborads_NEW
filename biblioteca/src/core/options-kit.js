@@ -1203,6 +1203,150 @@ export function blocoAvancado(opcoes = {}) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Abas do painel (módulo 2.8 das correções)                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * As abas do painel, na MESMA ordem em todos os gráficos.
+ *
+ * Por que poucas e com nome curto: a barra de abas do editor do Looker não
+ * quebra linha e corta as abas que não cabem à direita (não há CSS nosso
+ * que alcance o editor). Com 7–10 abas por gráfico, as últimas sumiam.
+ *
+ * **Decisão:** "Eixos" e "Texto" foram juntadas numa aba só ("Texto"),
+ * como o PROMPT permite "se ainda não couber": com 6 abas de nome curto a
+ * barra ainda passa de ~400 px, mais largo que o painel de edição comum.
+ * Para separar de novo, troque JUNTAR_EIXOS_E_TEXTO para false.
+ * CONFERIR NO LOOKER REAL: quantas abas cabem e se a ordem respeita `order`.
+ */
+export const JUNTAR_EIXOS_E_TEXTO = true;
+export const ABAS = JUNTAR_EIXOS_E_TEXTO
+  ? ['Dados', 'Visual', 'Texto', 'Interação', 'Avançado']
+  : ['Dados', 'Visual', 'Eixos', 'Texto', 'Interação', 'Avançado'];
+
+/** Seção antiga → aba nova (seções do kit). */
+const ABA_POR_SECAO = {
+  Dados: 'Dados',
+  Medidas: 'Dados',
+  Formato: 'Visual',
+  Cores: 'Visual',
+  Cor: 'Visual',
+  Tema: 'Visual',
+  Referências: 'Visual',
+  Eixos: 'Eixos',
+  Rótulos: 'Texto',
+  Legenda: 'Texto',
+  Interação: 'Interação',
+  Animação: 'Interação',
+  Avançado: 'Avançado',
+};
+
+/** Prefixo do rótulo por seção antiga do kit. */
+const PREFIXO_POR_SECAO = {
+  Cores: 'Cor',
+  Cor: 'Cor',
+  Rótulos: 'Rótulo',
+  Legenda: 'Legenda',
+  Animação: 'Animação',
+  Referências: 'Referência',
+};
+
+/** Opções do kit cujo destino não segue a seção antiga. */
+const DESTINO_POR_ID = {
+  titulo: ['Texto', 'Título'],
+  subtitulo: ['Texto', 'Título'],
+  textoSemDados: ['Texto', 'Aviso'],
+  mostrarAvisos: ['Texto', 'Aviso'],
+  posicaoDosAvisos: ['Texto', 'Aviso'],
+  tema: ['Visual', 'Tema'],
+  corDeFundo: ['Visual', 'Cor'],
+  corDoTexto: ['Visual', 'Cor'],
+  corDaBorda: ['Visual', 'Cor'],
+  corDaGrade: ['Visual', 'Cor'],
+  familiaDaFonte: ['Visual', 'Tema'],
+  tamanhoDaFonte: ['Visual', 'Tema'],
+  formatoDoEixo: ['Eixos', 'Eixo'],
+  casasDecimaisDoEixo: ['Eixos', 'Eixo'],
+  usarEixoSecundario: ['Eixos', 'Eixo'],
+  tratamentoDeNulos: ['Dados', ''],
+  textoParaNulo: ['Dados', ''],
+};
+
+/**
+ * Para seções próprias de um gráfico ("Quadrantes", "Ranking", "KPI"...),
+ * decide a aba pelo id da opção. Ordem das regras importa.
+ */
+function abaPeloId(id, opcao) {
+  const t = id.toLowerCase();
+  if (/debug|json/.test(t)) return 'Avançado';
+  if (/tooltip|drill|clique|hover|destacar(no|ao)|anima|duracao|atraso|cascata|tocando|repetir|busca|recolher|expandi|interativ|crossfilter|selec|zoom|arrastar|copiar|exportar|redimensionar|ordenar$|permitir/.test(t)) {
+    return 'Interação';
+  }
+  if (/eixo/.test(t)) return 'Eixos';
+  if (/rotulo|escrever|mostrarvalor|mostrarpercentual|mostrarposicao|mostrarrank|titulo|legenda|aviso|texto|mostrartotais|mostrarcontagem|nome$/.test(t)) {
+    return 'Texto';
+  }
+  if (opcao && opcao.display === 'color') return 'Visual';
+  if (/^cor|cor$|cores|paleta|opacidade|forma|tamanho|espessura|raio|altura|largura|espaco|contorno|borda|grade|zebra|fundo|estilo|densidade|layout|orientacao|curva|ligacao|preencher|pintar|zona|guias|ponto|sparkline|icone|cartao|arranjo|colunasdagrade|escala/.test(t)) {
+    return 'Visual';
+  }
+  return 'Dados';
+}
+
+/**
+ * Reorganiza as opções nas abas padronizadas SEM mudar id, tipo nem
+ * default: só `section`, `order` e `label` (prefixado, ex.:
+ * "Rótulo · Tamanho do rótulo (px)"). Também devolve as chaves já na ordem
+ * final, caso o Looker use a ordem de inserção em vez de `order`.
+ */
+export function organizarAbas(opcoes) {
+  const itens = [];
+  let i = 0;
+  for (const [id, original] of Object.entries(opcoes || {})) {
+    if (!original || typeof original !== 'object') continue;
+    if (original._organizada) {
+      // Já passou por aqui (ex.: estáticas misturadas às dinâmicas).
+      itens.push([id, original]);
+      continue;
+    }
+    const opcao = { ...original };
+    const secaoAntiga = opcao.section || 'Avançado';
+    let aba;
+    let prefixo;
+    if (DESTINO_POR_ID[id]) {
+      [aba, prefixo] = DESTINO_POR_ID[id];
+    } else if (/^Coluna: /.test(secaoAntiga)) {
+      // Tabela: opções por coluna viram uma aba só, com o nome no prefixo.
+      aba = 'Visual';
+      prefixo = secaoAntiga.replace(/^Coluna: /, 'Coluna ');
+    } else if (ABA_POR_SECAO[secaoAntiga]) {
+      aba = ABA_POR_SECAO[secaoAntiga];
+      prefixo = PREFIXO_POR_SECAO[secaoAntiga];
+      if (aba === 'Eixos') prefixo = /X$|X[A-Z]/.test(id) ? 'Eixo X' : /Y$|Y[A-Z]/.test(id) ? 'Eixo Y' : 'Eixo';
+      if (secaoAntiga === 'Interação') prefixo = /tooltip|Tooltip|HtmlDoLooker/.test(id) ? 'Tooltip' : 'Clique';
+      if (secaoAntiga === 'Tema') prefixo = 'Tema';
+    } else {
+      aba = abaPeloId(id, opcao);
+      prefixo = secaoAntiga;
+    }
+    if (aba === 'Eixos' && JUNTAR_EIXOS_E_TEXTO) aba = 'Texto';
+    if (prefixo && typeof opcao.label === 'string' && !opcao.label.startsWith(`${prefixo} · `)) {
+      opcao.label = `${prefixo} · ${opcao.label}`;
+    }
+    opcao.section = aba;
+    const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5000 + i;
+    opcao.order = (ABAS.indexOf(aba) + 1) * 10000 + ordemAntiga;
+    Object.defineProperty(opcao, '_organizada', { value: true, enumerable: false });
+    itens.push([id, opcao]);
+    i += 1;
+  }
+  itens.sort((a, b) => a[1].order - b[1].order);
+  const saida = {};
+  for (const [id, opcao] of itens) saida[id] = opcao;
+  return saida;
+}
+
+/* ------------------------------------------------------------------ */
 /* Opções dinâmicas (uma por campo / por série)                        */
 /* ------------------------------------------------------------------ */
 

@@ -2817,3 +2817,28 @@ no código anterior):
   `<label for>` visualmente oculto + aria-label.
 - Testes antigos de busca/filtro passaram a esperar o debounce.
 Falta na tabela: aviso amarelo (2.5) e animação (2.7).
+
+### 2.8 Painel de opções — núcleo (concluído; aplicação automática)
+- `options-kit.organizarAbas` (chamado pelo define-viz nas estáticas e nas
+  dinâmicas): só muda `section`, `order` e `label`. Abas fixas, mesma
+  ordem em todos: Dados · Visual · Texto · Interação · Avançado.
+- **Decisão:** Eixos e Texto JUNTADAS desde já (o PROMPT permite "se ainda
+  não couber"): 6 abas curtas ainda dão ~400 px, mais que o painel de
+  edição comum. Volta a 6 abas trocando `JUNTAR_EIXOS_E_TEXTO`.
+- Rótulos prefixados pela seção antiga ("Rótulo · ", "Cor · ", "Eixo X · ",
+  "Tooltip · ", "Quadrantes · "...). Opções por coluna da tabela vão para
+  Visual com prefixo "Coluna <nome> · " (antes cada coluna era UMA ABA —
+  a tabela tinha 9 abas com 3 colunas; com 10 colunas seriam 16).
+- Seções próprias de gráfico (Ranking, Quadrantes, KPI...) são
+  distribuídas por regra sobre o id (`abaPeloId`) — o destino de cada
+  opção está em `docs/opcoes/ABAS.md` (gerado por
+  `build/relatorio-abas.mjs`), com as abas antes/depois de cada gráfico.
+- **Ordem:** `order` = (posição da aba + 1) × 10000 + ordem antiga, E as
+  chaves do objeto saem ordenadas por `order` (no estático e no
+  `registerOptions`). Não sabemos se o Looker ordena abas por `order` ou
+  pela 1ª aparição; as duas coincidem. CONFERIR NO LOOKER REAL.
+- `modoDebug`, `configuracaoJson` e `aplicarConfiguracaoJson` já eram
+  desligados/vazios por padrão e ficam só na aba Avançado (nenhum default
+  mudou — as "duas exceções" do PROMPT não foram necessárias).
+- `test/opcoes.test.mjs`: para os 22, todo id do `.antes.json` existe com
+  o mesmo tipo e default, e toda opção está numa aba padronizada. 44/44.

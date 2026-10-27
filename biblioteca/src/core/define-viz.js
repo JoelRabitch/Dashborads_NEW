@@ -29,7 +29,7 @@
 import { registrarVisualizacao, criarPonte, recursosDoLooker } from './looker-adapter.js';
 import { construirModelo, validarModelo } from './data-model.js';
 import { resolverTema } from './theme.js';
-import { aplicarConfiguracaoJson, normalizarConfig, compararChaves } from './options-kit.js';
+import { aplicarConfiguracaoJson, normalizarConfig, compararChaves, organizarAbas } from './options-kit.js';
 import {
   esconderTooltipsDe,
   destruirTooltipsDe,
@@ -69,7 +69,7 @@ export function defineViz(declaracao) {
   const {
     id,
     label,
-    opcoes = {},
+    opcoes: opcoesDeclaradas = {},
     exigencia = {},
     opcoesDinamicas = null,
     render,
@@ -79,6 +79,9 @@ export function defineViz(declaracao) {
   if (typeof render !== 'function') {
     throw new Error(`defineViz(${id}): a função render é obrigatória.`);
   }
+
+  // Abas padronizadas (módulo 2.8): só section/order/label mudam aqui.
+  const opcoes = organizarAbas(opcoesDeclaradas);
 
   const definicao = {
     id,
@@ -207,7 +210,7 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   if (typeof opcoesDinamicas === 'function') {
     try {
       const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-      if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+      if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
         // Opções novas no painel: os defaults delas valem já neste desenho.
         configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
       }

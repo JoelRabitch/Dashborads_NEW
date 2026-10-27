@@ -152,7 +152,15 @@ export function criarPonte(instancia, opcoesEstaticas) {
       const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + '|' + JSON.stringify(dinamicas);
       if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
       instancia._blAssinaturaDasOpcoes = assinatura;
-      const completas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+      // Chaves em ordem de `order`: se o Looker ordenar pela inserção e não
+      // pelo `order`, o resultado é o mesmo (ver docs/COMPAT.md).
+      const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+      const completas = {};
+      Object.keys(juntas)
+        .sort((a, b) => (Number(juntas[a].order) || 0) - (Number(juntas[b].order) || 0))
+        .forEach((k) => {
+          completas[k] = juntas[k];
+        });
       instancia._blOpcoesRegistradas = completas;
       instancia.trigger('registerOptions', completas);
       return true;
