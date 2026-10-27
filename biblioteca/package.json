@@ -7,7 +7,9 @@
   "scripts": {
     "build": "node build/build.mjs",
     "test": "node --test test/*.test.mjs",
-    "seguranca": "node build/checagem-seguranca.mjs"
+    "seguranca": "node build/checagem-seguranca.mjs",
+    "urls": "node build/urls.mjs",
+    "opcoes": "node build/listar-opcoes.mjs && node build/relatorio-abas.mjs"
   },
   "devDependencies": {
     "d3-array": "3.2.4",

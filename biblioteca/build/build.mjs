@@ -8,12 +8,23 @@
  *    (`npm run build -- --minificar` gera minificado, se um dia quiser.)
  *  - Tudo embutido (`bundle: true`): em tempo de execução não há nenhuma
  *    dependência externa, então o campo Dependencies do Looker fica VAZIO.
- *  - Cabeçalho com id, label, versão, data do build e hash do commit.
+ *  - Cabeçalho com id, label e versão — SEM data e SEM hash de commit.
+ *
+ * Build DETERMINÍSTICO (módulo 2.9 das correções v2): o mesmo código gera
+ * o mesmo arquivo, byte a byte, e um arquivo só é regravado quando o
+ * conteúdo muda. Antes o cabeçalho levava a data do build e o hash do
+ * HEAD: todo build mudava os 22 bundles, o que mudava o hash do último
+ * commit de `dist/` e invalidava as URLs do campo Main sem nada ter
+ * mudado de verdade. Rodar o build duas vezes seguidas não altera nada
+ * (`git status` limpo).
+ *
+ * As URLs com hash ficam em `dist/URLS.md`/`URLS.csv`, geradas por
+ * `build/urls.mjs` DEPOIS do commit dos bundles (um arquivo não pode
+ * conter o hash do próprio commit).
  */
 
 import { build } from 'esbuild';
-import { execSync, execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -30,64 +41,16 @@ function obterArgumento(nome) {
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : null;
 }
 
-function hashDoCommit() {
-  try {
-    return execSync('git rev-parse --short HEAD', { cwd: RAIZ, stdio: ['ignore', 'pipe', 'ignore'] })
-      .toString()
-      .trim();
-  } catch (_) {
-    return 'sem-commit';
-  }
-}
-
 /**
- * Hash COMPLETO (40 caracteres) do último commit que alterou algum `dist/*.js`.
- *
- * Por que o hash completo e por que ESTE commit: o campo Main do Looker só
- * aceita a URL fixada num commit (`@<hash>`), nunca em branch, `@main` ou
- * `@latest` — senão a visualização muda sozinha depois de testada. E o commit
- * certo é o último que mexeu nos bundles, não o HEAD: commit de documentação
- * não muda o arquivo servido, e fixar nele só faria o jsDelivr guardar cópias
- * iguais em caches diferentes.
- *
- * O filtro é `dist/*.js` de propósito, e não `dist`: assim commitar o próprio
- * MANIFEST.md não muda o hash que ele acabou de publicar.
+ * Grava só se o conteúdo mudou (comparando sem diferença de fim de linha:
+ * com `core.autocrlf` o arquivo no disco pode estar em CRLF).
+ * @returns {boolean} se gravou
  */
-function hashDosBundles() {
-  try {
-    const saida = execFileSync('git', ['log', '-1', '--format=%H', '--', 'dist/*.js'], {
-      cwd: RAIZ,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    })
-      .toString()
-      .trim();
-    return /^[0-9a-f]{40}$/.test(saida) ? saida : null;
-  } catch (_) {
-    return null;
-  }
-}
-
-/**
- * Bundles com alteração ainda não commitada.
- *
- * Isto existe porque o MANIFEST afirma uma coisa que ele não tem como garantir
- * sozinho: que a URL serve ESTE código. Se o build acabou de mudar um bundle
- * que ainda não foi commitado, a URL aponta para a versão anterior — e aí o
- * arquivo avisa, em vez de mentir por omissão.
- */
-function bundlesNaoCommitados() {
-  try {
-    return execFileSync('git', ['status', '--porcelain', '--', 'dist'], {
-      cwd: RAIZ,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    })
-      .toString()
-      .split(/\r?\n/)
-      .map((linha) => linha.slice(3).trim())
-      .filter((caminho) => caminho.endsWith('.js'));
-  } catch (_) {
-    return [];
-  }
+function gravarSeMudou(caminho, conteudo) {
+  const normalizar = (t) => t.replace(/\r\n/g, '\n');
+  if (existsSync(caminho) && normalizar(readFileSync(caminho, 'utf8')) === normalizar(conteudo)) return false;
+  writeFileSync(caminho, conteudo, 'utf8');
+  return true;
 }
 
 function lerRegistro() {
@@ -104,11 +67,11 @@ function versaoDoPacote() {
   }
 }
 
-function cabecalho({ id, label, versao, commit, data }) {
+function cabecalho({ id, label, versao }) {
   return `/*!
  * ${label} — visualização customizada para o Looker
  * id: ${id}
- * versão: ${versao} | build: ${data} | commit: ${commit}
+ * versão: ${versao}
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -124,9 +87,10 @@ async function construirGrafico(grafico, meta) {
   }
   const saida = join(DIR_DIST, `${grafico.id}.js`);
 
-  await build({
+  const resultado = await build({
     entryPoints: [entrada],
     outfile: saida,
+    write: false,
     bundle: true,
     format: 'iife',
     platform: 'browser',
@@ -137,81 +101,48 @@ async function construirGrafico(grafico, meta) {
     logLevel: 'warning',
   });
 
-  const tamanho = statSync(saida).size;
-  console.log(`  [ok] ${grafico.id}.js — ${(tamanho / 1024).toFixed(1)} KB`);
-  return { id: grafico.id, construido: true, tamanho };
+  const conteudo = resultado.outputFiles[0].text;
+  const gravou = gravarSeMudou(saida, conteudo);
+  const tamanho = Buffer.byteLength(conteudo, 'utf8');
+  console.log(`  [${gravou ? 'ok' : 'igual'}] ${grafico.id}.js — ${(tamanho / 1024).toFixed(1)} KB`);
+  return { id: grafico.id, construido: true, tamanho, gravou };
 }
 
-function gerarManifest(graficos, resultados, meta) {
+function gerarManifest(graficos, resultados) {
   const linhas = [];
   linhas.push('# MANIFEST — visualizações da biblioteca');
   linhas.push('');
-  linhas.push(
-    `Gerado automaticamente pelo build em ${meta.data} ` +
-      `(HEAD \`${meta.commit}\`; bundles fixados em \`${meta.hashDist || '—'}\`).`
-  );
+  linhas.push('Gerado automaticamente pelo build (sem data nem hash: o build é determinístico).');
   linhas.push('');
   linhas.push('## Como cadastrar no Looker');
   linhas.push('');
   linhas.push('Admin > Visualizations > Add Visualization:');
   linhas.push('');
-  linhas.push('- **ID**: o da tabela abaixo');
-  linhas.push('- **Label**: o da tabela abaixo');
-  linhas.push('- **Main**: a URL do arquivo (modelo na última coluna)');
+  linhas.push('- **ID** e **Label**: os da tabela abaixo');
+  linhas.push('- **Main**: a URL fixada num commit, que está em [`URLS.md`](URLS.md) (ou `URLS.csv`)');
   linhas.push('- **Dependencies**: **VAZIO** — todos os arquivos são autocontidos');
   linhas.push('');
-  linhas.push(
-    meta.hashDist
-      ? 'As URLs da última coluna já vêm fixadas no commit `' +
-          meta.hashDist +
-          '` — o último que alterou algum bundle. Copie e cole como estão: não troque o ' +
-          'hash por branch, `@main` ou `@latest`, senão a visualização muda sozinha depois ' +
-          'de testada.'
-      : 'ATENÇÃO: o build não conseguiu descobrir o commit dos bundles (rodou fora de um ' +
-          'repositório git?). As URLs abaixo estão SEM hash e não funcionam como estão.'
-  );
-  linhas.push('');
-  if (meta.bundlesPendentes && meta.bundlesPendentes.length) {
-    linhas.push(
-      `ATENÇÃO: ${meta.bundlesPendentes.length} bundle(s) mudaram e ainda não foram ` +
-        'commitados, então as URLs acima servem a versão ANTERIOR deles. Faça commit e ' +
-        'rode o build de novo antes de cadastrar no Looker: ' +
-        meta.bundlesPendentes.map((caminho) => `\`${caminho}\``).join(', ')
-    );
-    linhas.push('');
-  }
-  linhas.push('| ID | Label | Arquivo | Dependencies | Como montar o Explore | URL para o campo Main |');
-  linhas.push('|---|---|---|---|---|---|');
-
+  linhas.push('| ID | Label | Arquivo | Dependencies | Como montar o Explore |');
+  linhas.push('|---|---|---|---|---|');
   for (const g of graficos) {
     const r = resultados.find((x) => x.id === g.id);
-    const arquivo = r && r.construido ? `\`dist/${g.id}.js\`` : '_(ainda não construído)_';
-    const url = `\`https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@${
-      meta.hashDist || 'SEM-HASH'
-    }/biblioteca/dist/${g.id}.js\``;
-    linhas.push(
-      `| \`${g.id}\` | ${g.label} | ${arquivo} | (vazio) | ${g.explore || '—'} | ${url} |`
-    );
+    const arquivo = r && r.construido ? `\`dist/${g.id}.js\`` : '_(não construído)_';
+    linhas.push(`| \`${g.id}\` | ${g.label} | ${arquivo} | (vazio) | ${g.explore || '—'} |`);
   }
-
   linhas.push('');
   linhas.push('## Detalhes por visualização');
   linhas.push('');
   for (const g of graficos) {
-    const r = resultados.find((x) => x.id === g.id);
     linhas.push(`### ${g.label} (\`${g.id}\`)`);
     linhas.push('');
     if (g.resumo) linhas.push(`${g.resumo}`);
     linhas.push('');
-    linhas.push(`- **Tier**: ${g.tier}`);
     linhas.push(`- **Explore**: ${g.explore || '—'}`);
     linhas.push(`- **Aceita pivô**: ${g.aceitaPivo ? 'sim' : 'não'}`);
-    if (r && r.construido) linhas.push(`- **Tamanho do bundle**: ${(r.tamanho / 1024).toFixed(1)} KB`);
     linhas.push('');
   }
-
-  writeFileSync(join(DIR_DIST, 'MANIFEST.md'), linhas.join('\n'), 'utf8');
-  console.log('  [ok] MANIFEST.md');
+  const gravou = gravarSeMudou(join(DIR_DIST, 'MANIFEST.md'), linhas.join('\n'));
+  console.log(`  [${gravou ? 'ok' : 'igual'}] MANIFEST.md`);
 }
 
 /**
@@ -227,9 +158,10 @@ async function gerarApoioDoHarness(graficos) {
   if (!existsSync(dirGerado)) mkdirSync(dirGerado, { recursive: true });
 
   // Fixtures como script clássico (window.FIXTURES_BL).
-  await build({
+  const fixtures = await build({
     entryPoints: [join(RAIZ, 'test', 'fixtures', 'index.mjs')],
     outfile: join(dirGerado, 'fixtures.js'),
+    write: false,
     bundle: true,
     format: 'iife',
     globalName: 'FIXTURES_BL',
@@ -238,6 +170,7 @@ async function gerarApoioDoHarness(graficos) {
     minify: false,
     logLevel: 'warning',
   });
+  gravarSeMudou(join(dirGerado, 'fixtures.js'), fixtures.outputFiles[0].text);
 
   // Registro de gráficos como script clássico (window.REGISTRO_BL).
   const registro = graficos.map((g) => ({
@@ -249,10 +182,9 @@ async function gerarApoioDoHarness(graficos) {
     fixtures: g.fixtures || [],
     explore: g.explore || '',
   }));
-  writeFileSync(
+  gravarSeMudou(
     join(dirGerado, 'registro.js'),
-    `/* Gerado por build.mjs — não edite à mão. */\nwindow.REGISTRO_BL = ${JSON.stringify(registro, null, 2)};\n`,
-    'utf8'
+    `/* Gerado por build.mjs — não edite à mão. */\nwindow.REGISTRO_BL = ${JSON.stringify(registro, null, 2)};\n`
   );
   console.log('  [ok] test/gerado/fixtures.js e registro.js');
 }
@@ -260,13 +192,7 @@ async function gerarApoioDoHarness(graficos) {
 async function principal() {
   if (!existsSync(DIR_DIST)) mkdirSync(DIR_DIST, { recursive: true });
 
-  const meta = {
-    versao: versaoDoPacote(),
-    commit: hashDoCommit(),
-    hashDist: hashDosBundles(),
-    bundlesPendentes: bundlesNaoCommitados(),
-    data: new Date().toISOString().slice(0, 19).replace('T', ' '),
-  };
+  const meta = { versao: versaoDoPacote() };
 
   let graficos = lerRegistro();
   if (somente) graficos = graficos.filter((g) => g.id === somente);
@@ -276,13 +202,13 @@ async function principal() {
     return;
   }
 
-  console.log(`Build de ${graficos.length} gráfico(s) — versão ${meta.versao}, commit ${meta.commit}`);
+  console.log(`Build de ${graficos.length} gráfico(s) — versão ${meta.versao}`);
   const resultados = [];
   for (const g of graficos) {
     resultados.push(await construirGrafico(g, meta));
   }
 
-  gerarManifest(lerRegistro(), resultados, meta);
+  gerarManifest(lerRegistro(), resultados);
   await gerarApoioDoHarness(lerRegistro());
 
   const construidos = resultados.filter((r) => r.construido).length;
