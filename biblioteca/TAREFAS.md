@@ -72,3 +72,53 @@ segurança, tem cabeçalho + linha no MANIFEST, e está commitada e enviada).
 - [x] 47. `parallel_sets` · [x] 48. `arc_diagram` · [x] 49. `nightingale`
 - [x] 50. `radial_bar` · [x] 51. `lollipop` · [x] 52. `waffle`
 - [x] 53. `dumbbell` · [x] 54. `marimekko`
+
+## Correções (PROMPT_AGENTE v2)
+
+A lista anterior de 54 foi substituída. Os 32 gráficos abaixo foram
+arquivados em `_arquivados/` e não devem ser retomados:
+
+- [-] arquivado: theme_river, funil_variacoes, funil_comparativo, gauge_variacoes, gauge_grid, arvore_radial, candlestick_ohlc, linha_bandas, retorno_acumulado, fluxo_caixa, lorenz_gini, ponte_variacao, violin, ridgeline, beeswarm, dispersao_regressao, qq_plot, densidade_ecdf, intervalo_confianca, matriz_dispersao, correlacao_matriz, boxplot_avancado, small_multiples, parallel_coords, horizon_chart, motion_bubbles, parallel_sets, arc_diagram, nightingale, radial_bar, lollipop, waffle
+
+### Fase A
+- [ ] A.0 Tag `antes-da-limpeza` + arquivamento dos 32 (seção 5)
+- [ ] A.1 Opções "antes" em `docs/opcoes/<id>.antes.json` (22 gráficos)
+- [ ] 2.1 Rótulos (função única)
+- [ ] 2.2 Aba Cores
+- [ ] 2.3 Tooltip no padrão do Looker
+- [ ] 2.4 Marcadores (formas)
+- [ ] A.2 `docs/TESTE_NO_LOOKER.md`
+
+### Fase B
+- [ ] 2.5 Aviso amarelo
+- [ ] 2.6 Interação do mouse
+- [ ] 2.7 Animação
+- [ ] 2.8 Painel de opções (abas consolidadas)
+
+### Fase C — por gráfico
+- [ ] tabela_completa
+- [ ] diagrama_venn
+- [ ] upset_plot
+- [ ] treemap_carteira
+- [ ] kpi_vivo
+- [ ] heatmap_denso
+- [ ] dumbbell
+- [ ] drawdown
+- [ ] dot_plot_denso
+- [ ] bump_chart
+- [ ] slope_chart
+- [ ] bar_race
+- [ ] barras_ranking_denso
+- [ ] arvores_multiplas
+- [ ] org_chart
+- [ ] pareto
+- [ ] marimekko
+- [ ] quadrant_scatter
+- [ ] matriz_2x2
+- [ ] matriz_bcg
+- [ ] risco_retorno
+- [ ] grafico_controle
+
+### Fase D
+- [ ] 2.9 Build determinístico e URLs
+- [ ] D.1 `docs/RELATORIO_CORRECOES.md`

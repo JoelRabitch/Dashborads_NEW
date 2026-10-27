@@ -2664,3 +2664,20 @@ Duas coisas para a próxima sessão, nesta ordem:
 2. O trabalho útil restante continua sendo o da lista de revisão humana da
    Etapa de fechamento: abrir os gráficos no Looker real, começando pelos
    sete que desenham em canvas.
+
+# CORREÇÕES — PROMPT_AGENTE v2
+
+## Sessão de correções iniciada em 2026-10-27
+
+- Prompt lido: título confirmado "PROMPT_AGENTE (v2)". A cópia em
+  `/biblioteca/PROMPT_AGENTE.md` já era idêntica à da raiz (o usuário
+  atualizou as duas no commit 471830d); nada a sobrescrever.
+- `main` tinha avançado (89cb48d, só o PROMPT_AGENTE.md da raiz, mesmo
+  conteúdo): merge da main no branch, sem conflito (20539c2).
+- Estado inicial: `npm test` 1.286/1.286 passando (o prompt citava 478;
+  o número cresceu nas etapas finais da lista anterior).
+- Não havia seção "Correções" em TAREFAS.md: começo do zero, pela Fase A.
+
+### Etapa A.0 — arquivamento (em andamento)
+Vou: criar e enviar a tag `antes-da-limpeza`, mover os 32 gráficos para
+`_arquivados/` e tirar do registro, build, testes e varreduras.
