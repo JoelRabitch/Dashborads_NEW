@@ -1,7 +1,7 @@
 /*!
  * Múltiplas Árvores — visualização customizada para o Looker
  * id: arvores_multiplas
- * versão: 0.1.0 | build: 2026-10-27 14:04:13 | commit: 6b6eeca
+ * versão: 0.1.0 | build: 2026-10-27 14:11:51 | commit: be26847
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3036,7 +3036,10 @@
       aoDestruir = null,
       // true = o gráfico anima sozinho (bar_race, tabela); a animação
       // genérica de entrada (módulo 2.7) não roda por cima.
-      animacaoPropria = false
+      animacaoPropria = false,
+      // true = o gráfico desenha título/subtítulo dentro do próprio desenho
+      // (kpi_vivo): o cabeçalho padrão não repete o título.
+      cabecalhoProprio = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
@@ -3085,7 +3088,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
             data,
             element,
             config,
@@ -3130,7 +3133,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
     const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
@@ -3165,7 +3168,7 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, configFinal, tema);
+    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
@@ -4790,7 +4793,8 @@
   function corDoItem(config = {}, indice = 0, chave, { prefixo = "cor_" } = {}) {
     if (chave !== void 0 && chave !== null) {
       const propria = lerTexto(config[`${prefixo}${sanitizarChave(chave)}`], "");
-      if (propria) return propria;
+      const padraoDaPosicao = coresDaPaleta("looker")[indice % coresDaPaleta("looker").length];
+      if (propria && propria.toLowerCase() !== String(padraoDaPosicao).toLowerCase()) return propria;
     }
     const paleta = paletaDoConfig(config);
     return paleta[(indice % paleta.length + paleta.length) % paleta.length];
@@ -4802,7 +4806,11 @@
     const espessura = Math.max(0, lerNumero(config.espessuraDoContorno, 1));
     return {
       mostrar: lerBooleano(config.mostrarContorno, true) && espessura > 0,
-      cor: lerTexto(config.corDoContorno, "") || corPadrao || tema.fundo || "#FFFFFF",
+      // '#FFFFFF' é o DEFAULT declarado (não pode mudar): quando o gráfico
+      // informa uma cor padrão, o branco default vale como 'automática'.
+      cor: ((c) => c && !(corPadrao && c.toUpperCase() === "#FFFFFF") ? c : corPadrao || tema.fundo || "#FFFFFF")(
+        lerTexto(config.corDoContorno, "")
+      ),
       espessura,
       estilo: lerTexto(config.tracejadoDoContorno, "solido")
     };

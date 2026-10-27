@@ -1,7 +1,7 @@
 /*!
  * Heatmap Denso — visualização customizada para o Looker
  * id: heatmap_denso
- * versão: 0.1.0 | build: 2026-10-27 14:08:09 | commit: 81b7337
+ * versão: 0.1.0 | build: 2026-10-27 14:13:44 | commit: be26847
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3655,6 +3655,8 @@
               pai: svg,
               classe: "hd-celula",
               atributos: {
+                // Item do destaque ao passar o mouse (módulo 2.6).
+                "data-item": `${i}|${j}`,
                 x: retangulo.esquerda + j * larguraDaCelula + (comGrade ? 0.5 : 0),
                 y: retangulo.cima + i * alturaDaCelula + (comGrade ? 0.5 : 0),
                 width: Math.max(0.5, larguraDaCelula - (comGrade ? 1 : 0)),

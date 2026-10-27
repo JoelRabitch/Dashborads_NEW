@@ -1,6 +1,6 @@
 # MANIFEST — visualizações da biblioteca
 
-Gerado automaticamente pelo build em 2026-10-27 13:46:04 (HEAD `3a8b5dd`; bundles fixados em `3a8b5ddeb631555d3d102a8def6839c55f035b1f`).
+Gerado automaticamente pelo build em 2026-10-27 14:13:45 (HEAD `be26847`; bundles fixados em `be26847edb17327000c61c87ba9b7d536d0e3d24`).
 
 ## Como cadastrar no Looker
 
@@ -11,32 +11,34 @@ Admin > Visualizations > Add Visualization:
 - **Main**: a URL do arquivo (modelo na última coluna)
 - **Dependencies**: **VAZIO** — todos os arquivos são autocontidos
 
-As URLs da última coluna já vêm fixadas no commit `3a8b5ddeb631555d3d102a8def6839c55f035b1f` — o último que alterou algum bundle. Copie e cole como estão: não troque o hash por branch, `@main` ou `@latest`, senão a visualização muda sozinha depois de testada.
+As URLs da última coluna já vêm fixadas no commit `be26847edb17327000c61c87ba9b7d536d0e3d24` — o último que alterou algum bundle. Copie e cole como estão: não troque o hash por branch, `@main` ou `@latest`, senão a visualização muda sozinha depois de testada.
+
+ATENÇÃO: 22 bundle(s) mudaram e ainda não foram commitados, então as URLs acima servem a versão ANTERIOR deles. Faça commit e rode o build de novo antes de cadastrar no Looker: `biblioteca/dist/arvores_multiplas.js`, `biblioteca/dist/bar_race.js`, `biblioteca/dist/barras_ranking_denso.js`, `biblioteca/dist/bump_chart.js`, `biblioteca/dist/diagrama_venn.js`, `biblioteca/dist/dot_plot_denso.js`, `biblioteca/dist/drawdown.js`, `biblioteca/dist/dumbbell.js`, `biblioteca/dist/grafico_controle.js`, `biblioteca/dist/heatmap_denso.js`, `biblioteca/dist/kpi_vivo.js`, `biblioteca/dist/marimekko.js`, `biblioteca/dist/matriz_2x2.js`, `biblioteca/dist/matriz_bcg.js`, `biblioteca/dist/org_chart.js`, `biblioteca/dist/pareto.js`, `biblioteca/dist/quadrant_scatter.js`, `biblioteca/dist/risco_retorno.js`, `biblioteca/dist/slope_chart.js`, `biblioteca/dist/tabela_completa.js`, `biblioteca/dist/treemap_carteira.js`, `biblioteca/dist/upset_plot.js`
 
 | ID | Label | Arquivo | Dependencies | Como montar o Explore | URL para o campo Main |
 |---|---|---|---|---|---|
-| `tabela_completa` | Tabela Completa | `dist/tabela_completa.js` | (vazio) | 1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/tabela_completa.js` |
-| `diagrama_venn` | Diagrama de Venn | `dist/diagrama_venn.js` | (vazio) | Uma dimensão com os conjuntos ("A", "A,B"), ou duas dimensões (item e conjunto), ou várias colunas sim/não. Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/diagrama_venn.js` |
-| `quadrant_scatter` | Dispersão com Quadrantes | `dist/quadrant_scatter.js` | (vazio) | 1 dimensão (o nome de cada ponto) e pelo menos 2 medidas (eixos X e Y). Opcionalmente mais medidas para tamanho e cor. Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/quadrant_scatter.js` |
-| `matriz_2x2` | Matriz 2x2 | `dist/matriz_2x2.js` | (vazio) | 1 dimensão (o nome do item) e 2 medidas (os dois eixos). Opcionalmente uma terceira para o tamanho. Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/matriz_2x2.js` |
-| `matriz_bcg` | Matriz BCG | `dist/matriz_bcg.js` | (vazio) | 1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/matriz_bcg.js` |
-| `arvores_multiplas` | Múltiplas Árvores | `dist/arvores_multiplas.js` | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/arvores_multiplas.js` |
-| `org_chart` | Organograma | `dist/org_chart.js` | (vazio) | Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/org_chart.js` |
-| `upset_plot` | UpSet Plot | `dist/upset_plot.js` | (vazio) | Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/upset_plot.js` |
-| `drawdown` | Drawdown | `dist/drawdown.js` | (vazio) | 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/drawdown.js` |
-| `pareto` | Pareto | `dist/pareto.js` | (vazio) | 1 dimensao (as categorias) e 1 medida. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/pareto.js` |
-| `treemap_carteira` | Treemap de Carteira | `dist/treemap_carteira.js` | (vazio) | 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/treemap_carteira.js` |
-| `risco_retorno` | Risco x Retorno | `dist/risco_retorno.js` | (vazio) | 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/risco_retorno.js` |
-| `grafico_controle` | Grafico de Controle | `dist/grafico_controle.js` | (vazio) | 1 dimensao temporal (os periodos, em ordem) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/grafico_controle.js` |
-| `heatmap_denso` | Heatmap Denso | `dist/heatmap_denso.js` | (vazio) | 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/heatmap_denso.js` |
-| `barras_ranking_denso` | Barras de Ranking Denso | `dist/barras_ranking_denso.js` | (vazio) | 1 dimensao (o nome) e 1 medida (a barra). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/barras_ranking_denso.js` |
-| `dot_plot_denso` | Dot Plot Denso | `dist/dot_plot_denso.js` | (vazio) | 1 dimensao (o nome) e 1 ou mais medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/dot_plot_denso.js` |
-| `bump_chart` | Bump Chart | `dist/bump_chart.js` | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/bump_chart.js` |
-| `slope_chart` | Slope Chart | `dist/slope_chart.js` | (vazio) | 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/slope_chart.js` |
-| `bar_race` | Bar Chart Race | `dist/bar_race.js` | (vazio) | 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/bar_race.js` |
-| `kpi_vivo` | KPI Vivo | `dist/kpi_vivo.js` | (vazio) | 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/kpi_vivo.js` |
-| `dumbbell` | Halteres | `dist/dumbbell.js` | (vazio) | 1 dimensao (o nome) e 2 medidas (o antes e o depois). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/dumbbell.js` |
-| `marimekko` | Marimekko | `dist/marimekko.js` | (vazio) | 2 dimensoes (as colunas e o empilhamento) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@3a8b5ddeb631555d3d102a8def6839c55f035b1f/biblioteca/dist/marimekko.js` |
+| `tabela_completa` | Tabela Completa | _(ainda não construído)_ | (vazio) | 1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/tabela_completa.js` |
+| `diagrama_venn` | Diagrama de Venn | _(ainda não construído)_ | (vazio) | Uma dimensão com os conjuntos ("A", "A,B"), ou duas dimensões (item e conjunto), ou várias colunas sim/não. Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/diagrama_venn.js` |
+| `quadrant_scatter` | Dispersão com Quadrantes | _(ainda não construído)_ | (vazio) | 1 dimensão (o nome de cada ponto) e pelo menos 2 medidas (eixos X e Y). Opcionalmente mais medidas para tamanho e cor. Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/quadrant_scatter.js` |
+| `matriz_2x2` | Matriz 2x2 | _(ainda não construído)_ | (vazio) | 1 dimensão (o nome do item) e 2 medidas (os dois eixos). Opcionalmente uma terceira para o tamanho. Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/matriz_2x2.js` |
+| `matriz_bcg` | Matriz BCG | _(ainda não construído)_ | (vazio) | 1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/matriz_bcg.js` |
+| `arvores_multiplas` | Múltiplas Árvores | _(ainda não construído)_ | (vazio) | Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/arvores_multiplas.js` |
+| `org_chart` | Organograma | _(ainda não construído)_ | (vazio) | Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/org_chart.js` |
+| `upset_plot` | UpSet Plot | _(ainda não construído)_ | (vazio) | Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/upset_plot.js` |
+| `drawdown` | Drawdown | _(ainda não construído)_ | (vazio) | 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/drawdown.js` |
+| `pareto` | Pareto | _(ainda não construído)_ | (vazio) | 1 dimensao (as categorias) e 1 medida. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/pareto.js` |
+| `treemap_carteira` | Treemap de Carteira | _(ainda não construído)_ | (vazio) | 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/treemap_carteira.js` |
+| `risco_retorno` | Risco x Retorno | _(ainda não construído)_ | (vazio) | 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/risco_retorno.js` |
+| `grafico_controle` | Grafico de Controle | _(ainda não construído)_ | (vazio) | 1 dimensao temporal (os periodos, em ordem) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/grafico_controle.js` |
+| `heatmap_denso` | Heatmap Denso | _(ainda não construído)_ | (vazio) | 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/heatmap_denso.js` |
+| `barras_ranking_denso` | Barras de Ranking Denso | `dist/barras_ranking_denso.js` | (vazio) | 1 dimensao (o nome) e 1 medida (a barra). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/barras_ranking_denso.js` |
+| `dot_plot_denso` | Dot Plot Denso | _(ainda não construído)_ | (vazio) | 1 dimensao (o nome) e 1 ou mais medidas. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/dot_plot_denso.js` |
+| `bump_chart` | Bump Chart | _(ainda não construído)_ | (vazio) | 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/bump_chart.js` |
+| `slope_chart` | Slope Chart | _(ainda não construído)_ | (vazio) | 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/slope_chart.js` |
+| `bar_race` | Bar Chart Race | _(ainda não construído)_ | (vazio) | 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/bar_race.js` |
+| `kpi_vivo` | KPI Vivo | _(ainda não construído)_ | (vazio) | 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/kpi_vivo.js` |
+| `dumbbell` | Halteres | _(ainda não construído)_ | (vazio) | 1 dimensao (o nome) e 2 medidas (o antes e o depois). | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/dumbbell.js` |
+| `marimekko` | Marimekko | _(ainda não construído)_ | (vazio) | 2 dimensoes (as colunas e o empilhamento) e 1 medida. | `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@be26847edb17327000c61c87ba9b7d536d0e3d24/biblioteca/dist/marimekko.js` |
 
 ## Detalhes por visualização
 
@@ -47,7 +49,6 @@ Tabela com pivôs agrupados, agrupamento de linhas, formatação condicional, ti
 - **Tier**: 1
 - **Explore**: 1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 186.1 KB
 
 ### Diagrama de Venn (`diagrama_venn`)
 
@@ -56,7 +57,6 @@ Diagrama de Venn de 2 a 5 conjuntos, lendo três formatos de dados (uma linha po
 - **Tier**: 1
 - **Explore**: Uma dimensão com os conjuntos ("A", "A,B"), ou duas dimensões (item e conjunto), ou várias colunas sim/não. Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 145.8 KB
 
 ### Dispersão com Quadrantes (`quadrant_scatter`)
 
@@ -65,7 +65,6 @@ Dispersão de duas medidas com linhas divisórias (média, mediana, zero ou valo
 - **Tier**: 1
 - **Explore**: 1 dimensão (o nome de cada ponto) e pelo menos 2 medidas (eixos X e Y). Opcionalmente mais medidas para tamanho e cor. Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 190.2 KB
 
 ### Matriz 2x2 (`matriz_2x2`)
 
@@ -74,7 +73,6 @@ Matriz de decisão 2x2: duas medidas nos eixos, corte no ponto médio, quadrante
 - **Tier**: 1
 - **Explore**: 1 dimensão (o nome do item) e 2 medidas (os dois eixos). Opcionalmente uma terceira para o tamanho. Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 191.0 KB
 
 ### Matriz BCG (`matriz_bcg`)
 
@@ -83,7 +81,6 @@ Matriz crescimento x participação do BCG: eixo X em log e invertido (participa
 - **Tier**: 1
 - **Explore**: 1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 192.9 KB
 
 ### Múltiplas Árvores (`arvores_multiplas`)
 
@@ -92,7 +89,6 @@ Uma arvore pequena por ramo de primeiro nivel, lado a lado, para comparar a form
 - **Tier**: 1
 - **Explore**: Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 155.5 KB
 
 ### Organograma (`org_chart`)
 
@@ -101,7 +97,6 @@ Organograma em cartoes, de cima para baixo ou da esquerda para a direita, com li
 - **Tier**: 1
 - **Explore**: Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 151.2 KB
 
 ### UpSet Plot (`upset_plot`)
 
@@ -110,7 +105,6 @@ Alternativa ao Venn quando ha mais de 5 conjuntos: uma barra por intersecao, ord
 - **Tier**: 1
 - **Explore**: Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 132.8 KB
 
 ### Drawdown (`drawdown`)
 
@@ -119,7 +113,6 @@ Quanto a serie esta abaixo do proprio maximo historico, periodo a periodo, com a
 - **Tier**: 2
 - **Explore**: 1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 208.0 KB
 
 ### Pareto (`pareto`)
 
@@ -128,7 +121,6 @@ Barras ordenadas da maior para a menor com a linha de percentual acumulado no ei
 - **Tier**: 2
 - **Explore**: 1 dimensao (as categorias) e 1 medida. Nao aceita pivo.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 186.5 KB
 
 ### Treemap de Carteira (`treemap_carteira`)
 
@@ -137,7 +129,6 @@ Retangulos proporcionais ao tamanho e coloridos por uma segunda medida numa esca
 - **Tier**: 2
 - **Explore**: 1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 153.3 KB
 
 ### Risco x Retorno (`risco_retorno`)
 
@@ -146,7 +137,6 @@ Dispersao com risco no eixo X e retorno no Y, bolha pela exposicao, e a reta de 
 - **Tier**: 2
 - **Explore**: 1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 194.4 KB
 
 ### Grafico de Controle (`grafico_controle`)
 
@@ -155,7 +145,6 @@ Linha central e limites de controle (Shewhart) com as regras de Nelson: separa v
 - **Tier**: 3
 - **Explore**: 1 dimensao temporal (os periodos, em ordem) e 1 medida.
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 206.0 KB
 
 ### Heatmap Denso (`heatmap_denso`)
 
@@ -164,7 +153,6 @@ Mapa de calor de duas dimensoes cruzadas, em canvas, com escala linear, divergen
 - **Tier**: 4
 - **Explore**: 2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida.
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 135.1 KB
 
 ### Barras de Ranking Denso (`barras_ranking_denso`)
 
@@ -173,7 +161,7 @@ Milhares de barras ordenadas com rolagem virtualizada, barra sempre a partir do 
 - **Tier**: 4
 - **Explore**: 1 dimensao (o nome) e 1 medida (a barra).
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 132.7 KB
+- **Tamanho do bundle**: 173.1 KB
 
 ### Dot Plot Denso (`dot_plot_denso`)
 
@@ -182,7 +170,6 @@ Pontos de Cleveland para muitas categorias e varias medidas por linha, com rolag
 - **Tier**: 4
 - **Explore**: 1 dimensao (o nome) e 1 ou mais medidas.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 135.5 KB
 
 ### Bump Chart (`bump_chart`)
 
@@ -191,7 +178,6 @@ Evolucao do ranking ao longo do tempo: o eixo Y e a posicao, nao o valor — e o
 - **Tier**: 4
 - **Explore**: 1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 165.5 KB
 
 ### Slope Chart (`slope_chart`)
 
@@ -200,7 +186,6 @@ Dois periodos ligados por uma linha por item: o eixo e o VALOR, entao a inclinac
 - **Tier**: 4
 - **Explore**: 1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 159.1 KB
 
 ### Bar Chart Race (`bar_race`)
 
@@ -209,7 +194,6 @@ Barras que se reordenam ao longo do tempo, com barra de tempo tao proeminente qu
 - **Tier**: 5
 - **Explore**: 1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas).
 - **Aceita pivô**: sim
-- **Tamanho do bundle**: 133.6 KB
 
 ### KPI Vivo (`kpi_vivo`)
 
@@ -218,7 +202,6 @@ O numero grande com a BASE da comparacao sempre declarada, opcao de menor-e-melh
 - **Tier**: 5
 - **Explore**: 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 160.3 KB
 
 ### Halteres (`dumbbell`)
 
@@ -227,7 +210,6 @@ Duas medidas por categoria ligadas por uma barra, com rolagem virtualizada; o ei
 - **Tier**: 5
 - **Explore**: 1 dimensao (o nome) e 2 medidas (o antes e o depois).
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 137.0 KB
 
 ### Marimekko (`marimekko`)
 
@@ -236,4 +218,3 @@ Barras empilhadas com a LARGURA da coluna tambem proporcional: duas dimensoes em
 - **Tier**: 5
 - **Explore**: 2 dimensoes (as colunas e o empilhamento) e 1 medida.
 - **Aceita pivô**: não
-- **Tamanho do bundle**: 138.1 KB

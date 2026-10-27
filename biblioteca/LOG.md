@@ -3049,3 +3049,14 @@ falhavam no código anterior; o de "1 tooltip" é regressão).
   final é escrito antes (o número nunca fica vazio).
 - `test/correcoes_kpi_recursos.test.mjs` (5; os 5 falham no bundle
   anterior). Teste antigo ajustado: textos agora dentro de `.kv-texto`.
+
+### 2.6 Hover — aplicação (concluído)
+- Conferido por script (render padrão de cada gráfico) quais têm itens
+  para o destaque. Marcados com `data-item` os que faltavam: cartões do
+  org_chart, células da grade SVG do heatmap e linhas do
+  barras_ranking_denso. Os demais já tinham `.bl-marcador`/`data-item`
+  (pontos, barras, blocos). Hover próprio (não usam o helper): diagrama_venn
+  (por região, geometria) e tabela_completa (`destacarLinhaEColuna`).
+  bar_race anima os quadros e não tem hover (sem tooltip declarado).
+  heatmap em canvas (grade grande) não tem elementos para destacar.
+- `test/hover.test.mjs` cobre 10 gráficos.

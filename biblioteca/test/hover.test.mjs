@@ -18,6 +18,14 @@ const DIST = process.env.BL_DIST || join(resolve(__dirname, '..'), 'dist');
 const CASOS = [
   ['arvores_multiplas', 'hierarquia'],
   ['matriz_2x2', 'semPivo'],
+  ['org_chart', 'paiFilho'],
+  ['heatmap_denso', 'duasDimensoes'],
+  ['barras_ranking_denso', 'semPivo'],
+  ['pareto', 'semPivo'],
+  ['treemap_carteira', 'hierarquia'],
+  ['dumbbell', 'ohlc'],
+  ['marimekko', 'duasDimensoes'],
+  ['upset_plot', 'conjuntos3'],
 ];
 
 for (const [id, fixture] of CASOS) {

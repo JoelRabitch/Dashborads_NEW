@@ -305,6 +305,8 @@ export default defineViz({
             pai: svg,
             classe: 'hd-celula',
             atributos: {
+              // Item do destaque ao passar o mouse (módulo 2.6).
+              'data-item': `${i}|${j}`,
               x: retangulo.esquerda + j * larguraDaCelula + (comGrade ? 0.5 : 0),
               y: retangulo.cima + i * alturaDaCelula + (comGrade ? 0.5 : 0),
               width: Math.max(0.5, larguraDaCelula - (comGrade ? 1 : 0)),

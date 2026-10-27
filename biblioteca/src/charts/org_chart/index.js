@@ -349,6 +349,8 @@ export default defineViz({
       const estaRecolhido = recolhidos.has(caminho);
 
       const grupo = criarSvgEl('g', { pai: svg, classe: 'oc-cartao' });
+      // Item do destaque ao passar o mouse (módulo 2.6).
+      grupo.setAttribute('data-item', caminho);
       const preenchido = config.preencherCartao === true;
 
       const caixa = criarSvgEl('rect', {

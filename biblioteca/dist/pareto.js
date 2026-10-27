@@ -1,7 +1,7 @@
 /*!
  * Pareto — visualização customizada para o Looker
  * id: pareto
- * versão: 0.1.0 | build: 2026-10-27 14:10:32 | commit: 4873ede
+ * versão: 0.1.0 | build: 2026-10-27 14:11:51 | commit: be26847
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;

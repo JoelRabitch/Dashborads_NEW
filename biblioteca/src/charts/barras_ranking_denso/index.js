@@ -430,6 +430,8 @@ function montarLinha({
   linha.className = 'br-linha';
   linha.style.fontSize = `${Math.max(9, Math.min(tema.tamanhoBase, alturaDaLinha - 8))}px`;
   linha.dataset.posicao = String(item.posicao);
+  // Item do destaque ao passar o mouse (módulo 2.6).
+  linha.dataset.item = String(item.posicao);
 
   const destacado = topN > 0 && item.posicao <= topN;
   const corDaBarra = destacado ? corDeDestaque : cor;

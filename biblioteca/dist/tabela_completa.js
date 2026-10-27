@@ -1,7 +1,7 @@
 /*!
  * Tabela Completa — visualização customizada para o Looker
  * id: tabela_completa
- * versão: 0.1.0 | build: 2026-10-27 14:01:17 | commit: 442b80e
+ * versão: 0.1.0 | build: 2026-10-27 14:11:51 | commit: be26847
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -1631,6 +1631,69 @@
       }
     };
   }
+  function blocoDeInteracao(opcoes = {}) {
+    const {
+      secao = "Intera\xE7\xE3o",
+      comZoom = true,
+      comBrush = false,
+      comBusca = false,
+      comSelecao = true
+    } = opcoes;
+    const bloco = {
+      permitirDrill: {
+        type: "boolean",
+        label: "Clique abre o drill do Looker",
+        section: secao,
+        default: true
+      },
+      destacarAoPassarMouse: {
+        type: "boolean",
+        label: "Destacar ao passar o mouse",
+        section: secao,
+        default: true
+      }
+    };
+    if (comZoom) {
+      bloco.permitirZoom = { type: "boolean", label: "Permitir zoom", section: secao, default: false };
+      bloco.permitirArrastar = {
+        type: "boolean",
+        label: "Permitir arrastar (pan)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBrush) {
+      bloco.permitirBrush = {
+        type: "boolean",
+        label: "Permitir sele\xE7\xE3o por \xE1rea (brush)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBusca) {
+      bloco.mostrarBusca = {
+        type: "boolean",
+        label: "Mostrar caixa de busca",
+        section: secao,
+        default: false
+      };
+    }
+    if (comSelecao) {
+      bloco.permitirSelecao = {
+        type: "boolean",
+        label: "Permitir selecionar itens (clique)",
+        section: secao,
+        default: true
+      };
+      bloco.usarCrossfilter = {
+        type: "boolean",
+        label: "Usar cross-filter do Looker quando dispon\xEDvel",
+        section: secao,
+        default: false
+      };
+    }
+    return bloco;
+  }
   function blocoDeTema(opcoes = {}) {
     const { secao = "Tema" } = opcoes;
     return {
@@ -2077,9 +2140,55 @@
     const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
     marcas.forEach((el, i) => {
       const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
-      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms both`;
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms backwards`;
     });
     return marcas.length;
+  }
+
+  // src/core/interaction.js
+  function criarFiltroDeBusca(termo) {
+    const t = normalizarTexto(termo);
+    if (!t) return () => true;
+    return (texto) => normalizarTexto(texto).includes(t);
+  }
+  function normalizarTexto(texto) {
+    return String(texto != null ? texto : "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  }
+  var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
+  var CSS_DESTAQUE = `
+.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:opacity .15s ease;}
+.bl-hover-ativo [data-item]:not(.bl-sob-mouse), .bl-hover-ativo .bl-marcador:not(.bl-sob-mouse){opacity:.3;}
+@media (prefers-reduced-motion: reduce){.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:none;}}
+`;
+  function ligarDestaqueAoPassar({ area, eventos, config = {} }) {
+    if (!area || config.destacarAoPassarMouse === false) return false;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-destaque"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-destaque");
+      style.textContent = CSS_DESTAQUE;
+      raiz.appendChild(style);
+    }
+    let acesos = [];
+    const apagar = () => {
+      for (const el of acesos) el.classList.remove("bl-sob-mouse");
+      acesos = [];
+      area.classList.remove("bl-hover-ativo");
+    };
+    eventos.on(area, "pointerover", (ev) => {
+      const alvo = ev.target && ev.target.closest ? ev.target.closest(SELETOR_DE_ITENS) : null;
+      if (!alvo || !area.contains(alvo)) {
+        apagar();
+        return;
+      }
+      apagar();
+      const chave = alvo.getAttribute("data-item");
+      acesos = chave ? Array.from(area.querySelectorAll("[data-item]")).filter((e) => e.getAttribute("data-item") === chave) : [alvo];
+      for (const el of acesos) el.classList.add("bl-sob-mouse");
+      area.classList.add("bl-hover-ativo");
+    });
+    eventos.on(area, "pointerleave", apagar);
+    return true;
   }
 
   // src/core/tooltip.js
@@ -2441,7 +2550,10 @@
       aoDestruir = null,
       // true = o gráfico anima sozinho (bar_race, tabela); a animação
       // genérica de entrada (módulo 2.7) não roda por cima.
-      animacaoPropria = false
+      animacaoPropria = false,
+      // true = o gráfico desenha título/subtítulo dentro do próprio desenho
+      // (kpi_vivo): o cabeçalho padrão não repete o título.
+      cabecalhoProprio = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
@@ -2490,7 +2602,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
             data,
             element,
             config,
@@ -2535,7 +2647,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
     const ponte = criarPonte(this, opcoes);
     ponte.limparErros();
     if (!this._bl) {
@@ -2570,7 +2682,7 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, configFinal, tema);
+    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
@@ -2643,6 +2755,7 @@
         limparAviso(bl);
         try {
           render(ctx);
+          ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
@@ -2663,11 +2776,13 @@
       limparAviso(bl);
       try {
         render(ctx);
+        ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
     render(ctx);
+    ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     if (!animacaoPropria) {
       animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
     }
@@ -2676,6 +2791,7 @@
   function opcoesDeAnimacaoPadrao() {
     const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
     delete bloco.contadorAnimado;
+    bloco.destacarAoPassarMouse = blocoDeInteracao({ comZoom: false, comSelecao: false }).destacarAoPassarMouse;
     return bloco;
   }
   function definicaoCreateManual(element) {
@@ -3352,16 +3468,6 @@
     "semaforo",
     "estrelas"
   ]);
-
-  // src/core/interaction.js
-  function criarFiltroDeBusca(termo) {
-    const t = normalizarTexto(termo);
-    if (!t) return () => true;
-    return (texto) => normalizarTexto(texto).includes(t);
-  }
-  function normalizarTexto(texto) {
-    return String(texto != null ? texto : "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-  }
 
   // src/charts/tabela_completa/render.js
   var CSS2 = `

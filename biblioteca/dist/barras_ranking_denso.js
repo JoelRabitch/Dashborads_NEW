@@ -1,7 +1,7 @@
 /*!
  * Barras de Ranking Denso — visualização customizada para o Looker
  * id: barras_ranking_denso
- * versão: 0.1.0 | build: 2026-10-27 14:08:08 | commit: 81b7337
+ * versão: 0.1.0 | build: 2026-10-27 14:13:45 | commit: be26847
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -4539,6 +4539,7 @@
     linha.className = "br-linha";
     linha.style.fontSize = `${Math.max(9, Math.min(tema.tamanhoBase, alturaDaLinha - 8))}px`;
     linha.dataset.posicao = String(item.posicao);
+    linha.dataset.item = String(item.posicao);
     const destacado = topN > 0 && item.posicao <= topN;
     const corDaBarra = destacado ? corDeDestaque : cor;
     if (config.mostrarPosicao !== false) {

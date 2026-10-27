@@ -1,7 +1,7 @@
 /*!
  * UpSet Plot — visualização customizada para o Looker
  * id: upset_plot
- * versão: 0.1.0 | build: 2026-10-27 14:06:25 | commit: 6ed2588
+ * versão: 0.1.0 | build: 2026-10-27 14:11:51 | commit: be26847
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
