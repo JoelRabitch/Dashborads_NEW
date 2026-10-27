@@ -1,204 +1,147 @@
-# PROMPT_AGENTE: Biblioteca de visualizações customizadas para o Looker
+# PROMPT_AGENTE (v2): Corrigir e reorganizar a biblioteca de visualizações customizadas do Looker
 
-Você vai criar uma BIBLIOTECA de visualizações customizadas para o Looker (API de Custom Visualizations, `looker.plugins.visualizations.add`) e subir o código para o Git. Você trabalha sozinho, sem supervisão, até a lista acabar ou a sessão ser interrompida.
+Este arquivo SUBSTITUI a versão anterior do PROMPT_AGENTE.md e é autocontido: tudo o que você precisa saber está aqui. Você trabalha sozinho, sem supervisão, até terminar ou a sessão ser interrompida.
 
 ## 0. PRIMEIRA AÇÃO
 
-1. Se `/biblioteca/PROMPT_AGENTE.md` NÃO existir, salve este texto inteiro nesse caminho (você vai precisar reler as regras em sessões futuras, porque não lembra das anteriores).
-2. Rode `git status` e `git log -5`, liste o conteúdo atual do repositório no `/biblioteca/LOG.md` e confira se o branch `agente/novas-viz` e a pasta `/biblioteca` já existem. Se existirem, siga a seção 11 (RETOMADA) em vez de recomeçar.
+1. Sobrescreva `/biblioteca/PROMPT_AGENTE.md` com o texto deste arquivo (você não lembra de sessões anteriores e vai precisar reler estas regras). Se a cópia da raiz do repositório for diferente deste texto, não altere a da raiz: ela é do usuário.
+2. Rode `git fetch`, `git status` e `git log -5`. Confirme que está no branch `agente/novas-viz`. Se a `main` tiver avançado, faça merge da `main` no branch (nunca rebase de commits já enviados). Se houver conflito em arquivos fora de `/biblioteca`, pare e registre no LOG.
+3. Leia `/biblioteca/LOG.md` e `/biblioteca/TAREFAS.md`. Se já houver uma seção "Correções" em andamento, siga a seção 8 (RETOMADA) em vez de recomeçar.
 
-## 1. ESCOPO
+## 1. ESCOPO E LIMITES
 
-SUA TAREFA É SOMENTE: escrever o código e subir para o Git. Não publique em bucket, não cadastre nada no Looker, não acesse o Looker nem outros serviços. Amanhã eu cadastro e testo por conta própria.
+- Sua tarefa é SOMENTE escrever e corrigir código e subir para o Git. Tudo fica no repositório. Não acesse o Looker, não publique em bucket, não use LookML (`manifest.lkml` está fora de escopo) e não cadastre nada em lugar nenhum. O usuário cadastra as visualizações depois, no painel Admin do Looker, usando URLs do jsDelivr com hash de commit.
+- Repositório: https://github.com/JoelRabitch/Dashborads_NEW (PÚBLICO, branch principal `main`). Tudo o que você cria e altera fica em `/biblioteca`. NÃO altere, mova, renomeie nem apague nada fora de `/biblioteca` (`/src`, `/test`, `/tools`, `/npm-package` e o `README.md` da raiz são do usuário). Única exceção: manter, no fim do `README.md` da raiz, a seção curta "Biblioteca modular (/biblioteca)" apontando para `/biblioteca/README.md` (atualize-a se já existir).
+- Gráficos de mapa e geográficos estão fora de escopo.
+- Várias visualizações de terceiros falharam na versão atual do Looker. NÃO copie código de terceiros. Não invente métodos da API do Looker: se não tiver certeza de que um método existe, diga e use uma alternativa.
 
-- Cadastro (feito por mim): Admin > Visualizations > Add Visualization (ID, Label, Main = URL do .js, Dependencies). Cada visualização final deve ser UM `.js` autocontido, com o campo Dependencies VAZIO.
-- NÃO FAÇA GRÁFICOS DE MAPA nem geográficos. Mapa e globo já estão resolvidos por mim.
-- JÁ TENHO, NÃO RECRIAR: todo o repositório looker-open-source/custom_visualizations_v2 e, instaladas no Looker: Report Table, Sankey, Force-Directed, Calendar Chart, Bar Gauge, Multiple Gauge Charts, Aster Plot, Image Carousel, Collapsible Tree, Histogram, Liquid Fill Gauge, Multiple Value2, Packed Bubble, Radial Gauge, Sunburst, além dos gráficos nativos do Looker.
-- Várias visualizações de terceiros falharam na versão atual do Looker (um Venn de terceiros abriu o painel de opções mas ficou em branco). NÃO copie código de terceiros e não presuma que um método da API do Looker existe: confirme antes de usar e, se não tiver certeza, diga e use uma alternativa.
-- Eu gosto muito de customizar. Em TODOS os gráficos quero o máximo de opções possível: cores, rotação, barras, pontos, pivôs, eixos, rótulos, animação (veja o kit de opções, seção 6).
-- A versão do Looker pode mudar no futuro e eu preciso conseguir atualizar o código com facilidade (seção 5).
+## 2. GIT (regras rígidas)
 
-## 2. REPOSITÓRIO E GIT (regras rígidas)
+- Trabalhe SOMENTE no branch `agente/novas-viz`. NUNCA faça push na `main`, nunca use `--force`, nunca reescreva histórico, nunca apague branches nem tags. As URLs que o usuário já cadastrou no Looker apontam para commits antigos pelo hash e só funcionam enquanto esses commits existirem.
+- Um commit por etapa pequena, mensagem em português (ex.: `fix: tooltip único e valores formatados (módulo 2.3)`), e push após cada commit. Se o push falhar, tente de novo uma vez, registre no LOG e siga localmente.
+- COMMITE `/biblioteca/dist` (o usuário aponta o campo Main do Looker para esses arquivos).
+- O repositório é público: não commite credenciais, tokens, URLs internas, nomes de clientes nem dados reais de negócio. Dados de exemplo são sintéticos. Não commite `node_modules`. Use apenas o acesso Git já configurado na máquina; se não houver permissão de push, registre no LOG e deixe os commits locais.
 
-Repositório de destino (já existe e tem conteúdo): https://github.com/JoelRabitch/Dashborads_NEW (público, branch principal: `main`). Use a cópia local, se já existir, ou clone.
+## 3. REGRAS TÉCNICAS E DE SEGURANÇA (obrigatórias)
 
-CONTEÚDO EXISTENTE (NÃO ALTERAR, NÃO MOVER, NÃO RENOMEAR, NÃO APAGAR): tudo o que já está em `/src`, `/test`, `/tools`, `/npm-package` e o `README.md`. Leia só o que for necessário para entender as convenções (ex.: `/src/tabela_pivot_avancada.js`). A única alteração permitida em arquivo existente é ACRESCENTAR, no fim do `README.md` da raiz, uma seção curta "Biblioteca modular (/biblioteca)" apontando para `/biblioteca/README.md`.
+- **Proibido** em `src/` e `dist/`: `fetch`, `XMLHttpRequest`, `sendBeacon`, `eval`, `new Function`, `document.cookie`, `localStorage`, `sessionStorage`, `window.open`, `@import`, `document.write`, `importScripts`, `WebSocket`, recursos de outros domínios e `innerHTML` sem escapar. Única exceção: os namespaces `http://www.w3.org/2000/svg` e `xlink` para criar SVG. `navigator.clipboard` e `Blob` com URL local são permitidos. Rode o grep de segurança (`npm run seguranca`) em cada gráfico alterado e mostre o resultado no LOG.
+- Texto vindo de dados (nomes de campos, valores, templates) entra SEMPRE por `textContent` ou atributos validados. HTML do Looker (`htmlForCell`) só quando o usuário ligar uma opção explícita.
+- **Dependências:** cada `dist/<id>.js` é autocontido e o campo Dependencies do Looker fica VAZIO. Módulos d3 só como devDependencies EMBUTIDAS no bundle, com versão exata (confira com `npm view` que existe e foi publicada há mais de 14 dias) e licença ISC ou BSD. Nada é carregado de fora em tempo de execução. Se um gráfico não usa d3, desenhe em SVG puro.
+- **Arquitetura existente (respeite):** só `src/core/looker-adapter.js` toca em `looker.*` e `LookerCharts.*`; só `src/core/data-model.js` lê `queryResponse` e as células; opções declarativas em `options-kit.js`; temas em `theme.js`; um gráfico por pasta em `src/charts/<id>/`; `config/charts.json` é o registro; `build/build.mjs` gera `dist/<id>.js` (IIFE único, NÃO minificado) e `dist/MANIFEST.md`; testes em `test/` (harness e teste de fumaça); documentação em `docs/` (`COMPAT.md` lista cada método da API do Looker usado e como adaptar se mudar). Se mudar algo na arquitetura, atualize `docs/ARQUITETURA.md` e `docs/COMPAT.md`.
+- `registerOptions`: o Looker só mostra o valor escolhido de um select se o `config` já o tiver antes de o `registerOptions` disparar; registre só quando a lista de campos mudar, para evitar loop infinito.
+- Código comentado em português, cada gráfico com cabeçalho explicando o que faz, campos esperados e opções.
 
-TUDO O QUE VOCÊ CRIAR vai numa pasta NOVA na raiz: `/biblioteca`. Todos os caminhos deste prompt são relativos a `/biblioteca`, salvo quando indicado. O harness novo fica em `/biblioteca/test/harness.html` (não use nem altere o `/test/harness.html` existente).
+## 4. REGRAS DESTA TAREFA
 
-BRANCH E COMMITS
-- Trabalhe SOMENTE no branch `agente/novas-viz` (crie a partir da `main` atualizada se não existir). NUNCA faça push na `main`, nunca use `--force`, nunca reescreva histórico, nunca apague branches.
-- Outras pessoas ou processos podem commitar na `main`. Antes de começar e a cada retomada, faça `fetch` e, se a `main` tiver avançado, faça merge da `main` no seu branch (nunca rebase de commits já enviados). Se houver conflito em arquivos fora de `/biblioteca`, pare e registre no LOG.
-- Um commit por etapa, com mensagem em português (ex.: `viz: diagrama_venn – opções, render e testes`). Faça push do branch após cada commit; se falhar, tente de novo uma vez, registre no LOG e siga localmente.
-- COMMITE a pasta `dist/` (preciso dos arquivos no Git para apontar o Main do Looker).
-- O repositório é PÚBLICO: não commite credenciais, tokens, URLs internas da empresa, nomes de clientes nem dados reais de negócio. Dados de exemplo devem ser sintéticos. Não commite `node_modules` (use `.gitignore`).
-- Não use tokens nem senhas: use apenas o acesso Git já configurado na máquina. Se não houver permissão de push, registre no LOG e deixe os commits locais.
+- Esta tarefa SUBSTITUI a lista anterior de 54 visualizações. Os gráficos arquivados (seção 5) não devem mais ser construídos nem retomados. Se `TAREFAS.md` tiver itens pendentes `[ ]` ou `[~]` de gráficos arquivados ou de gráficos que nunca foram construídos, marque como `[-] arquivado`.
+- Em `/biblioteca/TAREFAS.md`, crie a seção "Correções" com uma caixa por módulo (2.1 a 2.9) e por gráfico, para a retomada funcionar. Registre decisões e estado em `/biblioteca/LOG.md`.
+- **IDs das opções:** NUNCA remova, renomeie nem mude o `id` de uma opção existente, nem o tipo ou o valor padrão dela (exceto os dois padrões pedidos explicitamente em 6.2 e 6.8). Só `section`, `order` e `label` podem mudar. Dashboards salvos precisam continuar funcionando. Se a causa de um defeito for nome divergente entre a opção registrada e a chave lida, corrija a LEITURA, não o id.
+- Antes de alterar cada gráfico, gere a lista das opções atuais (id, label, section, tipo, default) em `/biblioteca/docs/opcoes/<id>.antes.json`. Ao final, todos os ids antigos devem continuar existindo com o mesmo tipo e default; só mudam section, order e label. Ids NOVOS são permitidos (liste-os à parte no relatório).
+- **Reproduzir antes de corrigir.** Para cada defeito, escreva primeiro um teste que o reproduza (e falhe), depois corrija e confirme que passa. Os testes atuais passam (478 de 478), mas os defeitos aparecem no Looker real, então o simulador não reproduz o comportamento real do `config`. Por isso: (a) os testes usam um `config` no formato que o Looker entrega (objeto com as chaves das opções registradas, com valores padrão quando o usuário não mexeu e valores alterados quando mexeu, incluindo `false`, `0` e texto vazio); (b) o modo debug mostra no console as chaves registradas contra as chaves recebidas no `config`; (c) no relatório, separe "verificado em teste automatizado" de "precisa ser conferido no Looker real". Nunca escreva "corrigido" para algo que só foi testado em simulação.
+- Para cada módulo, escreva um teste ou checklist e execute antes de dar como concluído.
+- Se algo estiver ambíguo, assuma o mais simples e registre a decisão no LOG em vez de perguntar. No fim de cada etapa, liste o que ficou de fora e o que o usuário precisa conferir no Looker real.
+- Não pare para enviar resumos entre etapas. O relatório final vai para `/biblioteca/docs/RELATORIO_CORRECOES.md`; você só responde na conversa quando terminar tudo ou travar de verdade (marque `[!]` com o motivo e siga para o próximo item).
 
-## 3. LISTA DE VISUALIZAÇÕES (faça na ordem; termine cada uma por completo antes da próxima)
+## 5. ESCOPO DE GRÁFICOS
 
-ID em snake_case, Label como aparece para o usuário.
+### MANTER (22)
+tabela_completa, diagrama_venn, upset_plot, treemap_carteira, kpi_vivo, heatmap_denso, dumbbell, drawdown, dot_plot_denso, bump_chart, slope_chart, bar_race, barras_ranking_denso, arvores_multiplas, org_chart, pareto, marimekko, quadrant_scatter, matriz_2x2, matriz_bcg, risco_retorno, grafico_controle
 
-### TIER 0: infraestrutura (antes de qualquer gráfico)
-Estrutura da seção 5, kit de opções comum, adapter do Looker, build, testes de fumaça e harness. Se `node`/`npm` não estiverem disponíveis ou o `npm install` falhar (sem rede), registre no LOG e implemente do zero, em `src/core`, as funções necessárias (escalas, formas, hierarquia, contornos) em vez de usar módulos d3.
+### ARQUIVAR (32)
+theme_river, funil_variacoes, funil_comparativo, gauge_variacoes, gauge_grid, arvore_radial, candlestick_ohlc, linha_bandas, retorno_acumulado, fluxo_caixa, lorenz_gini, ponte_variacao, violin, ridgeline, beeswarm, dispersao_regressao, qq_plot, densidade_ecdf, intervalo_confianca, matriz_dispersao, correlacao_matriz, boxplot_avancado, small_multiples, parallel_coords, horizon_chart, motion_bubbles, parallel_sets, arc_diagram, nightingale, radial_bar, lollipop, waffle
 
-### TIER 1: pedidos diretos
-1. `tabela_completa`: "Tabela Completa" (requisitos na seção 8).
-2. `diagrama_venn`: "Diagrama de Venn". Escrito do ZERO, sem venn.js nem outra biblioteca, sem dependências externas.
-   - Conjuntos: de 2 a 5. Para 2 e 3, círculos com ÁREA PROPORCIONAL ao tamanho (calcule a distância entre centros pela área de interseção; para 3, ajuste numericamente para aproximar as interseções e mostre o erro, ou desligue o modo proporcional). Para 4 e 5, layout fixo com elipses (não proporcional), com aviso na legenda. Opção "Proporcional" liga e desliga.
-   - Formatos de dados aceitos (opção para escolher, com detecção automática): (a) UMA LINHA POR REGIÃO: uma dimensão com o nome da região (ex.: "A", "B", "A,B", separador configurável) e uma medida com o tamanho; (b) UMA LINHA POR ITEM E CONJUNTO: duas dimensões (item e conjunto), a viz calcula as interseções contando itens distintos, com opção de somar uma medida; (c) UMA LINHA POR ITEM com colunas booleanas ou 0/1, uma por conjunto. Se houver pivô, cada valor do pivô vira um conjunto no formato (c). Documente os três formatos no cabeçalho, no MANIFEST e na mensagem de erro, em português.
-   - Opções: cor por conjunto (dinâmica), opacidade, modo de mistura nas interseções (multiplicar, normal, tela), borda (cor, espessura, tracejado), rótulos de conjunto (posição, tamanho, negrito, rotação), valores nas regiões (contagem, % do total, % do conjunto, ambos), formato numérico, rótulos externos com linhas-guia quando a região for pequena, anti-colisão, rotação do diagrama em graus, espelhar, espaçamento entre conjuntos, ordem dos conjuntos, destaque por hover (região, conjunto), seleção de região com drill do Looker, tooltip com template `{{campo}}` e lista dos primeiros N itens da região (quando houver coluna de item), mostrar ou ocultar interseções vazias, legenda interativa (clicar liga e desliga o conjunto), animação de entrada (crescer a partir do centro, em cascata), contador animado nos valores, tema claro e escuro.
-   - Testes: fixtures próprias (2, 3, 4 e 5 conjuntos; conjunto vazio; interseção maior que o conjunto, que deve gerar aviso; nomes longos; nulos; formato por item com 50.000 linhas).
-3. `quadrant_scatter`: "Dispersão com Quadrantes". Linhas de corte por média, mediana, valor fixo ou percentil (X e Y independentes), rótulo e cor de fundo por quadrante, tamanho por medida, cor por categoria ou valor, rótulos dos pontos com anti-colisão, destaque e busca de pontos, linhas de referência, regressão opcional, escala log, zoom e brush.
-4. `matriz_2x2`: "Matriz 2x2". Quadrantes como cartões listando os itens (ex.: impacto x esforço), classificação por regra, limite de itens por quadrante com "+N".
-5. `matriz_bcg`: "Matriz BCG". Crescimento x participação com bolhas, quadrantes nomeados e editáveis.
-6. `theme_river`: "ThemeRiver". Áreas fluidas empilhadas no tempo, com offsets (silhouette, wiggle, expand, zero), curvas (basis, monotone, linear, step), ordem das camadas (inside-out, por total, por pico, original), rótulos nas camadas, destaque por hover, brush de período, linha vertical de leitura.
-7. `funil_variacoes`: "Funis (Estilos)". Uma viz com seletor de estilo: trapézio clássico, pirâmide, barras centralizadas, barras alinhadas à esquerda, curvo/suave (bezier), em degraus, anel concêntrico (radial), pseudo-3D, espelhado. Controles: orientação (vertical/horizontal), inverter (ponta para cima/baixo), rotação em graus, espaçamento, proporção topo/base, rótulos (dentro/fora/linhas-guia), % da etapa anterior e do total, perda entre etapas, cor por etapa, gradiente ou por valor, borda, cantos, altura mínima.
-8. `funil_comparativo`: "Funil Comparativo". Dois períodos ou segmentos lado a lado (espelhado ou sobreposto), com diferença percentual por etapa. Aceita pivô como segundo funil.
-9. `gauge_variacoes`: "Medidores (Estilos)". Estilos: semicírculo, 3/4, círculo completo com ângulos inicial e final livres, velocímetro com ponteiro, anel, anéis concêntricos (várias medidas), segmentado em blocos, linear horizontal/vertical, termômetro, bateria, bullet. Controles: zonas coloridas por faixa, meta e marcadores, min e max (fixos ou de campos), valor central formatável, ticks, espessura, cantos arredondados, animação do ponteiro e do contador.
-10. `gauge_grid`: "Medidores em Grade". Muitos medidores (um por valor de uma dimensão ou por medida), mesma escala ou individual, ordenação, colunas automáticas ou fixas, paginação, busca.
-11. `arvore_radial`: "Árvore Radial".
-12. `arvores_multiplas`: "Múltiplas Árvores".
-13. `org_chart`: "Organograma".
-    REQUISITOS DAS TRÊS ÁRVORES: orientação escolhida em opção (radial, cima para baixo, baixo para cima, esquerda para direita, direita para esquerda); rotação livre em graus (slider) e, na radial, arrastar para girar; layout tree ou cluster; links curvo, reto, cotovelo ou radial; formas dos nós, tamanho por medida, cor por nível, categoria ou valor; rótulos (posição, rotação automática na radial, truncar, tamanho); expandir e recolher, profundidade inicial, expandir tudo e recolher tudo; busca com destaque do caminho; zoom e pan; hierarquia a partir de dimensões (cada dimensão = um nível) OU de campos pai/filho (opção). Múltiplas Árvores: uma árvore por valor de uma dimensão ou pivô, em grade, com mesma escala opcional, expansão sincronizada opcional, ordenação e paginação.
-14. `upset_plot`: "UpSet Plot" (opcional; se o tempo acabar, pode ficar pendente). Alternativa ao Venn para 5 ou mais conjuntos: barras de interseção, matriz de pontos, barras de tamanho por conjunto, ordenação (tamanho, grau, conjunto), filtro por grau e tamanho mínimo, Top N, cores e rotação. Mesmos formatos de dados do Venn.
+Trabalhe apenas nos gráficos de MANTER. Não toque nos arquivados.
 
-### TIER 2: financeiros
-15. `candlestick_ohlc`: "Candlestick / OHLC" (velas e barras, volume embaixo, médias móveis, cores de alta e baixa, zoom e brush).
-16. `linha_bandas`: "Linha com Bandas" (Bollinger, média móvel, envelope por percentil, intervalo de confiança).
-17. `drawdown`: "Drawdown" (área submersa, máximo drawdown marcado, tempo de recuperação).
-18. `retorno_acumulado`: "Retorno Acumulado (Base 100)" (várias séries normalizadas, com destaque).
-19. `fluxo_caixa`: "Fluxo de Caixa" (entradas e saídas, saldo acumulado, projeção tracejada).
-20. `pareto`: "Pareto" (barras decrescentes, linha de acumulado, corte 80/20, grupo "Outros").
-21. `lorenz_gini`: "Curva de Lorenz / Gini" (concentração, Gini calculado).
-22. `treemap_carteira`: "Treemap de Carteira" (retângulos por tamanho, cor por variação % com escala divergente, agrupado por setor).
-23. `ponte_variacao`: "Ponte de Variação" (bridge com subtotais, positivos e negativos, rótulos, conectores).
-24. `risco_retorno`: "Risco x Retorno" (dispersão com fronteira, linha de referência e quadrantes).
+### Procedimento de arquivamento
+1. Crie a tag Git `antes-da-limpeza` no estado atual e ENVIE a tag ao GitHub (`git push origin antes-da-limpeza`).
+2. Mova para `/biblioteca/_arquivados/` os arquivos dos 32 gráficos (`src/charts/<id>/`, `dist/<id>.js` e fixtures ou testes específicos de cada um), preservando a estrutura. Se algum nunca foi construído, registre no LOG como "nunca construído".
+3. NÃO mova `src/core` nem as bases compartilhadas (pastas que começam com `_` em `src/charts`, como `_distribuicao` e `_serie_temporal`), mesmo que só gráficos arquivados as usem. Registre no LOG quais ficaram sem uso.
+4. Remova os arquivados de `config/charts.json`, do MANIFEST, do `URLS.md` (se existir), do harness e de `test/gerado` (regenere o registro e as fixtures), e do teste de fumaça.
+5. Exclua `_arquivados/` do build, dos testes, do grep de segurança e de qualquer varredura.
+6. Atualize o `/biblioteca/README.md` para listar só os 22 gráficos mantidos.
+7. Confirme que build, testes e checagem de segurança passam e que os 22 gráficos continuam carregando.
 
-### TIER 3: estatística
-25. `violin`: "Violino". 26. `ridgeline`: "Ridgeline". 27. `beeswarm`: "Beeswarm". 28. `grafico_controle`: "Carta de Controle (SPC)" (limites UCL e LCL, regras de alerta). 29. `dispersao_regressao`: "Dispersão com Regressão" (linear, polinomial, LOESS simples, banda de confiança, R²). 30. `qq_plot`: "Gráfico Q-Q". 31. `densidade_ecdf`: "Densidade e ECDF". 32. `intervalo_confianca`: "Intervalos de Confiança" (barras de erro e forest plot). 33. `matriz_dispersao`: "Matriz de Dispersão (SPLOM)". 34. `correlacao_matriz`: "Matriz de Correlação". 35. `boxplot_avancado`: "Boxplot Avançado" (notched, pontos com jitter, múltiplos grupos, outliers configuráveis).
+## 6. MÓDULOS COMPARTILHADOS
 
-### TIER 4: muitas informações (muitos produtos, muitas lojas)
-Tudo em CANVAS ou virtualizado, funcionando bem com 5.000 a 50.000 itens, com busca, destaque, zoom, brush e Top N.
-36. `heatmap_denso`: "Mapa de Calor Denso" (matriz grande, zoom e pan, ordenação por linha e coluna, agrupamento hierárquico opcional, rótulos adaptativos, escala de cor configurável).
-37. `small_multiples`: "Mini-gráficos em Grade" (um mini-gráfico por loja ou produto: linha, área, barras, colunas; eixos compartilhados ou não; ordenação; paginação; destaque do pior e do melhor).
-38. `barras_ranking_denso`: "Ranking Denso" (barras horizontais com rolagem virtualizada, busca, Top N + "Outros", marcação de meta).
-39. `dot_plot_denso`: "Dot Plot Denso" (Cleveland, com muitas categorias, rolagem).
-40. `parallel_coords`: "Coordenadas Paralelas" (brushing nos eixos, reordenar eixos, cor por categoria).
-41. `bump_chart`: "Ranking ao Longo do Tempo".
-42. `slope_chart`: "Gráfico de Inclinação".
-43. `horizon_chart`: "Horizon Chart".
+Corrija nos módulos compartilhados, uma vez só, e reaproveite em todos os gráficos. Não conserte gráfico por gráfico.
 
-### TIER 5: demais
-44. `bar_race`: "Corrida de Barras" (play e pausa, velocidade, scrubber de tempo, Top N). 45. `motion_bubbles`: "Bolhas em Movimento" (x, y, tamanho e cor por período, com rastro). 46. `kpi_vivo`: "Cartões de KPI Animados" (contador, variação, sparkline que se desenha, muitos cartões em grade). 47. `parallel_sets`: "Conjuntos Paralelos (Alluvial)". 48. `arc_diagram`: "Diagrama de Arcos". 49. `nightingale`: "Rosa de Nightingale". 50. `radial_bar`: "Barras Circulares". 51. `lollipop`: "Lollipop". 52. `waffle`: "Waffle / Pictograma". 53. `dumbbell`: "Halteres (Antes e Depois)". 54. `marimekko`: "Marimekko".
+### 6.1 Rótulos
+Em quase todos os gráficos, as configurações de rótulo não têm efeito. Investigue a causa raiz (opção não lida do config, nome divergente, valor lido só na criação e não no redesenho, `false` ou `0` tratado como ausente) e corrija em uma função única de rótulos. Devem funcionar: mostrar/ocultar, posição, tamanho, cor, rotação, formato numérico, casas decimais e rótulos dos eixos. O config é relido a cada `updateAsync`.
 
-## 4. DADOS
+### 6.2 Aba Cores
+Corrija a aplicação das cores em todos os gráficos: paleta, cor por série ou categoria, cor de fundo, cor das linhas de grade (tema personalizado) e cor de borda. Verifique se a opção "Aplicar JSON acima por cima das opções" está sobrescrevendo as cores sem querer. Se estiver, o padrão passa a ser DESLIGADO (primeira exceção à regra de defaults; registre no relatório).
 
-- Dimensões, medidas, table calculations, pivôs, `totals_data`. Respeitar `hidden_fields`, nulos e `value_format` do Looker.
-- Cada gráfico documenta no cabeçalho e no MANIFEST quantas dimensões e medidas espera. Se o formato não servir, mostre uma mensagem clara em português (pelo adapter), explicando como montar o Explore.
-- Tipos a tratar: datas (ordenação temporal correta), números, texto, listas separadas por vírgula (para mini-gráficos).
-- Hierarquias: a partir de dimensões (cada uma é um nível) ou de campos pai/filho nos gráficos de árvore.
+### 6.3 Tooltip no padrão do Looker
+Problema atual: o tooltip cria um elemento novo a cada hover e não remove o anterior, deixando vários na tela (confirmado em `barras_ranking_denso`). Requisitos:
+- Um único elemento de tooltip por gráfico, criado uma vez. O hover só troca conteúdo e posição. `pointer-events: none`.
+- Esconder em: mouseleave do gráfico, scroll, redesenho (`updateAsync`) e destruição do gráfico.
+- Seguir o cursor com deslocamento pequeno e inverter de lado ao chegar na borda da área do gráfico (a viz roda num iframe e o tooltip não pode passar do limite dele).
+- Valores formatados pelo Looker (`LookerCharts.Utils.textForCell(cell)` ou o campo `rendered`), nunca o número cru (hoje aparece "−6.18841").
+- **Ação do clique** (opção nova): "Drill do Looker" (padrão), "Fixar tooltip" e "Nenhuma". No modo drill, o clique abre o menu (`LookerCharts.Utils.openDrillMenu`) quando a célula tem `links`, e fixa o tooltip quando não tem. Shift+clique sempre fixa. Clicar fora ou Esc solta o tooltip fixo. Isso resolve o "não fica persistente" do pareto.
+- Opção "Tooltip (HTML)": REAPROVEITE a opção de template de tooltip que já existe (mesmo id). Variáveis padronizadas: `{{categoria}}`, `{{valor}}`, `{{serie}}`, `{{percentual}}`, mantendo também o formato antigo `{{nome_do_campo}}`. Campo vazio usa o tooltip padrão. Só as tags `b`, `i`, `br` e `span`; todo valor de variável entra escapado via `textContent`. HTML do Looker (`htmlForCell`) apenas se o usuário ligar a opção "Permitir HTML do Looker".
+- Estilo configurável: fundo, borda, fonte, tamanho.
+- Teste: simular mouse rápido sobre 50 elementos e confirmar no máximo 1 tooltip no DOM.
 
-## 5. ARQUITETURA (fácil de atualizar quando o Looker mudar)
+### 6.4 Marcadores (formas)
+A opção de forma não altera o desenho (`matriz_2x2`, `dot_plot_denso` e outros com pontos). Crie uma função única (círculo, quadrado, triângulo, losango, cruz, estrela, wye). Todos os pontos e bolhas usam essa função em vez de `circle` direto. Leia a opção a cada redesenho. Trate o tamanho separadamente (`symbol` usa área, não raio). Reflita a forma na legenda e no tooltip. Teste: trocar a forma em cada gráfico aplicável e confirmar a mudança.
 
-```
-/biblioteca/
-  src/core/
-    looker-adapter.js   ÚNICO arquivo que toca em looker.* e LookerCharts.*
-    define-viz.js       fábrica: defineViz({ id, label, options, render }) liga a viz ao adapter
-    data-model.js       converte queryResponse + data para um modelo interno estável
-    options-kit.js      blocos de opções reutilizáveis (seção 6) e registro dinâmico
-    theme.js            tokens de tema (cores, fontes, espaçamentos, paletas)
-    scales.js, shapes.js, format.js, animate.js, tooltip.js, legend.js, interaction.js
-    dom.js              helpers seguros (textContent, criação de SVG e canvas)
-    errors.js           mensagens de erro e aviso em português
-  src/charts/<id>/index.js    um gráfico por pasta: opções + render(model, config, ctx)
-  src/charts/_template/       modelo para criar um gráfico novo
-  config/charts.json          registro: id, label, tier, pasta (usado pelo build e pelos docs)
-  build/build.mjs             gera dist/<id>.js e dist/MANIFEST.md
-  dist/<id>.js                arquivo final autocontido (COMMITADO)
-  test/harness.html           simulador do Looker com seletor de gráfico e dados de exemplo
-  test/fixtures/              com e sem pivô, nulos, vazio, 5.000 e 50.000 linhas
-  test/smoke.test.mjs         carrega cada dist/*.js (jsdom) e renderiza com as fixtures
-  docs/ARQUITETURA.md, COMPAT.md, COMO_ADICIONAR_GRAFICO.md, CHANGELOG.md
-  README.md, LOG.md, TAREFAS.md, PROMPT_AGENTE.md, package.json, .gitignore
-```
+### 6.5 Aviso amarelo
+O aviso amarelo na área superior não sai em vários gráficos. Crie um componente único de avisos com: opção "Mostrar avisos" (padrão LIGADO), opção de posição (topo, rodapé, oculto) e botão para fechar. Avisos que indicam dado ilustrativo ou incorreto continuam escritos no console mesmo quando ocultos. O aviso não pode cobrir o botão de avançar no tempo (`bar_race`) nem a área de rolagem.
 
-Regras de arquitetura:
-1. **Isolamento da API do Looker.** Nenhum arquivo fora de `looker-adapter.js` usa `looker.*` ou `LookerCharts.*`. O adapter expõe uma interface própria e estável: `registrarVisualizacao`, `limparErros`, `mostrarErro`, `registrarOpcoes`, `atualizarConfig`, `textoDaCelula`, `htmlDaCelula`, `abrirDrill`, `abrirUrl`, `crossfilter`. Cada função faz DETECÇÃO DE RECURSO (`typeof ...`) e tem fallback com aviso no console. Os gráficos nunca chamam a API do Looker diretamente.
-2. **Modelo de dados interno estável.** `data-model.js` é o único lugar que lê `queryResponse.fields`, pivôs, `totals_data` e células. Os gráficos recebem algo como `{ dims, measures, pivots, rows, totals, fieldsByName }`. Se o formato do Looker mudar, só esse arquivo e o adapter mudam.
-3. **Compatibilidade documentada.** `docs/COMPAT.md` lista cada método da API do Looker usado, em qual função do adapter, como confirmar que existe, o que acontece sem ele e COMO ADAPTAR se mudar. Inclua o bloco "Se a versão do Looker mudar: checklist": (1) ligue o modo debug; (2) veja o console; (3) edite só o adapter ou o data-model; (4) `npm run build`; (5) `npm test`.
-4. **Opções declarativas.** Cada gráfico declara as opções como dados (kit da seção 6), sem lógica espalhada. O registro dinâmico (uma opção por campo ou por série) fica em `options-kit.js`.
-5. **Tokens de tema centralizados** em `theme.js`: trocar um valor muda todos os gráficos.
-6. **Build:** esbuild com versão fixa em `devDependencies` (confirme com `npm view esbuild versions` que a versão existe e foi publicada há mais de 14 dias). Cada `dist/<id>.js` é um bundle IIFE único, NÃO minificado por padrão (para eu poder auditar). Cabeçalho gerado no topo de cada arquivo: id, label, versão, data do build, hash do commit.
-7. **Módulos d3 só como devDependencies, EMBUTIDOS no bundle** (d3-hierarchy, d3-shape, d3-scale, d3-array, d3-interpolate, d3-delaunay, d3-contour, d3-force, d3-sankey, se necessário), com versões exatas conferidas com `npm view`, publicadas há mais de 14 dias e com licença compatível (ISC ou BSD). Em tempo de execução NÃO pode haver dependência externa nem CDN.
-8. **MANIFEST:** `dist/MANIFEST.md` gerado pelo build, com tabela: ID, Label, arquivo, Dependencies (vazio), como montar o Explore (dimensões e medidas, se aceita pivô) e URL de exemplo para o campo Main neste formato (deixe COMMIT como placeholder para eu preencher): `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@COMMIT/biblioteca/dist/ARQUIVO.js`
-9. `docs/COMO_ADICIONAR_GRAFICO.md`: passo a passo curto para criar uma nova viz a partir do `_template`.
+### 6.6 Interação do mouse
+Crie um helper único de hover e clique: destacar o elemento sob o mouse, atenuar os demais e disparar a ação de clique definida em 6.3. Aplique em todos os gráficos. O Diagrama de Venn hoje se comporta como imagem estática (o mouse passa e nada é destacado ou selecionado); ele é o caso crítico.
 
-## 6. KIT DE OPÇÕES COMUM (todo gráfico usa o que fizer sentido)
+### 6.7 Animação
+Corrija a animação (transições na entrada e na atualização), com duração e easing configuráveis, uma opção para desligá-la e um interruptor global. Respeite `prefers-reduced-motion`.
 
-Registrado em `options-kit.js` e organizado em seções do painel Edit. Cada gráfico acrescenta as suas opções específicas.
-- **Cores:** paleta (várias prontas, inclusive daltonismo-seguras e divergentes), cor por série ou categoria (uma opção por item, dinâmica), gradientes, escala por valor (2 ou 3 cores; mínimo, ponto médio e máximo automáticos ou fixos), opacidade, inverter, cor de fundo, cor de contorno.
-- **Rotação e orientação:** ângulo em graus, orientação (vertical, horizontal, invertida), girar rótulos, espelhar.
-- **Barras e áreas:** largura, espaçamento, raio dos cantos, borda, empilhado, agrupado, normalizado (100%), ordem, padrões de preenchimento.
-- **Pontos e linhas:** forma (círculo, quadrado, triângulo, losango, cruz, estrela), tamanho fixo ou por medida, borda, opacidade, espessura da linha, tracejado, suavização, preencher abaixo.
-- **Pivô:** valores do pivô como séries, opção de transpor (pivô nas linhas), ordenação e limite.
-- **Dados:** ordenação (por valor, rótulo, original; crescente e decrescente), Top N com grupo "Outros", agrupar categorias pequenas, filtro por mínimo, tratamento de nulos (omitir, zero, interpolar).
-- **Eixos:** mínimo e máximo, escala linear, log ou raiz, formato dos números (K/M/B, moeda, percentual, casas decimais), gridlines, inverter, títulos, rotação dos rótulos, eixo secundário quando fizer sentido.
-- **Rótulos:** mostrar ou não, posição, formato, tamanho, cor, rotação, anti-colisão, truncar.
-- **Legenda:** posição, ordem, interativa (clicar liga e desliga séries), mostrar valores.
-- **Linhas de referência e anotações:** meta, média, mediana, percentil ou valor fixo, com rótulo e cor.
-- **Tooltip:** padrão ou template com `{{nome_do_campo}}`, mostrar nome completo do campo, valores brutos.
-- **Animação:** interruptor global, duração, atraso, easing, cascata (stagger), "só na primeira carga" ou "a cada atualização". Sempre respeitar `prefers-reduced-motion`.
-- **Interação:** zoom, pan, brush, busca e destaque, seleção, drill do Looker (`openDrillMenu` com `cell.links`) e cross-filter SOMENTE se confirmar que a API existe.
-- **Tema:** claro, escuro, personalizado, fontes do sistema, tamanhos, espaçamentos, bordas, sombras.
-- **Avançado:** modo debug (escreve no console a estrutura de campos, pivôs e a primeira linha), restaurar padrão, exportar e importar a configuração como JSON (copiar e colar).
-- Cuidado com o `registerOptions`: o Looker só mostra o valor escolhido de um select se o `config` já o tiver antes de o `registerOptions` disparar; registre só quando a lista de campos mudar, para evitar loop infinito.
+### 6.8 Painel de opções: consolidar abas sem perder opções
+A barra de abas do editor nativo do Looker não quebra linha e corta as abas à direita, e o CSS dela não é controlável. Reduza a quantidade de abas movendo opções entre elas (sem remover nenhuma), com as mesmas abas na mesma ordem em todos os gráficos e nomes curtos:
+- **Dados**: campos, ordenação, limite de categorias, formato de números, casas decimais
+- **Visual**: cores, formas, bordas, contornos, linhas de grade, tema
+- **Eixos**: eixos e rótulos dos eixos
+- **Texto**: rótulos dos dados, legenda, título, avisos
+- **Interação**: tooltip, animação, hover e clique
+- **Avançado**: debug, JSON, aplicar JSON (sempre por último)
 
-## 7. REGRAS TÉCNICAS E DE SEGURANÇA (obrigatórias)
+Prefixe os rótulos das opções (ex.: "Rótulo · Tamanho", "Cor · Fundo", "Eixo X · Casas decimais"). Aparece só a aba que tiver opção naquele gráfico. Se ainda não couber, junte Texto e Eixos. Debug e JSON ficam desligados por padrão e só na aba Avançado (segunda exceção à regra de defaults; registre no relatório). Antes de mover, liste as abas existentes hoje em cada gráfico (algumas ficam cortadas à direita) e dê um destino para cada opção. Não presuma como o Looker ordena as abas: use o atributo `order`, documente o que fez e marque como "conferir no Looker real".
 
-- Cada viz tem `options`, `create` e `updateAsync(data, element, config, queryResponse, details, done)` (isso fica dentro do `define-viz` e do adapter). Sempre chamar `done()`, inclusive em erro.
-- **Sem dependências externas em tempo de execução.** O campo Dependencies fica vazio.
-- **Proibido** em `src/` e `dist/`: `fetch`, `XMLHttpRequest`, `sendBeacon`, `eval`, `new Function`, `document.cookie`, `localStorage`, `sessionStorage`, `window.open`, `@import`, `document.write`, `importScripts`, `WebSocket` e qualquer URL http(s) externa. ÚNICA exceção: os namespaces `http://www.w3.org/2000/svg` e `xlink` para criar SVG. `navigator.clipboard` e `Blob` com URL local são permitidos.
-- Texto vindo de dados (nomes de campos, valores, templates de tooltip, rótulos) entra SEMPRE por `textContent` ou atributos validados, nunca por `innerHTML` sem escapar. HTML do Looker (`htmlForCell`) só quando o usuário ligar uma opção explícita. Imagens: apenas http(s) e data:, com opção de desligar imagens externas. Fontes do sistema.
-- **Desempenho:** Canvas ou virtualização para volumes grandes; redimensionar com o contêiner (`ResizeObserver`, se existir); sem vazamento de listeners nem timers entre atualizações; limpar animações pendentes.
-- **Acessibilidade básica:** contraste adequado, animações desligáveis, teclado onde fizer sentido.
-- Código comentado em português. Cada gráfico com cabeçalho explicando o que faz, campos esperados e opções.
+### 6.9 Build determinístico e URLs (tudo no Git)
+- O build não escreve data nem hash de commit no cabeçalho dos `dist/*.js` e só reescreve um arquivo quando o conteúdo mudar. Rode o build duas vezes seguidas e confirme com `git status` que a segunda não altera nenhum arquivo.
+- Ao final, gere `/biblioteca/dist/URLS.md` (e `URLS.csv`) com uma entrada por gráfico mantido: ID, Label, Main e como montar o Explore. O Main é a URL do jsDelivr com o hash de 40 caracteres do último commit que alterou `biblioteca/dist`, no formato `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@<HASH>/biblioteca/dist/<id>.js`. Nunca use branch, `@main`, `@latest`, `raw.githubusercontent.com` nem `github.com/blob` (o Looker bloqueia essas respostas com `ERR_BLOCKED_BY_ORB`). Se já existir um script de URLs de uma tarefa anterior, reaproveite. Como um arquivo não pode conter o hash do próprio commit, commite os `dist` primeiro e o `URLS.md` num commit seguinte. Confirme com `git ls-tree` que cada caminho existe nesse hash. O `MANIFEST.md` também não pode mais conter o texto `COMMIT`: aponte para o `URLS.md`.
+- Documente no `/biblioteca/README.md` o fluxo de manutenção: para consertar um gráfico, alterar o código, rodar build e testes, pegar o hash com `git log -1 --format=%H -- biblioteca/dist/<id>.js` e trocar só a URL daquela visualização no Admin do Looker.
 
-## 8. TABELA COMPLETA (requisitos)
+## 7. CORREÇÕES ESPECÍFICAS POR GRÁFICO
 
-Substitui as tabelas que tenho hoje, que acho muito limitadas. Já existe `/src/tabela_pivot_avancada.js`: leia (só leitura), aproveite ideias e nomes de opções, e anote no LOG o que a nova faz a mais. A nova é independente e fica em `/biblioteca`. Tudo configurável no painel Edit, por coluna quando fizer sentido:
-- **Estrutura:** pivôs como colunas agrupadas (cabeçalho em dois níveis) e opção de transpor; agrupamento de linhas por uma ou mais dimensões com expandir e recolher, subtotais e total geral; linhas de detalhe expansíveis; colunas calculadas na viz (soma, diferença, razão, variação %).
-- **Colunas:** fixas à esquerda e à direita, cabeçalho fixo, redimensionar e reordenar arrastando, mostrar e ocultar por menu, largura automática, fixa ou em %, quebra de texto ou truncar com tooltip, alinhamento, fonte, cor de texto e fundo por coluna, renomear, prefixo e sufixo, formato numérico próprio.
-- **Tipos de célula (por coluna):** texto, número, link e drill, imagem, ícone, badge colorido, avatar com iniciais, data, booleano, barra de progresso, barra de dados (positiva e negativa), gauge pequeno, anel de progresso, estrelas, semáforo, seta de variação, sparkline, mini barras, mini área, mini pizza.
-- **Formatação condicional (motor de regras):** várias regras por coluna avaliadas em ordem (maior que, menor que, igual, diferente, entre, contém, começa com, é nulo, top N, bottom N, acima e abaixo da média, percentil), com ações de cor de fundo, cor do texto, negrito, ícone, badge, borda, animação, e formatar a célula ou a linha inteira. Escalas de cor de 2 e 3 cores, paletas prontas e comparação com outra coluna (realizado contra meta).
-- **CAMPOS ANIMADOS (prioridade):** contador que sobe ou desce até o valor, barras e anéis que crescem, sparklines que se desenham, destaque quando o valor MUDA entre atualizações (flash verde ao subir e vermelho ao descer, com valores anteriores guardados por linha e coluna), efeito flip de dígitos, pulso e piscar para células em alerta (com limite de repetições), ícones com movimento, entrada das linhas (fade, slide, cascata), shimmer, typewriter e marquee para textos longos. Interruptor global, duração, atraso e easing. Animar só as linhas visíveis, sem travar com 1.000 células animadas, e respeitar `prefers-reduced-motion`.
-- **Interação:** ordenação por clique e por várias colunas (shift), busca global com destaque, filtros por coluna (texto, faixa numérica, lista, datas), paginação OU rolagem com virtualização (20.000 linhas), seleção de linhas com soma automática, destaque de linha e coluna, tooltips por coluna com template, drill, copiar célula, linha ou seleção, exportar CSV (Blob e URL local), menu de contexto (copiar, ocultar coluna, fixar coluna, ordenar).
-- **Totais e rodapé:** `totals_data` do Looker e totais calculados na viz (soma, média, mínimo, máximo, contagem, contagem distinta, mediana) por coluna, fixos no rodapé, também para seleção e página.
-- **Aparência:** temas (Claro, Escuro, Cinza, Minimal, Cartão, Zebra, Compacto, Planilha), customização total de cores, bordas, raios, densidade, tamanhos, altura de linha e cabeçalho, sombra, hover, cor de seleção, título e subtítulo, mensagem de "sem dados" personalizada, cabeçalho vertical opcional.
-- **Configuração:** presets em JSON (exportar, importar, restaurar padrão). Persistir ordem e largura de colunas via `atualizarConfig` SOMENTE se confirmar que existe; senão mantenha em memória e avise.
-- **Técnica:** não recriar o DOM inteiro a cada atualização; preserve rolagem, ordenação, filtros, seleção e página; virtualização; acessibilidade básica (roles, foco por teclado, setas entre células).
+Depois dos módulos, reteste cada gráfico contra os sintomas abaixo.
 
-## 9. DEFINIÇÃO DE "PRONTA"
+- **tabela_completa**: aviso amarelo; exportar CSV não funciona; animação; a rolagem sumiu (precisa de rolagem vertical e horizontal); nos filtros, o campo perde o foco a cada tecla digitada (não recriar o input no redesenho; usar debounce e preservar foco e cursor). Sobre o CSV: a viz roda num iframe com sandbox (o console mostra caminhos `/visualizations/sandbox/...`), que pode bloquear downloads e acesso à área de transferência. Investigue sem inventar. Se o download por Blob não for possível, ofereça um fallback: painel com o CSV em texto selecionável e botão "Copiar" (use a API de clipboard se existir; senão, selecione o texto), com mensagem clara. Registre no relatório o que foi possível. Corrija também os campos de formulário: todo `<input>`, `<select>` e `<textarea>` com `id` único (prefixo da viz e contador) e `name`, e todo `<label for>` apontando para um id existente.
+- **diagrama_venn**: tooltip, rótulos, animação e interação do mouse (6.6): destacar regiões ao passar o mouse e selecionar ao clicar.
+- **matriz_2x2**: aba de quadrantes bugada; forma dos pontos não muda; rótulos.
+- **matriz_bcg**, **quadrant_scatter**: rótulos, aba Cores e tooltip.
+- **risco_retorno**: rótulos.
+- **grafico_controle**: aba Cores não funciona; aviso amarelo removível ou reposicionável; rótulos.
+- **upset_plot**, **treemap_carteira**: aba Cores, tooltip, rótulos.
+- **heatmap_denso**: rótulos.
+- **dumbbell**: rótulos e cores.
+- **drawdown**: rótulos e cores.
+- **dot_plot_denso**: aba Cores, tooltip, rótulos.
+- **bump_chart**: rótulos e aba Cores (nenhuma opção de cor funciona).
+- **slope_chart**: aba Cores, tooltip, rótulos.
+- **bar_race**: rótulos; aviso amarelo na mesma área do botão de avançar no tempo; cor das linhas de grade; adicionar um número indicando o rank de cada barra (1, 2, 3...), configurável.
+- **barras_ranking_denso**: rótulos; cor das linhas de grade (tema personalizado); cor de borda.
+- **org_chart**: rótulos e animação.
+- **pareto**: rótulos; tooltip persistente (6.3).
+- **marimekko**: rótulos, aba Cores, aviso amarelo.
+- **arvores_multiplas**: rótulos, cores, animação, aviso amarelo. NOVO COMPORTAMENTO: ao clicar em um nó, expandir ou colapsar seus filhos (com animação). Adicionar botões "Expandir tudo" e "Colapsar tudo", opção de nível inicial expandido, indicador visual (+/−) nos nós com filhos, e manter o estado ao redesenhar. Como o clique também é usado para drill (6.3), o clique no nó com filhos expande ou colapsa, e o drill fica no clique em nó sem filhos ou no rótulo, se houver link.
+- **kpi_vivo**: rótulos. Gráfico favorito: ampliar as possibilidades. Adicionar: minigráfico (sparkline) configurável (linha, área, barras); variação contra o período anterior (absoluta e %) com seta e cor de positivo e negativo; meta com barra de progresso; vários KPIs em grade (linhas e colunas configuráveis); formato do número (moeda, %, compacto K/M/B); ícone configurável a partir de um conjunto embutido de ícones em SVG (seta, estrela, carrinho, pessoa, moeda, gráfico, relógio, alerta, alvo); limites com cores (verde, amarelo, vermelho); layouts de cartão (compacto, grande, horizontal); título e subtítulo; clique abre drill; animação de contagem do número.
 
-Uma visualização só é pronta quando:
-1. Carrega e renderiza no harness e no teste de fumaça com todas as fixtures (com e sem pivô, nulos, vazio e volume grande).
-2. Passa na checagem de segurança por grep em `src/` e `dist/` (a lista proibida da seção 7), com o resultado mostrado no LOG.
-3. Tem cabeçalho comentado e linha no MANIFEST (campos esperados e como montar o Explore).
-4. Está commitada e enviada.
+## 8. ORDEM DE EXECUÇÃO E RETOMADA
 
-Se não conseguir corrigir um problema em 3 tentativas, marque `[!]` com o motivo no LOG e siga para a próxima.
+Cada fase termina com build, testes, checagem de segurança, commit e push.
 
-## 10. COMO TRABALHAR (modo autônomo)
+- **Fase A:** arquivamento (seção 5) e módulos 6.1 a 6.4, aplicados nos 22 gráficos. Ao final, escreva `/biblioteca/docs/TESTE_NO_LOOKER.md`: um checklist manual curto por gráfico (ex.: "mude o tamanho do rótulo para 20 e veja mudar", "passe o mouse rápido e veja um único tooltip"), para o usuário validar no Looker real.
+- **Fase B:** módulos 6.5 a 6.8.
+- **Fase C:** correções específicas (seção 7), incluindo `arvores_multiplas` e `kpi_vivo`.
+- **Fase D:** 6.9 (build determinístico e URLs) e o relatório por gráfico em `/biblioteca/docs/RELATORIO_CORRECOES.md`: o que foi corrigido, o que foi testado (automatizado) e o que ficou pendente de conferência no Looker real.
 
-- Não vou poder responder perguntas até amanhã. Se algo estiver ambíguo, assuma o mais simples e registre a decisão no LOG.
-- Faça o TIER 0 primeiro. Depois, uma visualização por vez, na ordem da lista. Em `TAREFAS.md` use: `[ ]` pendente, `[~]` em andamento, `[x]` pronta, `[!]` bloqueada.
-- Não invente métodos da API do Looker. Se não tiver certeza, use uma alternativa e anote em `docs/COMPAT.md`.
-- Não instale nada globalmente, não acesse a internet além do necessário (`npm install` e `npm view` para conferir versões), não mexa fora da pasta do repositório.
-- No LOG, liste o que o harness NÃO cobre e que preciso conferir no Looker real, e os 5 pontos que mais merecem minha revisão.
-- Pare quando a lista acabar ou a sessão encerrar. Ao final, escreva no LOG um resumo: prontas, bloqueadas e pendentes.
-
-## 11. RETOMADA E INTERRUPÇÃO
-
-- A sessão pode ser cortada a qualquer momento por limite de uso ou de créditos, sem aviso. Por isso: (1) faça commit e push após CADA etapa pequena, nunca acumule trabalho sem commitar; (2) atualize o `LOG.md` ANTES de começar cada etapa (o que vai fazer agora) e DEPOIS de terminá-la, com a "próxima ação exata"; (3) deixe o branch sempre em estado que carrega e não quebra o build; (4) se um arquivo ficar pela metade, marque `[~]` em `TAREFAS.md` e descreva o que falta.
-- AO RETOMAR (nova sessão após interrupção, reset de limite ou no dia seguinte): reler este arquivo, rodar `git status` e `git log -5`, ler `TAREFAS.md` e `LOG.md`, confirmar que está no branch `agente/novas-viz`, conferir arquivos sem commit da sessão anterior (se completos, teste e commite; se pela metade, termine ou descarte conforme o LOG) e continuar da primeira tarefa `[~]` ou `[ ]`. Não refaça o que está `[x]`. Registre no LOG "sessão retomada em <data>" e o ponto de partida.
-- Decisões importantes vão para o LOG, não só o andamento: você não lembra das sessões anteriores.
+**RETOMADA E INTERRUPÇÃO:** a sessão pode ser cortada a qualquer momento por limite de uso, sem aviso. Por isso: (1) commit e push após CADA etapa pequena; (2) atualize o `LOG.md` ANTES de começar cada etapa (o que vai fazer) e DEPOIS de terminá-la, com a "próxima ação exata"; (3) deixe o branch sempre em estado que carrega e não quebra o build; (4) se um arquivo ficar pela metade, marque `[~]` em `TAREFAS.md` e descreva o que falta. AO RETOMAR (nova sessão após interrupção, reset de limite ou no dia seguinte): releia este arquivo, rode `git status` e `git log -5`, leia `TAREFAS.md` e `LOG.md`, confirme o branch, confira arquivos sem commit da sessão anterior (se completos, teste e commite; se pela metade, termine ou descarte conforme o LOG) e continue da primeira tarefa `[~]` ou `[ ]`. Não refaça o que está `[x]`. Registre no LOG "sessão retomada em <data>". Decisões importantes vão para o LOG, não só o andamento: você não lembra das sessões anteriores.
