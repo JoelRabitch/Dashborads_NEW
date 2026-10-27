@@ -3060,3 +3060,13 @@ falhavam no código anterior; o de "1 tooltip" é regressão).
   bar_race anima os quadros e não tem hover (sem tooltip declarado).
   heatmap em canvas (grade grande) não tem elementos para destacar.
 - `test/hover.test.mjs` cobre 10 gráficos.
+
+### Fases A, B e C concluídas
+- `docs/TESTE_NO_LOOKER.md`: checklist manual curto (geral + por gráfico).
+- `docs/opcoes/ABAS.md` regenerado: os 22 com 5 abas (Dados · Visual ·
+  Texto · Interação · Avançado).
+- `npm test` 757/757 antes desta etapa; segurança sem violação.
+
+PRÓXIMA AÇÃO EXATA: Fase D — 2.9 build determinístico (sem data/hash no
+cabeçalho, só reescreve se mudou), `dist/URLS.md`/`URLS.csv`, MANIFEST sem
+`COMMIT`, README com o fluxo de manutenção; depois o relatório.

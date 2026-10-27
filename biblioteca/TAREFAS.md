@@ -83,41 +83,41 @@ arquivados em `_arquivados/` e não devem ser retomados:
 ### Fase A
 - [x] A.0 Tag `antes-da-limpeza` + arquivamento dos 32 (seção 5)
 - [x] A.1 Opções "antes" em `docs/opcoes/<id>.antes.json` (22 gráficos)
-- [ ] 2.1 Rótulos (função única)
-- [ ] 2.2 Aba Cores
-- [ ] 2.3 Tooltip no padrão do Looker
-- [ ] 2.4 Marcadores (formas)
-- [ ] A.2 `docs/TESTE_NO_LOOKER.md`
+- [x] 2.1 Rótulos (função única)
+- [x] 2.2 Aba Cores
+- [x] 2.3 Tooltip no padrão do Looker
+- [x] 2.4 Marcadores (formas)
+- [x] A.2 `docs/TESTE_NO_LOOKER.md`
 
 ### Fase B
 - [x] 2.5 Aviso amarelo
 - [x] 2.6 Interação do mouse
 - [x] 2.7 Animação
-- [~] 2.8 Painel de opções (abas consolidadas)
+- [x] 2.8 Painel de opções (abas consolidadas)
 
 ### Fase C — por gráfico
-- [ ] tabela_completa
-- [ ] diagrama_venn
-- [ ] upset_plot
-- [ ] treemap_carteira
+- [x] tabela_completa
+- [x] diagrama_venn
+- [x] upset_plot
+- [x] treemap_carteira
 - [x] kpi_vivo
-- [ ] heatmap_denso
-- [ ] dumbbell
-- [ ] drawdown
-- [ ] dot_plot_denso
-- [ ] bump_chart
-- [ ] slope_chart
-- [ ] bar_race
-- [ ] barras_ranking_denso
+- [x] heatmap_denso
+- [x] dumbbell
+- [x] drawdown
+- [x] dot_plot_denso
+- [x] bump_chart
+- [x] slope_chart
+- [x] bar_race
+- [x] barras_ranking_denso
 - [x] arvores_multiplas
-- [ ] org_chart
-- [ ] pareto
-- [ ] marimekko
-- [ ] quadrant_scatter
-- [ ] matriz_2x2
-- [ ] matriz_bcg
-- [ ] risco_retorno
-- [ ] grafico_controle
+- [x] org_chart
+- [x] pareto
+- [x] marimekko
+- [x] quadrant_scatter
+- [x] matriz_2x2
+- [x] matriz_bcg
+- [x] risco_retorno
+- [x] grafico_controle
 
 ### Fase D
 - [ ] 2.9 Build determinístico e URLs

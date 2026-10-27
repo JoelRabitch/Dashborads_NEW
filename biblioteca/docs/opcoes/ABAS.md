@@ -58,6 +58,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `permitirOrdenar` | Interação | Interação | Clique · Ordenar clicando no cabeçalho |
 | `mostrarBusca` | Interação | Interação | Clique · Mostrar caixa de busca |
 | `mostrarFiltrosPorColuna` | Interação | Interação | Clique · Mostrar filtro em cada coluna |
@@ -72,6 +74,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `animarMudancaDeValor` | Animação | Interação | Animação · Piscar quando o valor mudar entre atualizações |
 | `corDeSubida` | Animação | Interação | Animação · Cor quando o valor sobe |
 | `corDeDescida` | Animação | Interação | Animação · Cor quando o valor desce |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -249,6 +258,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -267,6 +278,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `suavizacaoDaAnimacao` | Animação | Interação | Animação · Curva da animação |
 | `quandoAnimar` | Animação | Interação | Animação · Quando animar |
 | `contadorAnimado` | Animação | Interação | Animação · Números sobem/descem até o valor (contador) |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -362,6 +374,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `rotulo_inferiorDireito` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Alto / Baixo" |
 | `rotulo_inferiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Baixo / Baixo" |
 | `rotulo_superiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Baixo / Alto" |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -373,6 +387,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -470,6 +491,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `rotulo_inferiorDireito` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Rever" |
 | `rotulo_inferiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Descartar" |
 | `rotulo_superiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Oportunidade" |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -481,6 +504,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -580,6 +610,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `rotulo_inferiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Vaca leiteira" |
 | `rotulo_superiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Estrela" |
 | `eixoXSimetricoEmTorno1` | Quadrantes | Texto | Quadrantes · Centrar o eixo X em 1 (deixa a divisória no meio, como na matriz original) |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -591,6 +623,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -655,6 +694,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -666,6 +707,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `mostrarBotoesDeExpandir` ★ | — | Interação | Clique · Mostrar botões "Expandir tudo" e "Colapsar tudo" |
 | `animacaoAtiva` | Animação | Interação | Animação · Ativar animações |
 | `duracaoDaAnimacao` | Animação | Interação | Animação · Duração (ms) |
 | `atrasoDaAnimacao` | Animação | Interação | Animação · Atraso inicial (ms) |
@@ -673,6 +715,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `suavizacaoDaAnimacao` | Animação | Interação | Animação · Curva da animação |
 | `quandoAnimar` | Animação | Interação | Animação · Quando animar |
 | `contadorAnimado` | Animação | Interação | Animação · Números sobem/descem até o valor (contador) |
+| `nivelInicialExpandido` ★ | — | Interação | Árvore · Níveis abertos no início (0 = tudo aberto) |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -733,6 +777,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -752,6 +798,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `quandoAnimar` | Animação | Interação | Animação · Quando animar |
 | `contadorAnimado` | Animação | Interação | Animação · Números sobem/descem até o valor (contador) |
 | `permitirRecolher` | Organograma | Interação | Organograma · Recolher uma área clicando no cartão |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -811,6 +858,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -829,6 +878,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `suavizacaoDaAnimacao` | Animação | Interação | Animação · Curva da animação |
 | `quandoAnimar` | Animação | Interação | Animação · Quando animar |
 | `contadorAnimado` | Animação | Interação | Animação · Números sobem/descem até o valor (contador) |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -907,6 +957,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -918,9 +970,21 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
+| `cor_abertura` ★ | — | Visual | Cor · Cor — Abertura (vazio = da paleta) |
+| `cor_maxima` ★ | — | Visual | Cor · Cor — Máxima (vazio = da paleta) |
+| `cor_minima` ★ | — | Visual | Cor · Cor — Mínima (vazio = da paleta) |
+| `cor_fechamento` ★ | — | Visual | Cor · Cor — Fechamento (vazio = da paleta) |
+| `cor_volume` ★ | — | Visual | Cor · Cor — Volume (vazio = da paleta) |
 
 </details>
 
@@ -987,6 +1051,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -998,6 +1064,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1054,6 +1127,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
 | `mostrarTitulosDeGrupo` | Treemap | Texto | Treemap · Faixa com o nome de cada grupo |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1065,6 +1140,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1167,6 +1249,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `rotulo_inferiorDireito` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Retorno baixo, risco alto" |
 | `rotulo_inferiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Retorno baixo, risco baixo" |
 | `rotulo_superiorEsquerdo` | Quadrantes | Texto | Quadrantes · Nome do quadrante "Retorno alto, risco baixo" |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1178,6 +1262,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1258,6 +1349,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1269,6 +1362,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1313,6 +1413,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1324,6 +1426,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1348,6 +1457,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `valorDaReferencia` | Ranking | Dados | Ranking · Valor fixo da referência |
 | `larguraDoNome` | Formato | Visual | Largura da coluna de nomes (px) |
 | `mostrarPosicao` | Formato | Visual | Mostrar a posição no ranking |
+| `mostrarGrade` ★ | — | Visual | Linhas de grade verticais |
 | `paleta` | Cores | Visual | Cor · Paleta de cores |
 | `inverterPaleta` | Cores | Visual | Cor · Inverter ordem das cores |
 | `opacidade` | Cores | Visual | Cor · Opacidade do preenchimento |
@@ -1377,6 +1487,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1389,6 +1501,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
 | `mostrarBusca` | Ranking | Interação | Ranking · Campo de busca por nome |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1424,6 +1543,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoDaFonte` | Tema | Visual | Tema · Tamanho base da fonte (px) |
 | `alturaDaLinha` | Dot plot | Visual | Dot plot · Altura de cada linha (px) |
 | `tamanhoDoPonto` | Dot plot | Visual | Dot plot · Tamanho do ponto (px) |
+| `formaDoPonto` ★ | — | Visual | Dot plot · Forma do ponto |
 | `ligarPontos` | Dot plot | Visual | Dot plot · Ligar os pontos da mesma linha |
 | `mostrarGuias` | Dot plot | Visual | Dot plot · Linhas de guia verticais |
 | `mostrarRotulos` | Rótulos | Texto | Rótulo · Mostrar rótulos |
@@ -1441,6 +1561,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1453,6 +1575,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
 | `mostrarBusca` | Dot plot | Interação | Dot plot · Campo de busca por nome |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1509,6 +1638,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
 | `mostrarPosicao` | Ranking | Texto | Ranking · Número da posição dentro do ponto |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1521,9 +1652,21 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
 | `destacarNoHover` | Ranking | Interação | Ranking · Destacar uma série ao passar o mouse |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
+| `cor_Sudeste` ★ | — | Visual | Cor · Cor — Sudeste (vazio = da paleta) |
+| `cor_Sul` ★ | — | Visual | Cor · Cor — Sul (vazio = da paleta) |
+| `cor_Nordeste` ★ | — | Visual | Cor · Cor — Nordeste (vazio = da paleta) |
+| `cor_Norte` ★ | — | Visual | Cor · Cor — Norte (vazio = da paleta) |
+| `cor_Centro_Oeste` ★ | — | Visual | Cor · Cor — Centro-Oeste (vazio = da paleta) |
 
 </details>
 
@@ -1575,6 +1718,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1586,9 +1731,21 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
+| `cor_Sudeste` ★ | — | Visual | Cor · Cor — Sudeste (vazio = da paleta) |
+| `cor_Sul` ★ | — | Visual | Cor · Cor — Sul (vazio = da paleta) |
+| `cor_Nordeste` ★ | — | Visual | Cor · Cor — Nordeste (vazio = da paleta) |
+| `cor_Norte` ★ | — | Visual | Cor · Cor — Norte (vazio = da paleta) |
+| `cor_Centro_Oeste` ★ | — | Visual | Cor · Cor — Centro-Oeste (vazio = da paleta) |
 
 </details>
 
@@ -1607,6 +1764,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `barrasVisiveis` | Corrida | Dados | Corrida · Quantas barras mostrar |
 | `alturaDaBarra` | Formato | Visual | Altura de cada barra (px, 0 = divide o espaço) |
 | `larguraDoNome` | Formato | Visual | Largura da coluna de nomes (px) |
+| `mostrarGrade` ★ | — | Visual | Linhas de grade verticais |
 | `paleta` | Cores | Visual | Cor · Paleta de cores |
 | `inverterPaleta` | Cores | Visual | Cor · Inverter ordem das cores |
 | `opacidade` | Cores | Visual | Cor · Opacidade do preenchimento |
@@ -1622,6 +1780,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `familiaDaFonte` | Tema | Visual | Tema · Fonte |
 | `tamanhoDaFonte` | Tema | Visual | Tema · Tamanho base da fonte (px) |
 | `escalaFixa` | Corrida | Visual | Corrida · Escala fixa (o maior valor de TODOS os períodos) |
+| `tamanhoDoRank` ★ | — | Visual | Corrida · Tamanho do número do rank (px, 0 = acompanha a barra) |
 | `mostrarRotulos` | Rótulos | Texto | Rótulo · Mostrar rótulos |
 | `tamanhoDoRotulo` | Rótulos | Texto | Rótulo · Tamanho do rótulo (px) |
 | `corDoRotulo` | Rótulos | Texto | Rótulo · Cor do rótulo (vazio = automática) |
@@ -1636,9 +1795,19 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarRank` ★ | — | Texto | Corrida · Mostrar o número do rank (1, 2, 3…) |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `duracaoPorPeriodo` | Corrida | Interação | Corrida · Duração de cada período (ms) |
 | `comecarTocando` | Corrida | Interação | Corrida · Começar tocando |
 | `repetir` | Corrida | Interação | Corrida · Repetir do início ao terminar |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1648,18 +1817,27 @@ Ids marcados com ★ são novos (não existiam antes).
 ## KPI Vivo (`kpi_vivo`)
 
 - Antes (5 abas): Rótulos · Tema · Avançado · KPI · Dados
-- Depois (4 abas): Dados · Visual · Texto · Avançado
+- Depois (5 abas): Dados · Visual · Texto · Interação · Avançado
 
 <details><summary>Destino de cada opção</summary>
 
 | id | aba antes | aba depois | rótulo no painel |
 |---|---|---|---|
+| `formatoDoNumero` ★ | — | Dados | Formato do número (Automático = o do rótulo / do campo) |
+| `casasDoNumero` ★ | — | Dados | Casas decimais do número |
+| `simboloDaMoeda` ★ | — | Dados | Símbolo da moeda |
 | `baseDaComparacao` | KPI | Dados | KPI · Comparar com |
 | `periodosAtras` | KPI | Dados | KPI · Quantos períodos atrás |
 | `meta` | KPI | Dados | KPI · Valor da meta |
 | `menorEhMelhor` | KPI | Dados | KPI · Menor é melhor (custo, churn, tempo de resposta…) |
 | `colorirVariacao` | KPI | Dados | KPI · Colorir a variação por direção |
 | `mostrarVariacaoAbsoluta` | KPI | Dados | KPI · Mostrar também a diferença absoluta |
+| `mostrarProgressoDaMeta` ★ | — | Dados | KPI · Barra de progresso até a meta (usa "Valor da meta") |
+| `usarLimites` ★ | — | Dados | KPI · Colorir o número por limites (verde / amarelo / vermelho) |
+| `limiteVerde` ★ | — | Dados | KPI · Limite do verde (a partir de; com "menor é melhor": até) |
+| `limiteAmarelo` ★ | — | Dados | KPI · Limite do amarelo (a partir de; com "menor é melhor": até) |
+| `colunasDoKpi` ★ | — | Dados | KPI · Colunas da grade (0 = automático) |
+| `linhasDoKpi` ★ | — | Dados | KPI · Linhas da grade (0 = automático) |
 | `tema` | Tema | Visual | Tema · Tema |
 | `corDeFundo` | Tema | Visual | Cor · Cor de fundo (vazio = do tema) |
 | `corDoTexto` | Tema | Visual | Cor · Cor do texto (tema personalizado) |
@@ -1668,6 +1846,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `familiaDaFonte` | Tema | Visual | Tema · Fonte |
 | `tamanhoDaFonte` | Tema | Visual | Tema · Tamanho base da fonte (px) |
 | `mostrarSparkline` | KPI | Visual | KPI · Sparkline de contexto |
+| `layoutDoCartao` ★ | — | Visual | KPI · Layout do cartão |
+| `tipoDeSparkline` ★ | — | Visual | KPI · Minigráfico |
+| `corPositiva` ★ | — | Visual | KPI · Cor do positivo (vazio = do tema) |
+| `corNegativa` ★ | — | Visual | KPI · Cor do negativo (vazio = do tema) |
+| `iconeDoKpi` ★ | — | Visual | KPI · Ícone |
+| `corDoIcone` ★ | — | Visual | KPI · Cor do ícone (vazio = destaque do tema) |
+| `kpisEmGrade` ★ | — | Visual | KPI · Vários KPIs em grade (um cartão por medida) |
 | `mostrarRotulos` | Rótulos | Texto | Rótulo · Mostrar rótulos |
 | `tamanhoDoRotulo` | Rótulos | Texto | Rótulo · Tamanho do rótulo (px) |
 | `corDoRotulo` | Rótulos | Texto | Rótulo · Cor do rótulo (vazio = automática) |
@@ -1680,8 +1865,18 @@ Ids marcados com ★ são novos (não existiam antes).
 | `formatoDoRotulo` | Rótulos | Texto | Rótulo · Formato do número no rótulo |
 | `casasDecimaisDoRotulo` | Rótulos | Texto | Rótulo · Casas decimais no rótulo |
 | `titulo` | Rótulos | Texto | Título · Título (vazio = nome da medida) |
-| `subtitulo` | Tema | Texto | Título · Subtítulo |
+| `subtitulo` | Tema | Texto | Título · Subtítulo do cartão |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
+| `contadorAnimado` ★ | — | Interação | Animação · Animação de contagem do número |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1719,6 +1914,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corPorDirecao` | Halteres | Visual | Halteres · Colorir a barra por direção (subiu, desceu) |
 | `alturaDaLinha` | Halteres | Visual | Halteres · Altura de cada linha (px) |
 | `tamanhoDoPonto` | Halteres | Visual | Halteres · Tamanho dos pontos (px) |
+| `formaDoPonto` ★ | — | Visual | Halteres · Forma do ponto |
 | `espessuraDaBarra` | Halteres | Visual | Halteres · Espessura da barra (px) |
 | `mostrarRotulos` | Rótulos | Texto | Rótulo · Mostrar rótulos |
 | `tamanhoDoRotulo` | Rótulos | Texto | Rótulo · Tamanho do rótulo (px) |
@@ -1735,6 +1931,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1747,6 +1945,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
 | `mostrarBusca` | Halteres | Interação | Halteres · Campo de busca por nome |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
@@ -1803,6 +2008,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Tema | Texto | Título · Título |
 | `subtitulo` | Tema | Texto | Título · Subtítulo |
 | `textoSemDados` | Tema | Texto | Aviso · Mensagem quando não há dados |
+| `mostrarAvisos` ★ | — | Texto | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` ★ | — | Texto | Aviso · Posição dos avisos |
 | `mostrarTooltip` | Interação | Interação | Tooltip · Mostrar tooltip |
 | `tooltipPersonalizado` | Interação | Interação | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Interação | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1814,6 +2021,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` ★ | — | Interação | Tooltip · Cor da borda do tooltip |
 | `corDoTextoDoTooltip` ★ | — | Interação | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` ★ | — | Interação | Tooltip · Tamanho da fonte do tooltip (px) |
+| `animacaoAtiva` ★ | — | Interação | Animação · Ativar animações |
+| `duracaoDaAnimacao` ★ | — | Interação | Animação · Duração (ms) |
+| `atrasoDaAnimacao` ★ | — | Interação | Animação · Atraso inicial (ms) |
+| `cascataDaAnimacao` ★ | — | Interação | Animação · Cascata entre itens (ms) |
+| `suavizacaoDaAnimacao` ★ | — | Interação | Animação · Curva da animação |
+| `quandoAnimar` ★ | — | Interação | Animação · Quando animar |
+| `destacarAoPassarMouse` ★ | — | Interação | Clique · Destacar ao passar o mouse |
 | `modoDebug` | Avançado | Avançado | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Avançado | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Avançado | Aplicar o JSON acima por cima das opções |
