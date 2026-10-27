@@ -33,6 +33,9 @@ const CONDICOES = [
   'abaixoDaMedia', 'acimaDoPercentil', 'maiorQueColuna', 'menorQueColuna',
 ];
 
+/** A busca e os filtros esperam o usuário parar de digitar (200 ms). */
+const esperarFiltro = () => new Promise((r) => setTimeout(r, 300));
+
 const ACOES = ['fundo', 'texto', 'negrito', 'fundoETexto', 'icone', 'badge', 'borda', 'piscar'];
 
 /** Prepara um ambiente já renderizado uma vez, pronto para reconfigurar. */
@@ -142,7 +145,7 @@ test('tabela_completa — todas as condições e ações das regras rodam', (t) 
   t.diagnostic(`${CONDICOES.length} condições e ${ACOES.length} ações conferidas`);
 });
 
-test('tabela_completa — ordenar, buscar e selecionar', (t) => {
+test('tabela_completa — ordenar, buscar e selecionar', async (t) => {
   const ctx = preparar('semPivo');
   const { window } = ctx.amb;
 
@@ -165,23 +168,24 @@ test('tabela_completa — ordenar, buscar e selecionar', (t) => {
     clicarCabecalho(0);
     assert.deepEqual(coluna(0), crescente.slice().reverse(), 'o segundo clique deveria inverter a ordem');
 
-    const buscar = (termo) => {
+    const buscar = async (termo) => {
       const campo = ctx.palco.querySelector('input[type=search]');
       campo.value = termo;
       campo.dispatchEvent(new window.Event('input', { bubbles: true }));
+      await esperarFiltro();
     };
 
-    buscar(crescente[0]);
+    await buscar(crescente[0]);
     assert.ok(coluna(0).length < original.length, 'a busca não filtrou nada');
 
-    buscar('zzz-nao-existe');
+    await buscar('zzz-nao-existe');
     assert.match(
       ctx.palco.querySelector('.tc-vazio')?.textContent || '',
       /Nenhuma linha/,
       'faltou o estado vazio da busca'
     );
 
-    buscar('');
+    await buscar('');
     ctx.palco
       .querySelector('.tc-tabela tbody tr:not(.tc-espacador)')
       .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
@@ -276,7 +280,7 @@ test('tabela_completa — agrupa, mostra subtotal e recolhe o grupo', (t) => {
   t.diagnostic('agrupamento, subtotal e recolher conferidos');
 });
 
-test('tabela_completa — filtro por coluna, inclusive numérico', (t) => {
+test('tabela_completa — filtro por coluna, inclusive numérico', async (t) => {
   const ctx = preparar('semPivo');
   const { window } = ctx.amb;
 
@@ -287,18 +291,19 @@ test('tabela_completa — filtro por coluna, inclusive numérico', (t) => {
 
     const totalDeLinhas = ctx.palco.querySelectorAll('.tc-tabela tbody tr:not(.tc-espacador)').length;
 
-    const digitar = (indice, texto) => {
+    const digitar = async (indice, texto) => {
       const campo = ctx.palco.querySelectorAll('.tc-filtro')[indice];
       campo.value = texto;
       campo.dispatchEvent(new window.Event('input', { bubbles: true }));
+      await esperarFiltro();
     };
 
-    digitar(0, 'Centro');
+    await digitar(0, 'Centro');
     const filtradas = ctx.palco.querySelectorAll('.tc-tabela tbody tr:not(.tc-espacador)').length;
     assert.ok(filtradas > 0 && filtradas < totalDeLinhas, 'o filtro de texto não filtrou');
 
-    digitar(0, '');
-    digitar(1, '>1000000000');
+    await digitar(0, '');
+    await digitar(1, '>1000000000');
     assert.match(
       ctx.palco.querySelector('.tc-vazio')?.textContent || '',
       /Nenhuma linha/,

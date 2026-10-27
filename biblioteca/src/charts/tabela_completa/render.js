@@ -22,7 +22,13 @@ const CSS = `
 .tc-barra input[type=search]{flex:1 1 140px;min-width:100px;padding:3px 7px;border-radius:4px;border:1px solid;font:inherit;}
 .tc-barra button{padding:3px 8px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;font:inherit;font-size:11px;}
 .tc-barra .tc-resumo{font-size:11px;opacity:.75;margin-left:auto;}
-.tc-rolagem{flex:1 1 auto;overflow:auto;position:relative;}
+.tc-rolagem{flex:1 1 auto;overflow:auto;position:relative;min-height:0;min-width:0;}
+.tc-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+.tc-csv{position:fixed;z-index:60;left:8px;right:8px;top:8px;bottom:8px;display:flex;flex-direction:column;gap:6px;
+  padding:10px;border-radius:6px;border:1px solid;font-size:12px;box-shadow:0 8px 24px rgba(15,23,42,.3);}
+.tc-csv textarea{flex:1 1 auto;min-height:60px;width:100%;font-family:monospace;font-size:11px;resize:none;}
+.tc-csv-botoes{display:flex;gap:8px;align-items:center;}
+.tc-csv-botoes button{padding:3px 10px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;font:inherit;}
 .tc-tabela{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%;}
 .tc-tabela th,.tc-tabela td{padding:0 8px;overflow:hidden;text-align:left;vertical-align:middle;
   white-space:nowrap;text-overflow:ellipsis;}
@@ -60,6 +66,35 @@ const CSS = `
   .tc-flash{transition:none;}
 }
 `;
+
+/** Contador de instâncias: prefixo dos ids dos campos de formulário. */
+let contadorDeInstancias = 0;
+
+/**
+ * Id único (prefixo da viz + contador da instância + nome) para campos de
+ * formulário. Estável entre redesenhos da mesma instância, único entre duas
+ * tabelas na mesma página.
+ */
+export function idDoCampo(estado, nome) {
+  if (!estado.prefixoDeId) {
+    contadorDeInstancias += 1;
+    estado.prefixoDeId = `tabela_completa-${contadorDeInstancias}`;
+  }
+  return `${estado.prefixoDeId}-${nome}`;
+}
+
+/** Cria o campo com id, name e um <label for> acessível (visualmente oculto). */
+export function prepararCampo(campo, estado, nome, rotulo) {
+  campo.id = idDoCampo(estado, nome);
+  campo.name = nome;
+  campo.setAttribute('aria-label', rotulo);
+  const label = document.createElement('label');
+  label.className = 'tc-oculto';
+  label.htmlFor = campo.id;
+  label.textContent = rotulo;
+  campo.parentNode.insertBefore(label, campo);
+  return campo;
+}
 
 /** Alturas por densidade (linha, cabeçalho). */
 const DENSIDADES = {
@@ -213,8 +248,6 @@ export function desenharTabela(params) {
     gruposDePivo,
     temPivo,
     visual,
-    itens,
-    indicesDeDados,
     estado,
     aoOrdenar,
     aoBuscar,
@@ -224,12 +257,18 @@ export function desenharTabela(params) {
     aoAlternarGrupo,
     aoFiltrarColuna,
     aoMenuDeContexto,
-    pintarCelula,
   } = params;
+  // Mutáveis: busca e filtros trocam linhas, totais e pintor SEM refazer o
+  // cabeçalho e a barra (ver `atualizarDados` no fim) — é o que mantém o
+  // foco e o cursor no campo enquanto o usuário digita.
+  let { itens, indicesDeDados, pintarCelula } = params;
   const { modelo, config, tema, raiz } = ctx;
 
-  injetarEstilo(raiz, CSS + cssDasCelulas(), 'tc');
+  // Limpa ANTES de injetar o CSS. (A ordem era a inversa: o limpar apagava
+  // o <style> recém-injetado e a tabela ficava sem CSS no Looker — sem
+  // overflow:auto não havia rolagem, sem @keyframes não havia animação.)
   limpar(raiz);
+  injetarEstilo(raiz, CSS + cssDasCelulas(), 'tc');
 
   const container = criarEl('div', { classe: 'tc-raiz', pai: raiz });
   container.style.background = visual.fundo;
@@ -249,6 +288,7 @@ export function desenharTabela(params) {
 
     if (config.mostrarBusca !== false) {
       const busca = criarEl('input', { pai: barra });
+      prepararCampo(busca, estado, 'busca', 'Buscar em todas as colunas');
       busca.type = 'search';
       busca.placeholder = 'Buscar em todas as colunas…';
       busca.value = estado.busca || '';
@@ -313,12 +353,15 @@ export function desenharTabela(params) {
   const tbody = criarEl('tbody', { pai: tabela });
 
   // ---------------- Rodapé (totais) ----------------
-  if (config.mostrarTotais !== false) {
-    const tfoot = criarEl('tfoot', { pai: tabela });
+  const tfoot = config.mostrarTotais !== false ? criarEl('tfoot', { pai: tabela }) : null;
+  function desenharRodape() {
+    if (!tfoot) return;
+    limpar(tfoot);
     construirRodape({
       tfoot, colunasVisiveis, indicesVisiveis: indicesDeDados, visual, config, deslocamentos, fixas, modelo,
     });
   }
+  desenharRodape();
 
   // Altura total do cabeçalho (para a conta da virtualização).
   const linhasDeCabecalho = (temPivo ? 2 : 1) + (config.mostrarFiltrosPorColuna ? 1 : 0);
@@ -362,7 +405,20 @@ export function desenharTabela(params) {
   if (estado.rolagemTopo) rolagem.scrollTop = estado.rolagemTopo;
   if (estado.rolagemEsquerda) rolagem.scrollLeft = estado.rolagemEsquerda;
 
-  return { rolagem, tabela, tbody, redesenharJanela: desenharJanela };
+  /**
+   * Troca as linhas (busca/filtro) sem recriar cabeçalho, barra e campos.
+   */
+  function atualizarDados(novosItens, novosIndices, novoPintor) {
+    itens = novosItens;
+    indicesDeDados = novosIndices;
+    if (novoPintor) pintarCelula = novoPintor;
+    desenharRodape();
+    rolagem.scrollTop = 0;
+    estado.rolagemTopo = 0;
+    desenharJanela();
+  }
+
+  return { rolagem, tabela, tbody, redesenharJanela: desenharJanela, atualizarDados };
 }
 
 /** Deslocamento horizontal acumulado das colunas fixas. */
@@ -473,6 +529,7 @@ function construirCabecalho({
     }
 
     const campo = criarEl('input', { classe: 'tc-filtro', pai: th });
+    prepararCampo(campo, estado, `filtro-${i}`, `Filtrar a coluna ${coluna.rotulo || coluna.id}`);
     campo.type = 'text';
     // Em coluna de medida dá para escrever ">100", "<=5" ou "=3".
     campo.placeholder = coluna.ehMedida ? 'ex.: >100' : 'filtrar…';

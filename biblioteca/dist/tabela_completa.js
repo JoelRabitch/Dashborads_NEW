@@ -1,7 +1,7 @@
 /*!
  * Tabela Completa — visualização customizada para o Looker
  * id: tabela_completa
- * versão: 0.1.0 | build: 2026-10-27 13:46:04 | commit: 3a8b5dd
+ * versão: 0.1.0 | build: 2026-10-27 13:52:33 | commit: 6a777db
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3038,7 +3038,13 @@
 .tc-barra input[type=search]{flex:1 1 140px;min-width:100px;padding:3px 7px;border-radius:4px;border:1px solid;font:inherit;}
 .tc-barra button{padding:3px 8px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;font:inherit;font-size:11px;}
 .tc-barra .tc-resumo{font-size:11px;opacity:.75;margin-left:auto;}
-.tc-rolagem{flex:1 1 auto;overflow:auto;position:relative;}
+.tc-rolagem{flex:1 1 auto;overflow:auto;position:relative;min-height:0;min-width:0;}
+.tc-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+.tc-csv{position:fixed;z-index:60;left:8px;right:8px;top:8px;bottom:8px;display:flex;flex-direction:column;gap:6px;
+  padding:10px;border-radius:6px;border:1px solid;font-size:12px;box-shadow:0 8px 24px rgba(15,23,42,.3);}
+.tc-csv textarea{flex:1 1 auto;min-height:60px;width:100%;font-family:monospace;font-size:11px;resize:none;}
+.tc-csv-botoes{display:flex;gap:8px;align-items:center;}
+.tc-csv-botoes button{padding:3px 10px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;font:inherit;}
 .tc-tabela{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%;}
 .tc-tabela th,.tc-tabela td{padding:0 8px;overflow:hidden;text-align:left;vertical-align:middle;
   white-space:nowrap;text-overflow:ellipsis;}
@@ -3076,6 +3082,25 @@
   .tc-flash{transition:none;}
 }
 `;
+  var contadorDeInstancias = 0;
+  function idDoCampo(estado, nome) {
+    if (!estado.prefixoDeId) {
+      contadorDeInstancias += 1;
+      estado.prefixoDeId = `tabela_completa-${contadorDeInstancias}`;
+    }
+    return `${estado.prefixoDeId}-${nome}`;
+  }
+  function prepararCampo(campo, estado, nome, rotulo) {
+    campo.id = idDoCampo(estado, nome);
+    campo.name = nome;
+    campo.setAttribute("aria-label", rotulo);
+    const label = document.createElement("label");
+    label.className = "tc-oculto";
+    label.htmlFor = campo.id;
+    label.textContent = rotulo;
+    campo.parentNode.insertBefore(label, campo);
+    return campo;
+  }
   var DENSIDADES = {
     compacta: { linha: 24, cabecalho: 28, fonte: 11 },
     normal: { linha: 32, cabecalho: 36, fonte: 12 },
@@ -3198,8 +3223,6 @@
       gruposDePivo,
       temPivo,
       visual,
-      itens,
-      indicesDeDados,
       estado,
       aoOrdenar,
       aoBuscar,
@@ -3208,12 +3231,12 @@
       aoExportar,
       aoAlternarGrupo,
       aoFiltrarColuna,
-      aoMenuDeContexto,
-      pintarCelula
+      aoMenuDeContexto
     } = params;
+    let { itens, indicesDeDados, pintarCelula } = params;
     const { modelo, config, tema, raiz } = ctx;
-    injetarEstilo(raiz, CSS2 + cssDasCelulas(), "tc");
     limpar(raiz);
+    injetarEstilo(raiz, CSS2 + cssDasCelulas(), "tc");
     const container = criarEl("div", { classe: "tc-raiz", pai: raiz });
     container.style.background = visual.fundo;
     container.style.color = visual.texto;
@@ -3228,6 +3251,7 @@
       const barra = criarEl("div", { classe: "tc-barra", pai: container });
       if (config.mostrarBusca !== false) {
         const busca = criarEl("input", { pai: barra });
+        prepararCampo(busca, estado, "busca", "Buscar em todas as colunas");
         busca.type = "search";
         busca.placeholder = "Buscar em todas as colunas\u2026";
         busca.value = estado.busca || "";
@@ -3279,8 +3303,10 @@
       aoFiltrarColuna
     });
     const tbody = criarEl("tbody", { pai: tabela });
-    if (config.mostrarTotais !== false) {
-      const tfoot = criarEl("tfoot", { pai: tabela });
+    const tfoot = config.mostrarTotais !== false ? criarEl("tfoot", { pai: tabela }) : null;
+    function desenharRodape() {
+      if (!tfoot) return;
+      limpar(tfoot);
       construirRodape({
         tfoot,
         colunasVisiveis,
@@ -3292,6 +3318,7 @@
         modelo
       });
     }
+    desenharRodape();
     const linhasDeCabecalho = (temPivo ? 2 : 1) + (config.mostrarFiltrosPorColuna ? 1 : 0);
     const alturaCabecalhoTotal = linhasDeCabecalho * visual.alturaCabecalho;
     const estadoDeDesenho = {
@@ -3326,7 +3353,16 @@
     desenharJanela();
     if (estado.rolagemTopo) rolagem.scrollTop = estado.rolagemTopo;
     if (estado.rolagemEsquerda) rolagem.scrollLeft = estado.rolagemEsquerda;
-    return { rolagem, tabela, tbody, redesenharJanela: desenharJanela };
+    function atualizarDados(novosItens, novosIndices, novoPintor) {
+      itens = novosItens;
+      indicesDeDados = novosIndices;
+      if (novoPintor) pintarCelula = novoPintor;
+      desenharRodape();
+      rolagem.scrollTop = 0;
+      estado.rolagemTopo = 0;
+      desenharJanela();
+    }
+    return { rolagem, tabela, tbody, redesenharJanela: desenharJanela, atualizarDados };
   }
   function calcularDeslocamentos(colunasVisiveis, fixas, temNumeroDeLinha) {
     const saida = /* @__PURE__ */ new Map();
@@ -3416,6 +3452,7 @@
         th.style.position = "sticky";
       }
       const campo = criarEl("input", { classe: "tc-filtro", pai: th });
+      prepararCampo(campo, estado, `filtro-${i}`, `Filtrar a coluna ${coluna.rotulo || coluna.id}`);
       campo.type = "text";
       campo.placeholder = coluna.ehMedida ? "ex.: >100" : "filtrar\u2026";
       campo.value = estado.filtros[coluna.id] || "";
@@ -4510,6 +4547,7 @@
   }
 
   // src/charts/tabela_completa/index.js
+  var ESPERA_DO_FILTRO = 200;
   function ordenacaoInicial(config, colunas) {
     const escolha = config.ordenacaoInicial || "original";
     if (escolha === "original") return [];
@@ -4614,7 +4652,7 @@
     };
   }
   function baixarCsv(conteudo, nomeDoArquivo) {
-    if (typeof Blob !== "function" || typeof URL === "undefined" || !URL.createObjectURL) return;
+    if (typeof Blob !== "function" || typeof URL === "undefined" || !URL.createObjectURL) return false;
     const blob = new Blob([`\uFEFF${conteudo}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const ancora = criarEl("a");
@@ -4625,6 +4663,53 @@
     ancora.click();
     document.body.removeChild(ancora);
     setTimeout(() => URL.revokeObjectURL(url), 1e3);
+    return true;
+  }
+  function mostrarPainelDeCsv({ ctx, conteudo, visual, tentouBaixar }) {
+    fecharPainelDeCsv(ctx.estado);
+    const painel = criarEl("div", { classe: "tc-csv", pai: document.body });
+    painel.style.background = visual.fundo;
+    painel.style.color = visual.texto;
+    painel.style.borderColor = visual.borda;
+    ctx.estado.painelDeCsv = painel;
+    criarEl("div", {
+      pai: painel,
+      texto: tentouBaixar ? "Se o download n\xE3o come\xE7ou, o Looker bloqueou downloads nesta visualiza\xE7\xE3o. Copie o CSV abaixo e cole numa planilha." : "Este navegador n\xE3o permite gerar o arquivo aqui. Copie o CSV abaixo e cole numa planilha."
+    });
+    const area = criarEl("textarea", { pai: painel });
+    area.id = idDoCampo(ctx.estado, "csv");
+    area.name = "csv";
+    area.setAttribute("aria-label", "Conte\xFAdo CSV da tabela");
+    area.readOnly = true;
+    area.value = conteudo;
+    area.style.background = visual.fundo;
+    area.style.color = visual.texto;
+    area.style.borderColor = visual.borda;
+    const botoes = criarEl("div", { classe: "tc-csv-botoes", pai: painel });
+    const copiarBotao = criarEl("button", { pai: botoes, texto: "Copiar" });
+    const fechar = criarEl("button", { pai: botoes, texto: "Fechar" });
+    const situacao = criarEl("span", { pai: botoes });
+    for (const b of [copiarBotao, fechar]) {
+      b.type = "button";
+      b.style.borderColor = visual.borda;
+      b.style.color = visual.texto;
+    }
+    copiarBotao.addEventListener("click", () => {
+      area.focus();
+      area.select();
+      const avisar = (ok) => definirTexto(situacao, ok ? "Copiado." : "O Looker bloqueou a c\xF3pia autom\xE1tica: o texto est\xE1 selecionado, use Ctrl+C.");
+      if (typeof navigator !== "undefined" && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        navigator.clipboard.writeText(conteudo).then(() => avisar(true), () => avisar(copiar(conteudo)));
+      } else {
+        avisar(copiar(conteudo));
+      }
+    });
+    fechar.addEventListener("click", () => fecharPainelDeCsv(ctx.estado));
+  }
+  function fecharPainelDeCsv(estado) {
+    const painel = estado && estado.painelDeCsv;
+    if (painel && painel.parentNode) painel.parentNode.removeChild(painel);
+    if (estado) estado.painelDeCsv = null;
   }
   function compararComAtualizacaoAnterior({ ctx, td, coluna, linha, indiceDaLinha, comparacao }) {
     const chave = `${indiceDaLinha}|${coluna.id}`;
@@ -4644,6 +4729,8 @@
   function copiar(texto) {
     if (typeof document === "undefined") return false;
     const area = criarEl("textarea");
+    area.id = `tabela_completa-copia-${Date.now()}`;
+    area.name = "copia";
     area.value = texto;
     area.setAttribute("readonly", "readonly");
     area.style.position = "fixed";
@@ -4715,9 +4802,20 @@
         pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, null);
         desenhar();
       }
+      function filtrarDepoisDeDigitar() {
+        if (estado.timerDoFiltro) clearTimeout(estado.timerDoFiltro);
+        estado.timerDoFiltro = ctx.agendarTimer(() => {
+          estado.timerDoFiltro = null;
+          recalcular();
+          pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, null);
+          if (desenho && desenho.atualizarDados) desenho.atualizarDados(itens, indicesVisiveis, pintarCelula);
+          else desenhar();
+        }, ESPERA_DO_FILTRO);
+      }
+      let desenho = null;
       function desenhar() {
         ctx.eventos.limpar();
-        desenharTabela({
+        desenho = desenharTabela({
           ctx,
           colunas,
           gruposDePivo,
@@ -4745,7 +4843,7 @@
             estado.busca = termo;
             estado.pagina = 0;
             estado.rolagemTopo = 0;
-            redesenhar();
+            filtrarDepoisDeDigitar();
           },
           aoSelecionarLinha(indice, acumular) {
             if (!acumular) {
@@ -4766,7 +4864,9 @@
             desenhar();
           },
           aoExportar() {
-            baixarCsv(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo), "tabela_completa.csv");
+            const csv = montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo);
+            const tentouBaixar = baixarCsv(csv, "tabela_completa.csv");
+            mostrarPainelDeCsv({ ctx, conteudo: csv, visual, tentouBaixar });
           },
           aoAlternarGrupo(chave) {
             if (estado.gruposFechados.has(chave)) estado.gruposFechados.delete(chave);
@@ -4777,7 +4877,7 @@
             estado.filtros[colunaId] = termo;
             estado.pagina = 0;
             estado.rolagemTopo = 0;
-            redesenhar();
+            filtrarDepoisDeDigitar();
           },
           aoMenuDeContexto: config.permitirCopiar === false ? null : abrirMenuDeContexto
         });
@@ -4809,10 +4909,10 @@
           );
         }
         item("Copiar a tabela inteira", () => copiar(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo)));
-        item(
-          "Exportar CSV",
-          () => baixarCsv(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo), "tabela_completa.csv")
-        );
+        item("Exportar CSV", () => {
+          const csv = montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo);
+          mostrarPainelDeCsv({ ctx, conteudo: csv, visual, tentouBaixar: baixarCsv(csv, "tabela_completa.csv") });
+        });
         const celula = coluna.celula(linha);
         if (config.permitirDrill !== false && celula && ctx.ponte.temDrill(celula)) {
           item("Abrir drill do Looker", () => ctx.ponte.abrirDrill(celula, evento));
@@ -4834,6 +4934,7 @@
       estado.valoresAnteriores = new Map([...estado.valoresAnteriores || [], ...comparacao.novos]);
     },
     aoDestruir({ estado }) {
+      fecharPainelDeCsv(estado);
       const menu = estado && estado.menuAberto;
       if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
     }

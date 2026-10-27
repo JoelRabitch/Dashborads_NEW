@@ -25,7 +25,11 @@ import {
   ordenarIndices,
   filtrarIndices,
   montarCsv,
+  idDoCampo,
 } from './render.js';
+
+/** Espera depois da última tecla antes de filtrar (ms). */
+const ESPERA_DO_FILTRO = 200;
 
 /** Define a ordenação inicial a partir da opção do painel. */
 function ordenacaoInicial(config, colunas) {
@@ -160,9 +164,19 @@ function criarPintorDeCelula(ctx, nulo, contextos, porId, comparacao) {
   };
 }
 
-/** Dispara o download do CSV sem rede: Blob local + <a download>. */
+/**
+ * Dispara o download do CSV sem rede: Blob local + <a download>.
+ *
+ * ATENÇÃO (correções v2): a visualização roda num iframe com sandbox
+ * (`/visualizations/sandbox/...`). Se o sandbox não tiver
+ * `allow-downloads`, o navegador bloqueia o download EM SILÊNCIO — não há
+ * evento nem erro para detectar. Por isso o botão sempre abre também o
+ * painel com o CSV em texto (`mostrarPainelDeCsv`): se o arquivo não
+ * baixou, o usuário copia dali.
+ * @returns {boolean} se conseguiu ao menos disparar o download
+ */
 function baixarCsv(conteudo, nomeDoArquivo) {
-  if (typeof Blob !== 'function' || typeof URL === 'undefined' || !URL.createObjectURL) return;
+  if (typeof Blob !== 'function' || typeof URL === 'undefined' || !URL.createObjectURL) return false;
   // BOM para o Excel abrir acentos corretamente.
   const blob = new Blob([`﻿${conteudo}`], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -174,6 +188,66 @@ function baixarCsv(conteudo, nomeDoArquivo) {
   ancora.click();
   document.body.removeChild(ancora);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
+}
+
+/**
+ * Painel com o CSV em texto selecionável + "Copiar" + "Fechar".
+ * Copiar tenta `navigator.clipboard` (pode ser negado pelo iframe) e cai
+ * para selecionar o texto + execCommand('copy'); se nada der, o texto fica
+ * selecionado e a mensagem pede Ctrl+C.
+ */
+function mostrarPainelDeCsv({ ctx, conteudo, visual, tentouBaixar }) {
+  fecharPainelDeCsv(ctx.estado);
+  const painel = criarEl('div', { classe: 'tc-csv', pai: document.body });
+  painel.style.background = visual.fundo;
+  painel.style.color = visual.texto;
+  painel.style.borderColor = visual.borda;
+  ctx.estado.painelDeCsv = painel;
+
+  criarEl('div', {
+    pai: painel,
+    texto: tentouBaixar
+      ? 'Se o download não começou, o Looker bloqueou downloads nesta visualização. Copie o CSV abaixo e cole numa planilha.'
+      : 'Este navegador não permite gerar o arquivo aqui. Copie o CSV abaixo e cole numa planilha.',
+  });
+  const area = criarEl('textarea', { pai: painel });
+  area.id = idDoCampo(ctx.estado, 'csv');
+  area.name = 'csv';
+  area.setAttribute('aria-label', 'Conteúdo CSV da tabela');
+  area.readOnly = true;
+  area.value = conteudo;
+  area.style.background = visual.fundo;
+  area.style.color = visual.texto;
+  area.style.borderColor = visual.borda;
+
+  const botoes = criarEl('div', { classe: 'tc-csv-botoes', pai: painel });
+  const copiarBotao = criarEl('button', { pai: botoes, texto: 'Copiar' });
+  const fechar = criarEl('button', { pai: botoes, texto: 'Fechar' });
+  const situacao = criarEl('span', { pai: botoes });
+  for (const b of [copiarBotao, fechar]) {
+    b.type = 'button';
+    b.style.borderColor = visual.borda;
+    b.style.color = visual.texto;
+  }
+  copiarBotao.addEventListener('click', () => {
+    area.focus();
+    area.select();
+    const avisar = (ok) =>
+      definirTexto(situacao, ok ? 'Copiado.' : 'O Looker bloqueou a cópia automática: o texto está selecionado, use Ctrl+C.');
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(conteudo).then(() => avisar(true), () => avisar(copiar(conteudo)));
+    } else {
+      avisar(copiar(conteudo));
+    }
+  });
+  fechar.addEventListener('click', () => fecharPainelDeCsv(ctx.estado));
+}
+
+function fecharPainelDeCsv(estado) {
+  const painel = estado && estado.painelDeCsv;
+  if (painel && painel.parentNode) painel.parentNode.removeChild(painel);
+  if (estado) estado.painelDeCsv = null;
 }
 
 /**
@@ -209,6 +283,8 @@ function compararComAtualizacaoAnterior({ ctx, td, coluna, linha, indiceDaLinha,
 function copiar(texto) {
   if (typeof document === 'undefined') return false;
   const area = criarEl('textarea');
+  area.id = `tabela_completa-copia-${Date.now()}`;
+  area.name = 'copia';
   area.value = texto;
   area.setAttribute('readonly', 'readonly');
   area.style.position = 'fixed';
@@ -306,9 +382,27 @@ export default defineViz({
       desenhar();
     }
 
+    /**
+     * Busca e filtros: espera o usuário parar de digitar e troca SÓ as
+     * linhas (desenho.atualizarDados). Antes cada tecla redesenhava a tabela
+     * inteira, recriando o <input> — o foco e o cursor se perdiam.
+     */
+    function filtrarDepoisDeDigitar() {
+      if (estado.timerDoFiltro) clearTimeout(estado.timerDoFiltro);
+      estado.timerDoFiltro = ctx.agendarTimer(() => {
+        estado.timerDoFiltro = null;
+        recalcular();
+        pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, null);
+        if (desenho && desenho.atualizarDados) desenho.atualizarDados(itens, indicesVisiveis, pintarCelula);
+        else desenhar();
+      }, ESPERA_DO_FILTRO);
+    }
+
+    let desenho = null;
+
     function desenhar() {
       ctx.eventos.limpar();
-      desenharTabela({
+      desenho = desenharTabela({
         ctx,
         colunas,
         gruposDePivo,
@@ -339,7 +433,7 @@ export default defineViz({
           estado.busca = termo;
           estado.pagina = 0;
           estado.rolagemTopo = 0;
-          redesenhar();
+          filtrarDepoisDeDigitar();
         },
 
         aoSelecionarLinha(indice, acumular) {
@@ -363,7 +457,9 @@ export default defineViz({
         },
 
         aoExportar() {
-          baixarCsv(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo), 'tabela_completa.csv');
+          const csv = montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo);
+          const tentouBaixar = baixarCsv(csv, 'tabela_completa.csv');
+          mostrarPainelDeCsv({ ctx, conteudo: csv, visual, tentouBaixar });
         },
 
         aoAlternarGrupo(chave) {
@@ -376,7 +472,7 @@ export default defineViz({
           estado.filtros[colunaId] = termo;
           estado.pagina = 0;
           estado.rolagemTopo = 0;
-          redesenhar();
+          filtrarDepoisDeDigitar();
         },
 
         aoMenuDeContexto: config.permitirCopiar === false ? null : abrirMenuDeContexto,
@@ -413,9 +509,10 @@ export default defineViz({
         );
       }
       item('Copiar a tabela inteira', () => copiar(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo)));
-      item('Exportar CSV', () =>
-        baixarCsv(montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo), 'tabela_completa.csv')
-      );
+      item('Exportar CSV', () => {
+        const csv = montarCsv(colunasVisiveis, indicesVisiveis, modelo, nulo);
+        mostrarPainelDeCsv({ ctx, conteudo: csv, visual, tentouBaixar: baixarCsv(csv, 'tabela_completa.csv') });
+      });
 
       const celula = coluna.celula(linha);
       if (config.permitirDrill !== false && celula && ctx.ponte.temDrill(celula)) {
@@ -447,6 +544,7 @@ export default defineViz({
   },
 
   aoDestruir({ estado }) {
+    fecharPainelDeCsv(estado);
     const menu = estado && estado.menuAberto;
     if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
   },

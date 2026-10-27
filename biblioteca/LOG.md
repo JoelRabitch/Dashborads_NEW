@@ -2781,3 +2781,39 @@ update); nos novos passam. `npm test` 532/532; segurança sem violação.
 
 PRÓXIMA AÇÃO EXATA: aplicar rótulos (2.1), contorno/cores (2.2),
 `ctx.cliqueNoItem` (2.3) e `criarMarcadorSvg` (2.4) gráfico a gráfico.
+
+### Aplicação por gráfico de 2.1–2.4 (em andamento)
+- **Decisão:** o trabalho por gráfico foi dividido em 5 frentes paralelas
+  por base compartilhada (quadrantes; séries temporais + pareto; listas
+  densas + heatmap + bar_race; conjuntos/áreas: venn, upset, treemap,
+  marimekko; árvores + org_chart + kpi_vivo). Cada frente só edita os
+  arquivos dos seus gráficos e testes; o núcleo não é tocado por elas.
+  Itens da seção 7 que não dependem de 2.5–2.8 já entram nessa passada
+  (ex.: venn interativo, rank no bar_race, aba de quadrantes).
+- Em paralelo: tabela_completa (Fase C, sem dependência das frentes).
+
+### tabela_completa (Fase C) — parte 1 (concluída)
+Testes primeiro (`test/correcoes_tabela.test.mjs`, 5 testes; os 5 FALHAVAM
+no código anterior):
+- **Rolagem sumiu — causa raiz:** `desenharTabela` chamava
+  `injetarEstilo(raiz, CSS)` e LOGO DEPOIS `limpar(raiz)`, apagando o
+  `<style>` recém-injetado. No Looker a tabela ficava sem CSS nenhum: sem
+  `overflow:auto` (sem rolagem), sem `position:sticky`, sem `@keyframes`
+  (a animação de entrada das linhas também morria aqui). Ordem invertida.
+  Também: `.tc-rolagem` ganhou `min-height:0;min-width:0` (filho flex que
+  não encolhe não rola).
+- **Filtro perdia o foco a cada tecla — causa:** cada `input` redesenhava a
+  tabela inteira e recriava o `<input>`. Agora busca e filtros esperam 200 ms
+  sem digitar e trocam SÓ linhas e totais (`desenho.atualizarDados`); o
+  campo não é recriado, foco e cursor ficam.
+- **CSV:** o download por Blob continua sendo tentado, mas o iframe com
+  sandbox pode bloquear em silêncio (sem evento detectável). Por isso o
+  botão sempre abre um painel com o CSV em texto selecionável + "Copiar"
+  (`navigator.clipboard` → fallback execCommand → texto selecionado com
+  instrução de Ctrl+C) + "Fechar". **Conferir no Looker real** se o
+  download acontece; o painel funciona nos dois casos.
+- **Campos de formulário:** todo input/textarea com id único
+  (`tabela_completa-<n>-<nome>`) e `name`; busca e filtros com
+  `<label for>` visualmente oculto + aria-label.
+- Testes antigos de busca/filtro passaram a esperar o debounce.
+Falta na tabela: aviso amarelo (2.5) e animação (2.7).
