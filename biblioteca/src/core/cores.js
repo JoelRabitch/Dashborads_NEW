@@ -32,7 +32,11 @@ export function paletaDoConfig(config = {}) {
 export function corDoItem(config = {}, indice = 0, chave, { prefixo = 'cor_' } = {}) {
   if (chave !== undefined && chave !== null) {
     const propria = lerTexto(config[`${prefixo}${sanitizarChave(chave)}`], '');
-    if (propria) return propria;
+    // O Looker grava o DEFAULT da opção por item no config (a cor da paleta
+    // padrão naquela posição). Se a cor própria é igual a esse default, o
+    // usuário não escolheu nada: vale a paleta atual (com Inverter etc.).
+    const padraoDaPosicao = coresDaPaleta('looker')[indice % coresDaPaleta('looker').length];
+    if (propria && propria.toLowerCase() !== String(padraoDaPosicao).toLowerCase()) return propria;
   }
   const paleta = paletaDoConfig(config);
   return paleta[((indice % paleta.length) + paleta.length) % paleta.length];
@@ -51,7 +55,11 @@ export function lerContorno(config = {}, tema = {}, { corPadrao } = {}) {
   const espessura = Math.max(0, lerNumero(config.espessuraDoContorno, 1));
   return {
     mostrar: lerBooleano(config.mostrarContorno, true) && espessura > 0,
-    cor: lerTexto(config.corDoContorno, '') || corPadrao || tema.fundo || '#FFFFFF',
+    // '#FFFFFF' é o DEFAULT declarado (não pode mudar): quando o gráfico
+    // informa uma cor padrão, o branco default vale como 'automática'.
+    cor: ((c) => (c && !(corPadrao && c.toUpperCase() === '#FFFFFF') ? c : corPadrao || tema.fundo || '#FFFFFF'))(
+      lerTexto(config.corDoContorno, '')
+    ),
     espessura,
     estilo: lerTexto(config.tracejadoDoContorno, 'solido'),
   };

@@ -1,7 +1,7 @@
 /*!
  * Diagrama de Venn — visualização customizada para o Looker
  * id: diagrama_venn
- * versão: 0.1.0 | build: 2026-10-27 13:46:04 | commit: 3a8b5dd
+ * versão: 0.1.0 | build: 2026-10-27 14:06:25 | commit: 6ed2588
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -107,7 +107,11 @@
         const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
-        const completas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        const completas = {};
+        Object.keys(juntas).sort((a, b) => (Number(juntas[a].order) || 0) - (Number(juntas[b].order) || 0)).forEach((k) => {
+          completas[k] = juntas[k];
+        });
         instancia._blOpcoesRegistradas = completas;
         instancia.trigger("registerOptions", completas);
         return true;
@@ -420,10 +424,10 @@
     var group = locale2.grouping === void 0 || locale2.thousands === void 0 ? identity_default : formatGroup_default(map.call(locale2.grouping, Number), locale2.thousands + ""), currencyPrefix = locale2.currency === void 0 ? "" : locale2.currency[0] + "", currencySuffix = locale2.currency === void 0 ? "" : locale2.currency[1] + "", decimal = locale2.decimal === void 0 ? "." : locale2.decimal + "", numerals = locale2.numerals === void 0 ? identity_default : formatNumerals_default(map.call(locale2.numerals, String)), percent = locale2.percent === void 0 ? "%" : locale2.percent + "", minus = locale2.minus === void 0 ? "\u2212" : locale2.minus + "", nan = locale2.nan === void 0 ? "NaN" : locale2.nan + "";
     function newFormat(specifier, options) {
       specifier = formatSpecifier(specifier);
-      var fill = specifier.fill, align = specifier.align, sign = specifier.sign, symbol = specifier.symbol, zero = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
+      var fill = specifier.fill, align = specifier.align, sign2 = specifier.sign, symbol = specifier.symbol, zero2 = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
       if (type === "n") comma = true, type = "g";
       else if (!formatTypes_default[type]) precision === void 0 && (precision = 12), trim = true, type = "g";
-      if (zero || fill === "0" && align === "=") zero = true, fill = "0", align = "=";
+      if (zero2 || fill === "0" && align === "=") zero2 = true, fill = "0", align = "=";
       var prefix = (options && options.prefix !== void 0 ? options.prefix : "") + (symbol === "$" ? currencyPrefix : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : ""), suffix = (symbol === "$" ? currencySuffix : /[%p]/.test(type) ? percent : "") + (options && options.suffix !== void 0 ? options.suffix : "");
       var formatType = formatTypes_default[type], maybeSuffix = /[defgprs%]/.test(type);
       precision = precision === void 0 ? 6 : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision)) : Math.max(0, Math.min(20, precision));
@@ -437,9 +441,9 @@
           var valueNegative = value < 0 || 1 / value < 0;
           value = isNaN(value) ? nan : formatType(Math.abs(value), precision);
           if (trim) value = formatTrim_default(value);
-          if (valueNegative && +value === 0 && sign !== "+") valueNegative = false;
-          valuePrefix = (valueNegative ? sign === "(" ? sign : minus : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
-          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
+          if (valueNegative && +value === 0 && sign2 !== "+") valueNegative = false;
+          valuePrefix = (valueNegative ? sign2 === "(" ? sign2 : minus : sign2 === "-" || sign2 === "(" ? "" : sign2) + valuePrefix;
+          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign2 === "(" ? ")" : "");
           if (maybeSuffix) {
             i = -1, n = value.length;
             while (++i < n) {
@@ -451,9 +455,9 @@
             }
           }
         }
-        if (comma && !zero) value = group(value, Infinity);
+        if (comma && !zero2) value = group(value, Infinity);
         var length = valuePrefix.length + value.length + valueSuffix.length, padding = length < width ? new Array(width - length + 1).join(fill) : "";
-        if (comma && zero) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
+        if (comma && zero2) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
         switch (align) {
           case "<":
             value = valuePrefix + value + valueSuffix + padding;
@@ -503,11 +507,81 @@
     return locale;
   }
 
+  // node_modules/d3-format/src/precisionFixed.js
+  function precisionFixed_default(step) {
+    return Math.max(0, -exponent_default(Math.abs(step)));
+  }
+
+  // node_modules/d3-format/src/precisionPrefix.js
+  function precisionPrefix_default(step, value) {
+    return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent_default(value) / 3))) * 3 - exponent_default(Math.abs(step)));
+  }
+
+  // node_modules/d3-format/src/precisionRound.js
+  function precisionRound_default(step, max2) {
+    step = Math.abs(step), max2 = Math.abs(max2) - step;
+    return Math.max(0, exponent_default(max2) - exponent_default(step)) + 1;
+  }
+
   // src/core/format.js
+  var cacheDeFormatadores = /* @__PURE__ */ new Map();
   function numeroOuNulo(valor) {
     if (valor === null || valor === void 0 || valor === "") return null;
     const n = typeof valor === "number" ? valor : Number(valor);
     return Number.isFinite(n) ? n : null;
+  }
+  function converterValueFormat(valueFormat) {
+    if (typeof valueFormat !== "string" || !valueFormat.trim()) return null;
+    let fmt = valueFormat.split(";")[0].trim();
+    if (!fmt) return null;
+    let prefixo = "";
+    let sufixo = "";
+    fmt = fmt.replace(/^"([^"]*)"/, (_, t) => {
+      prefixo += t;
+      return "";
+    });
+    fmt = fmt.replace(/"([^"]*)"\s*$/, (_, t) => {
+      sufixo = t + sufixo;
+      return "";
+    });
+    const moeda = /^(\\?R\$|\\?US\$|\\?\$|€|£|¥)\s*/.exec(fmt);
+    if (moeda) {
+      prefixo += moeda[1].replace(/\\/g, "") + (moeda[0].endsWith(" ") ? " " : "");
+      fmt = fmt.slice(moeda[0].length);
+    }
+    const ehPercentual = /%/.test(fmt);
+    if (ehPercentual) fmt = fmt.replace(/%/g, "");
+    let divisor = 1;
+    const escala = /([#0])(,+)\s*$/.exec(fmt);
+    if (escala) {
+      divisor = Math.pow(1e3, escala[2].length);
+      fmt = fmt.replace(/,+\s*$/, "");
+    }
+    const usaSeparadorDeMilhar = /#,##|0,0/.test(fmt);
+    let casas = 0;
+    const parteDecimal = /\.([0#]+)/.exec(fmt);
+    if (parteDecimal) casas = parteDecimal[1].length;
+    if (!/[#0]/.test(fmt)) return null;
+    const spec = (usaSeparadorDeMilhar ? "," : "") + "." + casas + (ehPercentual ? "%" : "f");
+    return { spec, prefixo, sufixo, divisor, ehPercentual };
+  }
+  function formatadorDeValueFormat(valueFormat, opcoesPadrao = {}) {
+    const chave = `vf:${valueFormat}|${JSON.stringify(opcoesPadrao)}`;
+    if (cacheDeFormatadores.has(chave)) return cacheDeFormatadores.get(chave);
+    const convertido = converterValueFormat(valueFormat);
+    let fn;
+    if (convertido) {
+      const base = format(convertido.spec);
+      fn = (valor) => {
+        const n = numeroOuNulo(valor);
+        if (n === null) return "";
+        return convertido.prefixo + base(n / convertido.divisor) + convertido.sufixo;
+      };
+    } else {
+      fn = criarFormatadorNumerico(opcoesPadrao);
+    }
+    cacheDeFormatadores.set(chave, fn);
+    return fn;
   }
   function criarFormatadorNumerico(opcoes2 = {}) {
     const {
@@ -595,6 +669,11 @@
     }
     const d = new Date(texto);
     return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function truncar(texto, limite = 24) {
+    const t = texto === null || texto === void 0 ? "" : String(texto);
+    if (t.length <= limite) return t;
+    return t.slice(0, Math.max(1, limite - 1)).trimEnd() + "\u2026";
   }
 
   // src/core/data-model.js
@@ -1161,12 +1240,12 @@
     if (!o) return new Hsl();
     if (o instanceof Hsl) return o;
     o = o.rgb();
-    var r = o.r / 255, g = o.g / 255, b = o.b / 255, min = Math.min(r, g, b), max = Math.max(r, g, b), h = NaN, s = max - min, l = (max + min) / 2;
+    var r = o.r / 255, g = o.g / 255, b = o.b / 255, min2 = Math.min(r, g, b), max2 = Math.max(r, g, b), h = NaN, s = max2 - min2, l = (max2 + min2) / 2;
     if (s) {
-      if (r === max) h = (g - b) / s + (g < b) * 6;
-      else if (g === max) h = (b - r) / s + 2;
+      if (r === max2) h = (g - b) / s + (g < b) * 6;
+      else if (g === max2) h = (b - r) / s + 2;
       else h = (r - g) / s + 4;
-      s /= l < 0.5 ? max + min : 2 - max - min;
+      s /= l < 0.5 ? max2 + min2 : 2 - max2 - min2;
       h *= 60;
     } else {
       s = l > 0 && l < 1 ? 0 : h;
@@ -1307,6 +1386,129 @@
   }
   var rgbBasis = rgbSpline(basis_default);
   var rgbBasisClosed = rgbSpline(basisClosed_default);
+
+  // node_modules/d3-interpolate/src/numberArray.js
+  function numberArray_default(a, b) {
+    if (!b) b = [];
+    var n = a ? Math.min(b.length, a.length) : 0, c = b.slice(), i;
+    return function(t) {
+      for (i = 0; i < n; ++i) c[i] = a[i] * (1 - t) + b[i] * t;
+      return c;
+    };
+  }
+  function isNumberArray(x) {
+    return ArrayBuffer.isView(x) && !(x instanceof DataView);
+  }
+
+  // node_modules/d3-interpolate/src/array.js
+  function genericArray(a, b) {
+    var nb = b ? b.length : 0, na = a ? Math.min(nb, a.length) : 0, x = new Array(na), c = new Array(nb), i;
+    for (i = 0; i < na; ++i) x[i] = value_default(a[i], b[i]);
+    for (; i < nb; ++i) c[i] = b[i];
+    return function(t) {
+      for (i = 0; i < na; ++i) c[i] = x[i](t);
+      return c;
+    };
+  }
+
+  // node_modules/d3-interpolate/src/date.js
+  function date_default(a, b) {
+    var d = /* @__PURE__ */ new Date();
+    return a = +a, b = +b, function(t) {
+      return d.setTime(a * (1 - t) + b * t), d;
+    };
+  }
+
+  // node_modules/d3-interpolate/src/number.js
+  function number_default(a, b) {
+    return a = +a, b = +b, function(t) {
+      return a * (1 - t) + b * t;
+    };
+  }
+
+  // node_modules/d3-interpolate/src/object.js
+  function object_default(a, b) {
+    var i = {}, c = {}, k;
+    if (a === null || typeof a !== "object") a = {};
+    if (b === null || typeof b !== "object") b = {};
+    for (k in b) {
+      if (k in a) {
+        i[k] = value_default(a[k], b[k]);
+      } else {
+        c[k] = b[k];
+      }
+    }
+    return function(t) {
+      for (k in i) c[k] = i[k](t);
+      return c;
+    };
+  }
+
+  // node_modules/d3-interpolate/src/string.js
+  var reA = /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[eE][-+]?\d+)?/g;
+  var reB = new RegExp(reA.source, "g");
+  function zero(b) {
+    return function() {
+      return b;
+    };
+  }
+  function one(b) {
+    return function(t) {
+      return b(t) + "";
+    };
+  }
+  function string_default(a, b) {
+    var bi = reA.lastIndex = reB.lastIndex = 0, am, bm, bs, i = -1, s = [], q = [];
+    a = a + "", b = b + "";
+    while ((am = reA.exec(a)) && (bm = reB.exec(b))) {
+      if ((bs = bm.index) > bi) {
+        bs = b.slice(bi, bs);
+        if (s[i]) s[i] += bs;
+        else s[++i] = bs;
+      }
+      if ((am = am[0]) === (bm = bm[0])) {
+        if (s[i]) s[i] += bm;
+        else s[++i] = bm;
+      } else {
+        s[++i] = null;
+        q.push({ i, x: number_default(am, bm) });
+      }
+      bi = reB.lastIndex;
+    }
+    if (bi < b.length) {
+      bs = b.slice(bi);
+      if (s[i]) s[i] += bs;
+      else s[++i] = bs;
+    }
+    return s.length < 2 ? q[0] ? one(q[0].x) : zero(b) : (b = q.length, function(t) {
+      for (var i2 = 0, o; i2 < b; ++i2) s[(o = q[i2]).i] = o.x(t);
+      return s.join("");
+    });
+  }
+
+  // node_modules/d3-interpolate/src/value.js
+  function value_default(a, b) {
+    var t = typeof b, c;
+    return b == null || t === "boolean" ? constant_default(b) : (t === "number" ? number_default : t === "string" ? (c = color(b)) ? (b = c, rgb_default) : string_default : b instanceof color ? rgb_default : b instanceof Date ? date_default : isNumberArray(b) ? numberArray_default : Array.isArray(b) ? genericArray : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object_default : number_default)(a, b);
+  }
+
+  // node_modules/d3-interpolate/src/round.js
+  function round_default(a, b) {
+    return a = +a, b = +b, function(t) {
+      return Math.round(a * (1 - t) + b * t);
+    };
+  }
+
+  // node_modules/d3-interpolate/src/piecewise.js
+  function piecewise(interpolate, values) {
+    if (values === void 0) values = interpolate, interpolate = value_default;
+    var i = 0, n = values.length - 1, v = values[0], I = new Array(n < 0 ? 0 : n);
+    while (i < n) I[i] = interpolate(v, v = values[++i]);
+    return function(t) {
+      var i2 = Math.max(0, Math.min(n - 1, Math.floor(t *= n)));
+      return I[i2](t - i2);
+    };
+  }
 
   // node_modules/d3-scale-chromatic/src/ramp.js
   var ramp_default = (scheme8) => rgbBasis(scheme8[scheme8.length - 1]);
@@ -1574,6 +1776,10 @@
   function coresDaPaleta(nomeDaPaleta) {
     const p = PALETAS_CATEGORICAS[nomeDaPaleta] || PALETAS_CATEGORICAS.looker;
     return p.cores;
+  }
+  function interpoladorContinuo(nome) {
+    const e = ESCALAS_CONTINUAS[nome] || ESCALAS_CONTINUAS.azul;
+    return e.interpolador;
   }
   function opcoesDePaleta() {
     return Object.keys(PALETAS_CATEGORICAS).map((chave) => ({
@@ -2114,6 +2320,69 @@
       }
     };
   }
+  function blocoDeInteracao(opcoes2 = {}) {
+    const {
+      secao = "Intera\xE7\xE3o",
+      comZoom = true,
+      comBrush = false,
+      comBusca = false,
+      comSelecao = true
+    } = opcoes2;
+    const bloco = {
+      permitirDrill: {
+        type: "boolean",
+        label: "Clique abre o drill do Looker",
+        section: secao,
+        default: true
+      },
+      destacarAoPassarMouse: {
+        type: "boolean",
+        label: "Destacar ao passar o mouse",
+        section: secao,
+        default: true
+      }
+    };
+    if (comZoom) {
+      bloco.permitirZoom = { type: "boolean", label: "Permitir zoom", section: secao, default: false };
+      bloco.permitirArrastar = {
+        type: "boolean",
+        label: "Permitir arrastar (pan)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBrush) {
+      bloco.permitirBrush = {
+        type: "boolean",
+        label: "Permitir sele\xE7\xE3o por \xE1rea (brush)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBusca) {
+      bloco.mostrarBusca = {
+        type: "boolean",
+        label: "Mostrar caixa de busca",
+        section: secao,
+        default: false
+      };
+    }
+    if (comSelecao) {
+      bloco.permitirSelecao = {
+        type: "boolean",
+        label: "Permitir selecionar itens (clique)",
+        section: secao,
+        default: true
+      };
+      bloco.usarCrossfilter = {
+        type: "boolean",
+        label: "Usar cross-filter do Looker quando dispon\xEDvel",
+        section: secao,
+        default: false
+      };
+    }
+    return bloco;
+  }
   function blocoDeTema(opcoes2 = {}) {
     const { secao = "Tema" } = opcoes2;
     return {
@@ -2216,6 +2485,110 @@
         default: false
       }
     };
+  }
+  var JUNTAR_EIXOS_E_TEXTO = true;
+  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABA_POR_SECAO = {
+    Dados: "Dados",
+    Medidas: "Dados",
+    Formato: "Visual",
+    Cores: "Visual",
+    Cor: "Visual",
+    Tema: "Visual",
+    Refer\u00EAncias: "Visual",
+    Eixos: "Eixos",
+    R\u00F3tulos: "Texto",
+    Legenda: "Texto",
+    Intera\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Anima\u00E7\u00E3o: "Intera\xE7\xE3o",
+    Avan\u00E7ado: "Avan\xE7ado"
+  };
+  var PREFIXO_POR_SECAO = {
+    Cores: "Cor",
+    Cor: "Cor",
+    R\u00F3tulos: "R\xF3tulo",
+    Legenda: "Legenda",
+    Anima\u00E7\u00E3o: "Anima\xE7\xE3o",
+    Refer\u00EAncias: "Refer\xEAncia"
+  };
+  var DESTINO_POR_ID = {
+    titulo: ["Texto", "T\xEDtulo"],
+    subtitulo: ["Texto", "T\xEDtulo"],
+    textoSemDados: ["Texto", "Aviso"],
+    mostrarAvisos: ["Texto", "Aviso"],
+    posicaoDosAvisos: ["Texto", "Aviso"],
+    tema: ["Visual", "Tema"],
+    corDeFundo: ["Visual", "Cor"],
+    corDoTexto: ["Visual", "Cor"],
+    corDaBorda: ["Visual", "Cor"],
+    corDaGrade: ["Visual", "Cor"],
+    familiaDaFonte: ["Visual", "Tema"],
+    tamanhoDaFonte: ["Visual", "Tema"],
+    formatoDoEixo: ["Eixos", "Eixo"],
+    casasDecimaisDoEixo: ["Eixos", "Eixo"],
+    usarEixoSecundario: ["Eixos", "Eixo"],
+    tratamentoDeNulos: ["Dados", ""],
+    textoParaNulo: ["Dados", ""]
+  };
+  function abaPeloId(id, opcao) {
+    const t = id.toLowerCase();
+    if (/debug|json/.test(t)) return "Avan\xE7ado";
+    if (/tooltip|drill|clique|hover|destacar(no|ao)|anima|duracao|atraso|cascata|tocando|repetir|busca|recolher|expandi|interativ|crossfilter|selec|zoom|arrastar|copiar|exportar|redimensionar|ordenar$|permitir/.test(t)) {
+      return "Intera\xE7\xE3o";
+    }
+    if (/eixo/.test(t)) return "Eixos";
+    if (/rotulo|escrever|mostrarvalor|mostrarpercentual|mostrarposicao|mostrarrank|titulo|legenda|aviso|texto|mostrartotais|mostrarcontagem|nome$/.test(t)) {
+      return "Texto";
+    }
+    if (opcao && opcao.display === "color") return "Visual";
+    if (/^cor|cor$|cores|paleta|opacidade|forma|tamanho|espessura|raio|altura|largura|espaco|contorno|borda|grade|zebra|fundo|estilo|densidade|layout|orientacao|curva|ligacao|preencher|pintar|zona|guias|ponto|sparkline|icone|cartao|arranjo|colunasdagrade|escala/.test(t)) {
+      return "Visual";
+    }
+    return "Dados";
+  }
+  function organizarAbas(opcoes2) {
+    const itens = [];
+    let i = 0;
+    for (const [id, original] of Object.entries(opcoes2 || {})) {
+      if (!original || typeof original !== "object") continue;
+      if (original._organizada) {
+        itens.push([id, original]);
+        continue;
+      }
+      const opcao = { ...original };
+      const secaoAntiga = opcao.section || "Avan\xE7ado";
+      let aba;
+      let prefixo;
+      if (DESTINO_POR_ID[id]) {
+        [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Coluna: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
+      } else if (ABA_POR_SECAO[secaoAntiga]) {
+        aba = ABA_POR_SECAO[secaoAntiga];
+        prefixo = PREFIXO_POR_SECAO[secaoAntiga];
+        if (aba === "Eixos") prefixo = /X$|X[A-Z]/.test(id) ? "Eixo X" : /Y$|Y[A-Z]/.test(id) ? "Eixo Y" : "Eixo";
+        if (secaoAntiga === "Intera\xE7\xE3o") prefixo = /tooltip|Tooltip|HtmlDoLooker/.test(id) ? "Tooltip" : "Clique";
+        if (secaoAntiga === "Tema") prefixo = "Tema";
+      } else {
+        aba = abaPeloId(id, opcao);
+        prefixo = secaoAntiga;
+      }
+      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
+      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
+        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      }
+      opcao.section = aba;
+      const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;
+      opcao.order = (ABAS.indexOf(aba) + 1) * 1e4 + ordemAntiga;
+      Object.defineProperty(opcao, "_organizada", { value: true, enumerable: false });
+      itens.push([id, opcao]);
+      i += 1;
+    }
+    itens.sort((a, b) => a[1].order - b[1].order);
+    const saida = {};
+    for (const [id, opcao] of itens) saida[id] = opcao;
+    return saida;
   }
   function opcoesDeCorPorItem(itens, opcoes2 = {}) {
     const { prefixo = "cor_", secao = "Cores", cores = [] } = opcoes2;
@@ -2381,10 +2754,129 @@
       }
     };
   }
+  function preferindoMenosMovimento() {
+    try {
+      return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (_) {
+      return false;
+    }
+  }
   function cancelarQuadro(id) {
     if (id === null || id === void 0) return;
     if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
     else clearTimeout(id);
+  }
+
+  // src/core/animate.js
+  var SUAVIZACOES = {
+    linear: (t) => t,
+    entrada: (t) => t * t * t,
+    saida: (t) => 1 - Math.pow(1 - t, 3),
+    ambos: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    elastica: (t) => {
+      if (t === 0 || t === 1) return t;
+      const p = 0.3;
+      return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
+    },
+    quique: (t) => {
+      const n1 = 7.5625;
+      const d1 = 2.75;
+      if (t < 1 / d1) return n1 * t * t;
+      if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+      if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+      return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    }
+  };
+  function suavizacaoPorNome(nome) {
+    return SUAVIZACOES[nome] || SUAVIZACOES.saida;
+  }
+  function opcoesDeAnimacao(config = {}, { primeiraRenderizacao = true } = {}) {
+    var _a, _b, _c;
+    const menosMovimento = preferindoMenosMovimento();
+    const ligada = config.animacaoAtiva !== false && !menosMovimento && (config.quandoAnimar !== "primeira" || primeiraRenderizacao);
+    return {
+      ligada,
+      menosMovimento,
+      duracao: ligada ? Math.max(0, Number((_a = config.duracaoDaAnimacao) != null ? _a : 600)) : 0,
+      atraso: ligada ? Math.max(0, Number((_b = config.atrasoDaAnimacao) != null ? _b : 0)) : 0,
+      cascata: ligada ? Math.max(0, Number((_c = config.cascataDaAnimacao) != null ? _c : 20)) : 0,
+      suavizacao: suavizacaoPorNome(config.suavizacaoDaAnimacao),
+      contador: ligada && config.contadorAnimado !== false
+    };
+  }
+  var ANIMACOES_HABILITADAS = true;
+  var CURVAS_CSS = {
+    linear: "linear",
+    saida: "cubic-bezier(.33,1,.68,1)",
+    entrada: "cubic-bezier(.32,0,.67,0)",
+    ambos: "cubic-bezier(.65,0,.35,1)",
+    elastica: "cubic-bezier(.34,1.56,.64,1)",
+    quique: "cubic-bezier(.34,1.8,.64,1)"
+  };
+  var CSS_ANIMACAO_GENERICA = `
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+@keyframes bl-surgir-html{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+`;
+  var SELETOR_DE_MARCAS = "svg rect, svg path, svg circle, svg ellipse, svg polygon, svg polyline, svg line, svg text, svg image, .bl-anima";
+  var MAXIMO_DE_MARCAS = 600;
+  function animarEntradaGenerica(area, config = {}, { primeiraRenderizacao = true } = {}) {
+    if (!area || !ANIMACOES_HABILITADAS) return 0;
+    const op = opcoesDeAnimacao(config, { primeiraRenderizacao });
+    if (!op.ligada || op.duracao <= 0) return 0;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-animacao"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-animacao");
+      style.textContent = CSS_ANIMACAO_GENERICA;
+      raiz.appendChild(style);
+    }
+    const curva = CURVAS_CSS[config.suavizacaoDaAnimacao] || CURVAS_CSS.saida;
+    let marcas = Array.from(area.querySelectorAll(SELETOR_DE_MARCAS));
+    if (marcas.length > MAXIMO_DE_MARCAS) marcas = Array.from(area.querySelectorAll("svg, .bl-anima"));
+    const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
+    marcas.forEach((el, i) => {
+      const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms backwards`;
+    });
+    return marcas.length;
+  }
+
+  // src/core/interaction.js
+  var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
+  var CSS_DESTAQUE = `
+.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:opacity .15s ease;}
+.bl-hover-ativo [data-item]:not(.bl-sob-mouse), .bl-hover-ativo .bl-marcador:not(.bl-sob-mouse){opacity:.3;}
+@media (prefers-reduced-motion: reduce){.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:none;}}
+`;
+  function ligarDestaqueAoPassar({ area, eventos, config = {} }) {
+    if (!area || config.destacarAoPassarMouse === false) return false;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-destaque"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-destaque");
+      style.textContent = CSS_DESTAQUE;
+      raiz.appendChild(style);
+    }
+    let acesos = [];
+    const apagar = () => {
+      for (const el of acesos) el.classList.remove("bl-sob-mouse");
+      acesos = [];
+      area.classList.remove("bl-hover-ativo");
+    };
+    eventos.on(area, "pointerover", (ev) => {
+      const alvo = ev.target && ev.target.closest ? ev.target.closest(SELETOR_DE_ITENS) : null;
+      if (!alvo || !area.contains(alvo)) {
+        apagar();
+        return;
+      }
+      apagar();
+      const chave = alvo.getAttribute("data-item");
+      acesos = chave ? Array.from(area.querySelectorAll("[data-item]")).filter((e) => e.getAttribute("data-item") === chave) : [alvo];
+      for (const el of acesos) el.classList.add("bl-sob-mouse");
+      area.classList.add("bl-hover-ativo");
+    });
+    eventos.on(area, "pointerleave", apagar);
+    return true;
   }
 
   // src/core/tooltip.js
@@ -2719,14 +3211,19 @@
 
   // src/core/define-viz.js
   var CSS_BASE = `
-.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;}
+.bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
+  display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;}
+.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
 .bl-titulo{font-weight:600;line-height:1.2;}
 .bl-subtitulo{opacity:.7;line-height:1.2;}
-.bl-area{position:relative;width:100%;height:100%;}
-.bl-aviso{position:absolute;left:8px;right:8px;top:6px;z-index:5;padding:4px 8px;border-radius:4px;
-  font-size:11px;line-height:1.35;pointer-events:none;}
+.bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
+.bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
+  border-radius:4px;font-size:11px;line-height:1.35;}
+.bl-aviso-texto{flex:1 1 auto;}
+.bl-aviso-fechar{flex:0 0 auto;border:none;background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-size:13px;line-height:1;padding:0 2px;opacity:.75;}
+.bl-aviso-fechar:hover{opacity:1;}
 .bl-vazio{display:flex;align-items:center;justify-content:center;width:100%;height:100%;
   text-align:center;padding:16px;opacity:.75;font-size:13px;}
 `;
@@ -2734,15 +3231,24 @@
     const {
       id,
       label,
-      opcoes: opcoes2 = {},
+      opcoes: opcoesDeclaradas = {},
       exigencia = {},
       opcoesDinamicas = null,
       render,
-      aoDestruir = null
+      aoDestruir = null,
+      // true = o gráfico anima sozinho (bar_race, tabela); a animação
+      // genérica de entrada (módulo 2.7) não roda por cima.
+      animacaoPropria = false,
+      // true = o gráfico desenha título/subtítulo dentro do próprio desenho
+      // (kpi_vivo): o cabeçalho padrão não repete o título.
+      cabecalhoProprio = false
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
+    const opcoes2 = organizarAbas(
+      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
+    );
     const definicao = {
       id,
       label,
@@ -2754,9 +3260,8 @@
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
         const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
         const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+        const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
-        const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-        avisoEl.style.display = "none";
         this._bl = {
           element,
           raiz,
@@ -2785,7 +3290,7 @@
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes: opcoes2, exigencia, opcoesDinamicas, render, aoDestruir },
+            declaracao: { id, label, opcoes: opcoes2, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
             data,
             element,
             config,
@@ -2830,7 +3335,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes: opcoes2, exigencia, opcoesDinamicas, render } = declaracao;
+    const { id, opcoes: opcoes2, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
     const ponte = criarPonte(this, opcoes2);
     ponte.limparErros();
     if (!this._bl) {
@@ -2839,15 +3344,14 @@
     const bl = this._bl;
     limparPendencias(bl);
     esconderTooltipsDe(bl.raiz);
-    bl.avisoEl.style.display = "none";
-    definirTexto(bl.avisoEl, "");
+    limparAviso(bl);
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -2866,13 +3370,14 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, configFinal, tema);
+    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
       ponte.mostrarErro(problema.titulo, problema.mensagem);
       return;
     }
+    posicionarAviso(bl, configFinal, id);
     for (const aviso of modelo.avisos) mostrarAviso(bl, tema, aviso);
     const { largura, altura } = medir(bl.area);
     const ctx = {
@@ -2935,10 +3440,10 @@
       redesenhar() {
         limparPendencias(bl);
         esconderTooltipsDe(bl.raiz);
-        bl.avisoEl.style.display = "none";
-        definirTexto(bl.avisoEl, "");
+        limparAviso(bl);
         try {
           render(ctx);
+          ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
@@ -2956,14 +3461,26 @@
       ctx.altura = tamanho.altura;
       bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
+      limparAviso(bl);
       try {
         render(ctx);
+        ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
     render(ctx);
+    ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
+    if (!animacaoPropria) {
+      animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
+    }
     bl.primeiraRenderizacao = false;
+  }
+  function opcoesDeAnimacaoPadrao() {
+    const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
+    delete bloco.contadorAnimado;
+    bloco.destacarAoPassarMouse = blocoDeInteracao({ comZoom: false, comSelecao: false }).destacarAoPassarMouse;
+    return bloco;
   }
   function definicaoCreateManual(element) {
     limpar(element);
@@ -2972,9 +3489,8 @@
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
     const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
     const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
+    const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
-    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
-    avisoEl.style.display = "none";
     this._bl = {
       element,
       raiz,
@@ -3003,14 +3519,74 @@
     bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
     bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
   }
+  function criarAviso(raiz) {
+    const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
+    avisoEl.setAttribute("role", "status");
+    criarEl("span", { classe: "bl-aviso-texto", pai: avisoEl });
+    const fechar = criarEl("button", { classe: "bl-aviso-fechar", pai: avisoEl, texto: "\xD7" });
+    fechar.type = "button";
+    fechar.setAttribute("aria-label", "Fechar aviso");
+    fechar.title = "Fechar aviso";
+    fechar.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const bl = avisoEl._bl;
+      if (bl) bl.estado.avisoFechado = textoDoAviso(bl);
+      avisoEl.style.display = "none";
+    });
+    avisoEl.style.display = "none";
+    return avisoEl;
+  }
+  function textoDoAviso(bl) {
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    return t ? t.textContent : "";
+  }
+  function limparAviso(bl) {
+    bl.avisoEl._bl = bl;
+    bl.avisoEl.style.display = "none";
+    const t = bl.avisoEl.querySelector(".bl-aviso-texto");
+    if (t) definirTexto(t, "");
+  }
+  function posicionarAviso(bl, config, id) {
+    bl.idDoGrafico = id;
+    const ligado = config.mostrarAvisos !== false;
+    bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
+    if (bl.posicaoDoAviso === "rodape") {
+      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+    } else if (bl.avisoEl.nextSibling !== bl.area) {
+      bl.raiz.insertBefore(bl.avisoEl, bl.area);
+    }
+  }
   function mostrarAviso(bl, tema, mensagem) {
     if (!mensagem) return;
-    const atual = bl.avisoEl.textContent;
-    definirTexto(bl.avisoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
-    bl.avisoEl.style.display = "block";
+    bl.avisosNoConsole = bl.avisosNoConsole || /* @__PURE__ */ new Set();
+    if (!bl.avisosNoConsole.has(mensagem) && typeof console !== "undefined" && console.warn) {
+      bl.avisosNoConsole.add(mensagem);
+      console.warn(`[${bl.idDoGrafico || "biblioteca-looker"}] aviso: ${mensagem}`);
+    }
+    const textoEl = bl.avisoEl.querySelector(".bl-aviso-texto");
+    const atual = textoEl.textContent;
+    definirTexto(textoEl, atual ? `${atual} \xB7 ${mensagem}` : mensagem);
+    const fechadoPeloUsuario = !!bl.estado.avisoFechado && bl.estado.avisoFechado === textoEl.textContent;
+    bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
   }
+  var OPCOES_DE_AVISO = {
+    mostrarAvisos: {
+      type: "boolean",
+      label: "Mostrar avisos (eles sempre v\xE3o tamb\xE9m para o console)",
+      section: "Texto",
+      default: true
+    },
+    posicaoDosAvisos: {
+      type: "string",
+      label: "Posi\xE7\xE3o dos avisos",
+      section: "Texto",
+      display: "select",
+      default: "topo",
+      values: [{ Topo: "topo" }, { Rodap\u00E9: "rodape" }, { Oculto: "oculto" }]
+    }
+  };
   function mostrarEstadoVazio(bl, tema, mensagem) {
     limpar(bl.area);
     const caixa = criarEl("div", { classe: "bl-vazio", pai: bl.area, texto: mensagem });
@@ -3032,6 +3608,1059 @@
       queryResponseBruto: queryResponse,
       config: configFinal
     });
+  }
+
+  // src/core/rotulos.js
+  function lerBooleano(valor, padrao) {
+    if (valor === void 0 || valor === null || valor === "") return padrao;
+    if (valor === true || valor === false) return valor;
+    if (valor === "true") return true;
+    if (valor === "false") return false;
+    return !!valor;
+  }
+  function lerNumero(valor, padrao) {
+    const n = numeroOuNulo(valor);
+    return n === null ? padrao : n;
+  }
+  function lerTexto(valor, padrao = "") {
+    if (valor === void 0 || valor === null) return padrao;
+    const t = String(valor).trim();
+    return t === "" ? padrao : t;
+  }
+  function lerRotulos(config = {}, tema = {}, padroes = {}) {
+    const { padraoVisivel = true, tamanhoPadrao = 11, casasPadrao = 1 } = padroes;
+    return {
+      mostrar: lerBooleano(config.mostrarRotulos, padraoVisivel),
+      tamanho: Math.max(6, Math.min(48, lerNumero(config.tamanhoDoRotulo, tamanhoPadrao))),
+      cor: lerTexto(config.corDoRotulo, ""),
+      // vazio = automática
+      negrito: lerBooleano(config.negritoNoRotulo, false),
+      rotacao: lerNumero(config.rotacaoDoRotulo, 0),
+      evitarColisao: lerBooleano(config.evitarColisaoDeRotulos, true),
+      truncar: Math.max(0, lerNumero(config.truncarRotulo, 0)),
+      posicao: lerTexto(config.posicaoDoRotulo, "auto"),
+      conteudo: lerTexto(config.conteudoDoRotulo, "valor"),
+      formato: lerTexto(config.formatoDoRotulo, "auto"),
+      casas: Math.max(0, Math.min(6, Math.round(lerNumero(config.casasDecimaisDoRotulo, casasPadrao)))),
+      fonte: tema.fonte,
+      corDoTema: tema.texto
+    };
+  }
+  function formatadorDoRotulo(rot, valueFormat) {
+    if (!rot || rot.formato === "auto") {
+      return formatadorDeValueFormat(valueFormat, { casas: rot ? rot.casas : 1 });
+    }
+    return criarFormatadorNumerico({ estilo: rot.formato, casas: rot.casas });
+  }
+  function textoDoRotulo(rot, dado = {}) {
+    const { valor, nome = "", total, valueFormat, textoDoValor } = dado;
+    const formatar = formatadorDoRotulo(rot, valueFormat);
+    const n = numeroOuNulo(valor);
+    const textoValor = rot.formato === "auto" && textoDoValor !== void 0 && textoDoValor !== null && textoDoValor !== "" ? String(textoDoValor) : n === null ? "" : formatar(n);
+    let fracao = numeroOuNulo(dado.percentual);
+    if (fracao === null && n !== null && numeroOuNulo(total)) fracao = n / Number(total);
+    const textoPct = fracao === null ? "" : `${(fracao * 100).toFixed(rot.casas)}%`;
+    let texto;
+    switch (rot.conteudo) {
+      case "nome":
+        texto = String(nome);
+        break;
+      case "nomeValor":
+        texto = nome !== "" && textoValor !== "" ? `${nome}: ${textoValor}` : String(nome || textoValor);
+        break;
+      case "percentual":
+        texto = textoPct || textoValor;
+        break;
+      case "valorPercentual":
+        texto = textoPct ? `${textoValor} (${textoPct})` : textoValor;
+        break;
+      case "valor":
+      default:
+        texto = textoValor;
+        break;
+    }
+    return rot.truncar > 0 ? truncar(texto, rot.truncar) : texto;
+  }
+  function estilizarRotulo(el, rot, extra = {}) {
+    if (!el || !rot) return el;
+    const cor = rot.cor || extra.corAutomatica || rot.corDoTema;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      el.setAttribute("font-size", String(rot.tamanho));
+      if (cor) el.setAttribute("fill", cor);
+      el.setAttribute("font-weight", rot.negrito ? "700" : "400");
+      if (rot.fonte) el.setAttribute("font-family", rot.fonte);
+      if (rot.rotacao) {
+        const x = extra.x !== void 0 ? extra.x : Number(el.getAttribute("x")) || 0;
+        const y = extra.y !== void 0 ? extra.y : Number(el.getAttribute("y")) || 0;
+        const anterior = el.getAttribute("transform");
+        const giro = `rotate(${rot.rotacao},${x},${y})`;
+        el.setAttribute("transform", anterior ? `${anterior} ${giro}` : giro);
+      }
+    } else {
+      el.style.fontSize = `${rot.tamanho}px`;
+      if (cor) el.style.color = cor;
+      el.style.fontWeight = rot.negrito ? "700" : "400";
+      if (rot.rotacao) {
+        const anterior = el.style.transform || "";
+        el.style.transform = `${anterior} rotate(${rot.rotacao}deg)`.trim();
+      }
+    }
+    el.setAttribute("data-rotulo", "1");
+    return el;
+  }
+  function larguraDoTexto(texto, tamanho) {
+    return String(texto || "").length * tamanho * 0.58;
+  }
+  function esconderColisoes(caixas, rot) {
+    if (!rot || !rot.evitarColisao) return 0;
+    const mantidas = [];
+    let escondidos = 0;
+    for (const c of caixas) {
+      if (!c || !c.el) continue;
+      const colide = mantidas.some(
+        (m) => Math.abs(m.x - c.x) * 2 < m.largura + c.largura && Math.abs(m.y - c.y) * 2 < m.altura + c.altura
+      );
+      if (colide) {
+        c.el.setAttribute("display", "none");
+        if (c.el.style) c.el.style.display = "none";
+        escondidos += 1;
+      } else {
+        mantidas.push(c);
+      }
+    }
+    return escondidos;
+  }
+
+  // node_modules/d3-shape/src/math.js
+  var epsilon = 1e-12;
+  var pi = Math.PI;
+  var halfPi = pi / 2;
+  var tau = 2 * pi;
+
+  // node_modules/d3-shape/src/curve/linear.js
+  function Linear(context) {
+    this._context = context;
+  }
+  Linear.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default:
+          this._context.lineTo(x, y);
+          break;
+      }
+    }
+  };
+  function linear_default(context) {
+    return new Linear(context);
+  }
+
+  // node_modules/d3-shape/src/curve/basis.js
+  function point(that, x, y) {
+    that._context.bezierCurveTo(
+      (2 * that._x0 + that._x1) / 3,
+      (2 * that._y0 + that._y1) / 3,
+      (that._x0 + 2 * that._x1) / 3,
+      (that._y0 + 2 * that._y1) / 3,
+      (that._x0 + 4 * that._x1 + x) / 6,
+      (that._y0 + 4 * that._y1 + y) / 6
+    );
+  }
+  function Basis(context) {
+    this._context = context;
+  }
+  Basis.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 3:
+          point(this, this._x1, this._y1);
+        // falls through
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
+        // falls through
+        default:
+          point(this, x, y);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x;
+      this._y0 = this._y1, this._y1 = y;
+    }
+  };
+  function basis_default2(context) {
+    return new Basis(context);
+  }
+
+  // node_modules/d3-shape/src/curve/cardinal.js
+  function point2(that, x, y) {
+    that._context.bezierCurveTo(
+      that._x1 + that._k * (that._x2 - that._x0),
+      that._y1 + that._k * (that._y2 - that._y0),
+      that._x2 + that._k * (that._x1 - x),
+      that._y2 + that._k * (that._y1 - y),
+      that._x2,
+      that._y2
+    );
+  }
+  function Cardinal(context, tension) {
+    this._context = context;
+    this._k = (1 - tension) / 6;
+  }
+  Cardinal.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          point2(this, this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          this._x1 = x, this._y1 = y;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point2(this, x, y);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
+    }
+  };
+  var cardinal_default = (function custom(tension) {
+    function cardinal(context) {
+      return new Cardinal(context, tension);
+    }
+    cardinal.tension = function(tension2) {
+      return custom(+tension2);
+    };
+    return cardinal;
+  })(0);
+
+  // node_modules/d3-shape/src/curve/catmullRom.js
+  function point3(that, x, y) {
+    var x1 = that._x1, y1 = that._y1, x2 = that._x2, y2 = that._y2;
+    if (that._l01_a > epsilon) {
+      var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
+      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
+      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
+    }
+    if (that._l23_a > epsilon) {
+      var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
+      x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
+      y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m;
+    }
+    that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2);
+  }
+  function CatmullRom(context, alpha) {
+    this._context = context;
+    this._alpha = alpha;
+  }
+  CatmullRom.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          this.point(this._x2, this._y2);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      if (this._point) {
+        var x23 = this._x2 - x, y23 = this._y2 - y;
+        this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
+      }
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point3(this, x, y);
+          break;
+      }
+      this._l01_a = this._l12_a, this._l12_a = this._l23_a;
+      this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a;
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
+    }
+  };
+  var catmullRom_default = (function custom2(alpha) {
+    function catmullRom(context) {
+      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
+    }
+    catmullRom.alpha = function(alpha2) {
+      return custom2(+alpha2);
+    };
+    return catmullRom;
+  })(0.5);
+
+  // node_modules/d3-shape/src/curve/monotone.js
+  function sign(x) {
+    return x < 0 ? -1 : 1;
+  }
+  function slope3(that, x2, y2) {
+    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
+    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
+  }
+  function slope2(that, t) {
+    var h = that._x1 - that._x0;
+    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
+  }
+  function point4(that, t0, t1) {
+    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
+    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
+  }
+  function MonotoneX(context) {
+    this._context = context;
+  }
+  MonotoneX.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+        case 3:
+          point4(this, this._t0, slope2(this, this._t0));
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      var t1 = NaN;
+      x = +x, y = +y;
+      if (x === this._x1 && y === this._y1) return;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          point4(this, slope2(this, t1 = slope3(this, x, y)), t1);
+          break;
+        default:
+          point4(this, this._t0, t1 = slope3(this, x, y));
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x;
+      this._y0 = this._y1, this._y1 = y;
+      this._t0 = t1;
+    }
+  };
+  function MonotoneY(context) {
+    this._context = new ReflectContext(context);
+  }
+  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x, y) {
+    MonotoneX.prototype.point.call(this, y, x);
+  };
+  function ReflectContext(context) {
+    this._context = context;
+  }
+  ReflectContext.prototype = {
+    moveTo: function(x, y) {
+      this._context.moveTo(y, x);
+    },
+    closePath: function() {
+      this._context.closePath();
+    },
+    lineTo: function(x, y) {
+      this._context.lineTo(y, x);
+    },
+    bezierCurveTo: function(x1, y1, x2, y2, x, y) {
+      this._context.bezierCurveTo(y1, x1, y2, x2, y, x);
+    }
+  };
+  function monotoneX(context) {
+    return new MonotoneX(context);
+  }
+  function monotoneY(context) {
+    return new MonotoneY(context);
+  }
+
+  // node_modules/d3-shape/src/curve/natural.js
+  function Natural(context) {
+    this._context = context;
+  }
+  Natural.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = [];
+      this._y = [];
+    },
+    lineEnd: function() {
+      var x = this._x, y = this._y, n = x.length;
+      if (n) {
+        this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0]);
+        if (n === 2) {
+          this._context.lineTo(x[1], y[1]);
+        } else {
+          var px = controlPoints(x), py = controlPoints(y);
+          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
+            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1]);
+          }
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
+      this._line = 1 - this._line;
+      this._x = this._y = null;
+    },
+    point: function(x, y) {
+      this._x.push(+x);
+      this._y.push(+y);
+    }
+  };
+  function controlPoints(x) {
+    var i, n = x.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
+    a[0] = 0, b[0] = 2, r[0] = x[0] + 2 * x[1];
+    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x[i] + 2 * x[i + 1];
+    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x[n - 1] + x[n];
+    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
+    a[n - 1] = r[n - 1] / b[n - 1];
+    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
+    b[n - 1] = (x[n] + a[n - 1]) / 2;
+    for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1];
+    return [a, b];
+  }
+  function natural_default(context) {
+    return new Natural(context);
+  }
+
+  // node_modules/d3-shape/src/curve/step.js
+  function Step(context, t) {
+    this._context = context;
+    this._t = t;
+  }
+  Step.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = this._y = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
+    },
+    point: function(x, y) {
+      x = +x, y = +y;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._t <= 0) {
+            this._context.lineTo(this._x, y);
+            this._context.lineTo(x, y);
+          } else {
+            var x1 = this._x * (1 - this._t) + x * this._t;
+            this._context.lineTo(x1, this._y);
+            this._context.lineTo(x1, y);
+          }
+          break;
+        }
+      }
+      this._x = x, this._y = y;
+    }
+  };
+  function step_default(context) {
+    return new Step(context, 0.5);
+  }
+  function stepAfter(context) {
+    return new Step(context, 1);
+  }
+
+  // src/core/shapes.js
+  var CURVAS = {
+    linear: linear_default,
+    monotone: monotoneX,
+    monotoneY,
+    basis: basis_default2,
+    catmull: catmullRom_default.alpha(0.5),
+    cardinal: cardinal_default,
+    natural: natural_default,
+    step: step_default,
+    stepAfter
+  };
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
+    return null;
+  }
+
+  // src/core/cores.js
+  function paletaDoConfig(config = {}) {
+    const cores = coresDaPaleta(config.paleta).slice();
+    if (lerBooleano(config.inverterPaleta, false)) cores.reverse();
+    return cores;
+  }
+  function lerContorno(config = {}, tema = {}, { corPadrao } = {}) {
+    const espessura = Math.max(0, lerNumero(config.espessuraDoContorno, 1));
+    return {
+      mostrar: lerBooleano(config.mostrarContorno, true) && espessura > 0,
+      // '#FFFFFF' é o DEFAULT declarado (não pode mudar): quando o gráfico
+      // informa uma cor padrão, o branco default vale como 'automática'.
+      cor: ((c) => c && !(corPadrao && c.toUpperCase() === "#FFFFFF") ? c : corPadrao || tema.fundo || "#FFFFFF")(
+        lerTexto(config.corDoContorno, "")
+      ),
+      espessura,
+      estilo: lerTexto(config.tracejadoDoContorno, "solido")
+    };
+  }
+  function aplicarContorno(el, contorno) {
+    if (!el || !contorno) return el;
+    const ehSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
+    if (ehSvg) {
+      if (!contorno.mostrar) {
+        el.setAttribute("stroke", "none");
+        el.removeAttribute("stroke-dasharray");
+        return el;
+      }
+      el.setAttribute("stroke", contorno.cor);
+      el.setAttribute("stroke-width", String(contorno.espessura));
+      const traco = tracejadoPorEstilo(contorno.estilo, contorno.espessura);
+      if (traco) el.setAttribute("stroke-dasharray", traco);
+      else el.removeAttribute("stroke-dasharray");
+    } else {
+      el.style.border = contorno.mostrar ? `${contorno.espessura}px ${contorno.estilo === "tracejado" ? "dashed" : contorno.estilo === "pontilhado" ? "dotted" : "solid"} ${contorno.cor}` : "none";
+    }
+    return el;
+  }
+
+  // node_modules/internmap/src/index.js
+  var InternMap = class extends Map {
+    constructor(entries, key = keyof) {
+      super();
+      Object.defineProperties(this, { _intern: { value: /* @__PURE__ */ new Map() }, _key: { value: key } });
+      if (entries != null) for (const [key2, value] of entries) this.set(key2, value);
+    }
+    get(key) {
+      return super.get(intern_get(this, key));
+    }
+    has(key) {
+      return super.has(intern_get(this, key));
+    }
+    set(key, value) {
+      return super.set(intern_set(this, key), value);
+    }
+    delete(key) {
+      return super.delete(intern_delete(this, key));
+    }
+  };
+  function intern_get({ _intern, _key }, value) {
+    const key = _key(value);
+    return _intern.has(key) ? _intern.get(key) : value;
+  }
+  function intern_set({ _intern, _key }, value) {
+    const key = _key(value);
+    if (_intern.has(key)) return _intern.get(key);
+    _intern.set(key, value);
+    return value;
+  }
+  function intern_delete({ _intern, _key }, value) {
+    const key = _key(value);
+    if (_intern.has(key)) {
+      value = _intern.get(key);
+      _intern.delete(key);
+    }
+    return value;
+  }
+  function keyof(value) {
+    return value !== null && typeof value === "object" ? value.valueOf() : value;
+  }
+
+  // node_modules/d3-array/src/ticks.js
+  var e10 = Math.sqrt(50);
+  var e5 = Math.sqrt(10);
+  var e2 = Math.sqrt(2);
+  function tickSpec(start, stop, count) {
+    const step = (stop - start) / Math.max(0, count), power = Math.floor(Math.log10(step)), error = step / Math.pow(10, power), factor = error >= e10 ? 10 : error >= e5 ? 5 : error >= e2 ? 2 : 1;
+    let i1, i2, inc;
+    if (power < 0) {
+      inc = Math.pow(10, -power) / factor;
+      i1 = Math.round(start * inc);
+      i2 = Math.round(stop * inc);
+      if (i1 / inc < start) ++i1;
+      if (i2 / inc > stop) --i2;
+      inc = -inc;
+    } else {
+      inc = Math.pow(10, power) * factor;
+      i1 = Math.round(start / inc);
+      i2 = Math.round(stop / inc);
+      if (i1 * inc < start) ++i1;
+      if (i2 * inc > stop) --i2;
+    }
+    if (i2 < i1 && 0.5 <= count && count < 2) return tickSpec(start, stop, count * 2);
+    return [i1, i2, inc];
+  }
+  function ticks(start, stop, count) {
+    stop = +stop, start = +start, count = +count;
+    if (!(count > 0)) return [];
+    if (start === stop) return [start];
+    const reverse = stop < start, [i1, i2, inc] = reverse ? tickSpec(stop, start, count) : tickSpec(start, stop, count);
+    if (!(i2 >= i1)) return [];
+    const n = i2 - i1 + 1, ticks2 = new Array(n);
+    if (reverse) {
+      if (inc < 0) for (let i = 0; i < n; ++i) ticks2[i] = (i2 - i) / -inc;
+      else for (let i = 0; i < n; ++i) ticks2[i] = (i2 - i) * inc;
+    } else {
+      if (inc < 0) for (let i = 0; i < n; ++i) ticks2[i] = (i1 + i) / -inc;
+      else for (let i = 0; i < n; ++i) ticks2[i] = (i1 + i) * inc;
+    }
+    return ticks2;
+  }
+  function tickIncrement(start, stop, count) {
+    stop = +stop, start = +start, count = +count;
+    return tickSpec(start, stop, count)[2];
+  }
+  function tickStep(start, stop, count) {
+    stop = +stop, start = +start, count = +count;
+    const reverse = stop < start, inc = reverse ? tickIncrement(stop, start, count) : tickIncrement(start, stop, count);
+    return (reverse ? -1 : 1) * (inc < 0 ? 1 / -inc : inc);
+  }
+
+  // node_modules/d3-array/src/max.js
+  function max(values, valueof) {
+    let max2;
+    if (valueof === void 0) {
+      for (const value of values) {
+        if (value != null && (max2 < value || max2 === void 0 && value >= value)) {
+          max2 = value;
+        }
+      }
+    } else {
+      let index = -1;
+      for (let value of values) {
+        if ((value = valueof(value, ++index, values)) != null && (max2 < value || max2 === void 0 && value >= value)) {
+          max2 = value;
+        }
+      }
+    }
+    return max2;
+  }
+
+  // node_modules/d3-array/src/min.js
+  function min(values, valueof) {
+    let min2;
+    if (valueof === void 0) {
+      for (const value of values) {
+        if (value != null && (min2 > value || min2 === void 0 && value >= value)) {
+          min2 = value;
+        }
+      }
+    } else {
+      let index = -1;
+      for (let value of values) {
+        if ((value = valueof(value, ++index, values)) != null && (min2 > value || min2 === void 0 && value >= value)) {
+          min2 = value;
+        }
+      }
+    }
+    return min2;
+  }
+
+  // node_modules/d3-scale/src/init.js
+  function initRange(domain, range) {
+    switch (arguments.length) {
+      case 0:
+        break;
+      case 1:
+        this.range(domain);
+        break;
+      default:
+        this.range(range).domain(domain);
+        break;
+    }
+    return this;
+  }
+  function initInterpolator(domain, interpolator) {
+    switch (arguments.length) {
+      case 0:
+        break;
+      case 1: {
+        if (typeof domain === "function") this.interpolator(domain);
+        else this.range(domain);
+        break;
+      }
+      default: {
+        this.domain(domain);
+        if (typeof interpolator === "function") this.interpolator(interpolator);
+        else this.range(interpolator);
+        break;
+      }
+    }
+    return this;
+  }
+
+  // node_modules/d3-scale/src/ordinal.js
+  var implicit = /* @__PURE__ */ Symbol("implicit");
+  function ordinal() {
+    var index = new InternMap(), domain = [], range = [], unknown = implicit;
+    function scale(d) {
+      let i = index.get(d);
+      if (i === void 0) {
+        if (unknown !== implicit) return unknown;
+        index.set(d, i = domain.push(d) - 1);
+      }
+      return range[i % range.length];
+    }
+    scale.domain = function(_) {
+      if (!arguments.length) return domain.slice();
+      domain = [], index = new InternMap();
+      for (const value of _) {
+        if (index.has(value)) continue;
+        index.set(value, domain.push(value) - 1);
+      }
+      return scale;
+    };
+    scale.range = function(_) {
+      return arguments.length ? (range = Array.from(_), scale) : range.slice();
+    };
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : unknown;
+    };
+    scale.copy = function() {
+      return ordinal(domain, range).unknown(unknown);
+    };
+    initRange.apply(scale, arguments);
+    return scale;
+  }
+
+  // node_modules/d3-scale/src/continuous.js
+  function identity(x) {
+    return x;
+  }
+
+  // node_modules/d3-scale/src/tickFormat.js
+  function tickFormat(start, stop, count, specifier) {
+    var step = tickStep(start, stop, count), precision;
+    specifier = formatSpecifier(specifier == null ? ",f" : specifier);
+    switch (specifier.type) {
+      case "s": {
+        var value = Math.max(Math.abs(start), Math.abs(stop));
+        if (specifier.precision == null && !isNaN(precision = precisionPrefix_default(step, value))) specifier.precision = precision;
+        return formatPrefix(specifier, value);
+      }
+      case "":
+      case "e":
+      case "g":
+      case "p":
+      case "r": {
+        if (specifier.precision == null && !isNaN(precision = precisionRound_default(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+        break;
+      }
+      case "f":
+      case "%": {
+        if (specifier.precision == null && !isNaN(precision = precisionFixed_default(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+        break;
+      }
+    }
+    return format(specifier);
+  }
+
+  // node_modules/d3-scale/src/linear.js
+  function linearish(scale) {
+    var domain = scale.domain;
+    scale.ticks = function(count) {
+      var d = domain();
+      return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
+    };
+    scale.tickFormat = function(count, specifier) {
+      var d = domain();
+      return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier);
+    };
+    scale.nice = function(count) {
+      if (count == null) count = 10;
+      var d = domain();
+      var i0 = 0;
+      var i1 = d.length - 1;
+      var start = d[i0];
+      var stop = d[i1];
+      var prestep;
+      var step;
+      var maxIter = 10;
+      if (stop < start) {
+        step = start, start = stop, stop = step;
+        step = i0, i0 = i1, i1 = step;
+      }
+      while (maxIter-- > 0) {
+        step = tickIncrement(start, stop, count);
+        if (step === prestep) {
+          d[i0] = start;
+          d[i1] = stop;
+          return domain(d);
+        } else if (step > 0) {
+          start = Math.floor(start / step) * step;
+          stop = Math.ceil(stop / step) * step;
+        } else if (step < 0) {
+          start = Math.ceil(start * step) / step;
+          stop = Math.floor(stop * step) / step;
+        } else {
+          break;
+        }
+        prestep = step;
+      }
+      return scale;
+    };
+    return scale;
+  }
+
+  // node_modules/d3-scale/src/sequential.js
+  function transformer() {
+    var x0 = 0, x1 = 1, t0, t1, k10, transform, interpolator = identity, clamp = false, unknown;
+    function scale(x) {
+      return x == null || isNaN(x = +x) ? unknown : interpolator(k10 === 0 ? 0.5 : (x = (transform(x) - t0) * k10, clamp ? Math.max(0, Math.min(1, x)) : x));
+    }
+    scale.domain = function(_) {
+      return arguments.length ? ([x0, x1] = _, t0 = transform(x0 = +x0), t1 = transform(x1 = +x1), k10 = t0 === t1 ? 0 : 1 / (t1 - t0), scale) : [x0, x1];
+    };
+    scale.clamp = function(_) {
+      return arguments.length ? (clamp = !!_, scale) : clamp;
+    };
+    scale.interpolator = function(_) {
+      return arguments.length ? (interpolator = _, scale) : interpolator;
+    };
+    function range(interpolate) {
+      return function(_) {
+        var r0, r1;
+        return arguments.length ? ([r0, r1] = _, interpolator = interpolate(r0, r1), scale) : [interpolator(0), interpolator(1)];
+      };
+    }
+    scale.range = range(value_default);
+    scale.rangeRound = range(round_default);
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : unknown;
+    };
+    return function(t) {
+      transform = t, t0 = t(x0), t1 = t(x1), k10 = t0 === t1 ? 0 : 1 / (t1 - t0);
+      return scale;
+    };
+  }
+  function copy(source, target) {
+    return target.domain(source.domain()).interpolator(source.interpolator()).clamp(source.clamp()).unknown(source.unknown());
+  }
+  function sequential() {
+    var scale = linearish(transformer()(identity));
+    scale.copy = function() {
+      return copy(scale, sequential());
+    };
+    return initInterpolator.apply(scale, arguments);
+  }
+
+  // node_modules/d3-scale/src/diverging.js
+  function transformer2() {
+    var x0 = 0, x1 = 0.5, x2 = 1, s = 1, t0, t1, t2, k10, k21, interpolator = identity, transform, clamp = false, unknown;
+    function scale(x) {
+      return isNaN(x = +x) ? unknown : (x = 0.5 + ((x = +transform(x)) - t1) * (s * x < s * t1 ? k10 : k21), interpolator(clamp ? Math.max(0, Math.min(1, x)) : x));
+    }
+    scale.domain = function(_) {
+      return arguments.length ? ([x0, x1, x2] = _, t0 = transform(x0 = +x0), t1 = transform(x1 = +x1), t2 = transform(x2 = +x2), k10 = t0 === t1 ? 0 : 0.5 / (t1 - t0), k21 = t1 === t2 ? 0 : 0.5 / (t2 - t1), s = t1 < t0 ? -1 : 1, scale) : [x0, x1, x2];
+    };
+    scale.clamp = function(_) {
+      return arguments.length ? (clamp = !!_, scale) : clamp;
+    };
+    scale.interpolator = function(_) {
+      return arguments.length ? (interpolator = _, scale) : interpolator;
+    };
+    function range(interpolate) {
+      return function(_) {
+        var r0, r1, r2;
+        return arguments.length ? ([r0, r1, r2] = _, interpolator = piecewise(interpolate, [r0, r1, r2]), scale) : [interpolator(0), interpolator(0.5), interpolator(1)];
+      };
+    }
+    scale.range = range(value_default);
+    scale.rangeRound = range(round_default);
+    scale.unknown = function(_) {
+      return arguments.length ? (unknown = _, scale) : unknown;
+    };
+    return function(t) {
+      transform = t, t0 = t(x0), t1 = t(x1), t2 = t(x2), k10 = t0 === t1 ? 0 : 0.5 / (t1 - t0), k21 = t1 === t2 ? 0 : 0.5 / (t2 - t1), s = t1 < t0 ? -1 : 1;
+      return scale;
+    };
+  }
+  function diverging() {
+    var scale = linearish(transformer2()(identity));
+    scale.copy = function() {
+      return copy(scale, diverging());
+    };
+    return initInterpolator.apply(scale, arguments);
+  }
+
+  // src/core/scales.js
+  function escalaDeCores({ chaves = [], valores = [], config = {}, tema }) {
+    const modo = config.modoDeCor || "categoria";
+    if (modo === "unica") {
+      const cor = config.corUnica || tema && tema.destaque || "#4276BE";
+      return {
+        tipo: "unica",
+        cor: () => cor,
+        dominio: [],
+        legenda: []
+      };
+    }
+    if (modo === "valor") {
+      const numeros = valores.filter((v) => Number.isFinite(v));
+      let d0 = config.limiteDeCorAutomatico === false ? numeroOuIndefinido(config.limiteDeCorMinimo) : void 0;
+      let d1 = config.limiteDeCorAutomatico === false ? numeroOuIndefinido(config.limiteDeCorMaximo) : void 0;
+      if (d0 === void 0) d0 = numeros.length ? min(numeros) : 0;
+      if (d1 === void 0) d1 = numeros.length ? max(numeros) : 1;
+      if (d0 === d1) d1 = d0 + 1;
+      let interpolador;
+      if (config.escalaDeCorPersonalizada) {
+        const cores2 = [config.corMinima || "#F1F5F9", config.corMedia || "#93C5FD", config.corMaxima || "#1D4ED8"];
+        const unicas = cores2[0] === cores2[1] ? [cores2[0], cores2[2]] : cores2;
+        interpolador = rgbBasis(unicas);
+      } else {
+        interpolador = interpoladorContinuo(config.escalaDeCor);
+      }
+      const meio = (d0 + d1) / 2;
+      const escala2 = config.escalaDeCorPersonalizada ? diverging(interpolador).domain([d0, meio, d1]) : sequential(interpolador).domain(config.inverterPaleta ? [d1, d0] : [d0, d1]);
+      return {
+        tipo: "valor",
+        cor: (valor) => Number.isFinite(valor) ? escala2(valor) : tema ? tema.neutro : "#94A3B8",
+        dominio: [d0, d1],
+        legenda: [
+          { valor: d0, cor: escala2(d0) },
+          { valor: meio, cor: escala2(meio) },
+          { valor: d1, cor: escala2(d1) }
+        ]
+      };
+    }
+    let cores = coresDaPaleta(config.paleta).slice();
+    if (config.inverterPaleta) cores.reverse();
+    const escala = ordinal().domain(chaves).range(cores);
+    return {
+      tipo: "categoria",
+      cor: (chave) => escala(chave),
+      dominio: chaves,
+      legenda: chaves.map((c) => ({ chave: c, cor: escala(c) }))
+    };
+  }
+  function numeroOuIndefinido(v) {
+    if (v === null || v === void 0 || v === "") return void 0;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : void 0;
   }
 
   // src/core/legend.js
@@ -3337,6 +4966,8 @@
     const leitor = { regioes: lerRegioes, itemConjunto: lerItemConjunto, booleanas: lerBooleanas }[formato];
     const resultado = (leitor || lerRegioes)(modelo, config, maximoAbsoluto);
     resultado.formato = formato;
+    if (resultado.medida === void 0) resultado.medida = null;
+    if (!resultado.linhasPorRegiao) resultado.linhasPorRegiao = /* @__PURE__ */ new Map();
     const totalPorConjunto = /* @__PURE__ */ new Map();
     for (let i = 0; i < resultado.conjuntos.length; i++) {
       let soma = 0;
@@ -3371,12 +5002,13 @@
         }
       }
       const valor = medida ? modelo.valorNumerico(linha, medida.nome) : 1;
-      bruto.push({ partes, valor: valor === null ? 0 : valor });
+      bruto.push({ partes, valor: valor === null ? 0 : valor, linha });
     }
     const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
     if (aviso) avisos.push(aviso);
     const regioes = /* @__PURE__ */ new Map();
-    for (const { partes, valor } of bruto) {
+    const linhasPorRegiao = /* @__PURE__ */ new Map();
+    for (const { partes, valor, linha } of bruto) {
       let mascara = 0;
       for (const nome of partes) {
         const indice = mantidos.get(nome);
@@ -3384,8 +5016,17 @@
       }
       if (!mascara) continue;
       regioes.set(mascara, (regioes.get(mascara) || 0) + valor);
+      if (!linhasPorRegiao.has(mascara)) linhasPorRegiao.set(mascara, []);
+      linhasPorRegiao.get(mascara).push(linha);
     }
-    return { conjuntos, regioes, avisos, unidade: medida ? medida.rotuloCurto : "linhas" };
+    return {
+      conjuntos,
+      regioes,
+      avisos,
+      unidade: medida ? medida.rotuloCurto : "linhas",
+      medida: medida || null,
+      linhasPorRegiao
+    };
   }
   function lerItemConjunto(modelo, config, maximoAbsoluto) {
     const avisos = [];
@@ -3437,7 +5078,8 @@
       conjuntos,
       regioes,
       avisos,
-      unidade: contarItens ? campoDoItem.rotuloCurto : medida.rotuloCurto
+      unidade: contarItens ? campoDoItem.rotuloCurto : medida.rotuloCurto,
+      medida: contarItens ? null : medida
     };
   }
   function lerBooleanas(modelo, config, maximoAbsoluto) {
@@ -3470,7 +5112,13 @@
       const valor = contarItens ? 1 : modelo.valorNumerico(linha, medida.nome) || 0;
       regioes.set(mascara, (regioes.get(mascara) || 0) + valor);
     }
-    return { conjuntos, regioes, avisos, unidade: contarItens ? "itens" : medida.rotuloCurto };
+    return {
+      conjuntos,
+      regioes,
+      avisos,
+      unidade: contarItens ? "itens" : medida.rotuloCurto,
+      medida: contarItens ? null : medida
+    };
   }
   function limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto = 5) {
     const maximo = Math.min(maximoAbsoluto, Math.max(2, Number(config.maximoDeConjuntos) || maximoAbsoluto));
@@ -3514,20 +5162,24 @@
   // src/charts/diagrama_venn/index.js
   var CSS = `
 .venn-area{position:relative;width:100%;height:100%;}
-.venn-forma{transition:fill-opacity .15s ease, stroke-width .15s ease;}
-.venn-regiao{cursor:default;}
-.venn-rotulo-conjunto{font-weight:600;}
-.venn-valor{pointer-events:none;}
-.venn-apagado{opacity:.25;}
+.venn-svg{cursor:pointer;}
+.venn-forma{transition:opacity .15s ease, stroke-width .15s ease;pointer-events:none;}
+.venn-forma.venn-atenuado{opacity:.3;}
+.venn-forma.venn-ativa{stroke-width:3px;}
+.venn-destaque{pointer-events:none;}
+.venn-rotulo-conjunto{font-weight:600;pointer-events:none;}
+.venn-valor{pointer-events:none;transition:opacity .15s ease;}
+.venn-valor.venn-atenuado{opacity:.35;}
 .venn-lista{position:absolute;right:6px;bottom:4px;font-size:10px;line-height:1.4;opacity:.8;
   max-width:46%;text-align:right;}
-@media (prefers-reduced-motion: reduce){.venn-forma{transition:none;}}
+@media (prefers-reduced-motion: reduce){.venn-forma,.venn-valor{transition:none;}}
 `;
+  var contadorDeDesenhos = 0;
   function tamanhoQueCabe(posicao, texto, tamanhoPreferido) {
     if (!posicao) return 0;
     for (let tamanho = tamanhoPreferido; tamanho >= 7; tamanho -= 1) {
-      const larguraDoTexto = texto.length * tamanho * 0.58;
-      if (posicao.folgaX * 2 >= larguraDoTexto && posicao.folgaY * 2 >= tamanho) return tamanho;
+      const larguraDoTexto2 = texto.length * tamanho * 0.58;
+      if (posicao.folgaX * 2 >= larguraDoTexto2 && posicao.folgaY * 2 >= tamanho) return tamanho;
     }
     return 0;
   }
@@ -3638,7 +5290,7 @@
     },
     render(ctx) {
       const { modelo, config, tema, raiz, largura, altura } = ctx;
-      const { conjuntos, regioes, totalPorConjunto, avisos, unidade, formato } = lerConjuntos(modelo, config);
+      const { conjuntos, regioes, totalPorConjunto, avisos, unidade, formato, medida, linhasPorRegiao } = lerConjuntos(modelo, config);
       for (const aviso of avisos) ctx.avisar(aviso);
       if (conjuntos.length < 2) {
         ctx.mostrarVazio(
@@ -3651,7 +5303,8 @@
       const { areaGrafico, areaLegenda } = criarLayoutComLegenda(raiz, config);
       const larguraUtil = Math.max(80, areaGrafico.clientWidth || largura);
       const alturaUtil = Math.max(80, areaGrafico.clientHeight || altura);
-      const cores = resolverCores(conjuntos, config, tema);
+      const totais = conjuntos.map((_, i) => totalPorConjunto.get(i) || 0);
+      const cores = resolverCores(conjuntos, totais, config, tema);
       const elipses = layoutDeConjuntos(conjuntos.length, {
         largura: larguraUtil,
         altura: alturaUtil,
@@ -3663,79 +5316,96 @@
         classe: "venn-svg",
         atributos: { width: larguraUtil, height: alturaUtil, viewBox: `0 0 ${larguraUtil} ${alturaUtil}` }
       });
-      const formatar = criarFormatadorNumerico({
-        estilo: config.formatoDosNumeros || "auto",
-        casas: Number(config.casasDecimais) || 0
+      criarSvgEl("rect", {
+        pai: svg,
+        atributos: { x: 0, y: 0, width: larguraUtil, height: alturaUtil, fill: "transparent" }
+      });
+      const formatarValor = formatadorDeValueFormat(medida ? medida.valueFormat : void 0, {
+        casas: medida ? 2 : 0
       });
       const totalGeral = Array.from(regioes.values()).reduce((a, b) => a + b, 0);
-      const opacidade = Number(config.opacidadeDoPreenchimento);
-      const espessura = Number(config.espessuraDoContorno);
-      const formas = elipses.map(
-        (elipse, i) => criarSvgEl("path", {
+      function textoDoLooker(mascara) {
+        const linhas = linhasPorRegiao.get(mascara);
+        if (medida && linhas && linhas.length === 1) {
+          const t = modelo.texto(linhas[0], medida.nome, void 0, "");
+          if (t !== "") return t;
+        }
+        return null;
+      }
+      function textoDoValor(mascara) {
+        const doLooker = textoDoLooker(mascara);
+        return doLooker !== null ? doLooker : formatarValor(regioes.get(mascara) || 0);
+      }
+      const opacidade = opacidadeDoVenn(config);
+      const formas = elipses.map((elipse, i) => {
+        const forma = criarSvgEl("path", {
           pai: svg,
           classe: "venn-forma",
           atributos: {
             d: caminhoDaElipse(elipse),
-            transform: elipse.rotacao ? `rotate(${elipse.rotacao} ${elipse.cx} ${elipse.cy})` : null,
+            transform: transformacao(elipse),
             fill: cores[i],
-            "fill-opacity": Number.isFinite(opacidade) ? opacidade : 0.4,
-            stroke: cores[i],
-            "stroke-width": Number.isFinite(espessura) ? espessura : 1.5
+            "fill-opacity": opacidade
           }
-        })
-      );
-      const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
+        });
+        aplicarContorno(forma, contornoDoConjunto(config, tema, cores[i]));
+        return forma;
+      });
+      const uid = `venn${contadorDeDesenhos += 1}`;
+      const defs = criarSvgEl("defs", { pai: svg });
+      elipses.forEach((elipse, i) => {
+        const recorte = criarSvgEl("clipPath", { pai: defs, atributos: { id: `${uid}-c${i}` } });
+        criarSvgEl("path", { pai: recorte, atributos: { d: caminhoDaElipse(elipse), transform: transformacao(elipse) } });
+      });
+      const camadaDoDestaque = criarSvgEl("g", { pai: svg });
+      const rot = lerRotulos(config, tema);
+      const rotDoValor = { ...rot };
+      if (config.mostrarPercentual && rot.conteudo === "valor") rotDoValor.conteudo = "valorPercentual";
+      const listarFora = rot.posicao === "fora" || rot.posicao === "foraComLinha";
       const pequenas = [];
-      const tamanhoDoNumero = Math.max(9, Math.min(15, tema.tamanhoBase));
-      for (const [mascara, valor] of ordenarRegioes(regioes)) {
-        const posicao = posicoes.get(mascara);
-        const rotulo = rotuloDaRegiao(mascara, conjuntos);
-        const texto = montarTextoDoValor(valor, totalGeral, formatar, config);
-        const tamanho = tamanhoQueCabe(posicao, texto, tamanhoDoNumero);
-        if (!tamanho) {
-          pequenas.push({ rotulo, texto });
-          continue;
-        }
-        const alvo = criarSvgEl("circle", {
-          pai: svg,
-          classe: "venn-regiao",
-          atributos: { cx: posicao.x, cy: posicao.y, r: 11, fill: "transparent" }
-        });
-        const numero = criarSvgEl("text", {
-          pai: svg,
-          classe: "venn-valor",
-          atributos: {
-            x: posicao.x,
-            y: posicao.y,
-            "text-anchor": "middle",
-            "dominant-baseline": "central",
-            "font-size": tamanho,
-            fill: corDoTextoDaRegiao(mascara, cores, config, tema)
+      const numeros = /* @__PURE__ */ new Map();
+      const caixas = [];
+      if (rot.mostrar) {
+        for (const [mascara, valor] of ordenarRegioes(regioes)) {
+          const posicao = posicoes.get(mascara);
+          const rotulo = rotuloDaRegiao(mascara, conjuntos);
+          const textoLooker = textoDoLooker(mascara);
+          const texto = textoDoRotulo(rotDoValor, {
+            valor,
+            nome: rotulo,
+            total: totalGeral,
+            valueFormat: medida ? medida.valueFormat : void 0,
+            textoDoValor: textoLooker === null ? void 0 : textoLooker
+          });
+          if (texto === "") continue;
+          const tamanho = listarFora || !posicao ? 0 : rot.evitarColisao ? tamanhoQueCabe(posicao, texto, rot.tamanho) : rot.tamanho;
+          if (!tamanho) {
+            pequenas.push({ rotulo, texto });
+            continue;
           }
-        });
-        definirTexto(numero, texto);
-        if (tooltip) {
-          ctx.eventos.on(alvo, "pointerenter", (ev) => {
-            destacar(formas, mascara, true);
-            tooltip.mostrar(
-              { titulo: rotulo, linhas: [{ rotulo: unidade || "Valor", valor: texto }] },
-              ev.clientX,
-              ev.clientY
-            );
+          const numero = criarSvgEl("text", {
+            pai: svg,
+            classe: "venn-valor bl-rotulo",
+            atributos: {
+              x: posicao.x,
+              y: posicao.y,
+              "text-anchor": "middle",
+              "dominant-baseline": "central",
+              "data-mascara": mascara
+            }
           });
-          ctx.eventos.on(alvo, "pointermove", (ev) => tooltip.mover(ev.clientX, ev.clientY));
-          ctx.eventos.on(alvo, "pointerleave", () => {
-            destacar(formas, mascara, false);
-            tooltip.esconder();
-          });
+          definirTexto(numero, texto);
+          estilizarRotulo(numero, { ...rot, tamanho }, { corAutomatica: corDoTextoDaRegiao(mascara, cores, opacidade, tema) });
+          numeros.set(mascara, numero);
+          caixas.push({ el: numero, x: posicao.x, y: posicao.y, largura: larguraDoTexto(texto, tamanho), altura: tamanho });
         }
+        esconderColisoes(caixas, rot);
       }
       const centro = { x: larguraUtil / 2, y: alturaUtil / 2 };
-      if (config.mostrarRotulos !== false) {
+      if (rot.mostrar) {
         conjuntos.forEach((conjunto, i) => {
           const posicao = posicaoDoRotuloDoConjunto(elipses[i], centro, 6);
-          const total = totalPorConjunto.get(i) || 0;
-          const texto = config.mostrarTotalDoConjunto !== false ? `${conjunto.nome} (${formatar(total)})` : conjunto.nome;
+          const texto = config.mostrarTotalDoConjunto !== false ? `${conjunto.nome} (${formatarValor(totais[i])})` : conjunto.nome;
           const el = criarSvgEl("text", {
             pai: svg,
             classe: "venn-rotulo-conjunto",
@@ -3745,15 +5415,17 @@
               "text-anchor": posicao.x < centro.x ? "start" : "end",
               "dominant-baseline": "central",
               "font-size": Math.max(10, tema.tamanhoBase),
+              "font-family": tema.fonte,
               fill: cores[i]
             }
           });
           definirTexto(el, texto);
         });
       }
-      if (pequenas.length && config.listarRegioesPequenas !== false) {
+      if (pequenas.length && (config.listarRegioesPequenas !== false || listarFora)) {
         const lista = criarEl("div", { classe: "venn-lista", pai: areaGrafico });
-        lista.style.color = tema.textoSuave;
+        lista.style.color = rot.cor || tema.textoSuave;
+        lista.style.fontWeight = rot.negrito ? "700" : "";
         for (const { rotulo, texto } of pequenas) {
           criarEl("div", { pai: lista, texto: `${rotulo}: ${texto}` });
         }
@@ -3765,49 +5437,183 @@
           config,
           itens: conjuntos.map((c, i) => ({
             chave: c.nome,
-            rotulo: config.mostrarTotalDoConjunto !== false ? `${c.nome} (${formatar(totalPorConjunto.get(i) || 0)})` : c.nome,
+            rotulo: config.mostrarTotalDoConjunto !== false ? `${c.nome} (${formatarValor(totais[i])})` : c.nome,
             cor: cores[i]
           })),
           eventos: ctx.eventos
         });
       }
+      const tooltip = ctx.tooltip();
+      const mascaras = /* @__PURE__ */ new Map();
+      let regiaoAtual = 0;
+      let regiaoDoTooltip = 0;
+      function conteudoDaRegiao(mascara) {
+        const rotulo = rotuloDaRegiao(mascara, conjuntos);
+        const valor = regioes.get(mascara) || 0;
+        const texto = textoDoValor(mascara);
+        const percentual = totalGeral ? formatarPercentual(valor / totalGeral, 1) : "";
+        const linhas = [{ rotulo: unidade || "Valor", valor: texto, cor: corDaRegiao(mascara, cores) }];
+        if (percentual) linhas.push({ rotulo: "Do total", valor: percentual });
+        return { titulo: rotulo, linhas, variaveis: { categoria: rotulo, valor: texto, serie: rotulo, percentual } };
+      }
+      function celulaDaRegiao(mascara) {
+        const linhas = linhasPorRegiao.get(mascara);
+        if (!linhas || linhas.length !== 1) return null;
+        const candidatas = [];
+        if (medida) candidatas.push(modelo.celula(linhas[0], medida.nome));
+        if (modelo.dimensoes[0]) candidatas.push(modelo.celula(linhas[0], modelo.dimensoes[0].nome));
+        return candidatas.find((c) => c && Array.isArray(c.links) && c.links.length) || candidatas[0] || null;
+      }
+      function mascaraDeExclusao(mascara) {
+        const fora = elipses.map((_, i) => i).filter((i) => !(mascara & 1 << i));
+        if (!fora.length) return null;
+        if (!mascaras.has(mascara)) {
+          const id = `${uid}-m${mascara}`;
+          const m = criarSvgEl("mask", {
+            pai: defs,
+            atributos: { id, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: larguraUtil, height: alturaUtil }
+          });
+          criarSvgEl("rect", { pai: m, atributos: { x: 0, y: 0, width: larguraUtil, height: alturaUtil, fill: "#FFFFFF" } });
+          for (const i of fora) {
+            criarSvgEl("path", {
+              pai: m,
+              atributos: { d: caminhoDaElipse(elipses[i]), transform: transformacao(elipses[i]), fill: "#000000" }
+            });
+          }
+          mascaras.set(mascara, id);
+        }
+        return mascaras.get(mascara);
+      }
+      const comDestaque = config.destacarAoPassarMouse !== false;
+      function destacar(pedida) {
+        const mascara = comDestaque ? pedida : 0;
+        if (mascara === regiaoAtual) return;
+        regiaoAtual = mascara;
+        while (camadaDoDestaque.firstChild) camadaDoDestaque.removeChild(camadaDoDestaque.firstChild);
+        formas.forEach((forma, i) => {
+          const pertence = mascara !== 0 && (mascara & 1 << i) !== 0;
+          forma.classList.toggle("venn-atenuado", mascara !== 0 && !pertence);
+          forma.classList.toggle("venn-ativa", pertence);
+        });
+        for (const [m, numero] of numeros) numero.classList.toggle("venn-atenuado", mascara !== 0 && m !== mascara);
+        if (!mascara) return;
+        const grupo = criarSvgEl("g", {
+          pai: camadaDoDestaque,
+          classe: "venn-destaque",
+          atributos: { "data-mascara": mascara }
+        });
+        let pai = grupo;
+        elipses.forEach((_, i) => {
+          if (!(mascara & 1 << i)) return;
+          pai = criarSvgEl("g", { pai, atributos: { "clip-path": `url(#${uid}-c${i})` } });
+        });
+        const exclusao = mascaraDeExclusao(mascara);
+        criarSvgEl("rect", {
+          pai,
+          atributos: {
+            x: 0,
+            y: 0,
+            width: larguraUtil,
+            height: alturaUtil,
+            fill: corDaRegiao(mascara, cores),
+            "fill-opacity": Math.min(1, opacidade + 0.35),
+            mask: exclusao ? `url(#${exclusao})` : null
+          }
+        });
+      }
+      function regiaoNoPonto(ev) {
+        const caixa = typeof svg.getBoundingClientRect === "function" ? svg.getBoundingClientRect() : null;
+        const escalaX = caixa && caixa.width ? larguraUtil / caixa.width : 1;
+        const escalaY = caixa && caixa.height ? alturaUtil / caixa.height : 1;
+        const x = (ev.clientX - (caixa ? caixa.left : 0)) * escalaX;
+        const y = (ev.clientY - (caixa ? caixa.top : 0)) * escalaY;
+        return mascaraDoPonto(x, y, elipses);
+      }
+      function aoMover(ev) {
+        const mascara = regiaoNoPonto(ev);
+        const mudou = mascara !== regiaoDoTooltip;
+        regiaoDoTooltip = mascara;
+        destacar(mascara);
+        if (!tooltip) return;
+        if (!mascara) {
+          tooltip.esconder();
+        } else if (mudou || !tooltip.visivel) {
+          tooltip.mostrar(conteudoDaRegiao(mascara), ev.clientX, ev.clientY);
+        } else {
+          tooltip.mover(ev.clientX, ev.clientY);
+        }
+      }
+      ctx.eventos.on(svg, "pointermove", aoMover);
+      ctx.eventos.on(svg, "pointerenter", aoMover);
+      ctx.eventos.on(svg, "pointerleave", () => {
+        regiaoDoTooltip = 0;
+        destacar(0);
+        if (tooltip) tooltip.esconder();
+      });
+      ctx.eventos.on(svg, "click", (ev) => {
+        const mascara = regiaoNoPonto(ev);
+        if (!mascara) return;
+        destacar(mascara);
+        ctx.cliqueNoItem(ev, celulaDaRegiao(mascara), conteudoDaRegiao(mascara));
+      });
       if (config.modoDebug) {
         ctx.avisar(`formato detectado: ${formato}; ${regioes.size} regi\xE3o(\xF5es).`);
       }
-      ctx.estado.tooltip = tooltip;
-    },
-    aoDestruir({ estado }) {
-      if (estado && estado.tooltip) estado.tooltip.destruir();
     }
   });
-  function destacar(formas, mascara, ligado) {
-    formas.forEach((forma, i) => {
-      const pertence = (mascara & 1 << i) !== 0;
-      forma.classList.toggle("venn-apagado", ligado && !pertence);
-      forma.setAttribute("stroke-width", ligado && pertence ? 3 : forma.dataset.espessura || 1.5);
+  function transformacao(elipse) {
+    return elipse.rotacao ? `rotate(${elipse.rotacao} ${elipse.cx} ${elipse.cy})` : null;
+  }
+  function opacidadeDoVenn(config) {
+    const limitar = (v) => Math.max(0, Math.min(1, v));
+    const geral = Number(config.opacidade);
+    if (Number.isFinite(geral) && geral !== 1) return limitar(geral);
+    const propria = Number(config.opacidadeDoPreenchimento);
+    return Number.isFinite(propria) ? limitar(propria) : 0.4;
+  }
+  function contornoDoConjunto(config, tema, corDoConjunto) {
+    const escolhida = String(config.corDoContorno || "").trim();
+    const automatica = !escolhida || escolhida.toUpperCase() === "#FFFFFF";
+    return lerContorno({ ...config, corDoContorno: automatica ? "" : escolhida }, tema, { corPadrao: corDoConjunto });
+  }
+  function corDaRegiao(mascara, cores) {
+    const rgbs = [];
+    cores.forEach((cor, i) => {
+      if (mascara & 1 << i) {
+        const rgb2 = corParaRgb(cor);
+        if (rgb2) rgbs.push(rgb2);
+      }
     });
+    if (!rgbs.length) return cores[0] || "#94A3B8";
+    const media = [0, 1, 2].map((k) => Math.round(rgbs.reduce((a, c) => a + c[k], 0) / rgbs.length));
+    return `rgb(${media[0]},${media[1]},${media[2]})`;
   }
-  function montarTextoDoValor(valor, totalGeral, formatar, config) {
-    const base = formatar(valor);
-    if (!config.mostrarPercentual || !totalGeral) return base;
-    return `${base} (${formatarPercentual(valor / totalGeral, 0)})`;
-  }
-  function corDoTextoDaRegiao(mascara, cores, config, tema) {
+  function corDoTextoDaRegiao(mascara, cores, opacidade, tema) {
     const indices = [];
     for (let i = 0; i < cores.length; i++) if (mascara & 1 << i) indices.push(i);
     if (indices.length !== 1) return tema.texto;
-    const opacidade = Number(config.opacidadeDoPreenchimento);
     if (!Number.isFinite(opacidade) || opacidade < 0.55) return tema.texto;
     return textoLegivelSobre(cores[indices[0]], tema);
   }
   function ordenarRegioes(regioes) {
     return Array.from(regioes.entries()).sort((a, b) => b[1] - a[1]);
   }
-  function resolverCores(conjuntos, config, tema) {
-    const paleta = coresDaPaleta(config.paleta);
-    return conjuntos.map((conjunto, i) => {
-      const escolhida = config[`cor_${sanitizarChave(conjunto.nome)}`];
-      return escolhida || paleta[i % paleta.length] || tema.texto;
-    });
+  function resolverCores(conjuntos, totais, config, tema) {
+    const modo = config.modoDeCor || "categoria";
+    if (modo === "unica" || modo === "valor") {
+      const escala = escalaDeCores({ chaves: conjuntos.map((c) => c.nome), valores: totais, config, tema });
+      return conjuntos.map((_, i) => escala.cor(totais[i]));
+    }
+    const paleta = paletaDoConfig(config);
+    return conjuntos.map((conjunto, i) => corPropria(config, i, conjunto.nome) || paleta[i % paleta.length] || tema.texto);
+  }
+  function corPropria(config, indice, nome) {
+    const valor = String(config[`cor_${sanitizarChave(nome)}`] || "").trim();
+    if (!valor) return "";
+    for (const item of opcoesDePaleta()) {
+      const cores = coresDaPaleta(Object.values(item)[0]);
+      if (cores.length && String(cores[indice % cores.length]).toUpperCase() === valor.toUpperCase()) return "";
+    }
+    return valor;
   }
 })();

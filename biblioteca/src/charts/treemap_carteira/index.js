@@ -13,11 +13,23 @@
  *   - **o limite da escala de cor é simétrico** (o mesmo valor para os dois
  *     lados), senão +2% e −2% ganham intensidades diferentes e o olho
  *     compara errado.
+ *
+ * Correções v2 (rótulos, aba Cores, tooltip):
+ *   - os rótulos dos retângulos passam pela função única (`rotulos.js`):
+ *     mostrar, tamanho, cor, negrito, rotação, posição (canto ou centro),
+ *     conteúdo (valor, nome, nome e valor, percentual da carteira, valor e
+ *     percentual), formato, casas, truncar e "esconder sobrepostos"
+ *     (ligado: só escreve onde cabe; desligado: escreve em todo retângulo);
+ *   - aba Cores: opacidade, contorno (mostrar, cor, espessura, estilo; cor
+ *     no padrão = "Cor da borda" do tema ou o fundo), paleta com "Inverter
+ *     ordem das cores" na cor por grupo e, na cor divergente, "Inverter
+ *     ordem das cores" também inverte a escala (como "Inverter a escala");
+ *   - tooltip único do gráfico, com a medida de cor no texto do Looker;
+ *     clique pela "Ação do clique" (drill quando há links; senão fixa).
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { criarTooltip } from '../../core/tooltip.js';
 import {
   treemap as d3Treemap,
   treemapSquarify,
@@ -26,8 +38,10 @@ import {
   hierarchy as d3Hierarchy,
 } from 'd3-hierarchy';
 import { construirHierarquia, opcoesDeHierarquia, opcoesDinamicasDeHierarquia } from '../../core/hierarquia.js';
-import { interpoladorContinuo, textoLegivelSobre, coresDaPaleta } from '../../core/theme.js';
+import { interpoladorContinuo, textoLegivelSobre } from '../../core/theme.js';
 import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core/format.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo, lerBooleano } from '../../core/rotulos.js';
+import { paletaDoConfig, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -251,13 +265,22 @@ export default defineViz({
     const escalaDeCor = porGrupo
       ? criarCoresPorGrupo(arvore, config, tema)
       : criarEscalaDivergente({ hierarquia: arvore, modelo, campoDaCor, config });
+    const contorno = contornoDasMarcas(config, tema);
 
-    const formatarValor = formatadorDeValueFormat(campoDoValor && campoDoValor.valueFormat, {
-      casas: Number(config.casasDecimaisDoRotulo) || 0,
-    });
+    // ---------- Rótulos (função única) ----------
+    const rot = lerRotulos(config, tema);
+    const valueFormat = campoDoValor ? campoDoValor.valueFormat : undefined;
+    // Números derivados (somas de folhas e grupos) no formato do campo.
+    const formatarValor = formatadorDeValueFormat(valueFormat, { casas: rot.casas });
     const formatarCor = campoDaCor
       ? formatadorDeValueFormat(campoDaCor.valueFormat, { casas: 2 })
       : null;
+    /** Texto da medida de cor: o do Looker (célula da linha da folha). */
+    const textoDaCor = (folha, valor) => {
+      if (!campoDaCor || folha.data.indiceDaLinha < 0) return valor === null ? '' : formatarCor(valor);
+      const t = modelo.texto(modelo.linhas[folha.data.indiceDaLinha], campoDaCor.nome, undefined, '');
+      return t !== '' ? t : formatarCor(valor);
+    };
 
     // ---------- Faixas de grupo ----------
     if (alturaDoTitulo > 0) {
@@ -281,8 +304,11 @@ export default defineViz({
     }
 
     // ---------- Retângulos ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    const tooltip = ctx.tooltip();
+    const comValor = config.mostrarValorNoBloco !== false && rot.conteudo !== 'nome';
+    // "Nome e valor": o nome já é a 1ª linha; a 2ª fica só com o valor.
+    const rotDoValor = { ...rot, conteudo: rot.conteudo === 'nomeValor' ? 'valor' : rot.conteudo };
+    const noCentro = rot.posicao === 'centro';
 
     for (const folha of arvore.leaves()) {
       const w = folha.x1 - folha.x0;
@@ -295,76 +321,88 @@ export default defineViz({
       const bloco = criarSvgEl('rect', {
         pai: svg,
         classe: 'tm-bloco',
-        atributos: {
-          x: folha.x0, y: folha.y0, width: w, height: h,
-          fill: cor, stroke: tema.fundo, 'stroke-width': 0.5,
-        },
+        atributos: { x: folha.x0, y: folha.y0, width: w, height: h, 'data-item': folha.data.chave },
       });
+      aplicarPreenchimento(bloco, cor, config);
+      aplicarContorno(bloco, contorno);
 
-      // Rótulo só onde cabe — num treemap de carteira a cauda é sempre
-      // formada por retângulos de poucos pixels.
-      if (
-        config.mostrarRotulos !== false &&
-        w >= LARGURA_MINIMA_PARA_ROTULO &&
-        h >= ALTURA_MINIMA_PARA_ROTULO
-      ) {
+      // Rótulo só onde cabe (com "esconder sobrepostos" ligado) — num
+      // treemap de carteira a cauda é sempre formada por retângulos de
+      // poucos pixels. Desligado, escreve em todos no tamanho escolhido.
+      const cabe = w >= LARGURA_MINIMA_PARA_ROTULO && h >= ALTURA_MINIMA_PARA_ROTULO;
+      if (rot.mostrar && (cabe || !rot.evitarColisao)) {
         const corDoTexto = textoLegivelSobre(cor, tema);
-        const tamanho = Math.min(Math.max(9, tema.tamanhoBase), h / 2.6);
+        const tamanho = rot.evitarColisao ? Math.max(6, Math.min(rot.tamanho, h / 2.6)) : rot.tamanho;
+        const doisNiveis = comValor && (!rot.evitarColisao || h >= ALTURA_MINIMA_PARA_ROTULO + tamanho);
+        const x = noCentro ? folha.x0 + w / 2 : folha.x0 + 4;
+        const ancora = noCentro ? 'middle' : 'start';
+        const yNome = noCentro
+          ? folha.y0 + h / 2 - (doisNiveis ? tamanho * 0.6 : 0)
+          : folha.y0 + tamanho / 2 + 3;
+        const yValor = noCentro ? folha.y0 + h / 2 + tamanho * 0.6 : yNome + tamanho + 2;
+        const caberCaracteres = (fator) => (rot.evitarColisao ? Math.floor(w / (tamanho * fator)) : 0);
 
         const nome = criarSvgEl('text', {
           pai: svg,
-          classe: 'tm-texto',
-          atributos: {
-            x: folha.x0 + 4, y: folha.y0 + tamanho + 2,
-            'font-size': tamanho, 'font-weight': '600', fill: corDoTexto,
-          },
+          classe: 'tm-texto tm-nome',
+          atributos: { x, y: yNome, 'text-anchor': ancora, 'dominant-baseline': 'central' },
         });
-        definirTexto(nome, truncar(folha.data.rotulo, Math.floor(w / (tamanho * 0.58))));
+        const nomeCurto = rot.truncar > 0 ? truncar(folha.data.rotulo, rot.truncar) : folha.data.rotulo;
+        definirTexto(nome, caberCaracteres(0.58) ? truncar(nomeCurto, caberCaracteres(0.58)) : nomeCurto);
+        estilizarRotulo(nome, { ...rot, tamanho }, { corAutomatica: corDoTexto });
+        // O nome sempre foi um pouco mais forte que o valor.
+        nome.setAttribute('font-weight', rot.negrito ? '700' : '600');
 
-        if (config.mostrarValorNoBloco !== false && h >= ALTURA_MINIMA_PARA_ROTULO + tamanho) {
-          const texto = porGrupo || valorDaCor === null
-            ? formatarValor(folha.value)
-            : `${formatarValor(folha.value)} · ${formatarCor(valorDaCor)}`;
+        if (doisNiveis) {
+          let texto = textoDoRotulo(rotDoValor, {
+            valor: folha.value,
+            nome: folha.data.rotulo,
+            total: arvore.value,
+            valueFormat,
+          });
+          if (!porGrupo && valorDaCor !== null && (rot.conteudo === 'valor' || rot.conteudo === 'nomeValor')) {
+            texto = `${texto} · ${textoDaCor(folha, valorDaCor)}`;
+          }
           const valor = criarSvgEl('text', {
             pai: svg,
-            classe: 'tm-texto',
-            atributos: {
-              x: folha.x0 + 4, y: folha.y0 + tamanho * 2 + 4,
-              'font-size': tamanho * 0.85, fill: corDoTexto, opacity: 0.85,
-            },
+            classe: 'tm-texto tm-valor',
+            atributos: { x, y: yValor, 'text-anchor': ancora, 'dominant-baseline': 'central' },
           });
-          definirTexto(valor, truncar(texto, Math.floor(w / (tamanho * 0.52))));
+          definirTexto(valor, caberCaracteres(0.52) ? truncar(texto, caberCaracteres(0.52)) : texto);
+          estilizarRotulo(valor, { ...rot, tamanho }, { corAutomatica: corDoTexto });
         }
       }
 
-      if (tooltip) {
-        ctx.eventos.on(bloco, 'pointerenter', (ev) => {
-          const linhas = [
-            {
-              rotulo: campoDoValor ? campoDoValor.rotuloCurto : 'Tamanho',
-              valor: formatarValor(folha.value),
-            },
-            {
-              rotulo: 'Peso na carteira',
-              valor: formatarPercentual(folha.value / arvore.value, 2),
-            },
-          ];
-          if (!porGrupo && valorDaCor !== null) {
-            linhas.push({ rotulo: campoDaCor.rotuloCurto, valor: formatarCor(valorDaCor), cor });
-          }
-          if (folha.parent && folha.parent.data.rotulo) {
-            linhas.push({ rotulo: 'Grupo', valor: folha.parent.data.rotulo });
-          }
-          tooltip.mostrar({ titulo: folha.data.rotulo, linhas }, ev.clientX, ev.clientY);
-        });
-        ctx.eventos.on(bloco, 'pointermove', (ev) => tooltip.mover(ev.clientX, ev.clientY));
-        ctx.eventos.on(bloco, 'pointerleave', () => tooltip.esconder());
-      }
+      const conteudo = () => {
+        const tamanhoTexto = formatarValor(folha.value);
+        const peso = formatarPercentual(folha.value / arvore.value, 2);
+        const linhas = [
+          { rotulo: campoDoValor ? campoDoValor.rotuloCurto : 'Tamanho', valor: tamanhoTexto },
+          { rotulo: 'Peso na carteira', valor: peso },
+        ];
+        if (!porGrupo && valorDaCor !== null) {
+          linhas.push({ rotulo: campoDaCor.rotuloCurto, valor: textoDaCor(folha, valorDaCor), cor });
+        }
+        const grupo = folha.parent && folha.parent.data.rotulo;
+        if (grupo) linhas.push({ rotulo: 'Grupo', valor: grupo });
+        return {
+          titulo: folha.data.rotulo,
+          linhas,
+          variaveis: { categoria: folha.data.rotulo, valor: tamanhoTexto, serie: grupo || '', percentual: peso },
+        };
+      };
 
+      ctx.eventos.on(bloco, 'pointerenter', (ev) => {
+        if (tooltip) tooltip.mostrar(conteudo(), ev.clientX, ev.clientY);
+      });
+      ctx.eventos.on(bloco, 'pointermove', (ev) => {
+        if (tooltip) tooltip.mover(ev.clientX, ev.clientY);
+      });
+      ctx.eventos.on(bloco, 'pointerleave', () => {
+        if (tooltip) tooltip.esconder();
+      });
       ctx.eventos.on(bloco, 'click', (ev) => {
-        if (folha.data.indiceDaLinha < 0 || !folha.data.campo) return;
-        const celula = modelo.celula(modelo.linhas[folha.data.indiceDaLinha], folha.data.campo.nome);
-        if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+        ctx.cliqueNoItem(ev, celulaDaFolha(modelo, folha, campoDoValor), conteudo());
       });
     }
 
@@ -384,11 +422,31 @@ export default defineViz({
       criarEl('span', { pai: legenda, texto: formatarCor(escalaDeCor.limite) });
     }
   },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
-  },
 });
+
+/** Célula da folha para o drill: a da medida, se tiver links; senão a do nível. */
+function celulaDaFolha(modelo, folha, campoDoValor) {
+  if (folha.data.indiceDaLinha < 0) return null; // "Outros" não tem linha
+  const linha = modelo.linhas[folha.data.indiceDaLinha];
+  const candidatas = [];
+  if (campoDoValor) candidatas.push(modelo.celula(linha, campoDoValor.nome));
+  if (folha.data.campo) candidatas.push(modelo.celula(linha, folha.data.campo.nome));
+  return candidatas.find((c) => c && Array.isArray(c.links) && c.links.length) || candidatas[0] || null;
+}
+
+/**
+ * Contorno dos retângulos. "Cor do contorno" deixada no padrão do painel
+ * (#FFFFFF) é "automática": a "Cor da borda" do tema, se escolhida, ou a
+ * cor de fundo (que é o que separava os blocos antes das correções).
+ */
+function contornoDasMarcas(config, tema) {
+  const escolhida = String(config.corDoContorno || '').trim();
+  const automatica = !escolhida || escolhida.toUpperCase() === '#FFFFFF';
+  const corDaBorda = String(config.corDaBorda || '').trim();
+  return lerContorno({ ...config, corDoContorno: automatica ? '' : escolhida }, tema, {
+    corPadrao: corDaBorda ? tema.borda : tema.fundo,
+  });
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -472,7 +530,9 @@ export function criarEscalaDivergente({ hierarquia, modelo, campoDaCor, config }
     : valores.reduce((a, v) => Math.max(a, Math.abs(v)), 0);
 
   const interpolar = interpoladorContinuo(config.escalaDivergente || 'vermelhoVerde');
-  const inverter = !!config.inverterEscala;
+  // "Inverter a escala" (própria) e "Inverter ordem das cores" (aba Cores)
+  // fazem a mesma coisa aqui; ligar as duas volta ao normal.
+  const inverter = lerBooleano(config.inverterEscala, false) !== lerBooleano(config.inverterPaleta, false);
 
   return {
     limite,
@@ -493,7 +553,8 @@ function hierarquiaDe(dados) {
 }
 
 function criarCoresPorGrupo(hierarquia, config, tema) {
-  const paleta = coresDaPaleta(config.paleta);
+  // A paleta da aba Cores, já invertida se o usuário pediu.
+  const paleta = paletaDoConfig(config);
   const porRamo = new Map();
   (hierarquia.children || []).forEach((filho, i) => porRamo.set(filho, paleta[i % paleta.length]));
 

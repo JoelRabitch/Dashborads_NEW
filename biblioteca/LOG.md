@@ -2946,3 +2946,34 @@ pequeno, contorno no tema escuro.
   inicial só quando o nível inicial muda.
 - `test/correcoes_arvores_expandir.test.mjs` (3; 2 falham no bundle
   anterior, o de drill na folha é guarda de regressão).
+
+### Frente concluída: venn, upset, treemap, marimekko
+`test/correcoes_conjuntos.test.mjs` (16; 15 falhavam no código antigo, o de
+"1 tooltip" já passava pelo núcleo novo e fica como regressão).
+- **diagrama_venn (crítico):** o alvo do mouse era um círculo de 11 px
+  sobre o número. Agora o próprio `<svg>` resolve a região pela geometria
+  (qualquer ponto de qualquer região, inclusive interseções): destaque da
+  região sob o mouse, demais atenuadas, tooltip (região, valor formatado,
+  % do total), clique pela ação (drill/fixar). Rótulos, paleta/inverter,
+  modo de cor (categoria/valor/única), contorno e opacidade lidos.
+  Decisões: posição "Fora" manda os números para a lista do canto; das
+  duas opções "Opacidade do preenchimento", `opacidade` vale quando sai de
+  1, senão `opacidadeDoPreenchimento`.
+- **upset_plot:** rótulo da barra pela função única (acima/dentro/centro),
+  inverter/opacidade/contorno, tooltip formatado, clique, `data-item`.
+- **treemap_carteira:** rótulos (1ª linha nome; 2ª segue "O que mostrar"),
+  contorno (era fixo 0,5 px), opacidade, inverter (na cor divergente também
+  inverte a escala), tooltip pelo texto do Looker, clique ("Outros" fixa).
+- **marimekko:** percentuais e pesos pela função única; decisão de
+  conteúdo: "Valor"/"Percentual" = fatia na coluna; cores, opacidade,
+  contorno; clique usa a célula da medida (ou da dimensão da coluna).
+- Mudança visual no padrão: percentuais do marimekko com 1 casa.
+- Núcleo (pedidos das frentes, aplicados): `corDoItem` trata como "não
+  escolhida" a cor própria igual ao default da paleta naquela posição (o
+  Looker grava o default de `cor_<item>` no config e isso anulava paleta e
+  Inverter); `lerContorno` trata o default `#FFFFFF` como "automática"
+  quando o gráfico informa a cor padrão. Consequência: branco puro de
+  propósito precisa ser `#FEFEFE` — registrado no relatório.
+- Conferir no Looker real: região certa do Venn sob o mouse (usa
+  getBoundingClientRect, zerado no jsdom) e o visual do destaque (máscaras
+  SVG que o jsdom não desenha).

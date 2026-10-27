@@ -14,6 +14,12 @@
  * Em todos os casos a saída é a mesma: a lista de conjuntos e o valor
  * EXCLUSIVO de cada região (a fatia que pertence exatamente àqueles
  * conjuntos), que é o número que se escreve dentro do desenho.
+ *
+ * Correções v2: a saída também diz QUAL medida foi somada (`medida`, para
+ * formatar com o value_format do campo — nunca número cru) e, no formato
+ * (a), as linhas de cada região (`linhasPorRegiao`): quando a região vem de
+ * UMA linha, o tooltip usa o texto do Looker e o clique tem a célula com os
+ * links de drill.
  */
 
 const VALORES_VERDADEIROS = new Set(['sim', 'yes', 'true', '1', 'verdadeiro', 'y', 's', 't']);
@@ -35,7 +41,8 @@ export function detectarFormato(modelo) {
  *
  * @returns {{conjuntos:Array<{nome:string}>, regioes:Map<number,number>,
  *            totalPorConjunto:Map<number,number>, formato:string,
- *            avisos:string[], unidade:string}}
+ *            avisos:string[], unidade:string, medida:object|null,
+ *            linhasPorRegiao:Map<number,Array<object>>}}
  */
 export function lerConjuntos(modelo, config, { maximoAbsoluto = 5 } = {}) {
   const formato = config.formatoDosDados && config.formatoDosDados !== 'auto'
@@ -45,6 +52,8 @@ export function lerConjuntos(modelo, config, { maximoAbsoluto = 5 } = {}) {
   const leitor = { regioes: lerRegioes, itemConjunto: lerItemConjunto, booleanas: lerBooleanas }[formato];
   const resultado = (leitor || lerRegioes)(modelo, config, maximoAbsoluto);
   resultado.formato = formato;
+  if (resultado.medida === undefined) resultado.medida = null;
+  if (!resultado.linhasPorRegiao) resultado.linhasPorRegiao = new Map();
 
   // Total de cada conjunto = soma de todas as regiões que o contêm.
   const totalPorConjunto = new Map();
@@ -92,14 +101,15 @@ function lerRegioes(modelo, config, maximoAbsoluto) {
     }
 
     const valor = medida ? modelo.valorNumerico(linha, medida.nome) : 1;
-    bruto.push({ partes, valor: valor === null ? 0 : valor });
+    bruto.push({ partes, valor: valor === null ? 0 : valor, linha });
   }
 
   const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
   if (aviso) avisos.push(aviso);
 
   const regioes = new Map();
-  for (const { partes, valor } of bruto) {
+  const linhasPorRegiao = new Map();
+  for (const { partes, valor, linha } of bruto) {
     // Se a linha cita um conjunto que não coube no limite, o valor entra na
     // região dos conjuntos que sobraram; o aviso acima já explica a perda.
     let mascara = 0;
@@ -109,9 +119,18 @@ function lerRegioes(modelo, config, maximoAbsoluto) {
     }
     if (!mascara) continue;
     regioes.set(mascara, (regioes.get(mascara) || 0) + valor);
+    if (!linhasPorRegiao.has(mascara)) linhasPorRegiao.set(mascara, []);
+    linhasPorRegiao.get(mascara).push(linha);
   }
 
-  return { conjuntos, regioes, avisos, unidade: medida ? medida.rotuloCurto : 'linhas' };
+  return {
+    conjuntos,
+    regioes,
+    avisos,
+    unidade: medida ? medida.rotuloCurto : 'linhas',
+    medida: medida || null,
+    linhasPorRegiao,
+  };
 }
 
 /** (b) Uma linha por item e conjunto. */
@@ -174,6 +193,7 @@ function lerItemConjunto(modelo, config, maximoAbsoluto) {
     regioes,
     avisos,
     unidade: contarItens ? campoDoItem.rotuloCurto : medida.rotuloCurto,
+    medida: contarItens ? null : medida,
   };
 }
 
@@ -213,7 +233,13 @@ function lerBooleanas(modelo, config, maximoAbsoluto) {
     regioes.set(mascara, (regioes.get(mascara) || 0) + valor);
   }
 
-  return { conjuntos, regioes, avisos, unidade: contarItens ? 'itens' : medida.rotuloCurto };
+  return {
+    conjuntos,
+    regioes,
+    avisos,
+    unidade: contarItens ? 'itens' : medida.rotuloCurto,
+    medida: contarItens ? null : medida,
+  };
 }
 
 /**

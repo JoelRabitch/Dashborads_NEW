@@ -8,14 +8,26 @@
  *
  * Reaproveita o leitor de conjuntos do `diagrama_venn`, que já entende os
  * três formatos de entrada (uma linha por região, item × conjunto, ou
- * colunas sim/não).
+ * colunas sim/não) e lê `formatoDosDados`, `separadorDeConjuntos`,
+ * `medirPor` e `maximoDeConjuntos`.
+ *
+ * Correções v2: o valor acima de cada barra passa pela função única de
+ * rótulos (`rotulos.js`: mostrar, tamanho, cor, negrito, rotação, posição
+ * acima/dentro/centro, conteúdo, formato, casas, truncar, esconder
+ * sobrepostos) — "Escrever o valor acima da barra" e "Mostrar o percentual"
+ * continuam valendo. A aba Cores vale: paleta (a 1ª cor, respeitando
+ * "Inverter ordem das cores"), opacidade e contorno das barras. O tooltip é
+ * o único do gráfico, com os números no formato do campo (ou o texto do
+ * Looker, quando a interseção vem de uma linha), e o clique segue a "Ação
+ * do clique" (drill quando há links; senão fixa o tooltip).
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { criarTooltip } from '../../core/tooltip.js';
-import { criarFormatadorNumerico, formatarPercentual, truncar } from '../../core/format.js';
-import { coresDaPaleta, comOpacidade } from '../../core/theme.js';
+import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core/format.js';
+import { comOpacidade, textoLegivelSobre } from '../../core/theme.js';
+import { lerRotulos, textoDoRotulo, criarRotuloSvg, esconderColisoes, larguraDoTexto, posicaoEfetiva } from '../../core/rotulos.js';
+import { paletaDoConfig, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
 import {
   montarOpcoes,
   listaDeValores,
@@ -33,6 +45,7 @@ const CSS = `
 .up-barra{cursor:pointer;transition:opacity .15s ease;}
 .up-apagada{opacity:.25;}
 .up-texto{pointer-events:none;}
+.up-valor{pointer-events:none;}
 .up-ponto{pointer-events:none;}
 .up-faixa{pointer-events:none;}
 @media (prefers-reduced-motion: reduce){.up-barra{transition:none;}}
@@ -151,7 +164,11 @@ export default defineViz({
   render(ctx) {
     const { modelo, config, tema, raiz, largura, altura } = ctx;
 
-    const { conjuntos, regioes, totalPorConjunto, avisos, unidade } = lerConjuntos(modelo, config, { maximoAbsoluto: 20 });
+    const { conjuntos, regioes, totalPorConjunto, avisos, unidade, medida, linhasPorRegiao } = lerConjuntos(
+      modelo,
+      config,
+      { maximoAbsoluto: 20 }
+    );
     for (const aviso of avisos) ctx.avisar(aviso);
 
     if (conjuntos.length < 2) {
@@ -207,9 +224,30 @@ export default defineViz({
       atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` },
     });
 
-    const formatar = criarFormatadorNumerico({ estilo: 'auto', casas: 0 });
-    const paleta = coresDaPaleta(config.paleta);
-    const corDaBarra = config.corUnica || paleta[0] || tema.destaque;
+    // Números SEMPRE formatados: value_format da medida somada, ou inteiro
+    // quando é contagem de itens.
+    const valueFormat = medida ? medida.valueFormat : undefined;
+    const formatar = formatadorDeValueFormat(valueFormat, { casas: medida ? 2 : 0 });
+    /** Texto do Looker quando a interseção vem de UMA linha. */
+    const textoDoLooker = (mascara) => {
+      const linhas = linhasPorRegiao.get(mascara);
+      if (!medida || !linhas || linhas.length !== 1) return null;
+      const t = modelo.texto(linhas[0], medida.nome, undefined, '');
+      return t === '' ? null : t;
+    };
+
+    // ---------- Cores (aba Cores) ----------
+    const paleta = paletaDoConfig(config);
+    const corUnica = typeof config.corUnica === 'string' ? config.corUnica.trim() : '';
+    const corDaBarra = corUnica || paleta[0] || tema.destaque;
+    const contorno = contornoDasMarcas(config, tema);
+
+    // ---------- Rótulos (função única) ----------
+    const rot = lerRotulos(config, tema);
+    const comValor = rot.mostrar && config.mostrarValorNaBarra !== false;
+    const rotDoValor = { ...rot };
+    if (config.mostrarPercentual && rot.conteudo === 'valor') rotDoValor.conteudo = 'valorPercentual';
+    const posicao = posicaoEfetiva(rot, { cabeDentro: false });
 
     // ---------- Geometria ----------
     const fonte = Math.max(8, tema.tamanhoBase - 1);
@@ -218,7 +256,7 @@ export default defineViz({
       : Math.min(220, largura * 0.3);
     const fracaoDaMatriz = Math.max(0.15, Math.min(0.7, (Number(config.alturaDaMatriz) || 40) / 100));
 
-    const margemDoTopo = config.mostrarValorNaBarra === false ? 10 : fonte + 12;
+    const margemDoTopo = comValor && posicao === 'fora' ? rot.tamanho + 12 : 10;
     const alturaDaMatriz = (altura - margemDoTopo - 10) * fracaoDaMatriz;
     const alturaDasBarras = altura - margemDoTopo - alturaDaMatriz - 10;
 
@@ -270,9 +308,9 @@ export default defineViz({
     });
 
     // ---------- Barras e matriz ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    const tooltip = ctx.tooltip();
     const barras = [];
+    const caixas = [];
 
     intersecoes.forEach((intersecao, coluna) => {
       const cx = xDasBarras + coluna * passo + passo / 2;
@@ -287,30 +325,37 @@ export default defineViz({
           y,
           width: larguraDaBarra,
           height: Math.max(0, alturaDaBarra),
-          fill: corDaBarra,
           rx: 1,
+          'data-item': intersecao.mascara,
         },
       });
+      aplicarPreenchimento(barra, corDaBarra, config);
+      aplicarContorno(barra, contorno);
       barras.push(barra);
 
-      if (config.mostrarValorNaBarra !== false && passo > fonte * 1.6) {
-        const texto = criarSvgEl('text', {
-          pai: svg,
-          classe: 'up-texto',
-          atributos: {
-            x: cx,
-            y: y - 3,
-            'text-anchor': 'middle',
-            'font-size': Math.min(fonte, passo * 0.5),
-            fill: tema.textoSuave,
-          },
+      const textoLooker = textoDoLooker(intersecao.mascara);
+      const textoDoValor = textoLooker !== null ? textoLooker : formatar(intersecao.valor);
+
+      if (comValor) {
+        const texto = textoDoRotulo(rotDoValor, {
+          valor: intersecao.valor,
+          nome: intersecao.rotulo,
+          total: totalGeral,
+          valueFormat,
+          textoDoValor: textoLooker === null ? undefined : textoLooker,
         });
-        definirTexto(
-          texto,
-          config.mostrarPercentual && totalGeral
-            ? `${formatar(intersecao.valor)} · ${formatarPercentual(intersecao.valor / totalGeral, 0)}`
-            : formatar(intersecao.valor)
-        );
+        // Acima da barra (padrão), dentro do topo ou no centro dela.
+        let yDoTexto = y - 3 - rot.tamanho / 2;
+        let corAutomatica = tema.textoSuave;
+        if (posicao === 'dentro' || posicao === 'centro') {
+          yDoTexto = posicao === 'centro' ? y + alturaDaBarra / 2 : y + 3 + rot.tamanho / 2;
+          corAutomatica = textoLegivelSobre(corDaBarra, tema);
+        }
+        const el = criarRotuloSvg(svg, rot, { x: cx, y: yDoTexto, texto, corAutomatica });
+        if (el) {
+          el.setAttribute('class', 'bl-rotulo up-valor');
+          caixas.push({ el, x: cx, y: yDoTexto, largura: larguraDoTexto(texto, rot.tamanho), altura: rot.tamanho });
+        }
       }
 
       // --- Pontos da matriz ---
@@ -348,31 +393,63 @@ export default defineViz({
         });
       }
 
-      if (tooltip) {
-        ctx.eventos.on(barra, 'pointerenter', (ev) => {
-          barras.forEach((outra, i) => outra.classList.toggle('up-apagada', i !== coluna));
-          const linhas = [
-            { rotulo: unidade || 'Valor', valor: formatar(intersecao.valor), cor: corDaBarra },
-            { rotulo: 'Conjuntos', valor: String(intersecao.grau) },
-          ];
-          if (totalGeral) {
-            linhas.push({ rotulo: 'Do total', valor: formatarPercentual(intersecao.valor / totalGeral, 1) });
-          }
-          tooltip.mostrar({ titulo: intersecao.rotulo, linhas }, ev.clientX, ev.clientY);
-        });
-        ctx.eventos.on(barra, 'pointermove', (ev) => tooltip.mover(ev.clientX, ev.clientY));
-        ctx.eventos.on(barra, 'pointerleave', () => {
-          barras.forEach((outra) => outra.classList.remove('up-apagada'));
-          tooltip.esconder();
-        });
-      }
-    });
-  },
+      // --- Tooltip, destaque e clique ---
+      const percentual = totalGeral ? formatarPercentual(intersecao.valor / totalGeral, 1) : '';
+      const conteudo = () => {
+        const linhas = [
+          { rotulo: unidade || 'Valor', valor: textoDoValor, cor: corDaBarra },
+          { rotulo: 'Conjuntos', valor: String(intersecao.grau) },
+        ];
+        if (percentual) linhas.push({ rotulo: 'Do total', valor: percentual });
+        return {
+          titulo: intersecao.rotulo,
+          linhas,
+          variaveis: { categoria: intersecao.rotulo, valor: textoDoValor, serie: intersecao.rotulo, percentual },
+        };
+      };
 
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
+      ctx.eventos.on(barra, 'pointerenter', (ev) => {
+        barras.forEach((outra, i) => outra.classList.toggle('up-apagada', i !== coluna));
+        if (tooltip) tooltip.mostrar(conteudo(), ev.clientX, ev.clientY);
+      });
+      ctx.eventos.on(barra, 'pointermove', (ev) => {
+        if (tooltip) tooltip.mover(ev.clientX, ev.clientY);
+      });
+      ctx.eventos.on(barra, 'pointerleave', () => {
+        barras.forEach((outra) => outra.classList.remove('up-apagada'));
+        if (tooltip) tooltip.esconder();
+      });
+      ctx.eventos.on(barra, 'click', (ev) => {
+        ctx.cliqueNoItem(ev, celulaDaIntersecao(modelo, medida, linhasPorRegiao.get(intersecao.mascara)), conteudo());
+      });
+    });
+
+    esconderColisoes(caixas, rot);
   },
 });
+
+/** Célula da interseção (com os links de drill) quando ela vem de UMA linha. */
+function celulaDaIntersecao(modelo, medida, linhas) {
+  if (!linhas || linhas.length !== 1) return null;
+  const candidatas = [];
+  if (medida) candidatas.push(modelo.celula(linhas[0], medida.nome));
+  if (modelo.dimensoes[0]) candidatas.push(modelo.celula(linhas[0], modelo.dimensoes[0].nome));
+  return candidatas.find((c) => c && Array.isArray(c.links) && c.links.length) || candidatas[0] || null;
+}
+
+/**
+ * Contorno das barras. "Cor do contorno" deixada no padrão do painel
+ * (#FFFFFF) é "automática": a "Cor da borda" do tema, se escolhida, ou a
+ * cor de fundo (o contorno separa a barra do fundo sem aparecer).
+ */
+function contornoDasMarcas(config, tema) {
+  const escolhida = String(config.corDoContorno || '').trim();
+  const automatica = !escolhida || escolhida.toUpperCase() === '#FFFFFF';
+  const corDaBorda = String(config.corDaBorda || '').trim();
+  return lerContorno({ ...config, corDoContorno: automatica ? '' : escolhida }, tema, {
+    corPadrao: corDaBorda ? tema.borda : tema.fundo,
+  });
+}
 
 /** Quantos conjuntos participam de uma máscara. */
 function contarBits(mascara) {

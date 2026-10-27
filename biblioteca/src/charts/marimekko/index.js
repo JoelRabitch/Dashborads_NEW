@@ -17,14 +17,30 @@
  *
  * Duas conservações sustentam o desenho e estão testadas: a soma das
  * larguras é 100%, e dentro de cada coluna a soma das alturas é 100%.
+ *
+ * Correções v2 (rótulos, aba Cores, tooltip):
+ *   - os textos dos blocos e o peso das colunas passam pela função única de
+ *     rótulos (`rotulos.js`): "Mostrar rótulos" esconde os dois; tamanho,
+ *     cor, negrito, rotação, casas, formato, truncar e "esconder
+ *     sobrepostos" (ligado: só escreve no bloco onde cabe) valem. Conteúdo
+ *     do bloco: "Valor" (padrão) e "Percentual" = a fatia DENTRO da coluna,
+ *     como sempre foi; "Valor e percentual" = valor da medida (fatia);
+ *     "Nome" = a série; "Nome e valor" = série: fatia. As opções próprias
+ *     "Escrever o percentual dentro do bloco" e "Escrever o peso de cada
+ *     coluna" continuam ligando/desligando cada texto;
+ *   - aba Cores: paleta com "Inverter ordem das cores", opacidade e contorno
+ *     (cor no padrão = "Cor da borda" do tema ou o fundo);
+ *   - tooltip único do gráfico (valor da medida no formato do campo, ou o
+ *     texto do Looker quando o bloco vem de uma linha) e clique pela "Ação
+ *     do clique": drill quando a célula tem links, senão fixa o tooltip.
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { coresDaPaleta, comOpacidade, textoLegivelSobre } from '../../core/theme.js';
+import { textoLegivelSobre } from '../../core/theme.js';
 import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
-import { larguraAproximada } from '../../core/eixos.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo, larguraDoTexto, lerTexto } from '../../core/rotulos.js';
+import { corDoItem, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
 import { desenharLegenda, criarLayoutComLegenda } from '../../core/legend.js';
 import {
   montarOpcoes,
@@ -183,14 +199,35 @@ export default defineViz({
     const altura = Math.max(80, hospedeiro.clientHeight || ctx.altura);
     const area = criarEl('div', { classe: 'mk-area', pai: hospedeiro });
 
-    const casas = Number(config.casasDecimaisDoRotulo);
-    const formatar = formatadorDeValueFormat(medida.valueFormat, {
-      casas: Number.isFinite(casas) ? casas : 1,
-    });
+    // ---------- Rótulos (função única) ----------
+    const rot = lerRotulos(config, tema);
+    // Números derivados (somas) no formato do campo; nunca o número cru.
+    const formatar = formatadorDeValueFormat(medida.valueFormat, { casas: rot.casas });
+    const textoDoBloco = (serie, valor, fracao, textoDoValor) => {
+      const pct = formatarPercentual(fracao, rot.casas);
+      const base = rot.truncar > 0 ? (t) => truncar(t, rot.truncar) : (t) => t;
+      switch (rot.conteudo) {
+        case 'nome':
+          return base(serie.rotulo);
+        case 'nomeValor':
+          return base(`${serie.rotulo}: ${pct}`);
+        case 'valorPercentual':
+          return textoDoRotulo(rot, { valor, percentual: fracao, valueFormat: medida.valueFormat, textoDoValor });
+        case 'percentual':
+        case 'valor':
+        default:
+          // No Marimekko, o "valor" escrito no bloco sempre foi a fatia
+          // dentro da coluna (a altura do bloco).
+          return base(pct);
+      }
+    };
+    const comTextoNoBloco = rot.mostrar && config.escreverPercentuais !== false;
+    const comPesoDaColuna = rot.mostrar && config.escreverLarguras !== false;
+    const tamanhoDoPeso = Math.max(7, rot.tamanho - 1);
 
     const fonte = Math.max(8, tema.tamanhoBase - 1);
     const margemDeCima = fonte + 16;
-    const margemDeBaixo = fonte + 14;
+    const margemDeBaixo = Math.max(fonte, comPesoDaColuna ? tamanhoDoPeso : 0) + 14;
     const margemLateral = 8;
     const espaco = Math.max(0, Number(config.espacoEntreColunas) || 0);
 
@@ -203,12 +240,14 @@ export default defineViz({
       atributos: { width: largura, height: altura, viewBox: `0 0 ${largura} ${altura}` },
     });
 
-    // ---------- Cores ----------
-    const paleta = coresDaPaleta(config.paleta);
+    // ---------- Cores (aba Cores) ----------
+    // Cor própria da série (`cor_<chave>`, só via JSON hoje) ou a paleta,
+    // respeitando "Inverter ordem das cores".
     series.forEach((serie, i) => {
-      serie.cor = config[`cor_${serie.chave}`] || paleta[i % paleta.length];
+      serie.cor = lerTexto(config[`cor_${serie.chave}`], '') || corDoItem(config, i, serie.chave);
     });
     const corPorSerie = new Map(series.map((s) => [s.chave, s.cor]));
+    const contorno = contornoDasMarcas(config, tema);
 
     // ---------- Blocos ----------
     const blocos = [];
@@ -233,18 +272,28 @@ export default defineViz({
               y,
               width: Math.max(0.5, coluna.largura),
               height: Math.max(0.5, alturaDoBloco),
-              fill: corPorSerie.get(serie.chave),
-              stroke: tema.fundo,
-              'stroke-width': 0.5,
               'data-coluna': coluna.chave,
               'data-serie': serie.chave,
+              'data-item': `${coluna.chave}|${serie.chave}`,
             },
           });
+          aplicarPreenchimento(retangulo, corPorSerie.get(serie.chave), config);
+          aplicarContorno(retangulo, contorno);
+
+          // Linha de origem: só quando o bloco vem de UMA linha o texto e a
+          // célula do Looker valem para ele inteiro.
+          const linhas = (coluna.linhasPorSerie && coluna.linhasPorSerie.get(serie.chave)) || [];
+          const linhaUnica = linhas.length === 1 ? ctx.modelo.linhas[linhas[0]] : null;
+          const textoLooker = linhaUnica ? ctx.modelo.texto(linhaUnica, medida.nome, undefined, '') : '';
+          const textoDoValor = textoLooker || formatar(valor);
+
           blocos.push({
             elemento: retangulo,
             coluna,
             serie,
             valor,
+            textoDoValor,
+            linhaUnica,
             fracaoNaColuna: fracao,
             x: coluna.x,
             y,
@@ -252,27 +301,26 @@ export default defineViz({
             altura: alturaDoBloco,
           });
 
-          // O percentual só entra quando cabe: texto cortado pela borda do
-          // bloco é pior que texto nenhum.
-          const texto = formatarPercentual(fracao, 0);
-          if (
-            config.escreverPercentuais !== false &&
-            alturaDoBloco >= fonte + 4 &&
-            coluna.largura >= larguraAproximada(texto, fonte) + 8
-          ) {
-            const rotulo = criarSvgEl('text', {
-              pai: svg,
-              classe: 'mk-rotulo',
-              atributos: {
-                x: coluna.x + coluna.largura / 2,
-                y: y + alturaDoBloco / 2,
-                'text-anchor': 'middle',
-                'dominant-baseline': 'central',
-                'font-size': fonte,
-                fill: textoLegivelSobre(corPorSerie.get(serie.chave), tema),
-              },
-            });
-            definirTexto(rotulo, texto);
+          // Com "esconder sobrepostos" ligado, o texto só entra quando cabe:
+          // texto cortado pela borda do bloco é pior que texto nenhum.
+          if (comTextoNoBloco) {
+            const texto = textoDoBloco(serie, valor, fracao, textoLooker || undefined);
+            const cabe =
+              alturaDoBloco >= rot.tamanho + 4 && coluna.largura >= larguraDoTexto(texto, rot.tamanho) + 8;
+            if (texto && (cabe || !rot.evitarColisao)) {
+              const rotulo = criarSvgEl('text', {
+                pai: svg,
+                classe: 'mk-rotulo mk-rotulo-bloco',
+                atributos: {
+                  x: coluna.x + coluna.largura / 2,
+                  y: y + alturaDoBloco / 2,
+                  'text-anchor': 'middle',
+                  'dominant-baseline': 'central',
+                },
+              });
+              definirTexto(rotulo, texto);
+              estilizarRotulo(rotulo, rot, { corAutomatica: textoLegivelSobre(corPorSerie.get(serie.chave), tema) });
+            }
           }
         }
 
@@ -294,19 +342,18 @@ export default defineViz({
       const cabe = Math.max(3, Math.floor(coluna.largura / (fonte * 0.6)));
       definirTexto(nome, truncar(coluna.rotulo, cabe));
 
-      if (config.escreverLarguras !== false) {
+      if (comPesoDaColuna) {
         const peso = criarSvgEl('text', {
           pai: svg,
-          classe: 'mk-rotulo',
+          classe: 'mk-rotulo mk-rotulo-peso',
           atributos: {
             x: coluna.x + coluna.largura / 2,
-            y: margemDeCima + alturaUtil + fonte + 2,
+            y: margemDeCima + alturaUtil + tamanhoDoPeso + 2,
             'text-anchor': 'middle',
-            'font-size': Math.max(8, fonte - 1),
-            fill: tema.textoSuave,
           },
         });
-        definirTexto(peso, formatarPercentual(coluna.total / total, 0));
+        definirTexto(peso, formatarPercentual(coluna.total / total, rot.casas));
+        estilizarRotulo(peso, { ...rot, tamanho: tamanhoDoPeso }, { corAutomatica: tema.textoSuave });
       }
 
       x += coluna.largura + espaco;
@@ -342,56 +389,75 @@ export default defineViz({
     }
 
     // ---------- Interação ----------
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
-    ctx.estado.tooltip = tooltip;
+    const tooltip = ctx.tooltip();
 
     for (const bloco of blocos) {
+      const conteudo = () => {
+        const naColuna = formatarPercentual(bloco.fracaoNaColuna, 1);
+        return {
+          titulo: `${bloco.coluna.rotulo} · ${bloco.serie.rotulo}`,
+          linhas: [
+            { rotulo: campoDaColuna.rotuloCurto, valor: bloco.coluna.rotulo },
+            { rotulo: campoDaSerie.rotuloCurto, valor: bloco.serie.rotulo, cor: bloco.serie.cor },
+            { rotulo: medida.rotuloCurto, valor: bloco.textoDoValor },
+            { rotulo: 'Dentro da coluna', valor: naColuna },
+            { rotulo: 'Do total geral', valor: formatarPercentual(bloco.valor / total, 1) },
+            { rotulo: 'Peso da coluna', valor: formatarPercentual(bloco.coluna.total / total, 1) },
+          ],
+          variaveis: {
+            categoria: bloco.coluna.rotulo,
+            serie: bloco.serie.rotulo,
+            valor: bloco.textoDoValor,
+            percentual: naColuna,
+          },
+        };
+      };
       ctx.eventos.on(bloco.elemento, 'pointerenter', (ev) => {
         bloco.elemento.setAttribute('stroke', tema.texto);
         bloco.elemento.setAttribute('stroke-width', '1.5');
-        if (!tooltip) return;
-        tooltip.mostrar(
-          {
-            titulo: `${bloco.coluna.rotulo} · ${bloco.serie.rotulo}`,
-            linhas: [
-              { rotulo: campoDaColuna.rotuloCurto, valor: bloco.coluna.rotulo },
-              { rotulo: campoDaSerie.rotuloCurto, valor: bloco.serie.rotulo, cor: bloco.serie.cor },
-              { rotulo: medida.rotuloCurto, valor: formatar(bloco.valor) },
-              {
-                rotulo: 'Dentro da coluna',
-                valor: formatarPercentual(bloco.fracaoNaColuna, 1),
-              },
-              { rotulo: 'Do total geral', valor: formatarPercentual(bloco.valor / total, 1) },
-              {
-                rotulo: 'Peso da coluna',
-                valor: formatarPercentual(bloco.coluna.total / total, 1),
-              },
-            ],
-          },
-          ev.clientX,
-          ev.clientY
-        );
+        bloco.elemento.removeAttribute('stroke-dasharray');
+        if (tooltip) tooltip.mostrar(conteudo(), ev.clientX, ev.clientY);
+      });
+      ctx.eventos.on(bloco.elemento, 'pointermove', (ev) => {
+        if (tooltip) tooltip.mover(ev.clientX, ev.clientY);
       });
       ctx.eventos.on(bloco.elemento, 'pointerleave', () => {
-        bloco.elemento.setAttribute('stroke', tema.fundo);
-        bloco.elemento.setAttribute('stroke-width', '0.5');
+        aplicarContorno(bloco.elemento, contorno);
         if (tooltip) tooltip.esconder();
       });
       ctx.eventos.on(bloco.elemento, 'click', (ev) => {
-        if (bloco.coluna.ehOutros || bloco.serie.ehOutros) return;
-        const celula = ctx.modelo.celula(
-          ctx.modelo.linhas[bloco.coluna.indiceDaLinha],
-          campoDaColuna.nome
-        );
-        if (celula && ctx.ponte.temDrill(celula)) ctx.ponte.abrirDrill(celula, ev);
+        ctx.cliqueNoItem(ev, celulaDoBloco(ctx.modelo, bloco, medida, campoDaColuna), conteudo());
       });
     }
   },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
-  },
 });
+
+/**
+ * Célula do bloco para o drill: a da medida quando o bloco vem de UMA linha
+ * (e tem links); senão a da dimensão da coluna. "Outros" não tem célula.
+ */
+function celulaDoBloco(modelo, bloco, medida, campoDaColuna) {
+  if (bloco.coluna.ehOutros || bloco.serie.ehOutros) return null;
+  const candidatas = [];
+  if (bloco.linhaUnica) candidatas.push(modelo.celula(bloco.linhaUnica, medida.nome));
+  const linhaDaColuna = modelo.linhas[bloco.coluna.indiceDaLinha];
+  if (linhaDaColuna) candidatas.push(modelo.celula(linhaDaColuna, campoDaColuna.nome));
+  return candidatas.find((c) => c && Array.isArray(c.links) && c.links.length) || candidatas[0] || null;
+}
+
+/**
+ * Contorno dos blocos. "Cor do contorno" deixada no padrão do painel
+ * (#FFFFFF) é "automática": a "Cor da borda" do tema, se escolhida, ou a
+ * cor de fundo (que é o que separava os blocos antes das correções).
+ */
+function contornoDasMarcas(config, tema) {
+  const escolhida = String(config.corDoContorno || '').trim();
+  const automatica = !escolhida || escolhida.toUpperCase() === '#FFFFFF';
+  const corDaBorda = String(config.corDaBorda || '').trim();
+  return lerContorno({ ...config, corDoContorno: automatica ? '' : escolhida }, tema, {
+    corPadrao: corDaBorda ? tema.borda : tema.fundo,
+  });
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -452,6 +518,9 @@ export function lerMatriz(ctx) {
         rotulo: modelo.texto(linha, campoDaColuna.nome, undefined, '∅'),
         total: 0,
         porSerie: new Map(),
+        // Linhas de origem de cada bloco (coluna × série): com UMA linha, o
+        // tooltip usa o texto do Looker e o clique a célula dela.
+        linhasPorSerie: new Map(),
         indiceDaLinha: i,
       });
     }
@@ -466,6 +535,8 @@ export function lerMatriz(ctx) {
     const coluna = porColuna.get(chaveDaColuna);
     coluna.total += valor;
     coluna.porSerie.set(chaveDaSerie, (coluna.porSerie.get(chaveDaSerie) || 0) + valor);
+    if (!coluna.linhasPorSerie.has(chaveDaSerie)) coluna.linhasPorSerie.set(chaveDaSerie, []);
+    coluna.linhasPorSerie.get(chaveDaSerie).push(i);
     porSerie.get(chaveDaSerie).total += valor;
   }
 

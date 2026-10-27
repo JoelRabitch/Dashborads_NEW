@@ -2,16 +2,39 @@
  * diagrama_venn — "Diagrama de Venn" (2 a 5 conjuntos).
  *
  * Desenha em SVG porque o número de formas é pequeno (no máximo 5) e SVG dá
- * de graça o hover por região, o texto selecionável e a nitidez em qualquer
- * zoom. Quem faz o trabalho pesado é `geometria.js` (formas e onde cabe cada
- * rótulo) e `dados.js` (os três formatos de entrada possíveis).
+ * de graça o texto selecionável e a nitidez em qualquer zoom. Quem faz o
+ * trabalho pesado é `geometria.js` (formas e onde cabe cada rótulo) e
+ * `dados.js` (os três formatos de entrada possíveis).
+ *
+ * Campos: uma dimensão com as regiões ("A", "A,B") + uma medida, OU duas
+ * dimensões (item e conjunto), OU colunas sim/não — ver `dados.js`.
+ *
+ * Interação (correções v2, 6.6): as REGIÕES são alvos de mouse, inclusive
+ * as interseções. Não há um elemento por região (a região "A ∩ B sem C" não
+ * é uma forma SVG simples); o próprio <svg> escuta o mouse e descobre a
+ * região por teste geométrico (`mascaraDoPonto`) contra as elipses. A
+ * região sob o mouse é desenhada por cima (recorte das elipses que a
+ * formam, menos as que não a formam), as demais formas são atenuadas e o
+ * tooltip mostra a região, o valor no formato do Looker e o percentual.
+ * O clique segue a "Ação do clique" (`ctx.cliqueNoItem`): drill quando a
+ * região vem de uma linha com links; senão, fixa o tooltip.
+ *
+ * Opções lidas a cada desenho: rótulos (função única `rotulos.js`: mostrar,
+ * tamanho, cor, negrito, rotação, conteúdo, formato, casas, truncar,
+ * esconder sobrepostos e posição — "Fora" manda os números para a lista do
+ * canto), cores (modo de cor, paleta e "Inverter", cor única, escala por
+ * valor, cores por conjunto, opacidade) e contorno (mostrar, cor, espessura,
+ * estilo). Opções próprias: percentual junto do número, total do conjunto
+ * no nome, lista das regiões pequenas.
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarSvgEl, criarEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { coresDaPaleta, textoLegivelSobre } from '../../core/theme.js';
-import { criarFormatadorNumerico, formatarPercentual } from '../../core/format.js';
-import { criarTooltip } from '../../core/tooltip.js';
+import { coresDaPaleta, textoLegivelSobre, opcoesDePaleta, corParaRgb } from '../../core/theme.js';
+import { formatadorDeValueFormat, formatarPercentual } from '../../core/format.js';
+import { lerRotulos, textoDoRotulo, estilizarRotulo, esconderColisoes, larguraDoTexto } from '../../core/rotulos.js';
+import { paletaDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
+import { escalaDeCores } from '../../core/scales.js';
 import { desenharLegenda, criarLayoutComLegenda } from '../../core/legend.js';
 import {
   montarOpcoes,
@@ -26,20 +49,32 @@ import {
   opcoesDeCorPorItem,
   sanitizarChave,
 } from '../../core/options-kit.js';
-import { layoutDeConjuntos, posicoesDasRegioes, caminhoDaElipse, posicaoDoRotuloDoConjunto } from './geometria.js';
+import {
+  layoutDeConjuntos,
+  posicoesDasRegioes,
+  caminhoDaElipse,
+  posicaoDoRotuloDoConjunto,
+  mascaraDoPonto,
+} from './geometria.js';
 import { lerConjuntos, rotuloDaRegiao } from './dados.js';
 
 const CSS = `
 .venn-area{position:relative;width:100%;height:100%;}
-.venn-forma{transition:fill-opacity .15s ease, stroke-width .15s ease;}
-.venn-regiao{cursor:default;}
-.venn-rotulo-conjunto{font-weight:600;}
-.venn-valor{pointer-events:none;}
-.venn-apagado{opacity:.25;}
+.venn-svg{cursor:pointer;}
+.venn-forma{transition:opacity .15s ease, stroke-width .15s ease;pointer-events:none;}
+.venn-forma.venn-atenuado{opacity:.3;}
+.venn-forma.venn-ativa{stroke-width:3px;}
+.venn-destaque{pointer-events:none;}
+.venn-rotulo-conjunto{font-weight:600;pointer-events:none;}
+.venn-valor{pointer-events:none;transition:opacity .15s ease;}
+.venn-valor.venn-atenuado{opacity:.35;}
 .venn-lista{position:absolute;right:6px;bottom:4px;font-size:10px;line-height:1.4;opacity:.8;
   max-width:46%;text-align:right;}
-@media (prefers-reduced-motion: reduce){.venn-forma{transition:none;}}
+@media (prefers-reduced-motion: reduce){.venn-forma,.venn-valor{transition:none;}}
 `;
+
+/** Ids únicos dos <clipPath>/<mask> (vários Venns na mesma página). */
+let contadorDeDesenhos = 0;
 
 /**
  * Maior tamanho de fonte em que o número cabe na região (0 = não cabe).
@@ -172,7 +207,8 @@ export default defineViz({
   render(ctx) {
     const { modelo, config, tema, raiz, largura, altura } = ctx;
 
-    const { conjuntos, regioes, totalPorConjunto, avisos, unidade, formato } = lerConjuntos(modelo, config);
+    const { conjuntos, regioes, totalPorConjunto, avisos, unidade, formato, medida, linhasPorRegiao } =
+      lerConjuntos(modelo, config);
     for (const aviso of avisos) ctx.avisar(aviso);
 
     if (conjuntos.length < 2) {
@@ -192,7 +228,8 @@ export default defineViz({
     const larguraUtil = Math.max(80, areaGrafico.clientWidth || largura);
     const alturaUtil = Math.max(80, areaGrafico.clientHeight || altura);
 
-    const cores = resolverCores(conjuntos, config, tema);
+    const totais = conjuntos.map((_, i) => totalPorConjunto.get(i) || 0);
+    const cores = resolverCores(conjuntos, totais, config, tema);
     const elipses = layoutDeConjuntos(conjuntos.length, {
       largura: larguraUtil,
       altura: alturaUtil,
@@ -205,92 +242,117 @@ export default defineViz({
       classe: 'venn-svg',
       atributos: { width: larguraUtil, height: alturaUtil, viewBox: `0 0 ${larguraUtil} ${alturaUtil}` },
     });
+    // Fundo transparente: garante que o <svg> receba o mouse também fora
+    // das formas (para esconder o destaque ao sair de uma região).
+    criarSvgEl('rect', {
+      pai: svg,
+      atributos: { x: 0, y: 0, width: larguraUtil, height: alturaUtil, fill: 'transparent' },
+    });
 
-    const formatar = criarFormatadorNumerico({
-      estilo: config.formatoDosNumeros || 'auto',
-      casas: Number(config.casasDecimais) || 0,
+    // Números SEMPRE formatados: o value_format da medida somada (ou
+    // inteiro, quando é contagem de itens). Nunca o número cru.
+    const formatarValor = formatadorDeValueFormat(medida ? medida.valueFormat : undefined, {
+      casas: medida ? 2 : 0,
     });
     const totalGeral = Array.from(regioes.values()).reduce((a, b) => a + b, 0);
 
+    /** Texto do Looker quando a região vem de UMA linha; senão, formatado. */
+    function textoDoLooker(mascara) {
+      const linhas = linhasPorRegiao.get(mascara);
+      if (medida && linhas && linhas.length === 1) {
+        const t = modelo.texto(linhas[0], medida.nome, undefined, '');
+        if (t !== '') return t;
+      }
+      return null;
+    }
+    function textoDoValor(mascara) {
+      const doLooker = textoDoLooker(mascara);
+      return doLooker !== null ? doLooker : formatarValor(regioes.get(mascara) || 0);
+    }
+
     // --- Formas ---
-    const opacidade = Number(config.opacidadeDoPreenchimento);
-    const espessura = Number(config.espessuraDoContorno);
-    const formas = elipses.map((elipse, i) =>
-      criarSvgEl('path', {
+    const opacidade = opacidadeDoVenn(config);
+    const formas = elipses.map((elipse, i) => {
+      const forma = criarSvgEl('path', {
         pai: svg,
         classe: 'venn-forma',
         atributos: {
           d: caminhoDaElipse(elipse),
-          transform: elipse.rotacao ? `rotate(${elipse.rotacao} ${elipse.cx} ${elipse.cy})` : null,
+          transform: transformacao(elipse),
           fill: cores[i],
-          'fill-opacity': Number.isFinite(opacidade) ? opacidade : 0.4,
-          stroke: cores[i],
-          'stroke-width': Number.isFinite(espessura) ? espessura : 1.5,
+          'fill-opacity': opacidade,
         },
-      })
-    );
+      });
+      aplicarContorno(forma, contornoDoConjunto(config, tema, cores[i]));
+      return forma;
+    });
 
-    // --- Números das regiões ---
-    const tooltip = config.mostrarTooltip === false ? null : criarTooltip(raiz, tema);
+    // Camada do destaque: fica ACIMA das formas e ABAIXO dos números.
+    const uid = `venn${(contadorDeDesenhos += 1)}`;
+    const defs = criarSvgEl('defs', { pai: svg });
+    elipses.forEach((elipse, i) => {
+      const recorte = criarSvgEl('clipPath', { pai: defs, atributos: { id: `${uid}-c${i}` } });
+      criarSvgEl('path', { pai: recorte, atributos: { d: caminhoDaElipse(elipse), transform: transformacao(elipse) } });
+    });
+    const camadaDoDestaque = criarSvgEl('g', { pai: svg });
+
+    // --- Números das regiões (rótulos de dados) ---
+    const rot = lerRotulos(config, tema);
+    const rotDoValor = { ...rot };
+    if (config.mostrarPercentual && rot.conteudo === 'valor') rotDoValor.conteudo = 'valorPercentual';
+    const listarFora = rot.posicao === 'fora' || rot.posicao === 'foraComLinha';
     const pequenas = [];
-    const tamanhoDoNumero = Math.max(9, Math.min(15, tema.tamanhoBase));
+    const numeros = new Map();
+    const caixas = [];
 
-    for (const [mascara, valor] of ordenarRegioes(regioes)) {
-      const posicao = posicoes.get(mascara);
-      const rotulo = rotuloDaRegiao(mascara, conjuntos);
-      const texto = montarTextoDoValor(valor, totalGeral, formatar, config);
-
-      const tamanho = tamanhoQueCabe(posicao, texto, tamanhoDoNumero);
-      if (!tamanho) {
-        pequenas.push({ rotulo, texto });
-        continue;
-      }
-
-      const alvo = criarSvgEl('circle', {
-        pai: svg,
-        classe: 'venn-regiao',
-        atributos: { cx: posicao.x, cy: posicao.y, r: 11, fill: 'transparent' },
-      });
-
-      const numero = criarSvgEl('text', {
-        pai: svg,
-        classe: 'venn-valor',
-        atributos: {
-          x: posicao.x,
-          y: posicao.y,
-          'text-anchor': 'middle',
-          'dominant-baseline': 'central',
-          'font-size': tamanho,
-          fill: corDoTextoDaRegiao(mascara, cores, config, tema),
-        },
-      });
-      definirTexto(numero, texto);
-
-      if (tooltip) {
-        ctx.eventos.on(alvo, 'pointerenter', (ev) => {
-          destacar(formas, mascara, true);
-          tooltip.mostrar(
-            { titulo: rotulo, linhas: [{ rotulo: unidade || 'Valor', valor: texto }] },
-            ev.clientX,
-            ev.clientY
-          );
+    if (rot.mostrar) {
+      for (const [mascara, valor] of ordenarRegioes(regioes)) {
+        const posicao = posicoes.get(mascara);
+        const rotulo = rotuloDaRegiao(mascara, conjuntos);
+        const textoLooker = textoDoLooker(mascara);
+        const texto = textoDoRotulo(rotDoValor, {
+          valor,
+          nome: rotulo,
+          total: totalGeral,
+          valueFormat: medida ? medida.valueFormat : undefined,
+          textoDoValor: textoLooker === null ? undefined : textoLooker,
         });
-        ctx.eventos.on(alvo, 'pointermove', (ev) => tooltip.mover(ev.clientX, ev.clientY));
-        ctx.eventos.on(alvo, 'pointerleave', () => {
-          destacar(formas, mascara, false);
-          tooltip.esconder();
+        if (texto === '') continue;
+
+        // "Esconder rótulos que se sobrepõem" ligado: encolhe até caber ou
+        // manda para a lista. Desligado: desenha no tamanho escolhido.
+        const tamanho = listarFora || !posicao ? 0 : rot.evitarColisao ? tamanhoQueCabe(posicao, texto, rot.tamanho) : rot.tamanho;
+        if (!tamanho) {
+          pequenas.push({ rotulo, texto });
+          continue;
+        }
+
+        const numero = criarSvgEl('text', {
+          pai: svg,
+          classe: 'venn-valor bl-rotulo',
+          atributos: {
+            x: posicao.x,
+            y: posicao.y,
+            'text-anchor': 'middle',
+            'dominant-baseline': 'central',
+            'data-mascara': mascara,
+          },
         });
+        definirTexto(numero, texto);
+        estilizarRotulo(numero, { ...rot, tamanho }, { corAutomatica: corDoTextoDaRegiao(mascara, cores, opacidade, tema) });
+        numeros.set(mascara, numero);
+        caixas.push({ el: numero, x: posicao.x, y: posicao.y, largura: larguraDoTexto(texto, tamanho), altura: tamanho });
       }
+      esconderColisoes(caixas, rot);
     }
 
     // --- Nomes dos conjuntos ---
     const centro = { x: larguraUtil / 2, y: alturaUtil / 2 };
-    if (config.mostrarRotulos !== false) {
+    if (rot.mostrar) {
       conjuntos.forEach((conjunto, i) => {
         const posicao = posicaoDoRotuloDoConjunto(elipses[i], centro, 6);
-        const total = totalPorConjunto.get(i) || 0;
         const texto =
-          config.mostrarTotalDoConjunto !== false ? `${conjunto.nome} (${formatar(total)})` : conjunto.nome;
+          config.mostrarTotalDoConjunto !== false ? `${conjunto.nome} (${formatarValor(totais[i])})` : conjunto.nome;
 
         const el = criarSvgEl('text', {
           pai: svg,
@@ -301,6 +363,7 @@ export default defineViz({
             'text-anchor': posicao.x < centro.x ? 'start' : 'end',
             'dominant-baseline': 'central',
             'font-size': Math.max(10, tema.tamanhoBase),
+            'font-family': tema.fonte,
             fill: cores[i],
           },
         });
@@ -308,10 +371,11 @@ export default defineViz({
       });
     }
 
-    // --- Regiões que não couberam ---
-    if (pequenas.length && config.listarRegioesPequenas !== false) {
+    // --- Regiões que não couberam (ou todas, com posição "Fora") ---
+    if (pequenas.length && (config.listarRegioesPequenas !== false || listarFora)) {
       const lista = criarEl('div', { classe: 'venn-lista', pai: areaGrafico });
-      lista.style.color = tema.textoSuave;
+      lista.style.color = rot.cor || tema.textoSuave;
+      lista.style.fontWeight = rot.negrito ? '700' : '';
       for (const { rotulo, texto } of pequenas) {
         criarEl('div', { pai: lista, texto: `${rotulo}: ${texto}` });
       }
@@ -325,49 +389,197 @@ export default defineViz({
         config,
         itens: conjuntos.map((c, i) => ({
           chave: c.nome,
-          rotulo:
-            config.mostrarTotalDoConjunto !== false
-              ? `${c.nome} (${formatar(totalPorConjunto.get(i) || 0)})`
-              : c.nome,
+          rotulo: config.mostrarTotalDoConjunto !== false ? `${c.nome} (${formatarValor(totais[i])})` : c.nome,
           cor: cores[i],
         })),
         eventos: ctx.eventos,
       });
     }
 
+    // --- Interação: hover e clique por REGIÃO (teste geométrico) ---
+    const tooltip = ctx.tooltip();
+    const mascaras = new Map(); // cache das <mask> de exclusão por região
+    let regiaoAtual = 0; // região destacada
+    let regiaoDoTooltip = 0; // região mostrada no tooltip
+
+    function conteudoDaRegiao(mascara) {
+      const rotulo = rotuloDaRegiao(mascara, conjuntos);
+      const valor = regioes.get(mascara) || 0;
+      const texto = textoDoValor(mascara);
+      const percentual = totalGeral ? formatarPercentual(valor / totalGeral, 1) : '';
+      const linhas = [{ rotulo: unidade || 'Valor', valor: texto, cor: corDaRegiao(mascara, cores) }];
+      if (percentual) linhas.push({ rotulo: 'Do total', valor: percentual });
+      return { titulo: rotulo, linhas, variaveis: { categoria: rotulo, valor: texto, serie: rotulo, percentual } };
+    }
+
+    function celulaDaRegiao(mascara) {
+      const linhas = linhasPorRegiao.get(mascara);
+      if (!linhas || linhas.length !== 1) return null;
+      const candidatas = [];
+      if (medida) candidatas.push(modelo.celula(linhas[0], medida.nome));
+      if (modelo.dimensoes[0]) candidatas.push(modelo.celula(linhas[0], modelo.dimensoes[0].nome));
+      return candidatas.find((c) => c && Array.isArray(c.links) && c.links.length) || candidatas[0] || null;
+    }
+
+    function mascaraDeExclusao(mascara) {
+      const fora = elipses.map((_, i) => i).filter((i) => !(mascara & (1 << i)));
+      if (!fora.length) return null;
+      if (!mascaras.has(mascara)) {
+        const id = `${uid}-m${mascara}`;
+        const m = criarSvgEl('mask', {
+          pai: defs,
+          atributos: { id, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: larguraUtil, height: alturaUtil },
+        });
+        criarSvgEl('rect', { pai: m, atributos: { x: 0, y: 0, width: larguraUtil, height: alturaUtil, fill: '#FFFFFF' } });
+        for (const i of fora) {
+          criarSvgEl('path', {
+            pai: m,
+            atributos: { d: caminhoDaElipse(elipses[i]), transform: transformacao(elipses[i]), fill: '#000000' },
+          });
+        }
+        mascaras.set(mascara, id);
+      }
+      return mascaras.get(mascara);
+    }
+
+    // "Destacar ao passar o mouse" (opção do núcleo, 2.6): desligada, o
+    // tooltip e o clique continuam, só o destaque some.
+    const comDestaque = config.destacarAoPassarMouse !== false;
+
+    function destacar(pedida) {
+      const mascara = comDestaque ? pedida : 0;
+      if (mascara === regiaoAtual) return;
+      regiaoAtual = mascara;
+      while (camadaDoDestaque.firstChild) camadaDoDestaque.removeChild(camadaDoDestaque.firstChild);
+      formas.forEach((forma, i) => {
+        const pertence = mascara !== 0 && (mascara & (1 << i)) !== 0;
+        forma.classList.toggle('venn-atenuado', mascara !== 0 && !pertence);
+        forma.classList.toggle('venn-ativa', pertence);
+      });
+      for (const [m, numero] of numeros) numero.classList.toggle('venn-atenuado', mascara !== 0 && m !== mascara);
+      if (!mascara) return;
+
+      // A região = interseção das elipses que a formam (recortes aninhados)
+      // menos as que não a formam (máscara preta).
+      const grupo = criarSvgEl('g', {
+        pai: camadaDoDestaque,
+        classe: 'venn-destaque',
+        atributos: { 'data-mascara': mascara },
+      });
+      let pai = grupo;
+      elipses.forEach((_, i) => {
+        if (!(mascara & (1 << i))) return;
+        pai = criarSvgEl('g', { pai, atributos: { 'clip-path': `url(#${uid}-c${i})` } });
+      });
+      const exclusao = mascaraDeExclusao(mascara);
+      criarSvgEl('rect', {
+        pai,
+        atributos: {
+          x: 0,
+          y: 0,
+          width: larguraUtil,
+          height: alturaUtil,
+          fill: corDaRegiao(mascara, cores),
+          'fill-opacity': Math.min(1, opacidade + 0.35),
+          mask: exclusao ? `url(#${exclusao})` : null,
+        },
+      });
+    }
+
+    function regiaoNoPonto(ev) {
+      const caixa = typeof svg.getBoundingClientRect === 'function' ? svg.getBoundingClientRect() : null;
+      const escalaX = caixa && caixa.width ? larguraUtil / caixa.width : 1;
+      const escalaY = caixa && caixa.height ? alturaUtil / caixa.height : 1;
+      const x = (ev.clientX - (caixa ? caixa.left : 0)) * escalaX;
+      const y = (ev.clientY - (caixa ? caixa.top : 0)) * escalaY;
+      return mascaraDoPonto(x, y, elipses);
+    }
+
+    function aoMover(ev) {
+      const mascara = regiaoNoPonto(ev);
+      const mudou = mascara !== regiaoDoTooltip;
+      regiaoDoTooltip = mascara;
+      destacar(mascara);
+      if (!tooltip) return;
+      if (!mascara) {
+        tooltip.esconder();
+      } else if (mudou || !tooltip.visivel) {
+        tooltip.mostrar(conteudoDaRegiao(mascara), ev.clientX, ev.clientY);
+      } else {
+        tooltip.mover(ev.clientX, ev.clientY);
+      }
+    }
+
+    ctx.eventos.on(svg, 'pointermove', aoMover);
+    ctx.eventos.on(svg, 'pointerenter', aoMover);
+    ctx.eventos.on(svg, 'pointerleave', () => {
+      regiaoDoTooltip = 0;
+      destacar(0);
+      if (tooltip) tooltip.esconder();
+    });
+    ctx.eventos.on(svg, 'click', (ev) => {
+      const mascara = regiaoNoPonto(ev);
+      if (!mascara) return;
+      destacar(mascara);
+      ctx.cliqueNoItem(ev, celulaDaRegiao(mascara), conteudoDaRegiao(mascara));
+    });
+
     if (config.modoDebug) {
       ctx.avisar(`formato detectado: ${formato}; ${regioes.size} região(ões).`);
     }
-
-    ctx.estado.tooltip = tooltip;
-  },
-
-  aoDestruir({ estado }) {
-    if (estado && estado.tooltip) estado.tooltip.destruir();
   },
 });
 
-/** Realça as formas de uma região ao passar o mouse. */
-function destacar(formas, mascara, ligado) {
-  formas.forEach((forma, i) => {
-    const pertence = (mascara & (1 << i)) !== 0;
-    forma.classList.toggle('venn-apagado', ligado && !pertence);
-    forma.setAttribute('stroke-width', ligado && pertence ? 3 : forma.dataset.espessura || 1.5);
-  });
+/** Rotação da elipse no SVG (null quando não gira). */
+function transformacao(elipse) {
+  return elipse.rotacao ? `rotate(${elipse.rotacao} ${elipse.cx} ${elipse.cy})` : null;
 }
 
-function montarTextoDoValor(valor, totalGeral, formatar, config) {
-  const base = formatar(valor);
-  if (!config.mostrarPercentual || !totalGeral) return base;
-  return `${base} (${formatarPercentual(valor / totalGeral, 0)})`;
+/**
+ * Opacidade do preenchimento. O Venn tem DUAS opções com esse nome: a do
+ * bloco de cores (`opacidade`, padrão 1) e a própria
+ * (`opacidadeDoPreenchimento`, padrão 0,4, a que sempre valeu). Nenhum id
+ * pode sumir; então a geral vale quando o usuário a tira do padrão, e a
+ * própria vale no resto.
+ */
+function opacidadeDoVenn(config) {
+  const limitar = (v) => Math.max(0, Math.min(1, v));
+  const geral = Number(config.opacidade);
+  if (Number.isFinite(geral) && geral !== 1) return limitar(geral);
+  const propria = Number(config.opacidadeDoPreenchimento);
+  return Number.isFinite(propria) ? limitar(propria) : 0.4;
+}
+
+/**
+ * Contorno de cada conjunto. "Cor do contorno" deixada no padrão do painel
+ * (#FFFFFF) significa "automática": a cor do próprio conjunto, que é o que
+ * deixa as sobreposições legíveis com preenchimento translúcido.
+ */
+function contornoDoConjunto(config, tema, corDoConjunto) {
+  const escolhida = String(config.corDoContorno || '').trim();
+  const automatica = !escolhida || escolhida.toUpperCase() === '#FFFFFF';
+  return lerContorno({ ...config, corDoContorno: automatica ? '' : escolhida }, tema, { corPadrao: corDoConjunto });
+}
+
+/** Cor da região: média das cores dos conjuntos que a formam. */
+function corDaRegiao(mascara, cores) {
+  const rgbs = [];
+  cores.forEach((cor, i) => {
+    if (mascara & (1 << i)) {
+      const rgb = corParaRgb(cor);
+      if (rgb) rgbs.push(rgb);
+    }
+  });
+  if (!rgbs.length) return cores[0] || '#94A3B8';
+  const media = [0, 1, 2].map((k) => Math.round(rgbs.reduce((a, c) => a + c[k], 0) / rgbs.length));
+  return `rgb(${media[0]},${media[1]},${media[2]})`;
 }
 
 /** Texto escuro ou claro conforme o fundo da região. */
-function corDoTextoDaRegiao(mascara, cores, config, tema) {
+function corDoTextoDaRegiao(mascara, cores, opacidade, tema) {
   const indices = [];
   for (let i = 0; i < cores.length; i++) if (mascara & (1 << i)) indices.push(i);
   if (indices.length !== 1) return tema.texto;
-  const opacidade = Number(config.opacidadeDoPreenchimento);
   // Com preenchimento fraco, o fundo manda; com forte, a cor da região.
   if (!Number.isFinite(opacidade) || opacidade < 0.55) return tema.texto;
   return textoLegivelSobre(cores[indices[0]], tema);
@@ -378,10 +590,35 @@ function ordenarRegioes(regioes) {
   return Array.from(regioes.entries()).sort((a, b) => b[1] - a[1]);
 }
 
-function resolverCores(conjuntos, config, tema) {
-  const paleta = coresDaPaleta(config.paleta);
-  return conjuntos.map((conjunto, i) => {
-    const escolhida = config[`cor_${sanitizarChave(conjunto.nome)}`];
-    return escolhida || paleta[i % paleta.length] || tema.texto;
-  });
+/**
+ * Cores dos conjuntos conforme "Como colorir":
+ *   - categoria (padrão): cor própria do conjunto, se o usuário escolheu;
+ *     senão a paleta (respeitando "Inverter ordem das cores");
+ *   - única: todos com a "Cor única";
+ *   - valor: escala contínua pelo total de cada conjunto.
+ */
+function resolverCores(conjuntos, totais, config, tema) {
+  const modo = config.modoDeCor || 'categoria';
+  if (modo === 'unica' || modo === 'valor') {
+    const escala = escalaDeCores({ chaves: conjuntos.map((c) => c.nome), valores: totais, config, tema });
+    return conjuntos.map((_, i) => escala.cor(totais[i]));
+  }
+  const paleta = paletaDoConfig(config);
+  return conjuntos.map((conjunto, i) => corPropria(config, i, conjunto.nome) || paleta[i % paleta.length] || tema.texto);
+}
+
+/**
+ * Cor própria do conjunto (opção dinâmica `cor_<nome>`). O default dessa
+ * opção é a cor da paleta naquela posição, e o config chega com os defaults
+ * preenchidos — então um valor igual à cor de QUALQUER paleta na mesma
+ * posição não é escolha do usuário, e a paleta (com a inversão) manda.
+ */
+function corPropria(config, indice, nome) {
+  const valor = String(config[`cor_${sanitizarChave(nome)}`] || '').trim();
+  if (!valor) return '';
+  for (const item of opcoesDePaleta()) {
+    const cores = coresDaPaleta(Object.values(item)[0]);
+    if (cores.length && String(cores[indice % cores.length]).toUpperCase() === valor.toUpperCase()) return '';
+  }
+  return valor;
 }
