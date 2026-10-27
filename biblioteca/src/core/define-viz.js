@@ -29,7 +29,14 @@
 import { registrarVisualizacao, criarPonte, recursosDoLooker } from './looker-adapter.js';
 import { construirModelo, validarModelo } from './data-model.js';
 import { resolverTema } from './theme.js';
-import { aplicarConfiguracaoJson } from './options-kit.js';
+import { aplicarConfiguracaoJson, normalizarConfig, compararChaves } from './options-kit.js';
+import {
+  esconderTooltipsDe,
+  destruirTooltipsDe,
+  configurarTooltipsDe,
+  criarTooltip,
+  executarAcaoDoClique,
+} from './tooltip.js';
 import {
   criarEl,
   limpar,
@@ -152,6 +159,7 @@ export function defineViz(declaracao) {
         /* ignora */
       }
       limparPendencias(this._bl);
+      destruirTooltipsDe(this._bl.raiz);
       if (this._bl.cancelarObservador) this._bl.cancelarObservador();
       this._bl = null;
     },
@@ -181,33 +189,47 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   }
   const bl = this._bl;
 
-  // Limpa o que ficou da renderização anterior.
+  // Limpa o que ficou da renderização anterior (inclusive tooltip aberto).
   limparPendencias(bl);
+  esconderTooltipsDe(bl.raiz);
   bl.avisoEl.style.display = 'none';
   definirTexto(bl.avisoEl, '');
 
-  // Config final: a do painel + o JSON colado no bloco Avançado.
-  const configFinal = aplicarConfiguracaoJson(Object.assign({}, config || {}));
+  // Config final: a do painel, com os defaults das chaves que o Looker não
+  // mandou e os tipos corrigidos (normalizarConfig), + o JSON do Avançado.
+  let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
   const tema = resolverTema(configFinal);
 
   // Modelo de dados.
   const modelo = construirModelo(data, queryResponse, configFinal, ponte);
 
-  if (configFinal.modoDebug) {
-    escreverDebug(id, { modelo, configFinal, queryResponse, data });
-  }
-
   // Opções dinâmicas (uma por campo/série), se o gráfico quiser.
   if (typeof opcoesDinamicas === 'function') {
     try {
       const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-      if (dinamicas && Object.keys(dinamicas).length) ponte.registrarOpcoes(dinamicas);
+      if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+        // Opções novas no painel: os defaults delas valem já neste desenho.
+        configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
+      }
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn(`[${id}] falha ao montar opções dinâmicas:`, e && e.message);
       }
     }
   }
+
+  if (configFinal.modoDebug) {
+    escreverDebug(id, {
+      modelo,
+      configFinal,
+      queryResponse,
+      data,
+      chaves: compararChaves(config, ponte.opcoesAtuais()),
+    });
+  }
+
+  // O tooltip único do gráfico passa a usar o config desta atualização.
+  configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
 
   // Cabeçalho (título/subtítulo).
   aplicarCabecalho(bl, configFinal, tema);
@@ -243,6 +265,25 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
     limparRaiz() {
       limpar(bl.area);
     },
+    /** O tooltip ÚNICO deste gráfico (null se o usuário desligou). */
+    tooltip() {
+      return configFinal.mostrarTooltip === false ? null : criarTooltip(bl.raiz, tema);
+    },
+    /**
+     * Clique num item: aplica a "Ação do clique" (drill do Looker, fixar o
+     * tooltip ou nada). `conteudo` é o do tooltip, para fixar mesmo
+     * quando o tooltip ainda não estava aberto.
+     */
+    cliqueNoItem(evento, celula, conteudo) {
+      return executarAcaoDoClique({
+        evento,
+        celula,
+        tooltip: configFinal.mostrarTooltip === false ? null : criarTooltip(bl.raiz, tema),
+        ponte,
+        config: configFinal,
+        conteudo,
+      });
+    },
     avisar(mensagem) {
       mostrarAviso(bl, tema, mensagem);
     },
@@ -268,6 +309,7 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
      */
     redesenhar() {
       limparPendencias(bl);
+      esconderTooltipsDe(bl.raiz);
       bl.avisoEl.style.display = 'none';
       definirTexto(bl.avisoEl, '');
       try {
@@ -292,6 +334,7 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
     ctx.largura = tamanho.largura;
     ctx.altura = tamanho.altura;
     bl.eventos.limpar();
+    esconderTooltipsDe(bl.raiz);
     try {
       render(ctx);
     } catch (e) {
@@ -359,8 +402,11 @@ function mostrarEstadoVazio(bl, tema, mensagem) {
   caixa.style.color = tema.textoSuave;
 }
 
-function escreverDebug(id, { modelo, configFinal, queryResponse, data }) {
+function escreverDebug(id, { modelo, configFinal, queryResponse, data, chaves }) {
   if (typeof console === 'undefined' || !console.log) return;
+  // Chaves registradas x recebidas: mostra no Looker real se uma opção
+  // "sem efeito" nem está chegando no config.
+  console.log(`[${id}] debug — chaves do config`, chaves);
   const primeiraLinha = data && data.length ? data[0] : null;
   console.log(`[${id}] modo debug`, {
     recursosDoLooker: recursosDoLooker(),

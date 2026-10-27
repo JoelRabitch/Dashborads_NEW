@@ -338,6 +338,7 @@ export function blocoDePontosELinhas(opcoes = {}) {
         { rotulo: 'Losango', valor: 'losango' },
         { rotulo: 'Cruz', valor: 'cruz' },
         { rotulo: 'Estrela', valor: 'estrela' },
+        { rotulo: 'Wye (Y)', valor: 'wye' },
       ]),
     };
     bloco.tamanhoDoPonto = {
@@ -880,10 +881,10 @@ export function blocoDeTooltip(opcoes = {}) {
     },
     modeloDeTooltip: {
       type: 'string',
-      label: 'Modelo do tooltip (use {{nome_do_campo}})',
+      label: 'Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão',
       section: secao,
       default: '',
-      placeholder: '{{loja}}: {{vendas}}',
+      placeholder: '<b>{{categoria}}</b><br>{{valor}}',
     },
     tooltipComNomeCompleto: {
       type: 'boolean',
@@ -896,6 +897,60 @@ export function blocoDeTooltip(opcoes = {}) {
       label: 'Mostrar também o valor sem formatação',
       section: secao,
       default: false,
+    },
+    // Novas nas correções v2 (módulo 2.3).
+    acaoDoClique: {
+      type: 'string',
+      label: 'Ação do clique (Shift+clique sempre fixa; Esc solta)',
+      section: secao,
+      display: 'select',
+      default: 'drill',
+      values: listaDeValores([
+        { rotulo: 'Drill do Looker', valor: 'drill' },
+        { rotulo: 'Fixar tooltip', valor: 'fixar' },
+        { rotulo: 'Nenhuma', valor: 'nenhuma' },
+      ]),
+    },
+    permitirHtmlDoLooker: {
+      type: 'boolean',
+      label: 'Permitir HTML do Looker nas variáveis do tooltip',
+      section: secao,
+      default: false,
+    },
+    corDeFundoDoTooltip: {
+      type: 'string',
+      label: 'Cor de fundo do tooltip (vazio = do tema)',
+      section: secao,
+      display: 'color',
+      default: '',
+      display_size: 'half',
+    },
+    corDaBordaDoTooltip: {
+      type: 'string',
+      label: 'Cor da borda do tooltip',
+      section: secao,
+      display: 'color',
+      default: '',
+      display_size: 'half',
+    },
+    corDoTextoDoTooltip: {
+      type: 'string',
+      label: 'Cor do texto do tooltip (vazio = do tema)',
+      section: secao,
+      display: 'color',
+      default: '',
+      display_size: 'half',
+    },
+    tamanhoDoTooltip: {
+      type: 'number',
+      label: 'Tamanho da fonte do tooltip (px)',
+      section: secao,
+      display: 'range',
+      min: 9,
+      max: 20,
+      step: 1,
+      default: 11,
+      display_size: 'half',
     },
   };
 }
@@ -1222,6 +1277,59 @@ export function sanitizarChave(texto) {
     .replace(/[^a-zA-Z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '')
     .slice(0, 40);
+}
+
+/**
+ * Normaliza o `config` que o Looker entrega (módulo 2.1 das correções).
+ *
+ * O Looker real NÃO garante que todas as chaves registradas venham no
+ * config: num dashboard salvo antes de uma opção existir, ou quando o
+ * usuário nunca mexeu nela, a chave pode faltar. E valores podem chegar
+ * como texto ("14", "true"). Aqui:
+ *   - chave ausente (undefined) recebe o `default` declarado;
+ *   - `type: 'number'` em texto vira número (texto vazio vira null);
+ *   - `type: 'boolean'` em texto ("true"/"false") vira boolean;
+ *   - `false`, `0` e '' que o usuário escolheu são PRESERVADOS.
+ * Chaves que não são opções registradas passam intactas.
+ */
+export function normalizarConfig(config, opcoes) {
+  const saida = Object.assign({}, config || {});
+  for (const [chave, opcao] of Object.entries(opcoes || {})) {
+    if (!opcao || typeof opcao !== 'object') continue;
+    let v = saida[chave];
+    if (v === undefined) {
+      if (opcao.default !== undefined) saida[chave] = opcao.default;
+      continue;
+    }
+    if (opcao.type === 'number' && typeof v === 'string') {
+      const t = v.trim();
+      const n = Number(t);
+      saida[chave] = t === '' ? null : Number.isFinite(n) ? n : opcao.default !== undefined ? opcao.default : null;
+    } else if (opcao.type === 'boolean' && typeof v === 'string') {
+      v = v.trim().toLowerCase();
+      if (v === 'true') saida[chave] = true;
+      else if (v === 'false' || v === '') saida[chave] = false;
+    }
+  }
+  return saida;
+}
+
+/**
+ * Relatório do modo debug: chaves registradas no painel x chaves que
+ * chegaram no config. É o que permite ver, no Looker real, se uma opção
+ * "não tem efeito" porque o valor nem chega.
+ */
+export function compararChaves(config, opcoes) {
+  const registradas = Object.keys(opcoes || {});
+  const recebidas = Object.keys(config || {});
+  const setRecebidas = new Set(recebidas);
+  const setRegistradas = new Set(registradas);
+  return {
+    registradas: registradas.length,
+    recebidas: recebidas.length,
+    faltandoNoConfig: registradas.filter((k) => !setRecebidas.has(k)),
+    foraDoPainel: recebidas.filter((k) => !setRegistradas.has(k)),
+  };
 }
 
 /**

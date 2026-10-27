@@ -2737,3 +2737,47 @@ PRÓXIMA AÇÃO EXATA: A.1 — gerar `docs/opcoes/<id>.antes.json` para os 22.
 
 PRÓXIMA AÇÃO EXATA: 6.1 — `src/core/rotulos.js` + normalização do config
 em define-viz + assinatura na instância; depois aplicar nos 21 gráficos.
+
+### Núcleo das correções (2.1, 2.3, 2.4) — etapa 1 de 2 (concluída)
+Feito no núcleo, uma vez só:
+- `core/rotulos.js` (NOVO): `lerRotulos`, `textoDoRotulo`,
+  `formatadorDoRotulo`, `estilizarRotulo`, `criarRotuloSvg`,
+  `esconderColisoes`, `posicaoEfetiva`. Lê o config a cada desenho e trata
+  `false`/`0`/'' como valores de verdade.
+- `options-kit.normalizarConfig`: chave ausente recebe o default declarado;
+  número/boolean em texto são convertidos. `define-viz` normaliza o config
+  em toda atualização (antes e depois de registrar opções dinâmicas).
+- Modo debug: escreve no console "chaves do config" (registradas x
+  recebidas, faltando no config, fora do painel).
+- `looker-adapter`: assinatura do registerOptions na instância (só
+  registra quando a lista muda).
+- `core/tooltip.js` reescrito: UM tooltip por gráfico (WeakMap pelo
+  `.bl-raiz`), escondido em pointerleave/scroll/redesenho e removido no
+  destroy; fixar/soltar (clique fora, Esc); `executarAcaoDoClique`;
+  modelo do usuário seguro (b/i/br/span sem atributos, variáveis por
+  textContent); HTML do Looker filtrado nó a nó com "Permitir HTML do
+  Looker"; estilo configurável. `ctx.tooltip()` e `ctx.cliqueNoItem()`
+  novos no define-viz.
+- Opções NOVAS (ids novos, nenhum antigo mudou): `acaoDoClique`,
+  `permitirHtmlDoLooker`, `corDeFundoDoTooltip`, `corDaBordaDoTooltip`,
+  `corDoTextoDoTooltip`, `tamanhoDoTooltip`.
+- **Decisão (2.3):** o modelo `modeloDeTooltip` passa a valer sempre que
+  estiver preenchido (o prompt: "campo vazio usa o tooltip padrão"). O
+  interruptor antigo `tooltipPersonalizado` continua existindo (não pode
+  ser removido), mas não é mais necessário ligá-lo.
+- `shapes.js`: forma `wye`, `formaDoMarcador`, `criarMarcadorSvg` (a função
+  única de marcadores), também no canvas.
+- **Decisão (2.2):** `corDeFundo`, `corDoTexto`, `corDaBorda` e
+  `corDaGrade` valem em QUALQUER tema quando preenchidas (antes só com
+  tema "personalizado" — quem escolhia a cor da grade sem trocar o tema não
+  via efeito). Vazio = cor do tema.
+- **Defeito achado:** formato "Compacto" usava o `s` do d3 (algarismos
+  significativos): 1,5 mi com 1 casa saía "2M". Agora casas fixas.
+
+Testes (`test/nucleo_correcoes.test.mjs`, 7): rodados contra os bundles
+ANTIGOS (`BL_DIST=tmp/dist_antigo`) os de registerOptions e de tooltip
+FALHAM (5 tooltips no DOM no barras_ranking_denso; registerOptions a cada
+update); nos novos passam. `npm test` 532/532; segurança sem violação.
+
+PRÓXIMA AÇÃO EXATA: aplicar rótulos (2.1), contorno/cores (2.2),
+`ctx.cliqueNoItem` (2.3) e `criarMarcadorSvg` (2.4) gráfico a gráfico.

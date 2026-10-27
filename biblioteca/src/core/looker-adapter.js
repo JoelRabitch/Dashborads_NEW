@@ -94,10 +94,10 @@ export function registrarVisualizacao(definicaoCrua) {
  * @param {object} opcoesEstaticas as `options` declaradas pelo gráfico
  */
 export function criarPonte(instancia, opcoesEstaticas) {
-  // Guarda a assinatura das últimas opções dinâmicas registradas, para não
-  // ficar chamando registerOptions em todo update (risco de loop).
-  let assinaturaDasOpcoes = null;
-
+  // A assinatura das últimas opções registradas mora na INSTÂNCIA, não aqui:
+  // a ponte é recriada a cada updateAsync, e uma variável local zerava a
+  // cada atualização — o registerOptions disparava em TODO update (defeito
+  // achado nas correções v2, ver LOG). Só registra quando a lista muda.
   const ponte = {
     /** Limpa erros exibidos pelo Looker (se o método existir). */
     limparErros() {
@@ -150,11 +150,17 @@ export function criarPonte(instancia, opcoesEstaticas) {
       }
       const dinamicas = opcoesDinamicas || {};
       const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + '|' + JSON.stringify(dinamicas);
-      if (assinatura === assinaturaDasOpcoes) return false;
-      assinaturaDasOpcoes = assinatura;
+      if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
+      instancia._blAssinaturaDasOpcoes = assinatura;
       const completas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+      instancia._blOpcoesRegistradas = completas;
       instancia.trigger('registerOptions', completas);
       return true;
+    },
+
+    /** Opções que o painel tem agora (estáticas + dinâmicas registradas). */
+    opcoesAtuais() {
+      return (instancia && instancia._blOpcoesRegistradas) || opcoesEstaticas || {};
     },
 
     /**

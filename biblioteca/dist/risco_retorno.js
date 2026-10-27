@@ -1,7 +1,7 @@
 /*!
  * Risco x Retorno — visualização customizada para o Looker
  * id: risco_retorno
- * versão: 0.1.0 | build: 2026-10-27 13:34:47 | commit: c9e7506
+ * versão: 0.1.0 | build: 2026-10-27 13:43:57 | commit: 56310e0
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -55,7 +55,6 @@
     return false;
   }
   function criarPonte(instancia, opcoesEstaticas) {
-    let assinaturaDasOpcoes = null;
     const ponte = {
       /** Limpa erros exibidos pelo Looker (se o método existir). */
       limparErros() {
@@ -106,11 +105,16 @@
         }
         const dinamicas = opcoesDinamicas || {};
         const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
-        if (assinatura === assinaturaDasOpcoes) return false;
-        assinaturaDasOpcoes = assinatura;
+        if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
+        instancia._blAssinaturaDasOpcoes = assinatura;
         const completas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
+        instancia._blOpcoesRegistradas = completas;
         instancia.trigger("registerOptions", completas);
         return true;
+      },
+      /** Opções que o painel tem agora (estáticas + dinâmicas registradas). */
+      opcoesAtuais() {
+        return instancia && instancia._blOpcoesRegistradas || opcoesEstaticas || {};
       },
       /**
        * Tenta PERSISTIR mudanças de configuração feitas pela própria viz
@@ -589,7 +593,7 @@
     let base;
     switch (estilo) {
       case "compacto":
-        base = (n) => trocarSufixosSI(format(`${sep}.${Math.max(1, casasSeguras)}s`)(n));
+        base = (n) => formatarCompacto(n, casasSeguras, sep);
         break;
       case "moeda":
         base = (n) => simboloDaMoeda + format(`${sep}.${casasSeguras}f`)(n);
@@ -614,8 +618,18 @@
       return prefixo + base(n) + sufixo;
     };
   }
-  function trocarSufixosSI(texto) {
-    return texto.replace(/G$/, "B").replace(/k$/, "K").replace(/µ/, "u");
+  function formatarCompacto(n, casas, sep) {
+    const abs = Math.abs(n);
+    const sufixos = [
+      [1e12, "T"],
+      [1e9, "B"],
+      [1e6, "M"],
+      [1e3, "K"]
+    ];
+    for (const [limite, sufixo] of sufixos) {
+      if (abs >= limite) return format(`${sep}.${casas}f`)(n / limite) + sufixo;
+    }
+    return Number.isInteger(n) ? format(`${sep}d`)(n) : format(`${sep}.${casas}f`)(n);
   }
   var formatarCurto = criarFormatadorNumerico({ estilo: "compacto", casas: 1 });
   function paraData(valor) {
@@ -1725,15 +1739,15 @@
   function resolverTema(config = {}) {
     const base = config.tema === "escuro" ? TEMA_ESCURO : TEMA_CLARO;
     const tema = { ...base };
-    if (config.tema === "personalizado") {
-      if (config.corDeFundo) tema.fundo = config.corDeFundo;
-      if (config.corDoTexto) tema.texto = config.corDoTexto;
-      if (config.corDaBorda) tema.borda = config.corDaBorda;
-      if (config.corDaGrade) tema.grade = config.corDaGrade;
-      if (config.corDeDestaque) tema.destaque = config.corDeDestaque;
-    } else {
-      if (config.corDeFundo) tema.fundo = config.corDeFundo;
+    const preenchida = (v) => typeof v === "string" && v.trim() !== "";
+    if (preenchida(config.corDeFundo)) tema.fundo = config.corDeFundo;
+    if (preenchida(config.corDoTexto)) {
+      tema.texto = config.corDoTexto;
+      tema.textoSuave = config.corDoTexto;
     }
+    if (preenchida(config.corDaBorda)) tema.borda = config.corDaBorda;
+    if (preenchida(config.corDaGrade)) tema.grade = config.corDaGrade;
+    if (preenchida(config.corDeDestaque)) tema.destaque = config.corDeDestaque;
     tema.fonte = FAMILIAS_DE_FONTE[config.familiaDaFonte] || FAMILIAS_DE_FONTE.sistema;
     tema.tamanhoBase = Number(config.tamanhoDaFonte) || METRICAS.fonte.md;
     tema.metricas = METRICAS;
@@ -2195,10 +2209,10 @@
       },
       modeloDeTooltip: {
         type: "string",
-        label: "Modelo do tooltip (use {{nome_do_campo}})",
+        label: "Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padr\xE3o",
         section: secao,
         default: "",
-        placeholder: "{{loja}}: {{vendas}}"
+        placeholder: "<b>{{categoria}}</b><br>{{valor}}"
       },
       tooltipComNomeCompleto: {
         type: "boolean",
@@ -2211,6 +2225,60 @@
         label: "Mostrar tamb\xE9m o valor sem formata\xE7\xE3o",
         section: secao,
         default: false
+      },
+      // Novas nas correções v2 (módulo 2.3).
+      acaoDoClique: {
+        type: "string",
+        label: "A\xE7\xE3o do clique (Shift+clique sempre fixa; Esc solta)",
+        section: secao,
+        display: "select",
+        default: "drill",
+        values: listaDeValores([
+          { rotulo: "Drill do Looker", valor: "drill" },
+          { rotulo: "Fixar tooltip", valor: "fixar" },
+          { rotulo: "Nenhuma", valor: "nenhuma" }
+        ])
+      },
+      permitirHtmlDoLooker: {
+        type: "boolean",
+        label: "Permitir HTML do Looker nas vari\xE1veis do tooltip",
+        section: secao,
+        default: false
+      },
+      corDeFundoDoTooltip: {
+        type: "string",
+        label: "Cor de fundo do tooltip (vazio = do tema)",
+        section: secao,
+        display: "color",
+        default: "",
+        display_size: "half"
+      },
+      corDaBordaDoTooltip: {
+        type: "string",
+        label: "Cor da borda do tooltip",
+        section: secao,
+        display: "color",
+        default: "",
+        display_size: "half"
+      },
+      corDoTextoDoTooltip: {
+        type: "string",
+        label: "Cor do texto do tooltip (vazio = do tema)",
+        section: secao,
+        display: "color",
+        default: "",
+        display_size: "half"
+      },
+      tamanhoDoTooltip: {
+        type: "number",
+        label: "Tamanho da fonte do tooltip (px)",
+        section: secao,
+        display: "range",
+        min: 9,
+        max: 20,
+        step: 1,
+        default: 11,
+        display_size: "half"
       }
     };
   }
@@ -2345,6 +2413,39 @@
       saida[chave] = Object.assign({}, saida[chave], { default: valor });
     }
     return saida;
+  }
+  function normalizarConfig(config, opcoes) {
+    const saida = Object.assign({}, config || {});
+    for (const [chave, opcao] of Object.entries(opcoes || {})) {
+      if (!opcao || typeof opcao !== "object") continue;
+      let v = saida[chave];
+      if (v === void 0) {
+        if (opcao.default !== void 0) saida[chave] = opcao.default;
+        continue;
+      }
+      if (opcao.type === "number" && typeof v === "string") {
+        const t = v.trim();
+        const n = Number(t);
+        saida[chave] = t === "" ? null : Number.isFinite(n) ? n : opcao.default !== void 0 ? opcao.default : null;
+      } else if (opcao.type === "boolean" && typeof v === "string") {
+        v = v.trim().toLowerCase();
+        if (v === "true") saida[chave] = true;
+        else if (v === "false" || v === "") saida[chave] = false;
+      }
+    }
+    return saida;
+  }
+  function compararChaves(config, opcoes) {
+    const registradas = Object.keys(opcoes || {});
+    const recebidas = Object.keys(config || {});
+    const setRecebidas = new Set(recebidas);
+    const setRegistradas = new Set(registradas);
+    return {
+      registradas: registradas.length,
+      recebidas: recebidas.length,
+      faltandoNoConfig: registradas.filter((k) => !setRecebidas.has(k)),
+      foraDoPainel: recebidas.filter((k) => !setRegistradas.has(k))
+    };
   }
   function aplicarConfiguracaoJson(config) {
     if (!config || !config.aplicarConfiguracaoJson || !config.configuracaoJson) return config;
@@ -2486,6 +2587,336 @@
     else clearTimeout(id);
   }
 
+  // src/core/tooltip.js
+  var CSS_TOOLTIP = `
+.bl-tooltip{position:fixed;z-index:2147483000;pointer-events:none;max-width:320px;
+  padding:6px 9px;border-radius:6px;font-size:11px;line-height:1.5;border:1px solid transparent;
+  box-shadow:0 6px 18px rgba(15,23,42,.25);opacity:0;transition:opacity .12s ease;}
+.bl-tooltip.bl-visivel{opacity:1;}
+.bl-tooltip.bl-fixo{box-shadow:0 0 0 2px rgba(66,118,190,.55),0 6px 18px rgba(15,23,42,.25);}
+.bl-tooltip-linha{display:flex;gap:8px;justify-content:space-between;white-space:nowrap;}
+.bl-tooltip-rotulo{opacity:.75;}
+.bl-tooltip-valor{font-weight:600;}
+.bl-tooltip-titulo{font-weight:700;margin-bottom:3px;}
+.bl-tooltip-chip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
+.bl-tooltip-dica{opacity:.6;font-size:.9em;margin-top:3px;}
+`;
+  var registro = /* @__PURE__ */ new WeakMap();
+  var contextos = /* @__PURE__ */ new WeakMap();
+  var TAGS_DO_MODELO = /* @__PURE__ */ new Set(["b", "i", "br", "span"]);
+  var TAGS_DO_HTML_DO_LOOKER = /* @__PURE__ */ new Set(["b", "i", "br", "span", "strong", "em", "p", "div", "u", "small"]);
+  function raizDe(el) {
+    if (!el) return null;
+    if (el.classList && el.classList.contains("bl-raiz")) return el;
+    return el.closest && el.closest(".bl-raiz") || el;
+  }
+  function configurarTooltipsDe(raiz, { config, ponte } = {}) {
+    const r = raizDe(raiz);
+    if (!r) return;
+    contextos.set(r, { config: config || {}, ponte: ponte || null });
+    const t = registro.get(r);
+    if (t) t.aplicarEstilo();
+  }
+  function esconderTooltipsDe(raiz) {
+    const t = registro.get(raizDe(raiz));
+    if (t) {
+      t.soltar();
+      t.esconder();
+    }
+  }
+  function destruirTooltipsDe(raiz) {
+    const r = raizDe(raiz);
+    const t = registro.get(r);
+    if (t) t.destruir();
+    contextos.delete(r);
+  }
+  function criarTooltip(hospedeiro, tema) {
+    const raiz = raizDe(hospedeiro);
+    const existente = registro.get(raiz);
+    if (existente && existente.elemento.isConnected) {
+      existente.definirTema(tema);
+      return existente;
+    }
+    const t = construirTooltip(raiz, tema);
+    registro.set(raiz, t);
+    return t;
+  }
+  function construirTooltip(raiz, temaInicial) {
+    if (!raiz.querySelector('style[data-estilo="bl-tooltip"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-tooltip");
+      style.textContent = CSS_TOOLTIP;
+      raiz.appendChild(style);
+    }
+    const el = criarEl("div", { classe: "bl-tooltip" });
+    el.setAttribute("role", "tooltip");
+    (document.body || raiz).appendChild(el);
+    let tema = temaInicial || {};
+    let visivel = false;
+    let fixo = false;
+    let fixadoEm = 0;
+    let ultimaPosicao = { x: 0, y: 0 };
+    const removedores = [];
+    function ouvir(alvo, evento, fn, opcoes) {
+      if (!alvo || typeof alvo.addEventListener !== "function") return;
+      alvo.addEventListener(evento, fn, opcoes);
+      removedores.push(() => alvo.removeEventListener(evento, fn, opcoes));
+    }
+    function config() {
+      const c = contextos.get(raiz);
+      return c && c.config || {};
+    }
+    function aplicarEstilo() {
+      const c = config();
+      const cor = (v) => typeof v === "string" && v.trim() ? v.trim() : "";
+      el.style.background = cor(c.corDeFundoDoTooltip) || tema.tooltipFundo || "rgba(15,23,42,.94)";
+      el.style.color = cor(c.corDoTextoDoTooltip) || tema.tooltipTexto || "#F8FAFC";
+      el.style.borderColor = cor(c.corDaBordaDoTooltip) || "transparent";
+      el.style.fontFamily = tema.fonte || "";
+      const tamanho = Number(c.tamanhoDoTooltip);
+      el.style.fontSize = Number.isFinite(tamanho) && tamanho > 0 ? `${tamanho}px` : "";
+    }
+    function posicionar(clientX, clientY) {
+      ultimaPosicao = { x: clientX, y: clientY };
+      const margem = 12;
+      const larguraJanela = typeof window !== "undefined" && window.innerWidth || 1024;
+      const alturaJanela = typeof window !== "undefined" && window.innerHeight || 768;
+      const largura = el.offsetWidth || 200;
+      const altura = el.offsetHeight || 60;
+      let x = clientX + margem;
+      let y = clientY + margem;
+      if (x + largura > larguraJanela - 4) x = clientX - largura - margem;
+      if (y + altura > alturaJanela - 4) y = clientY - altura - margem;
+      el.style.left = `${Math.max(4, Math.min(x, larguraJanela - largura - 4))}px`;
+      el.style.top = `${Math.max(4, Math.min(y, alturaJanela - altura - 4))}px`;
+    }
+    function preencher(conteudo) {
+      var _a, _b;
+      limpar(el);
+      const c = config();
+      const modelo = typeof c.modeloDeTooltip === "string" ? c.modeloDeTooltip.trim() : "";
+      if (modelo) {
+        montarModelo(el, modelo, variaveisDoConteudo(conteudo), c, contextos.get(raiz));
+        return;
+      }
+      if (conteudo.titulo) criarEl("div", { classe: "bl-tooltip-titulo", texto: conteudo.titulo, pai: el });
+      if (conteudo.texto) {
+        for (const parte of String(conteudo.texto).split("\n")) criarEl("div", { texto: parte, pai: el });
+      }
+      for (const linha of conteudo.linhas || []) {
+        const l = criarEl("div", { classe: "bl-tooltip-linha", pai: el });
+        const esquerda = criarEl("span", { classe: "bl-tooltip-rotulo", pai: l });
+        if (linha.cor) {
+          const chip = criarEl("span", { classe: "bl-tooltip-chip", pai: esquerda });
+          chip.style.background = linha.cor;
+        }
+        esquerda.appendChild(document.createTextNode(String((_a = linha.rotulo) != null ? _a : "")));
+        criarEl("span", { classe: "bl-tooltip-valor", texto: (_b = linha.valor) != null ? _b : "", pai: l });
+      }
+    }
+    const api = {
+      elemento: el,
+      get visivel() {
+        return visivel;
+      },
+      get fixo() {
+        return fixo;
+      },
+      ultimoConteudo: null,
+      definirTema(novo) {
+        tema = novo || tema;
+        aplicarEstilo();
+      },
+      aplicarEstilo,
+      /**
+       * Mostra o tooltip.
+       * @param {{titulo?:string, linhas?:Array<{rotulo:string,valor:string,cor?:string}>,
+       *          texto?:string, variaveis?:object}} conteudo
+       *   `variaveis` (opcional) alimenta o modelo do usuário: categoria,
+       *   valor, serie, percentual e quaisquer outras.
+       */
+      mostrar(conteudo, clientX, clientY) {
+        if (fixo) return;
+        if (config().mostrarTooltip === false) return;
+        api.ultimoConteudo = conteudo || {};
+        preencher(api.ultimoConteudo);
+        posicionar(clientX, clientY);
+        if (!visivel) {
+          el.classList.add("bl-visivel");
+          visivel = true;
+        }
+      },
+      mover(clientX, clientY) {
+        if (visivel && !fixo) posicionar(clientX, clientY);
+      },
+      esconder() {
+        if (fixo || !visivel) return;
+        el.classList.remove("bl-visivel");
+        visivel = false;
+      },
+      /** Fixa o tooltip onde está (ou com o conteúdo dado). */
+      fixar(conteudo, clientX, clientY) {
+        if (conteudo) {
+          fixo = false;
+          api.mostrar(conteudo, clientX != null ? clientX : ultimaPosicao.x, clientY != null ? clientY : ultimaPosicao.y);
+        }
+        if (!visivel) return false;
+        fixo = true;
+        fixadoEm = Date.now();
+        el.classList.add("bl-fixo");
+        return true;
+      },
+      soltar() {
+        if (!fixo) return;
+        fixo = false;
+        el.classList.remove("bl-fixo");
+        el.classList.remove("bl-visivel");
+        visivel = false;
+      },
+      destruir() {
+        for (const r of removedores.splice(0)) r();
+        try {
+          if (el.parentNode) el.parentNode.removeChild(el);
+        } catch (_) {
+        }
+        if (registro.get(raiz) === api) registro.delete(raiz);
+        visivel = false;
+        fixo = false;
+      }
+    };
+    ouvir(raiz, "pointerleave", () => api.esconder());
+    ouvir(raiz, "mouseleave", () => api.esconder());
+    if (typeof window !== "undefined") {
+      ouvir(window, "scroll", () => {
+        api.soltar();
+        api.esconder();
+      }, true);
+    }
+    ouvir(document, "keydown", (ev) => {
+      if (ev && ev.key === "Escape") api.soltar();
+    });
+    ouvir(document, "pointerdown", () => {
+      if (fixo && Date.now() - fixadoEm > 50) api.soltar();
+    }, true);
+    aplicarEstilo();
+    return api;
+  }
+  function variaveisDoConteudo(conteudo = {}) {
+    const v = {};
+    const linhas = conteudo.linhas || [];
+    for (const l of linhas) {
+      if (!l || l.rotulo === void 0) continue;
+      const rotulo = String(l.rotulo);
+      v[rotulo] = l.valor;
+      v[rotulo.toLowerCase()] = l.valor;
+      v[normalizarNome(rotulo)] = l.valor;
+    }
+    if (conteudo.titulo !== void 0) v.categoria = conteudo.titulo;
+    const primeira = linhas.find((l) => l && l.valor !== void 0 && l.valor !== "");
+    if (primeira) v.valor = primeira.valor;
+    const comCor = linhas.find((l) => l && l.cor);
+    if (comCor) v.serie = comCor.rotulo;
+    const comPct = linhas.find((l) => l && /%\s*$/.test(String(l.valor || "")));
+    if (comPct) v.percentual = comPct.valor;
+    return Object.assign(v, conteudo.variaveis || {});
+  }
+  function normalizarNome(texto) {
+    return String(texto).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  }
+  function montarModelo(alvo, modelo, variaveis, config = {}, contexto = null) {
+    const pilha = [alvo];
+    const atual = () => pilha[pilha.length - 1];
+    const reTag = /<\s*(\/?)\s*([a-zA-Z]+)\s*(\/?)\s*>/g;
+    let fim = 0;
+    let m;
+    const textos = (trecho) => {
+      if (!trecho) return;
+      const partes = trecho.split("\n");
+      partes.forEach((p, i) => {
+        if (i > 0) atual().appendChild(document.createElement("br"));
+        inserirComVariaveis(atual(), p, variaveis, config, contexto);
+      });
+    };
+    while ((m = reTag.exec(modelo)) !== null) {
+      textos(modelo.slice(fim, m.index));
+      fim = reTag.lastIndex;
+      const nome = m[2].toLowerCase();
+      if (!TAGS_DO_MODELO.has(nome)) {
+        textos(m[0]);
+        continue;
+      }
+      if (nome === "br") {
+        atual().appendChild(document.createElement("br"));
+      } else if (m[1] === "/") {
+        if (pilha.length > 1 && atual().tagName.toLowerCase() === nome) pilha.pop();
+      } else {
+        const novo = document.createElement(nome);
+        atual().appendChild(novo);
+        if (m[3] !== "/") pilha.push(novo);
+      }
+    }
+    textos(modelo.slice(fim));
+  }
+  function inserirComVariaveis(pai, texto, variaveis, config, contexto) {
+    var _a, _b;
+    const re2 = /\{\{\s*([^}]+?)\s*\}\}/g;
+    let fim = 0;
+    let m;
+    while ((m = re2.exec(texto)) !== null) {
+      if (m.index > fim) pai.appendChild(document.createTextNode(texto.slice(fim, m.index)));
+      fim = re2.lastIndex;
+      const chave = m[1].trim();
+      const valor = (_b = (_a = variaveis[chave]) != null ? _a : variaveis[chave.toLowerCase()]) != null ? _b : variaveis[normalizarNome(chave)];
+      const celula = variaveis.__celulas && variaveis.__celulas[chave];
+      if (celula && config.permitirHtmlDoLooker && contexto && contexto.ponte) {
+        const html = contexto.ponte.htmlDaCelula(celula, { permitido: true });
+        if (html) {
+          inserirHtmlFiltrado(pai, html);
+          continue;
+        }
+      }
+      pai.appendChild(document.createTextNode(valor === null || valor === void 0 ? "" : String(valor)));
+    }
+    if (fim < texto.length) pai.appendChild(document.createTextNode(texto.slice(fim)));
+  }
+  function inserirHtmlFiltrado(pai, html) {
+    if (typeof DOMParser === "undefined") {
+      pai.appendChild(document.createTextNode(String(html)));
+      return;
+    }
+    const doc = new DOMParser().parseFromString(`<body>${html}</body>`, "text/html");
+    const copiar = (origem, destino) => {
+      for (const no of Array.from(origem.childNodes)) {
+        if (no.nodeType === 3) destino.appendChild(document.createTextNode(no.nodeValue));
+        else if (no.nodeType === 1) {
+          const nome = no.tagName.toLowerCase();
+          if (TAGS_DO_HTML_DO_LOOKER.has(nome)) {
+            const novo = document.createElement(nome);
+            destino.appendChild(novo);
+            copiar(no, novo);
+          } else {
+            copiar(no, destino);
+          }
+        }
+      }
+    };
+    copiar(doc.body, pai);
+  }
+  function executarAcaoDoClique({ evento, celula, tooltip, ponte, config = {}, conteudo }) {
+    const acao = config.acaoDoClique || "drill";
+    const x = evento && evento.clientX;
+    const y = evento && evento.clientY;
+    if (evento && evento.shiftKey) {
+      return tooltip && tooltip.fixar(conteudo, x, y) ? "fixou" : "nada";
+    }
+    if (acao === "nenhuma") return "nada";
+    if (acao === "drill" && config.permitirDrill !== false && ponte && ponte.temDrill(celula)) {
+      if (tooltip) tooltip.soltar();
+      return ponte.abrirDrill(celula, evento) ? "drill" : "nada";
+    }
+    return tooltip && tooltip.fixar(conteudo, x, y) ? "fixou" : "nada";
+  }
+
   // src/core/define-viz.js
   var CSS_BASE = `
 .bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;}
@@ -2583,6 +3014,7 @@
         } catch (_) {
         }
         limparPendencias(this._bl);
+        destruirTooltipsDe(this._bl.raiz);
         if (this._bl.cancelarObservador) this._bl.cancelarObservador();
         this._bl = null;
       }
@@ -2606,24 +3038,34 @@
     }
     const bl = this._bl;
     limparPendencias(bl);
+    esconderTooltipsDe(bl.raiz);
     bl.avisoEl.style.display = "none";
     definirTexto(bl.avisoEl, "");
-    const configFinal = aplicarConfiguracaoJson(Object.assign({}, config || {}));
+    let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
-    if (configFinal.modoDebug) {
-      escreverDebug(id, { modelo, configFinal, queryResponse, data });
-    }
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length) ponte.registrarOpcoes(dinamicas);
+        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(dinamicas)) {
+          configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
+        }
       } catch (e) {
         if (typeof console !== "undefined" && console.warn) {
           console.warn(`[${id}] falha ao montar op\xE7\xF5es din\xE2micas:`, e && e.message);
         }
       }
     }
+    if (configFinal.modoDebug) {
+      escreverDebug(id, {
+        modelo,
+        configFinal,
+        queryResponse,
+        data,
+        chaves: compararChaves(config, ponte.opcoesAtuais())
+      });
+    }
+    configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
     aplicarCabecalho(bl, configFinal, tema);
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
@@ -2650,6 +3092,25 @@
       limparRaiz() {
         limpar(bl.area);
       },
+      /** O tooltip ÚNICO deste gráfico (null se o usuário desligou). */
+      tooltip() {
+        return configFinal.mostrarTooltip === false ? null : criarTooltip(bl.raiz, tema);
+      },
+      /**
+       * Clique num item: aplica a "Ação do clique" (drill do Looker, fixar o
+       * tooltip ou nada). `conteudo` é o do tooltip, para fixar mesmo
+       * quando o tooltip ainda não estava aberto.
+       */
+      cliqueNoItem(evento, celula, conteudo) {
+        return executarAcaoDoClique({
+          evento,
+          celula,
+          tooltip: configFinal.mostrarTooltip === false ? null : criarTooltip(bl.raiz, tema),
+          ponte,
+          config: configFinal,
+          conteudo
+        });
+      },
       avisar(mensagem) {
         mostrarAviso(bl, tema, mensagem);
       },
@@ -2673,6 +3134,7 @@
        */
       redesenhar() {
         limparPendencias(bl);
+        esconderTooltipsDe(bl.raiz);
         bl.avisoEl.style.display = "none";
         definirTexto(bl.avisoEl, "");
         try {
@@ -2693,6 +3155,7 @@
       ctx.largura = tamanho.largura;
       ctx.altura = tamanho.altura;
       bl.eventos.limpar();
+      esconderTooltipsDe(bl.raiz);
       try {
         render(ctx);
       } catch (e) {
@@ -2753,8 +3216,9 @@
     const caixa = criarEl("div", { classe: "bl-vazio", pai: bl.area, texto: mensagem });
     caixa.style.color = tema.textoSuave;
   }
-  function escreverDebug(id, { modelo, configFinal, queryResponse, data }) {
+  function escreverDebug(id, { modelo, configFinal, queryResponse, data, chaves }) {
     if (typeof console === "undefined" || !console.log) return;
+    console.log(`[${id}] debug \u2014 chaves do config`, chaves);
     const primeiraLinha = data && data.length ? data[0] : null;
     console.log(`[${id}] modo debug`, {
       recursosDoLooker: recursosDoLooker(),
@@ -3670,95 +4134,6 @@
     };
   }
 
-  // src/core/tooltip.js
-  var CSS_TOOLTIP = `
-.bl-tooltip{position:fixed;z-index:2147483000;pointer-events:none;max-width:320px;
-  padding:6px 9px;border-radius:6px;font-size:11px;line-height:1.5;
-  box-shadow:0 6px 18px rgba(15,23,42,.25);opacity:0;transition:opacity .12s ease;}
-.bl-tooltip.bl-visivel{opacity:1;}
-.bl-tooltip-linha{display:flex;gap:8px;justify-content:space-between;white-space:nowrap;}
-.bl-tooltip-rotulo{opacity:.75;}
-.bl-tooltip-valor{font-weight:600;}
-.bl-tooltip-titulo{font-weight:700;margin-bottom:3px;}
-.bl-tooltip-chip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
-`;
-  function criarTooltip(hospedeiro, tema) {
-    if (!hospedeiro.querySelector('style[data-estilo="bl-tooltip"]')) {
-      const style = document.createElement("style");
-      style.setAttribute("data-estilo", "bl-tooltip");
-      style.textContent = CSS_TOOLTIP;
-      hospedeiro.appendChild(style);
-    }
-    const el = criarEl("div", { classe: "bl-tooltip" });
-    el.style.background = tema.tooltipFundo;
-    el.style.color = tema.tooltipTexto;
-    el.style.fontFamily = tema.fonte;
-    (document.body || hospedeiro).appendChild(el);
-    let visivel = false;
-    function posicionar(clientX, clientY) {
-      const margem = 14;
-      const larguraJanela = typeof window !== "undefined" && window.innerWidth || 1024;
-      const alturaJanela = typeof window !== "undefined" && window.innerHeight || 768;
-      const largura = el.offsetWidth || 200;
-      const altura = el.offsetHeight || 60;
-      let x = clientX + margem;
-      let y = clientY + margem;
-      if (x + largura > larguraJanela - 8) x = clientX - largura - margem;
-      if (y + altura > alturaJanela - 8) y = clientY - altura - margem;
-      el.style.left = `${Math.max(4, x)}px`;
-      el.style.top = `${Math.max(4, y)}px`;
-    }
-    return {
-      elemento: el,
-      /**
-       * Mostra o tooltip.
-       * @param {{titulo?:string, linhas?:Array<{rotulo:string,valor:string,cor?:string}>,
-       *          texto?:string}} conteudo
-       */
-      mostrar(conteudo, clientX, clientY) {
-        var _a, _b;
-        limpar(el);
-        if (conteudo.titulo) {
-          criarEl("div", { classe: "bl-tooltip-titulo", texto: conteudo.titulo, pai: el });
-        }
-        if (conteudo.texto) {
-          for (const parte of String(conteudo.texto).split("\n")) {
-            criarEl("div", { texto: parte, pai: el });
-          }
-        }
-        for (const linha of conteudo.linhas || []) {
-          const l = criarEl("div", { classe: "bl-tooltip-linha", pai: el });
-          const esquerda = criarEl("span", { classe: "bl-tooltip-rotulo", pai: l });
-          if (linha.cor) {
-            const chip = criarEl("span", { classe: "bl-tooltip-chip", pai: esquerda });
-            chip.style.background = linha.cor;
-          }
-          esquerda.appendChild(document.createTextNode(String((_a = linha.rotulo) != null ? _a : "")));
-          criarEl("span", { classe: "bl-tooltip-valor", texto: (_b = linha.valor) != null ? _b : "", pai: l });
-        }
-        posicionar(clientX, clientY);
-        if (!visivel) {
-          el.classList.add("bl-visivel");
-          visivel = true;
-        }
-      },
-      mover(clientX, clientY) {
-        if (visivel) posicionar(clientX, clientY);
-      },
-      esconder() {
-        if (!visivel) return;
-        el.classList.remove("bl-visivel");
-        visivel = false;
-      },
-      destruir() {
-        try {
-          if (el.parentNode) el.parentNode.removeChild(el);
-        } catch (_) {
-        }
-      }
-    };
-  }
-
   // node_modules/d3-shape/src/math.js
   var epsilon = 1e-12;
   var pi = Math.PI;
@@ -4230,7 +4605,32 @@
     step: step_default,
     stepAfter
   };
+  function pontosDoWye(r) {
+    const b = r * 0.38;
+    const pontos = [];
+    for (let k = 0; k < 3; k++) {
+      const ang = -Math.PI / 2 + k * 2 * Math.PI / 3;
+      const cx = Math.cos(ang);
+      const cy = Math.sin(ang);
+      const px = -cy;
+      const py = cx;
+      const centro = b / Math.sqrt(3);
+      pontos.push([cx * r * 1.15 - px * b, cy * r * 1.15 - py * b]);
+      pontos.push([cx * r * 1.15 + px * b, cy * r * 1.15 + py * b]);
+      const prox = ang + Math.PI / 3;
+      pontos.push([Math.cos(prox) * centro * 2, Math.sin(prox) * centro * 2]);
+    }
+    return pontos;
+  }
+  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
+  function formaDoMarcador(nome) {
+    const mapa = { circle: "circulo", square: "quadrado", triangle: "triangulo", diamond: "losango", cross: "cruz", star: "estrela", y: "wye" };
+    const n = String(nome || "").trim().toLowerCase();
+    if (FORMAS_DE_MARCADOR.includes(n)) return n;
+    return mapa[n] || "circulo";
+  }
   function desenharSimboloNoCanvas(ctx, forma, x, y, tamanho) {
+    forma = formaDoMarcador(forma);
     const r = Math.max(0.5, tamanho / 2);
     ctx.beginPath();
     switch (forma) {
@@ -4266,6 +4666,11 @@
           if (i === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         }
+        ctx.closePath();
+        break;
+      }
+      case "wye": {
+        pontosDoWye(r).forEach(([px, py], i) => i ? ctx.lineTo(x + px, y + py) : ctx.moveTo(x + px, y + py));
         ctx.closePath();
         break;
       }

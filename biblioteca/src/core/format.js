@@ -134,9 +134,10 @@ export function criarFormatadorNumerico(opcoes = {}) {
   let base;
   switch (estilo) {
     case 'compacto':
-      // `s` do d3 usa µ/k/M/G; trocamos para K/M/B/T, que é o que se espera
-      // num painel de negócios em português.
-      base = (n) => trocarSufixosSI(d3Format(`${sep}.${Math.max(1, casasSeguras)}s`)(n));
+      // K/M/B/T com CASAS DECIMAIS fixas. (Antes usava o `s` do d3, em que o
+      // número é de algarismos significativos: 1,5 mi com "1 casa" virava
+      // "2M". Corrigido nas correções v2.)
+      base = (n) => formatarCompacto(n, casasSeguras, sep);
       break;
     case 'moeda':
       base = (n) => simboloDaMoeda + d3Format(`${sep}.${casasSeguras}f`)(n);
@@ -167,12 +168,19 @@ export function criarFormatadorNumerico(opcoes = {}) {
   };
 }
 
-/** Troca os sufixos SI do d3 (k, M, G, T, µ) por K, M, B, T. */
-function trocarSufixosSI(texto) {
-  return texto
-    .replace(/G$/, 'B')
-    .replace(/k$/, 'K')
-    .replace(/µ/, 'u');
+/** 1.500.000 → "1.5M" (casas fixas; abaixo de mil, número comum). */
+function formatarCompacto(n, casas, sep) {
+  const abs = Math.abs(n);
+  const sufixos = [
+    [1e12, 'T'],
+    [1e9, 'B'],
+    [1e6, 'M'],
+    [1e3, 'K'],
+  ];
+  for (const [limite, sufixo] of sufixos) {
+    if (abs >= limite) return d3Format(`${sep}.${casas}f`)(n / limite) + sufixo;
+  }
+  return Number.isInteger(n) ? d3Format(`${sep}d`)(n) : d3Format(`${sep}.${casas}f`)(n);
 }
 
 /** Formata um número de forma curta para rótulos apertados (eixos). */

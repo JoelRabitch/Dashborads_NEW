@@ -180,16 +180,19 @@ export function resolverTema(config = {}) {
   const base = config.tema === 'escuro' ? TEMA_ESCURO : TEMA_CLARO;
   const tema = { ...base };
 
-  if (config.tema === 'personalizado') {
-    if (config.corDeFundo) tema.fundo = config.corDeFundo;
-    if (config.corDoTexto) tema.texto = config.corDoTexto;
-    if (config.corDaBorda) tema.borda = config.corDaBorda;
-    if (config.corDaGrade) tema.grade = config.corDaGrade;
-    if (config.corDeDestaque) tema.destaque = config.corDeDestaque;
-  } else {
-    // Mesmo nos temas prontos, o usuário pode sobrescrever o fundo.
-    if (config.corDeFundo) tema.fundo = config.corDeFundo;
+  // Correções v2 (módulo 2.2): as cores próprias valem SEMPRE que estiverem
+  // preenchidas, em qualquer tema. Antes só valiam com tema "personalizado",
+  // e quem escolhia a cor da grade sem trocar o tema não via efeito nenhum.
+  // Vazio continua significando "a do tema".
+  const preenchida = (v) => typeof v === 'string' && v.trim() !== '';
+  if (preenchida(config.corDeFundo)) tema.fundo = config.corDeFundo;
+  if (preenchida(config.corDoTexto)) {
+    tema.texto = config.corDoTexto;
+    tema.textoSuave = config.corDoTexto;
   }
+  if (preenchida(config.corDaBorda)) tema.borda = config.corDaBorda;
+  if (preenchida(config.corDaGrade)) tema.grade = config.corDaGrade;
+  if (preenchida(config.corDeDestaque)) tema.destaque = config.corDeDestaque;
 
   tema.fonte = FAMILIAS_DE_FONTE[config.familiaDaFonte] || FAMILIAS_DE_FONTE.sistema;
   tema.tamanhoBase = Number(config.tamanhoDaFonte) || METRICAS.fonte.md;

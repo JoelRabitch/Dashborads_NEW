@@ -111,14 +111,90 @@ export function caminhoDoSimbolo(forma, tamanho) {
       }
       return `${d}Z`;
     }
+    case 'wye':
+      return pontosDoWye(r).map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join('') + 'Z';
     case 'circulo':
     default:
       return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
   }
 }
 
+/** Contorno do "wye" (Y de três braços), centrado na origem, raio ~r. */
+function pontosDoWye(r) {
+  const b = r * 0.38; // meia largura do braço
+  const pontos = [];
+  for (let k = 0; k < 3; k++) {
+    const ang = -Math.PI / 2 + (k * 2 * Math.PI) / 3;
+    const cx = Math.cos(ang);
+    const cy = Math.sin(ang);
+    const px = -cy;
+    const py = cx;
+    const centro = b / Math.sqrt(3);
+    // lado "anterior" e "posterior" da ponta do braço, depois o canto
+    // interno até o próximo braço (no bissetor, a 2b/√3 do centro)
+    pontos.push([cx * r * 1.15 - px * b, cy * r * 1.15 - py * b]);
+    pontos.push([cx * r * 1.15 + px * b, cy * r * 1.15 + py * b]);
+    const prox = ang + Math.PI / 3;
+    pontos.push([Math.cos(prox) * centro * 2, Math.sin(prox) * centro * 2]);
+  }
+  return pontos;
+}
+
+/** Formas aceitas pela opção "Forma do ponto". */
+export const FORMAS_DE_MARCADOR = ['circulo', 'quadrado', 'triangulo', 'losango', 'cruz', 'estrela', 'wye'];
+
+/**
+ * Normaliza o nome da forma vindo do config (aceita também os nomes do
+ * d3-symbol em inglês). Desconhecido = círculo.
+ */
+export function formaDoMarcador(nome) {
+  const mapa = { circle: 'circulo', square: 'quadrado', triangle: 'triangulo', diamond: 'losango', cross: 'cruz', star: 'estrela', y: 'wye' };
+  const n = String(nome || '').trim().toLowerCase();
+  if (FORMAS_DE_MARCADOR.includes(n)) return n;
+  return mapa[n] || 'circulo';
+}
+
+/**
+ * A função ÚNICA de marcadores (módulo 2.4 das correções). Todo ponto e
+ * bolha desenha com ela em vez de `<circle>`: assim a opção "Forma do
+ * ponto" muda o desenho em todos os gráficos, na legenda e no tooltip.
+ *
+ * Sobre tamanho: `diametro` é o tamanho VISUAL (o mesmo número que o
+ * gráfico usaria como 2×raio do círculo). Formas pontudas (triângulo,
+ * estrela) ocupam menos área com o mesmo diâmetro; não compensamos por
+ * área para a forma não mudar de tamanho aparente ao trocar a opção.
+ *
+ * @returns {SVGPathElement} um <path class="bl-marcador"> com data-forma
+ */
+export function criarMarcadorSvg(pai, forma, x, y, diametro, atributos = {}) {
+  const f = formaDoMarcador(forma);
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  el.setAttribute('d', caminhoDoSimbolo(f, Math.max(1, Number(diametro) || 1)));
+  el.setAttribute('transform', `translate(${Number(x) || 0},${Number(y) || 0})`);
+  el.setAttribute('class', 'bl-marcador');
+  el.setAttribute('data-forma', f);
+  for (const [k, v] of Object.entries(atributos)) {
+    if (v === undefined || v === null) continue;
+    if (k === 'classe') el.setAttribute('class', `bl-marcador ${v}`);
+    else el.setAttribute(k, String(v));
+  }
+  if (pai) pai.appendChild(el);
+  return el;
+}
+
+/** Move um marcador já criado (para animações e arrastes). */
+export function moverMarcador(el, x, y) {
+  el.setAttribute('transform', `translate(${Number(x) || 0},${Number(y) || 0})`);
+}
+
+/** Troca o tamanho de um marcador já criado (animação de entrada). */
+export function redimensionarMarcador(el, diametro) {
+  el.setAttribute('d', caminhoDoSimbolo(el.getAttribute('data-forma') || 'circulo', Math.max(0.5, diametro)));
+}
+
 /** Desenha um símbolo direto num contexto de canvas. */
 export function desenharSimboloNoCanvas(ctx, forma, x, y, tamanho) {
+  forma = formaDoMarcador(forma);
   const r = Math.max(0.5, tamanho / 2);
   ctx.beginPath();
   switch (forma) {
@@ -154,6 +230,11 @@ export function desenharSimboloNoCanvas(ctx, forma, x, y, tamanho) {
         if (i === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
+      ctx.closePath();
+      break;
+    }
+    case 'wye': {
+      pontosDoWye(r).forEach(([px, py], i) => (i ? ctx.lineTo(x + px, y + py) : ctx.moveTo(x + px, y + py)));
       ctx.closePath();
       break;
     }
