@@ -2842,3 +2842,20 @@ Falta na tabela: aviso amarelo (2.5) e animação (2.7).
   mudou — as "duas exceções" do PROMPT não foram necessárias).
 - `test/opcoes.test.mjs`: para os 22, todo id do `.antes.json` existe com
   o mesmo tipo e default, e toda opção está numa aba padronizada. 44/44.
+
+### 2.5 Aviso amarelo — núcleo (concluído; vale para os 22)
+- Causa: o aviso era um `<div>` com `position:absolute` POR CIMA do
+  gráfico, sem botão de fechar e sem opção — cobria o botão de avançar do
+  bar_race e a rolagem, e não saía.
+- Agora (define-viz): componente único NO FLUXO — topo (entre título e
+  gráfico) ou rodapé (depois) — com botão × (o mesmo texto não volta até
+  mudar). A raiz virou flex em coluna e a área do gráfico encolhe
+  (`flex:1;min-height:0`); o ResizeObserver redesenha no espaço que sobrou.
+- Opções NOVAS em todo gráfico (aba Texto): `mostrarAvisos` (padrão
+  ligado) e `posicaoDosAvisos` (topo/rodapé/oculto).
+- Todo aviso também vai para o console (`console.warn`, uma vez por
+  mensagem), mesmo oculto.
+- Corrigido junto: o redesenho por redimensionamento repetia o aviso
+  ("x · x") porque não limpava antes de desenhar.
+- `test/avisos.test.mjs` (2): falham com o bundle antigo, passam no novo.
+- CONFERIR NO LOOKER REAL: o aviso no bar_race não cobre mais o botão.
