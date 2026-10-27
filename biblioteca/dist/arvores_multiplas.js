@@ -1,7 +1,7 @@
 /*!
  * Múltiplas Árvores — visualização customizada para o Looker
  * id: arvores_multiplas
- * versão: 0.1.0 | build: 2026-10-27 14:01:19 | commit: 442b80e
+ * versão: 0.1.0 | build: 2026-10-27 14:04:13 | commit: 6b6eeca
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -2103,6 +2103,69 @@
       }
     };
   }
+  function blocoDeInteracao(opcoes = {}) {
+    const {
+      secao = "Intera\xE7\xE3o",
+      comZoom = true,
+      comBrush = false,
+      comBusca = false,
+      comSelecao = true
+    } = opcoes;
+    const bloco = {
+      permitirDrill: {
+        type: "boolean",
+        label: "Clique abre o drill do Looker",
+        section: secao,
+        default: true
+      },
+      destacarAoPassarMouse: {
+        type: "boolean",
+        label: "Destacar ao passar o mouse",
+        section: secao,
+        default: true
+      }
+    };
+    if (comZoom) {
+      bloco.permitirZoom = { type: "boolean", label: "Permitir zoom", section: secao, default: false };
+      bloco.permitirArrastar = {
+        type: "boolean",
+        label: "Permitir arrastar (pan)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBrush) {
+      bloco.permitirBrush = {
+        type: "boolean",
+        label: "Permitir sele\xE7\xE3o por \xE1rea (brush)",
+        section: secao,
+        default: false
+      };
+    }
+    if (comBusca) {
+      bloco.mostrarBusca = {
+        type: "boolean",
+        label: "Mostrar caixa de busca",
+        section: secao,
+        default: false
+      };
+    }
+    if (comSelecao) {
+      bloco.permitirSelecao = {
+        type: "boolean",
+        label: "Permitir selecionar itens (clique)",
+        section: secao,
+        default: true
+      };
+      bloco.usarCrossfilter = {
+        type: "boolean",
+        label: "Usar cross-filter do Looker quando dispon\xEDvel",
+        section: secao,
+        default: false
+      };
+    }
+    return bloco;
+  }
   function blocoDeTema(opcoes = {}) {
     const { secao = "Tema" } = opcoes;
     return {
@@ -2571,9 +2634,47 @@
     const passo = marcas.length > 1 ? Math.min(op.cascata, op.duracao * 1.5 / marcas.length) : 0;
     marcas.forEach((el, i) => {
       const nome = el.namespaceURI === "http://www.w3.org/2000/svg" ? "bl-surgir" : "bl-surgir-html";
-      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms both`;
+      el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms backwards`;
     });
     return marcas.length;
+  }
+
+  // src/core/interaction.js
+  var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
+  var CSS_DESTAQUE = `
+.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:opacity .15s ease;}
+.bl-hover-ativo [data-item]:not(.bl-sob-mouse), .bl-hover-ativo .bl-marcador:not(.bl-sob-mouse){opacity:.3;}
+@media (prefers-reduced-motion: reduce){.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:none;}}
+`;
+  function ligarDestaqueAoPassar({ area, eventos, config = {} }) {
+    if (!area || config.destacarAoPassarMouse === false) return false;
+    const raiz = area.closest && area.closest(".bl-raiz") || area;
+    if (!raiz.querySelector('style[data-estilo="bl-destaque"]')) {
+      const style = document.createElement("style");
+      style.setAttribute("data-estilo", "bl-destaque");
+      style.textContent = CSS_DESTAQUE;
+      raiz.appendChild(style);
+    }
+    let acesos = [];
+    const apagar = () => {
+      for (const el of acesos) el.classList.remove("bl-sob-mouse");
+      acesos = [];
+      area.classList.remove("bl-hover-ativo");
+    };
+    eventos.on(area, "pointerover", (ev) => {
+      const alvo = ev.target && ev.target.closest ? ev.target.closest(SELETOR_DE_ITENS) : null;
+      if (!alvo || !area.contains(alvo)) {
+        apagar();
+        return;
+      }
+      apagar();
+      const chave = alvo.getAttribute("data-item");
+      acesos = chave ? Array.from(area.querySelectorAll("[data-item]")).filter((e) => e.getAttribute("data-item") === chave) : [alvo];
+      for (const el of acesos) el.classList.add("bl-sob-mouse");
+      area.classList.add("bl-hover-ativo");
+    });
+    eventos.on(area, "pointerleave", apagar);
+    return true;
   }
 
   // src/core/tooltip.js
@@ -3137,6 +3238,7 @@
         limparAviso(bl);
         try {
           render(ctx);
+          ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
@@ -3157,11 +3259,13 @@
       limparAviso(bl);
       try {
         render(ctx);
+        ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
     render(ctx);
+    ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     if (!animacaoPropria) {
       animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
     }
@@ -3170,6 +3274,7 @@
   function opcoesDeAnimacaoPadrao() {
     const bloco = blocoDeAnimacao({ secao: "Anima\xE7\xE3o" });
     delete bloco.contadorAnimado;
+    bloco.destacarAoPassarMouse = blocoDeInteracao({ comZoom: false, comSelecao: false }).destacarAoPassarMouse;
     return bloco;
   }
   function definicaoCreateManual(element) {
@@ -5097,6 +5202,23 @@
             label: "Cada \xE1rvore com o pr\xF3prio tamanho de n\xF3 (deixa de ser compar\xE1vel)",
             section: "Grade",
             default: false
+          },
+          // Novas na Fase C (correções v2).
+          nivelInicialExpandido: {
+            type: "number",
+            label: "N\xEDveis abertos no in\xEDcio (0 = tudo aberto)",
+            section: "\xC1rvore",
+            display: "range",
+            min: 0,
+            max: 8,
+            step: 1,
+            default: 0
+          },
+          mostrarBotoesDeExpandir: {
+            type: "boolean",
+            label: 'Mostrar bot\xF5es "Expandir tudo" e "Colapsar tudo"',
+            section: "Intera\xE7\xE3o",
+            default: true
           }
         }
       ),
@@ -5111,7 +5233,7 @@
       return opcoesDinamicasDeHierarquia(modelo);
     },
     render(ctx) {
-      const { modelo, config, tema, raiz: elementoRaiz, largura } = ctx;
+      const { modelo, config, tema, raiz: elementoRaiz, largura, estado } = ctx;
       const { raiz, avisos, campoDoValor, quantidadeDeNos } = construirHierarquia(modelo, config);
       for (const aviso of avisos) ctx.avisar(aviso);
       if (!raiz || quantidadeDeNos < 2) {
@@ -5132,7 +5254,35 @@
         ramos = ramos.slice(0, MAXIMO_DE_ARVORES);
       }
       ctx.limparRaiz();
-      injetarEstilo(elementoRaiz, CSS_ARVORE, "av");
+      injetarEstilo(elementoRaiz, CSS_ARVORE + CSS_EXPANDIR, "av");
+      const nivelInicial = Math.max(0, Number(config.nivelInicialExpandido) || 0);
+      if (!estado.recolhidos || estado.nivelAplicado !== nivelInicial) {
+        estado.recolhidos = recolhidosIniciais(ramos, nivelInicial);
+        estado.nivelAplicado = nivelInicial;
+      }
+      const recolhidos = estado.recolhidos;
+      const alternado = estado.ultimoAlternado || null;
+      estado.ultimoAlternado = null;
+      const animacao = opcoesDeAnimacao(config, { primeiraRenderizacao: false });
+      if (config.mostrarBotoesDeExpandir !== false) {
+        const barra = criarEl("div", { classe: "am-barra", pai: elementoRaiz });
+        const botao = (texto, acao) => {
+          const b = criarEl("button", { pai: barra, texto });
+          b.type = "button";
+          b.style.color = tema.texto;
+          b.style.borderColor = tema.borda;
+          ctx.eventos.on(b, "click", () => {
+            acao();
+            ctx.redesenhar();
+          });
+          return b;
+        };
+        botao("Expandir tudo", () => recolhidos.clear());
+        botao("Colapsar tudo", () => {
+          recolhidos.clear();
+          for (const ramo of ramos) for (const n of ramo.descendants()) if (n !== ramo && temFilhos(n.data)) recolhidos.add(chaveDoNo(n));
+        });
+      }
       const grade = criarEl("div", { classe: "md-grade", pai: elementoRaiz });
       grade.style.display = "flex";
       grade.style.flexWrap = "wrap";
@@ -5178,8 +5328,16 @@
           titulo,
           `${truncar(ramo.data.rotulo, 22)} (${formatar(ramo.value || 0)})`
         );
-        const subRaiz = hierarchy(ramo.data, (no) => no.filhos).sum((no) => no.filhos && no.filhos.length ? 0 : no.valor || 0).sort((a, b) => (b.value || 0) - (a.value || 0));
         const globalPorDados = new Map(ramo.descendants().map((n) => [n.data, n]));
+        const chavePorDados = new Map(ramo.descendants().map((n) => [n.data, chaveDoNo(n)]));
+        const estaRecolhido = (dados) => recolhidos.has(chavePorDados.get(dados));
+        const subRaiz = hierarchy(ramo.data, (no) => estaRecolhido(no) ? null : no.filhos).sum((no) => {
+          if (estaRecolhido(no)) {
+            const global = globalPorDados.get(no);
+            return global ? global.value || 0 : no.valor || 0;
+          }
+          return no.filhos && no.filhos.length ? 0 : no.valor || 0;
+        }).sort((a, b) => (b.value || 0) - (a.value || 0));
         const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
         const reservaDaDireita = config.mostrarRotulosDeFolha === false || config.mostrarRotulos === false ? 12 : larguraDaCelula * 0.38;
         layoutHorizontal(subRaiz, {
@@ -5209,7 +5367,25 @@
               ctx.eventos.on(elemento, "pointermove", (ev) => tooltip.mover(ev.clientX, ev.clientY));
               ctx.eventos.on(elemento, "pointerleave", () => tooltip.esconder());
             }
+            const chave = chavePorDados.get(no.data);
+            const comFilhos = temFilhos(no.data);
+            elemento.setAttribute("data-item", chave);
+            if (comFilhos) {
+              elemento.setAttribute("data-recolhido", estaRecolhido(no.data) ? "1" : "0");
+              elemento.style.cursor = "pointer";
+              desenharIndicador(elemento, estaRecolhido(no.data), tema);
+            }
+            if (alternado && animacao.ligada && chave !== alternado && chave.startsWith(`${alternado}\u203A`)) {
+              elemento.style.animation = `bl-surgir ${Math.max(150, animacao.duracao)}ms ease-out backwards`;
+            }
             ctx.eventos.on(elemento, "click", (ev) => {
+              if (comFilhos && !ev.shiftKey) {
+                if (recolhidos.has(chave)) recolhidos.delete(chave);
+                else recolhidos.add(chave);
+                estado.ultimoAlternado = chave;
+                ctx.redesenhar();
+                return;
+              }
               const celulaDoLooker = no.data.indiceDaLinha >= 0 && no.data.campo ? modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome) : null;
               ctx.cliqueNoItem(ev, celulaDoLooker, conteudo());
             });
@@ -5218,4 +5394,50 @@
       }
     }
   });
+  var CSS_EXPANDIR = `
+.am-barra{display:flex;gap:6px;padding:4px 8px 0;}
+.am-barra button{padding:2px 8px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;
+  font:inherit;font-size:11px;}
+.am-indicador{pointer-events:none;font-weight:700;}
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+`;
+  function temFilhos(dados) {
+    return !!(dados && dados.filhos && dados.filhos.length);
+  }
+  function chaveDoNo(no) {
+    const caminho = [];
+    for (let n = no; n && n.depth >= 1; n = n.parent) caminho.unshift(String(n.data.rotulo));
+    return caminho.join("\u203A");
+  }
+  function recolhidosIniciais(ramos, niveisAbertos) {
+    const saida = /* @__PURE__ */ new Set();
+    if (!niveisAbertos) return saida;
+    for (const ramo of ramos) {
+      for (const n of ramo.descendants()) {
+        const profundidadeNoRamo = n.depth - ramo.depth;
+        if (temFilhos(n.data) && profundidadeNoRamo >= niveisAbertos) saida.add(chaveDoNo(n));
+      }
+    }
+    return saida;
+  }
+  function desenharIndicador(marcador, recolhido, tema) {
+    const pai = marcador.parentNode;
+    if (!pai) return;
+    const m = /translate\(([-\d.]+),([-\d.]+)\)/.exec(marcador.getAttribute("transform") || "");
+    if (!m) return;
+    const raio = (Number(marcador.getAttribute("data-diametro")) || 6) / 2;
+    const t = criarSvgEl("text", {
+      pai,
+      classe: "am-indicador",
+      atributos: {
+        x: Number(m[1]) - raio - 3,
+        y: Number(m[2]),
+        "text-anchor": "end",
+        "dominant-baseline": "central",
+        "font-size": 11,
+        fill: tema.textoSuave || tema.texto
+      }
+    });
+    definirTexto(t, recolhido ? "+" : "\u2212");
+  }
 })();

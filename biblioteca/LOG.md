@@ -2916,3 +2916,33 @@ falhavam no código antigo):
 Precisa ser conferido no Looker real: forma dos pontos na matriz_2x2,
 drill real, tooltip fixo no iframe, canvas > 2.000 pontos, KPI em tile
 pequeno, contorno no tema escuro.
+
+### 2.6 Hover — núcleo (concluído no núcleo; marcação nos gráficos em andamento)
+- `interaction.ligarDestaqueAoPassar`: helper ÚNICO, por delegação na
+  área do gráfico. Item = qualquer elemento com `data-item` ou marcador da
+  função única (`.bl-marcador`); itens com o mesmo `data-item` acendem
+  juntos; os demais ficam a 30%. Sai ao deixar o gráfico. Chamado pelo
+  define-viz depois de todo desenho (render, redesenhar, resize).
+- Opção `destacarAoPassarMouse` agora em TODOS os gráficos (id já existia
+  no kit; entra como novo onde não era declarado).
+- O clique é o de 2.3 (`ctx.cliqueNoItem`), para a célula certa ir ao drill.
+- Animação passou de `both` para `backwards`: com `both` a opacidade 1 final
+  da animação anulava o atenuar.
+- `test/hover.test.mjs` (2): falham no bundle anterior, passam agora.
+- PRÓXIMO: marcar `data-item` nas marcas principais dos gráficos que não
+  usam marcadores (barras, blocos, faixas) quando as frentes terminarem.
+
+### arvores_multiplas — expandir/colapsar (Fase C, concluído)
+- Clique em nó COM filhos expande/colapsa; nó colapsado vira folha com o
+  TOTAL do ramo (tamanho continua comparável), indicador "+"/"−";
+  reaparecer anima (se animação ligada e sem reduced-motion).
+- Nó SEM filhos: "Ação do clique" (drill/fixar/nada); Shift+clique fixa o
+  tooltip em qualquer nó. **Decisão:** o drill pelo clique no RÓTULO de nó
+  com filhos não foi feito (o rótulo não é alvo de clique hoje); o drill
+  fica nas folhas.
+- Botões "Expandir tudo"/"Colapsar tudo"; opções novas
+  `nivelInicialExpandido` (0 = tudo aberto) e `mostrarBotoesDeExpandir`.
+- Estado em `ctx.estado` (sobrevive a redesenho e atualização); volta ao
+  inicial só quando o nível inicial muda.
+- `test/correcoes_arvores_expandir.test.mjs` (3; 2 falham no bundle
+  anterior, o de drill na folha é guarda de regressão).

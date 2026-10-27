@@ -302,3 +302,62 @@ export function criarControleDeSeriesDesligadas(estado, chaveDoEstado = 'seriesD
     },
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Destaque ao passar o mouse (módulo 2.6 das correções)                */
+/* ------------------------------------------------------------------ */
+
+/** O que conta como "item" para o destaque: marcas que o gráfico marcou. */
+export const SELETOR_DE_ITENS = '[data-item], .bl-marcador';
+
+const CSS_DESTAQUE = `
+.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:opacity .15s ease;}
+.bl-hover-ativo [data-item]:not(.bl-sob-mouse), .bl-hover-ativo .bl-marcador:not(.bl-sob-mouse){opacity:.3;}
+@media (prefers-reduced-motion: reduce){.bl-hover-ativo [data-item], .bl-hover-ativo .bl-marcador{transition:none;}}
+`;
+
+/**
+ * Helper ÚNICO de hover: destaca o item sob o mouse e atenua os demais.
+ * Liga por delegação na área do gráfico (um listener só, não um por
+ * item), então serve para qualquer gráfico que marque as suas marcas com
+ * `data-item` (ou desenhe pontos com `criarMarcadorSvg`, que já sai com a
+ * classe `.bl-marcador`). Itens com o MESMO valor de `data-item` acendem
+ * juntos (ex.: a barra e o rótulo de uma categoria).
+ *
+ * O clique continua no gráfico, via `ctx.cliqueNoItem` (ação do clique do
+ * módulo 2.3), para que a célula certa vá para o drill.
+ *
+ * Desligado com a opção "Destacar ao passar o mouse" = false.
+ */
+export function ligarDestaqueAoPassar({ area, eventos, config = {} }) {
+  if (!area || config.destacarAoPassarMouse === false) return false;
+  const raiz = (area.closest && area.closest('.bl-raiz')) || area;
+  if (!raiz.querySelector('style[data-estilo="bl-destaque"]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-estilo', 'bl-destaque');
+    style.textContent = CSS_DESTAQUE;
+    raiz.appendChild(style);
+  }
+  let acesos = [];
+  const apagar = () => {
+    for (const el of acesos) el.classList.remove('bl-sob-mouse');
+    acesos = [];
+    area.classList.remove('bl-hover-ativo');
+  };
+  eventos.on(area, 'pointerover', (ev) => {
+    const alvo = ev.target && ev.target.closest ? ev.target.closest(SELETOR_DE_ITENS) : null;
+    if (!alvo || !area.contains(alvo)) {
+      apagar();
+      return;
+    }
+    apagar();
+    const chave = alvo.getAttribute('data-item');
+    acesos = chave
+      ? Array.from(area.querySelectorAll('[data-item]')).filter((e) => e.getAttribute('data-item') === chave)
+      : [alvo];
+    for (const el of acesos) el.classList.add('bl-sob-mouse');
+    area.classList.add('bl-hover-ativo');
+  });
+  eventos.on(area, 'pointerleave', apagar);
+  return true;
+}

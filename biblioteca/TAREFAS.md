@@ -109,7 +109,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [ ] slope_chart
 - [ ] bar_race
 - [ ] barras_ranking_denso
-- [ ] arvores_multiplas
+- [x] arvores_multiplas
 - [ ] org_chart
 - [ ] pareto
 - [ ] marimekko

@@ -17,12 +17,24 @@
  * (paleta com "Inverter ordem", "Cor dos nós" por ramo/nível/única,
  * opacidade e contorno); as ligações usam a cor de borda do tema. O
  * tooltip é o único do gráfico (`ctx.tooltip()`), com o valor no formato
- * do campo; o clique segue a "Ação do clique" (drill / fixar / nenhuma).
+ * do campo.
+ *
+ * Expandir/colapsar (Fase C das correções v2):
+ *   - clique num nó COM filhos expande ou colapsa os filhos dele (com
+ *     animação de entrada dos que reaparecem); o nó colapsado mostra "+",
+ *     o expandido mostra "−", e o valor dele passa a ser o total do ramo;
+ *   - clique num nó SEM filhos segue a "Ação do clique" (drill do Looker,
+ *     fixar o tooltip ou nada). Shift+clique fixa o tooltip em qualquer nó;
+ *   - botões "Expandir tudo" e "Colapsar tudo" no topo;
+ *   - opção "Níveis abertos no início" (0 = tudo aberto);
+ *   - o estado (o que está aberto) sobrevive aos redesenhos e às
+ *     atualizações; só volta ao inicial quando a opção de nível muda.
  */
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
+import { opcoesDeAnimacao } from '../../core/animate.js';
 import { hierarchy as d3Hierarchy } from 'd3-hierarchy';
 import {
   construirHierarquia,
@@ -101,6 +113,23 @@ export default defineViz({
           section: 'Grade',
           default: false,
         },
+        // Novas na Fase C (correções v2).
+        nivelInicialExpandido: {
+          type: 'number',
+          label: 'Níveis abertos no início (0 = tudo aberto)',
+          section: 'Árvore',
+          display: 'range',
+          min: 0,
+          max: 8,
+          step: 1,
+          default: 0,
+        },
+        mostrarBotoesDeExpandir: {
+          type: 'boolean',
+          label: 'Mostrar botões "Expandir tudo" e "Colapsar tudo"',
+          section: 'Interação',
+          default: true,
+        },
       }
     ),
     {
@@ -116,7 +145,7 @@ export default defineViz({
   },
 
   render(ctx) {
-    const { modelo, config, tema, raiz: elementoRaiz, largura } = ctx;
+    const { modelo, config, tema, raiz: elementoRaiz, largura, estado } = ctx;
 
     const { raiz, avisos, campoDoValor, quantidadeDeNos } = construirHierarquia(modelo, config);
     for (const aviso of avisos) ctx.avisar(aviso);
@@ -143,7 +172,39 @@ export default defineViz({
     }
 
     ctx.limparRaiz();
-    injetarEstilo(elementoRaiz, CSS_ARVORE, 'av');
+    injetarEstilo(elementoRaiz, CSS_ARVORE + CSS_EXPANDIR, 'av');
+
+    // ---------- Estado de expandir/colapsar ----------
+    const nivelInicial = Math.max(0, Number(config.nivelInicialExpandido) || 0);
+    if (!estado.recolhidos || estado.nivelAplicado !== nivelInicial) {
+      estado.recolhidos = recolhidosIniciais(ramos, nivelInicial);
+      estado.nivelAplicado = nivelInicial;
+    }
+    const recolhidos = estado.recolhidos;
+    const alternado = estado.ultimoAlternado || null;
+    estado.ultimoAlternado = null;
+    const animacao = opcoesDeAnimacao(config, { primeiraRenderizacao: false });
+
+    if (config.mostrarBotoesDeExpandir !== false) {
+      const barra = criarEl('div', { classe: 'am-barra', pai: elementoRaiz });
+      const botao = (texto, acao) => {
+        const b = criarEl('button', { pai: barra, texto });
+        b.type = 'button';
+        b.style.color = tema.texto;
+        b.style.borderColor = tema.borda;
+        ctx.eventos.on(b, 'click', () => {
+          acao();
+          ctx.redesenhar();
+        });
+        return b;
+      };
+      botao('Expandir tudo', () => recolhidos.clear());
+      botao('Colapsar tudo', () => {
+        recolhidos.clear();
+        for (const ramo of ramos) for (const n of ramo.descendants()) if (n !== ramo && temFilhos(n.data)) recolhidos.add(chaveDoNo(n));
+      });
+    }
+
     const grade = criarEl('div', { classe: 'md-grade', pai: elementoRaiz });
     grade.style.display = 'flex';
     grade.style.flexWrap = 'wrap';
@@ -210,14 +271,24 @@ export default defineViz({
 
       // Cada ramo vira a raiz de uma árvore própria, senão o layout do d3
       // reserva espaço para os irmãos que não estão nesta célula.
-      const subRaiz = d3Hierarchy(ramo.data, (no) => no.filhos)
-        .sum((no) => (no.filhos && no.filhos.length ? 0 : no.valor || 0))
-        .sort((a, b) => (b.value || 0) - (a.value || 0));
-
       // Cor de cada nó vem do nó equivalente na árvore INTEIRA: assim "Cor
       // dos nós" por nível funciona (antes toda a mini-árvore recebia a cor
       // do ramo, e "por nível" não mudava nada).
       const globalPorDados = new Map(ramo.descendants().map((n) => [n.data, n]));
+      const chavePorDados = new Map(ramo.descendants().map((n) => [n.data, chaveDoNo(n)]));
+      const estaRecolhido = (dados) => recolhidos.has(chavePorDados.get(dados));
+
+      // Nó colapsado vira folha com o TOTAL do ramo dele (vem da árvore
+      // inteira), para o tamanho continuar comparável.
+      const subRaiz = d3Hierarchy(ramo.data, (no) => (estaRecolhido(no) ? null : no.filhos))
+        .sum((no) => {
+          if (estaRecolhido(no)) {
+            const global = globalPorDados.get(no);
+            return global ? global.value || 0 : no.valor || 0;
+          }
+          return no.filhos && no.filhos.length ? 0 : no.valor || 0;
+        })
+        .sort((a, b) => (b.value || 0) - (a.value || 0));
       const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
 
       const reservaDaDireita = config.mostrarRotulosDeFolha === false || config.mostrarRotulos === false ? 12 : larguraDaCelula * 0.38;
@@ -249,10 +320,30 @@ export default defineViz({
             ctx.eventos.on(elemento, 'pointermove', (ev) => tooltip.mover(ev.clientX, ev.clientY));
             ctx.eventos.on(elemento, 'pointerleave', () => tooltip.esconder());
           }
-          // "Ação do clique": drill se a célula tem links, senão fixa o
-          // tooltip (ou nada, conforme o painel). Expandir/colapsar fica
-          // para a Fase C.
+          const chave = chavePorDados.get(no.data);
+          const comFilhos = temFilhos(no.data);
+          elemento.setAttribute('data-item', chave);
+          if (comFilhos) {
+            elemento.setAttribute('data-recolhido', estaRecolhido(no.data) ? '1' : '0');
+            elemento.style.cursor = 'pointer';
+            desenharIndicador(elemento, estaRecolhido(no.data), tema);
+          }
+          // Reaparecendo depois de expandir: anima a entrada (se a animação
+          // estiver ligada e o usuário não pediu menos movimento).
+          if (alternado && animacao.ligada && chave !== alternado && chave.startsWith(`${alternado}›`)) {
+            elemento.style.animation = `bl-surgir ${Math.max(150, animacao.duracao)}ms ease-out backwards`;
+          }
+          // Nó com filhos: expande/colapsa. Nó sem filhos: "Ação do clique"
+          // (drill se a célula tem links, senão fixa o tooltip, ou nada).
+          // Shift+clique fixa o tooltip em qualquer nó.
           ctx.eventos.on(elemento, 'click', (ev) => {
+            if (comFilhos && !ev.shiftKey) {
+              if (recolhidos.has(chave)) recolhidos.delete(chave);
+              else recolhidos.add(chave);
+              estado.ultimoAlternado = chave;
+              ctx.redesenhar();
+              return;
+            }
             const celulaDoLooker =
               no.data.indiceDaLinha >= 0 && no.data.campo
                 ? modelo.celula(modelo.linhas[no.data.indiceDaLinha], no.data.campo.nome)
@@ -264,3 +355,65 @@ export default defineViz({
     }
   },
 });
+
+/* ------------------------------------------------------------------ */
+/* Expandir / colapsar                                                  */
+/* ------------------------------------------------------------------ */
+
+const CSS_EXPANDIR = `
+.am-barra{display:flex;gap:6px;padding:4px 8px 0;}
+.am-barra button{padding:2px 8px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;
+  font:inherit;font-size:11px;}
+.am-indicador{pointer-events:none;font-weight:700;}
+@keyframes bl-surgir{from{opacity:0}to{opacity:1}}
+`;
+
+function temFilhos(dados) {
+  return !!(dados && dados.filhos && dados.filhos.length);
+}
+
+/** Chave estável do nó: o caminho de rótulos desde o ramo. */
+export function chaveDoNo(no) {
+  const caminho = [];
+  for (let n = no; n && n.depth >= 1; n = n.parent) caminho.unshift(String(n.data.rotulo));
+  return caminho.join('›');
+}
+
+/**
+ * Nós recolhidos no início: com N níveis abertos, todo nó com filhos a
+ * partir da profundidade N (contada dentro do ramo, que é a raiz da mini
+ * árvore) começa recolhido. 0 = tudo aberto.
+ */
+export function recolhidosIniciais(ramos, niveisAbertos) {
+  const saida = new Set();
+  if (!niveisAbertos) return saida;
+  for (const ramo of ramos) {
+    for (const n of ramo.descendants()) {
+      const profundidadeNoRamo = n.depth - ramo.depth;
+      if (temFilhos(n.data) && profundidadeNoRamo >= niveisAbertos) saida.add(chaveDoNo(n));
+    }
+  }
+  return saida;
+}
+
+/** "+" (recolhido) ou "−" (aberto) ao lado do nó. */
+function desenharIndicador(marcador, recolhido, tema) {
+  const pai = marcador.parentNode;
+  if (!pai) return;
+  const m = /translate\(([-\d.]+),([-\d.]+)\)/.exec(marcador.getAttribute('transform') || '');
+  if (!m) return;
+  const raio = (Number(marcador.getAttribute('data-diametro')) || 6) / 2;
+  const t = criarSvgEl('text', {
+    pai,
+    classe: 'am-indicador',
+    atributos: {
+      x: Number(m[1]) - raio - 3,
+      y: Number(m[2]),
+      'text-anchor': 'end',
+      'dominant-baseline': 'central',
+      'font-size': 11,
+      fill: tema.textoSuave || tema.texto,
+    },
+  });
+  definirTexto(t, recolhido ? '+' : '−');
+}

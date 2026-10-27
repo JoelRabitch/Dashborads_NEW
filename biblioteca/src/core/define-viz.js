@@ -35,8 +35,10 @@ import {
   compararChaves,
   organizarAbas,
   blocoDeAnimacao,
+  blocoDeInteracao,
 } from './options-kit.js';
 import { animarEntradaGenerica } from './animate.js';
+import { ligarDestaqueAoPassar } from './interaction.js';
 import {
   esconderTooltipsDe,
   destruirTooltipsDe,
@@ -336,6 +338,7 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
       limparAviso(bl);
       try {
         render(ctx);
+        ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== 'undefined' && console.error) console.error(`[${id}]`, e);
       }
@@ -360,12 +363,15 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
     limparAviso(bl); // senão o mesmo aviso se repete a cada redimensionamento
     try {
       render(ctx);
+      ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     } catch (e) {
       if (typeof console !== 'undefined' && console.error) console.error(`[${id}]`, e);
     }
   };
 
   render(ctx);
+  // Destaque ao passar o mouse (módulo 2.6), igual em todos os gráficos.
+  ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
   // Entrada/atualização animada (módulo 2.7): depois do desenho, em todos
   // os gráficos que não animam por conta própria.
   if (!animacaoPropria) {
@@ -374,10 +380,14 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   bl.primeiraRenderizacao = false;
 }
 
-/** As opções de animação que todo gráfico ganha (sem o contador). */
+/**
+ * Opções que todo gráfico ganha se ainda não declara: as de animação (2.7,
+ * sem o contador) e "Destacar ao passar o mouse" (2.6).
+ */
 function opcoesDeAnimacaoPadrao() {
   const bloco = blocoDeAnimacao({ secao: 'Animação' });
   delete bloco.contadorAnimado;
+  bloco.destacarAoPassarMouse = blocoDeInteracao({ comZoom: false, comSelecao: false }).destacarAoPassarMouse;
   return bloco;
 }
 

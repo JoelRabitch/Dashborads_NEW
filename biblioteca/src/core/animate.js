@@ -276,9 +276,11 @@ export function animarEntradaGenerica(area, config = {}, { primeiraRenderizacao 
   if (marcas.length > MAXIMO_DE_MARCAS) marcas = Array.from(area.querySelectorAll('svg, .bl-anima'));
   // A cascata não pode alongar a entrada além de ~1,5x a duração.
   const passo = marcas.length > 1 ? Math.min(op.cascata, (op.duracao * 1.5) / marcas.length) : 0;
+  // `backwards` (e não `both`): depois de terminar, a animação não pode
+  // continuar impondo opacidade 1 — senão o atenuar do hover (2.6) não vale.
   marcas.forEach((el, i) => {
     const nome = el.namespaceURI === 'http://www.w3.org/2000/svg' ? 'bl-surgir' : 'bl-surgir-html';
-    el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms both`;
+    el.style.animation = `${nome} ${op.duracao}ms ${curva} ${Math.round(op.atraso + i * passo)}ms backwards`;
   });
   return marcas.length;
 }
