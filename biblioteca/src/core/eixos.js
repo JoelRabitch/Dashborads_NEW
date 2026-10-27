@@ -15,6 +15,20 @@
 
 import { criarSvgEl, definirTexto } from './dom.js';
 import { ticksDoEixo } from './scales.js';
+import { criarFormatadorNumerico } from './format.js';
+
+/**
+ * Formatador dos números do eixo conforme "Formato dos números nos eixos"
+ * e "Casas decimais nos eixos" (correções v2: as duas opções eram
+ * declaradas e ignoradas). Em "auto" devolve `padrao` — o formato do campo
+ * que o gráfico já calculou.
+ */
+export function formatadorDoEixo(config = {}, padrao) {
+  const estilo = config.formatoDoEixo || 'auto';
+  if (estilo === 'auto') return padrao;
+  const casas = Number(config.casasDecimaisDoEixo);
+  return criarFormatadorNumerico({ estilo, casas: Number.isFinite(casas) ? casas : 1 });
+}
 
 /** Largura aproximada de um texto, sem precisar medir no DOM. */
 export function larguraAproximada(texto, tamanhoDaFonte) {
@@ -72,6 +86,12 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
   const corDoTexto = tema.textoSuave;
   const corDaGrade = tema.grade;
 
+  // Formato do painel vale para eixos NUMÉRICOS; eixo de banda (categorias)
+  // e temporal mantêm o formatador que o gráfico passou.
+  const ehNumerica = (e) => e && typeof e.ticks === 'function' && !(e.domain()[0] instanceof Date);
+  if (!rotulosDeBanda && ehNumerica(escalaX)) formatarX = formatadorDoEixo(config, formatarX);
+  if (ehNumerica(escalaY)) formatarY = formatadorDoEixo(config, formatarY);
+
   const ticksX = rotulosDeBanda || ticksDoEixo(escalaX, Number(config.ticksEixoX) || 6);
   const ticksY = ticksDoEixo(escalaY, Number(config.ticksEixoY) || 5);
 
@@ -115,11 +135,13 @@ export function desenharEixos({ svg, escalaX, escalaY, area, config = {}, tema, 
     for (const t of ticksY) {
       const y = escalaY(t);
       if (!Number.isFinite(y)) continue;
+      const girarY = Number(config.rotacaoRotuloEixoY) || 0;
       const texto = criarSvgEl('text', {
         pai: grupo,
         atributos: {
           x: area.esquerda - 6, y, 'text-anchor': 'end', 'dominant-baseline': 'central',
           'font-size': fonte, fill: corDoTexto,
+          transform: girarY ? `rotate(${girarY} ${area.esquerda - 6} ${y})` : null,
         },
       });
       definirTexto(texto, formatarY ? formatarY(t) : String(t));

@@ -1,7 +1,7 @@
 /*!
  * Matriz BCG — visualização customizada para o Looker
  * id: matriz_bcg
- * versão: 0.1.0 | build: 2026-10-27 13:43:57 | commit: 56310e0
+ * versão: 0.1.0 | build: 2026-10-27 13:46:04 | commit: 3a8b5dd
  *
  * Arquivo AUTOCONTIDO: no Looker, o campo "Dependencies" deve ficar VAZIO.
  * Gerado por biblioteca/build/build.mjs — não edite este arquivo à mão;
@@ -3948,6 +3948,12 @@
   }
 
   // src/core/eixos.js
+  function formatadorDoEixo(config = {}, padrao) {
+    const estilo = config.formatoDoEixo || "auto";
+    if (estilo === "auto") return padrao;
+    const casas = Number(config.casasDecimaisDoEixo);
+    return criarFormatadorNumerico({ estilo, casas: Number.isFinite(casas) ? casas : 1 });
+  }
   function larguraAproximada(texto, tamanhoDaFonte) {
     return String(texto).length * tamanhoDaFonte * 0.58;
   }
@@ -3981,6 +3987,9 @@
     const fonte = Math.max(8, tema && tema.tamanhoBase || 12) - 1;
     const corDoTexto = tema.textoSuave;
     const corDaGrade = tema.grade;
+    const ehNumerica = (e) => e && typeof e.ticks === "function" && !(e.domain()[0] instanceof Date);
+    if (!rotulosDeBanda && ehNumerica(escalaX)) formatarX = formatadorDoEixo(config, formatarX);
+    if (ehNumerica(escalaY)) formatarY = formatadorDoEixo(config, formatarY);
     const ticksX = rotulosDeBanda || ticksDoEixo(escalaX, Number(config.ticksEixoX) || 6);
     const ticksY = ticksDoEixo(escalaY, Number(config.ticksEixoY) || 5);
     if (config.gradeEixoY !== false) {
@@ -4032,6 +4041,7 @@
       for (const t of ticksY) {
         const y = escalaY(t);
         if (!Number.isFinite(y)) continue;
+        const girarY = Number(config.rotacaoRotuloEixoY) || 0;
         const texto = criarSvgEl("text", {
           pai: grupo,
           atributos: {
@@ -4040,7 +4050,8 @@
             "text-anchor": "end",
             "dominant-baseline": "central",
             "font-size": fonte,
-            fill: corDoTexto
+            fill: corDoTexto,
+            transform: girarY ? `rotate(${girarY} ${area.esquerda - 6} ${y})` : null
           }
         });
         definirTexto(texto, formatarY ? formatarY(t) : String(t));
