@@ -1,0 +1,258 @@
+[
+  {
+    "id": "mostrarRotulos",
+    "label": "Mostrar rótulos",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoRotulo",
+    "label": "Tamanho do rótulo (px)",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 11,
+    "dinamica": false
+  },
+  {
+    "id": "corDoRotulo",
+    "label": "Cor do rótulo (vazio = automática)",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "negritoNoRotulo",
+    "label": "Rótulo em negrito",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "rotacaoDoRotulo",
+    "label": "Rotação do rótulo (graus)",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "evitarColisaoDeRotulos",
+    "label": "Esconder rótulos que se sobrepõem",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "truncarRotulo",
+    "label": "Truncar rótulo com mais de N caracteres (0 = não truncar)",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoRotulo",
+    "label": "Posição do rótulo",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "conteudoDoRotulo",
+    "label": "O que mostrar no rótulo",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "valor",
+    "dinamica": false
+  },
+  {
+    "id": "formatoDoRotulo",
+    "label": "Formato do número no rótulo",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "casasDecimaisDoRotulo",
+    "label": "Casas decimais no rótulo",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "tema",
+    "label": "Tema",
+    "section": "Tema",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundo",
+    "label": "Cor de fundo (vazio = do tema)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTexto",
+    "label": "Cor do texto (tema personalizado)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBorda",
+    "label": "Cor das bordas (tema personalizado)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaGrade",
+    "label": "Cor das linhas de grade (tema personalizado)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "familiaDaFonte",
+    "label": "Fonte",
+    "section": "Tema",
+    "type": "string",
+    "default": "sistema",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaFonte",
+    "label": "Tamanho base da fonte (px)",
+    "section": "Tema",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "titulo",
+    "label": "Título (vazio = nome da medida)",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "subtitulo",
+    "label": "Subtítulo",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "textoSemDados",
+    "label": "Mensagem quando não há dados",
+    "section": "Tema",
+    "type": "string",
+    "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "modoDebug",
+    "label": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON (cole aqui para importar)",
+    "section": "Avançado",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima por cima das opções",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "baseDaComparacao",
+    "label": "Comparar com",
+    "section": "KPI",
+    "type": "string",
+    "default": "anterior",
+    "dinamica": false
+  },
+  {
+    "id": "periodosAtras",
+    "label": "Quantos períodos atrás",
+    "section": "KPI",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "meta",
+    "label": "Valor da meta",
+    "section": "KPI",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "menorEhMelhor",
+    "label": "Menor é melhor (custo, churn, tempo de resposta…)",
+    "section": "KPI",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "colorirVariacao",
+    "label": "Colorir a variação por direção",
+    "section": "KPI",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSparkline",
+    "label": "Sparkline de contexto",
+    "section": "KPI",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarVariacaoAbsoluta",
+    "label": "Mostrar também a diferença absoluta",
+    "section": "KPI",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "campoDoPeriodo",
+    "label": "Dimensão do tempo",
+    "section": "Dados",
+    "type": "string",
+    "default": "mes",
+    "dinamica": true
+  }
+]

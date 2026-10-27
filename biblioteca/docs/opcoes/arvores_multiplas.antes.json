@@ -1,0 +1,514 @@
+[
+  {
+    "id": "paleta",
+    "label": "Paleta de cores",
+    "section": "Cores",
+    "type": "string",
+    "default": "looker",
+    "dinamica": false
+  },
+  {
+    "id": "inverterPaleta",
+    "label": "Inverter ordem das cores",
+    "section": "Cores",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "opacidade",
+    "label": "Opacidade do preenchimento",
+    "section": "Cores",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarContorno",
+    "label": "Mostrar contorno",
+    "section": "Cores",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "corDoContorno",
+    "label": "Cor do contorno",
+    "section": "Cores",
+    "type": "string",
+    "default": "#FFFFFF",
+    "dinamica": false
+  },
+  {
+    "id": "espessuraDoContorno",
+    "label": "Espessura do contorno (px)",
+    "section": "Cores",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "tracejadoDoContorno",
+    "label": "Estilo do contorno",
+    "section": "Cores",
+    "type": "string",
+    "default": "solido",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarRotulos",
+    "label": "Mostrar rótulos",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoRotulo",
+    "label": "Tamanho do rótulo (px)",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 11,
+    "dinamica": false
+  },
+  {
+    "id": "corDoRotulo",
+    "label": "Cor do rótulo (vazio = automática)",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "negritoNoRotulo",
+    "label": "Rótulo em negrito",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "rotacaoDoRotulo",
+    "label": "Rotação do rótulo (graus)",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "evitarColisaoDeRotulos",
+    "label": "Esconder rótulos que se sobrepõem",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "truncarRotulo",
+    "label": "Truncar rótulo com mais de N caracteres (0 = não truncar)",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoRotulo",
+    "label": "Posição do rótulo",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "conteudoDoRotulo",
+    "label": "O que mostrar no rótulo",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "valor",
+    "dinamica": false
+  },
+  {
+    "id": "formatoDoRotulo",
+    "label": "Formato do número no rótulo",
+    "section": "Rótulos",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "casasDecimaisDoRotulo",
+    "label": "Casas decimais no rótulo",
+    "section": "Rótulos",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarTooltip",
+    "label": "Mostrar tooltip",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tooltipPersonalizado",
+    "label": "Usar tooltip personalizado",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "modeloDeTooltip",
+    "label": "Modelo do tooltip (use {{nome_do_campo}})",
+    "section": "Interação",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "tooltipComNomeCompleto",
+    "label": "Mostrar nome completo do campo no tooltip",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "tooltipComValorBruto",
+    "label": "Mostrar também o valor sem formatação",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "animacaoAtiva",
+    "label": "Ativar animações",
+    "section": "Animação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "duracaoDaAnimacao",
+    "label": "Duração (ms)",
+    "section": "Animação",
+    "type": "number",
+    "default": 600,
+    "dinamica": false
+  },
+  {
+    "id": "atrasoDaAnimacao",
+    "label": "Atraso inicial (ms)",
+    "section": "Animação",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "cascataDaAnimacao",
+    "label": "Cascata entre itens (ms)",
+    "section": "Animação",
+    "type": "number",
+    "default": 20,
+    "dinamica": false
+  },
+  {
+    "id": "suavizacaoDaAnimacao",
+    "label": "Curva da animação",
+    "section": "Animação",
+    "type": "string",
+    "default": "saida",
+    "dinamica": false
+  },
+  {
+    "id": "quandoAnimar",
+    "label": "Quando animar",
+    "section": "Animação",
+    "type": "string",
+    "default": "sempre",
+    "dinamica": false
+  },
+  {
+    "id": "contadorAnimado",
+    "label": "Números sobem/descem até o valor (contador)",
+    "section": "Animação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tema",
+    "label": "Tema",
+    "section": "Tema",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundo",
+    "label": "Cor de fundo (vazio = do tema)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTexto",
+    "label": "Cor do texto (tema personalizado)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBorda",
+    "label": "Cor das bordas (tema personalizado)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaGrade",
+    "label": "Cor das linhas de grade (tema personalizado)",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "familiaDaFonte",
+    "label": "Fonte",
+    "section": "Tema",
+    "type": "string",
+    "default": "sistema",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaFonte",
+    "label": "Tamanho base da fonte (px)",
+    "section": "Tema",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "titulo",
+    "label": "Título",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "subtitulo",
+    "label": "Subtítulo",
+    "section": "Tema",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "textoSemDados",
+    "label": "Mensagem quando não há dados",
+    "section": "Tema",
+    "type": "string",
+    "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "modoDebug",
+    "label": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON (cole aqui para importar)",
+    "section": "Avançado",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima por cima das opções",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "formatoDaHierarquia",
+    "label": "Como a hierarquia está montada",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "rotuloDaRaiz",
+    "label": "Nome do nó raiz (quando há várias raízes)",
+    "section": "Dados",
+    "type": "string",
+    "default": "Total",
+    "dinamica": false
+  },
+  {
+    "id": "profundidadeMaxima",
+    "label": "Profundidade máxima (0 = toda a árvore)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "layoutDaArvore",
+    "label": "Distribuição dos nós",
+    "section": "Árvore",
+    "type": "string",
+    "default": "cluster",
+    "dinamica": false
+  },
+  {
+    "id": "formaDaLigacao",
+    "label": "Forma das ligações",
+    "section": "Árvore",
+    "type": "string",
+    "default": "curva",
+    "dinamica": false
+  },
+  {
+    "id": "espessuraDaLigacao",
+    "label": "Espessura das ligações",
+    "section": "Árvore",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "espessuraPorValor",
+    "label": "Ligação mais grossa para ramos maiores",
+    "section": "Árvore",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoNo",
+    "label": "Tamanho do nó",
+    "section": "Árvore",
+    "type": "number",
+    "default": 3,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoPorValor",
+    "label": "Nó maior para valores maiores",
+    "section": "Árvore",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "colorirPor",
+    "label": "Cor dos nós",
+    "section": "Cores",
+    "type": "string",
+    "default": "ramo",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarRotulosDeFolha",
+    "label": "Escrever o nome das folhas",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarRotulosInternos",
+    "label": "Escrever o nome dos nós internos",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarValorNoRotulo",
+    "label": "Incluir o valor no rótulo",
+    "section": "Rótulos",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "colunasDaGrade",
+    "label": "Colunas (0 = ajustar ao tamanho)",
+    "section": "Grade",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "larguraMinimaDaArvore",
+    "label": "Largura mínima de cada árvore (px)",
+    "section": "Grade",
+    "type": "number",
+    "default": 260,
+    "dinamica": false
+  },
+  {
+    "id": "alturaDaArvore",
+    "label": "Altura de cada árvore (px)",
+    "section": "Grade",
+    "type": "number",
+    "default": 200,
+    "dinamica": false
+  },
+  {
+    "id": "escalaPorArvore",
+    "label": "Cada árvore com o próprio tamanho de nó (deixa de ser comparável)",
+    "section": "Grade",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "campoDoId",
+    "label": "Campo do ID (formato id/superior)",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "campoDoPai",
+    "label": "Campo do superior (formato id/superior)",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "campoDoNome",
+    "label": "Campo do nome a exibir",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "campoDoValor",
+    "label": "Medida do tamanho",
+    "section": "Dados",
+    "type": "string",
+    "default": "headcount",
+    "dinamica": true
+  }
+]

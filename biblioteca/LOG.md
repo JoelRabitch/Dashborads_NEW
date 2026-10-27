@@ -2706,3 +2706,34 @@ Vou: criar e enviar a tag `antes-da-limpeza`, mover os 32 gráficos para
 - Build 22/22; `npm test` 525/525; `npm run seguranca` sem violação.
 
 PRÓXIMA AÇÃO EXATA: A.1 — gerar `docs/opcoes/<id>.antes.json` para os 22.
+
+### Etapa A.1 — opções "antes" (concluída)
+- `build/listar-opcoes.mjs` lê o BUNDLE no jsdom e grava
+  `docs/opcoes/<id>.antes.json` (id, label, section, type, default e se é
+  dinâmica). O arquivo `.antes` nunca é sobrescrito; sem `--antes` o
+  script grava `.depois.json` para comparação.
+- **Diagnóstico de causa raiz (6.1/6.2)** — varredura de quais ids
+  declarados aparecem em algum lugar do código que o gráfico usa
+  (gráfico + bases `_*` + núcleo, sem contar o options-kit):
+  - `negritoNoRotulo`, `rotacaoDoRotulo`, `evitarColisaoDeRotulos`,
+    `posicaoDoRotulo`, `conteudoDoRotulo`, `formatoDoRotulo`: NUNCA lidos
+    em 21 dos 21 gráficos que os declaram.
+  - `mostrarRotulos` não lido em 15; `tamanhoDoRotulo`/`corDoRotulo`/
+    `truncarRotulo` em 16.
+  - `mostrarContorno`/`corDoContorno`/`tracejadoDoContorno` não lidos em
+    19 de 19; `espessuraDoContorno` em 18.
+  - Eixos: `escalaEixo*`, `minimo/maximoEixo*`, `inverterEixo*`,
+    `formatoDoEixo`, `casasDecimaisDoEixo`, `rotacaoRotuloEixoY` não lidos
+    em 6–7 gráficos com eixos.
+  Ou seja: o painel oferecia a opção, o Looker gravava o valor e nenhum
+  código o usava. O simulador não acusava porque só confere que desenha.
+- **Segunda causa (registerOptions):** `criarPonte` é chamada a cada
+  `updateAsync`, e a assinatura das opções dinâmicas mora DENTRO da ponte.
+  Ela zera a cada atualização, então `registerOptions` dispara em TODA
+  atualização — o oposto do que o comentário promete. No Looker real isso
+  repinta o painel e pode reiniciar a atualização (regra 3: registrar só
+  quando a lista de campos mudar). Correção: guardar a assinatura na
+  instância.
+
+PRÓXIMA AÇÃO EXATA: 6.1 — `src/core/rotulos.js` + normalização do config
+em define-viz + assinatura na instância; depois aplicar nos 21 gráficos.

@@ -82,7 +82,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 
 ### Fase A
 - [x] A.0 Tag `antes-da-limpeza` + arquivamento dos 32 (seção 5)
-- [ ] A.1 Opções "antes" em `docs/opcoes/<id>.antes.json` (22 gráficos)
+- [x] A.1 Opções "antes" em `docs/opcoes/<id>.antes.json` (22 gráficos)
 - [ ] 2.1 Rótulos (função única)
 - [ ] 2.2 Aba Cores
 - [ ] 2.3 Tooltip no padrão do Looker
