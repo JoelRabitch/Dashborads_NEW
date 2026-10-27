@@ -1,0 +1,466 @@
+[
+  {
+    "id": "formatoDoNumero",
+    "label": "Formato do número (Automático = o do rótulo / do campo)",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "casasDoNumero",
+    "label": "Casas decimais do número",
+    "section": "Dados",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "simboloDaMoeda",
+    "label": "Símbolo da moeda",
+    "section": "Dados",
+    "type": "string",
+    "default": "R$ ",
+    "dinamica": false
+  },
+  {
+    "id": "baseDaComparacao",
+    "label": "KPI · Comparar com",
+    "section": "Dados",
+    "type": "string",
+    "default": "anterior",
+    "dinamica": false
+  },
+  {
+    "id": "periodosAtras",
+    "label": "KPI · Quantos períodos atrás",
+    "section": "Dados",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "meta",
+    "label": "KPI · Valor da meta",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "menorEhMelhor",
+    "label": "KPI · Menor é melhor (custo, churn, tempo de resposta…)",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "colorirVariacao",
+    "label": "KPI · Colorir a variação por direção",
+    "section": "Dados",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarVariacaoAbsoluta",
+    "label": "KPI · Mostrar também a diferença absoluta",
+    "section": "Dados",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarProgressoDaMeta",
+    "label": "KPI · Barra de progresso até a meta (usa \"Valor da meta\")",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "usarLimites",
+    "label": "KPI · Colorir o número por limites (verde / amarelo / vermelho)",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "limiteVerde",
+    "label": "KPI · Limite do verde (a partir de; com \"menor é melhor\": até)",
+    "section": "Dados",
+    "type": "number",
+    "default": null,
+    "dinamica": false
+  },
+  {
+    "id": "limiteAmarelo",
+    "label": "KPI · Limite do amarelo (a partir de; com \"menor é melhor\": até)",
+    "section": "Dados",
+    "type": "number",
+    "default": null,
+    "dinamica": false
+  },
+  {
+    "id": "colunasDoKpi",
+    "label": "KPI · Colunas da grade (0 = automático)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoKpi",
+    "label": "KPI · Linhas da grade (0 = automático)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tema",
+    "label": "Tema · Tema",
+    "section": "Visual",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundo",
+    "label": "Cor · Cor de fundo (vazio = do tema)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTexto",
+    "label": "Cor · Cor do texto (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBorda",
+    "label": "Cor · Cor das bordas (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaGrade",
+    "label": "Cor · Cor das linhas de grade (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "familiaDaFonte",
+    "label": "Tema · Fonte",
+    "section": "Visual",
+    "type": "string",
+    "default": "sistema",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaFonte",
+    "label": "Tema · Tamanho base da fonte (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSparkline",
+    "label": "KPI · Sparkline de contexto",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "layoutDoCartao",
+    "label": "KPI · Layout do cartão",
+    "section": "Visual",
+    "type": "string",
+    "default": "grande",
+    "dinamica": false
+  },
+  {
+    "id": "tipoDeSparkline",
+    "label": "KPI · Minigráfico",
+    "section": "Visual",
+    "type": "string",
+    "default": "area",
+    "dinamica": false
+  },
+  {
+    "id": "corPositiva",
+    "label": "KPI · Cor do positivo (vazio = do tema)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corNegativa",
+    "label": "KPI · Cor do negativo (vazio = do tema)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "iconeDoKpi",
+    "label": "KPI · Ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": false
+  },
+  {
+    "id": "corDoIcone",
+    "label": "KPI · Cor do ícone (vazio = destaque do tema)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "kpisEmGrade",
+    "label": "KPI · Vários KPIs em grade (um cartão por medida)",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarRotulos",
+    "label": "Rótulo · Mostrar rótulos",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoRotulo",
+    "label": "Rótulo · Tamanho do rótulo (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 11,
+    "dinamica": false
+  },
+  {
+    "id": "corDoRotulo",
+    "label": "Rótulo · Cor do rótulo (vazio = automática)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "negritoNoRotulo",
+    "label": "Rótulo · Rótulo em negrito",
+    "section": "Texto",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "rotacaoDoRotulo",
+    "label": "Rótulo · Rotação do rótulo (graus)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "evitarColisaoDeRotulos",
+    "label": "Rótulo · Esconder rótulos que se sobrepõem",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "truncarRotulo",
+    "label": "Rótulo · Truncar rótulo com mais de N caracteres (0 = não truncar)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoRotulo",
+    "label": "Rótulo · Posição do rótulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "conteudoDoRotulo",
+    "label": "Rótulo · O que mostrar no rótulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "valor",
+    "dinamica": false
+  },
+  {
+    "id": "formatoDoRotulo",
+    "label": "Rótulo · Formato do número no rótulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "casasDecimaisDoRotulo",
+    "label": "Rótulo · Casas decimais no rótulo",
+    "section": "Texto",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "titulo",
+    "label": "Título · Título (vazio = nome da medida)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "subtitulo",
+    "label": "Título · Subtítulo do cartão",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "textoSemDados",
+    "label": "Aviso · Mensagem quando não há dados",
+    "section": "Texto",
+    "type": "string",
+    "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarAvisos",
+    "label": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDosAvisos",
+    "label": "Aviso · Posição dos avisos",
+    "section": "Texto",
+    "type": "string",
+    "default": "topo",
+    "dinamica": false
+  },
+  {
+    "id": "contadorAnimado",
+    "label": "Animação · Animação de contagem do número",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "animacaoAtiva",
+    "label": "Animação · Ativar animações",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "duracaoDaAnimacao",
+    "label": "Animação · Duração (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 600,
+    "dinamica": false
+  },
+  {
+    "id": "atrasoDaAnimacao",
+    "label": "Animação · Atraso inicial (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "cascataDaAnimacao",
+    "label": "Animação · Cascata entre itens (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 20,
+    "dinamica": false
+  },
+  {
+    "id": "suavizacaoDaAnimacao",
+    "label": "Animação · Curva da animação",
+    "section": "Interação",
+    "type": "string",
+    "default": "saida",
+    "dinamica": false
+  },
+  {
+    "id": "quandoAnimar",
+    "label": "Animação · Quando animar",
+    "section": "Interação",
+    "type": "string",
+    "default": "sempre",
+    "dinamica": false
+  },
+  {
+    "id": "destacarAoPassarMouse",
+    "label": "Clique · Destacar ao passar o mouse",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "modoDebug",
+    "label": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON (cole aqui para importar)",
+    "section": "Avançado",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima por cima das opções",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "campoDoPeriodo",
+    "label": "Dimensão do tempo",
+    "section": "Dados",
+    "type": "string",
+    "default": "mes",
+    "dinamica": true
+  }
+]

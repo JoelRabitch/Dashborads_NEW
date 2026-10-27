@@ -74,6 +74,33 @@ a URL é `http(s)` e dispara o clique. Mesmo efeito, sem a função proibida.
 
 ---
 
+### Recursos do navegador usados nas correções v2
+
+| Recurso | Onde | Sem ele |
+|---|---|---|
+| `navigator.clipboard.writeText` | tabela: botão "Copiar" do painel de CSV | cai para selecionar o texto + `execCommand('copy')`; se o iframe negar, o texto fica selecionado e a mensagem pede Ctrl+C |
+| `Blob` + `URL.createObjectURL` + `<a download>` | tabela: Exportar CSV | o painel com o CSV em texto abre de qualquer forma (o sandbox do iframe pode bloquear o download sem avisar — não há como detectar) |
+| `DOMParser` | tooltip: "Permitir HTML do Looker" | o HTML do Looker entra como texto puro |
+| `matchMedia('(prefers-reduced-motion: reduce)')` | animação genérica e contagem do KPI | animação ligada normalmente |
+
+### Suposições sobre o painel de opções (CONFERIR NO LOOKER REAL)
+
+- **Ordem das abas:** não sabemos se o Looker ordena as abas pelo `order` ou
+  pela primeira aparição da `section`. A biblioteca atende às duas: o
+  `order` cresce por aba (Dados < Visual < Texto < Interação < Avançado) e as
+  chaves do objeto de opções saem já nessa ordem (estáticas e no
+  `registerOptions`). Se a ordem vier errada, ajuste `ABAS` em
+  `options-kit.js`.
+- **Chaves ausentes no config:** o Looker nem sempre manda no `config` a
+  chave de uma opção que o usuário nunca tocou (ex.: dashboard salvo antes
+  da opção existir). `normalizarConfig` preenche com o default declarado e
+  converte número/boolean em texto. Com "Modo debug" ligado, o console lista
+  `faltandoNoConfig` e `foraDoPainel`.
+- **registerOptions:** só é disparado quando a lista de opções dinâmicas
+  muda (assinatura guardada na instância). Antes era disparado a cada
+  `updateAsync`, porque a assinatura morava na ponte recriada a cada
+  atualização.
+
 ## 3. Formato dos dados (`data` + `queryResponse`)
 
 Tudo isto é lido **só** em `data-model.js`.

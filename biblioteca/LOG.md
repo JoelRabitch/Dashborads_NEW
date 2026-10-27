@@ -3070,3 +3070,27 @@ falhavam no código anterior; o de "1 tooltip" é regressão).
 PRÓXIMA AÇÃO EXATA: Fase D — 2.9 build determinístico (sem data/hash no
 cabeçalho, só reescreve se mudou), `dist/URLS.md`/`URLS.csv`, MANIFEST sem
 `COMMIT`, README com o fluxo de manutenção; depois o relatório.
+
+## Sessão retomada em 2026-10-27 (Fase D)
+- git pull: nada novo; PROMPT da raiz igual ao da biblioteca.
+- Pendências encontradas no working tree (desta mesma sessão, completas e
+  testadas): tabela respeitando "Ativar animações"; COMPAT/ARQUITETURA/
+  READMEs; `docs/opcoes/*.depois.json`.
+
+### 2.9 Build determinístico e URLs
+- `build.mjs`: cabeçalho sem data e sem hash; esbuild com `write:false` e
+  `gravarSeMudou` (compara ignorando CRLF/LF) para bundles, MANIFEST e
+  `test/gerado`. Conferido: dois builds seguidos → `git status` limpo em
+  `dist/` e `test/gerado/`.
+- MANIFEST sem `COMMIT` nem hash; aponta para `URLS.md`.
+- `build/urls.mjs` (`npm run urls`): hash de `git log -1 --format=%H --
+  dist/*.js`; recusa se houver bundle sem commit; confere com `git ls-tree`
+  que os 22 caminhos existem no hash; gera `dist/URLS.md` e `URLS.csv`.
+  Sem `@main`/`@latest`/raw/blob (conferido por grep).
+- Fluxo em dois commits: bundles primeiro, URLs depois.
+- tabela_completa: "Ativar animações" (opção de todo gráfico) agora também
+  desliga a entrada das linhas — sem isso a opção não teria efeito ali.
+- Docs: COMPAT (recursos do navegador e suposições sobre o painel),
+  ARQUITETURA (módulos novos e o que o define-viz faz por todos), README da
+  biblioteca (URLs e fluxo de manutenção), README da raiz (seção da
+  biblioteca aponta para URLS.md). `npm run opcoes` gera os `.depois.json`.

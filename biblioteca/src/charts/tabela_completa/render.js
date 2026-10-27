@@ -701,7 +701,10 @@ function desenharLinhasVisiveis({
 
   if (inicio > 0) tbody.appendChild(linhaEspacadora(inicio * alturaLinha, colunasVisiveis.length + 1));
 
-  const animar = config.animarEntradaDasLinhas !== false && !preferindoMenosMovimento();
+  // "Ativar animações" (interruptor de todo gráfico, 2.7) também desliga a
+  // entrada das linhas da tabela, que anima por conta própria.
+  const animar =
+    config.animacaoAtiva !== false && config.animarEntradaDasLinhas !== false && !preferindoMenosMovimento();
 
   for (let i = inicio; i < fim; i++) {
     const item = itens[i];

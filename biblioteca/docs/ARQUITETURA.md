@@ -104,9 +104,25 @@ Declara as opções (compondo blocos do `options-kit`) e desenha. Nada mais.
 | `scales.js` | Escalas numéricas/banda/ponto/temporal a partir das opções, escala de cores (categoria, valor, única), linhas de referência |
 | `shapes.js` | Curvas, símbolos de ponto, retângulo com cantos, arcos, empilhamento, envoltória convexa |
 | `animate.js` | Motor de animação em `requestAnimationFrame`, easings, contador animado, traçado de linha — **sempre respeitando `prefers-reduced-motion`** |
-| `tooltip.js` | Tooltip flutuante (texto puro) + montagem do conteúdo a partir do modelo |
+| `tooltip.js` | Tooltip **único por gráfico** (2.3), fixar/soltar, ação do clique, modelo do usuário seguro (b/i/br/span), HTML do Looker filtrado |
 | `legend.js` | Legenda categórica e contínua, interativa, com layout que reserva o espaço |
-| `interaction.js` | Arraste com **pointer capture**, zoom por roda, inércia, brush, busca, hit-testing |
+| `interaction.js` | Arraste com **pointer capture**, zoom por roda, inércia, brush, busca, hit-testing; `ligarDestaqueAoPassar` (hover único, 2.6) |
+| `rotulos.js` | **Função única de rótulos** (2.1): `lerRotulos`, `textoDoRotulo`, `estilizarRotulo`, `criarRotuloSvg`, `esconderColisoes` |
+| `cores.js` | **Leitura única da aba de cores** (2.2): paleta com inverter, cor por item, opacidade, contorno |
+
+### O que o define-viz faz por TODOS os gráficos (correções v2)
+
+1. **Config normalizado** (`normalizarConfig`): defaults nas chaves ausentes, tipos corrigidos; relido a cada `updateAsync`.
+2. **Abas padronizadas** (`organizarAbas`): Dados · Visual · Texto · Interação · Avançado; só `section`/`order`/`label` mudam, nunca id/tipo/default. Relatório em `docs/opcoes/ABAS.md`.
+3. **Tooltip único** por gráfico (`ctx.tooltip()`), escondido em todo redesenho e removido no destroy; `ctx.cliqueNoItem(ev, celula, conteudo)` aplica a "Ação do clique".
+4. **Aviso** no fluxo (topo/rodapé/oculto), com ×, sempre também no console.
+5. **Hover** (`data-item` ou `.bl-marcador`) depois de todo desenho.
+6. **Animação genérica** de entrada/atualização depois do render (exceto gráficos com `animacaoPropria: true`).
+7. Opções que todo gráfico ganha: avisos, animação e "Destacar ao passar o mouse" (as já declaradas mantêm os próprios defaults).
+
+Flags novas do `defineViz`: `animacaoPropria` (tabela, bar_race) e `cabecalhoProprio` (kpi_vivo desenha título/subtítulo no cartão).
+
+Testes que garantem os contratos: `test/opcoes.test.mjs` (ids/tipos/defaults antigos x `docs/opcoes/*.antes.json` e abas padronizadas), `test/nucleo_correcoes.test.mjs`, `test/avisos.test.mjs`, `test/animacao.test.mjs`, `test/hover.test.mjs`.
 
 ## Decisões que valem explicar
 

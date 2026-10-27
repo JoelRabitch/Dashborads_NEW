@@ -18,12 +18,31 @@ Esta pasta é independente do resto do repositório: nada fora de `/biblioteca`
 | **Main** | a URL do `dist/<id>.js` |
 | **Dependencies** | **vazio** |
 
-A tabela completa, com a URL pronta de cada gráfico e como montar o Explore,
-está em [`dist/MANIFEST.md`](dist/MANIFEST.md) — gerada automaticamente pelo
-build.
+As URLs prontas para o campo Main (fixadas no hash do commit) estão em
+[`dist/URLS.md`](dist/URLS.md) e [`dist/URLS.csv`](dist/URLS.csv); como
+montar o Explore de cada gráfico, em [`dist/MANIFEST.md`](dist/MANIFEST.md).
 
-> Fixe a URL num **commit específico** (nunca em `@main`), para a
-> visualização não mudar sozinha depois de testada.
+> Use a URL com o **hash de 40 caracteres**, nunca branch, `@main`,
+> `@latest`, `raw.githubusercontent.com` ou `github.com/blob` (o Looker
+> bloqueia essas respostas com `ERR_BLOCKED_BY_ORB`).
+
+## Fluxo de manutenção (consertar um gráfico)
+
+1. Altere o código em `src/charts/<id>/` (ou no núcleo, `src/core/`).
+2. `npm run build` e `npm test` (e `npm run seguranca`). O build é
+   determinístico: só regrava os bundles que mudaram de verdade.
+3. Commite os `dist/<id>.js` alterados.
+4. Pegue o hash: `git log -1 --format=%H -- biblioteca/dist/<id>.js`.
+5. No Admin do Looker, troque **só a URL daquela visualização**, com o hash novo.
+6. (Opcional) `npm run urls` regenera `dist/URLS.md`/`URLS.csv` com o hash
+   novo para todos; commite num commit seguinte.
+
+Depois de mudar opções, `npm run opcoes` regera `docs/opcoes/*.depois.json`
+e `docs/opcoes/ABAS.md`; `test/opcoes.test.mjs` garante que nenhum id
+antigo sumiu nem mudou de tipo ou default.
+
+Para conferir no Looker real o que o teste automático não alcança, use o
+checklist [`docs/TESTE_NO_LOOKER.md`](docs/TESTE_NO_LOOKER.md).
 
 ## Gráficos mantidos (22)
 
@@ -60,6 +79,9 @@ Para ver com os próprios olhos: abra `test/harness.html` no navegador
 | [`docs/COMPAT.md`](docs/COMPAT.md) | **O que fazer quando a versão do Looker mudar** |
 | [`docs/COMO_ADICIONAR_GRAFICO.md`](docs/COMO_ADICIONAR_GRAFICO.md) | Passo a passo para criar um gráfico novo |
 | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | O que mudou em cada versão |
+| [`docs/RELATORIO_CORRECOES.md`](docs/RELATORIO_CORRECOES.md) | Correções v2: o que foi corrigido, testado e o que conferir no Looker |
+| [`docs/TESTE_NO_LOOKER.md`](docs/TESTE_NO_LOOKER.md) | Checklist manual para o Looker real |
+| [`docs/opcoes/ABAS.md`](docs/opcoes/ABAS.md) | Abas do painel antes/depois e destino de cada opção |
 | [`TAREFAS.md`](TAREFAS.md) | Lista de gráficos: pendente / em andamento / pronto |
 | [`LOG.md`](LOG.md) | Decisões tomadas e o que ainda precisa de conferência |
 

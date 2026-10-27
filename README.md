@@ -390,7 +390,8 @@ Além das visualizações avulsas descritas acima, este repositório tem uma
 compartilhado, build próprio e testes automatizados. Lá, cada gráfico vira
 um `.js` autocontido (campo **Dependencies vazio** no Looker).
 
-- Como cadastrar e a lista de gráficos: [`biblioteca/dist/MANIFEST.md`](biblioteca/dist/MANIFEST.md)
+- URLs para o campo Main (fixadas no commit): [`biblioteca/dist/URLS.md`](biblioteca/dist/URLS.md)
+- Como montar o Explore de cada gráfico: [`biblioteca/dist/MANIFEST.md`](biblioteca/dist/MANIFEST.md)
 - Visão geral e como trabalhar: [`biblioteca/README.md`](biblioteca/README.md)
 - O que fazer quando a versão do Looker mudar: [`biblioteca/docs/COMPAT.md`](biblioteca/docs/COMPAT.md)
 
