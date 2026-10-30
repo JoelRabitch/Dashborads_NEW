@@ -113,6 +113,10 @@ Ids marcados com ★ são novos (não existiam antes).
 | `modoDebug` | Avançado | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Mais | Aplicar o JSON acima | Aplicar o JSON acima por cima das opções |
+| `modoDaBusca` ★ | — | Mais | Busca · Várias palavras |  |
+| `colunasDaBusca` ★ | — | Mais | Busca · Colunas (vazio = visíveis) |  |
+| `buscarEm` ★ | — | Mais | Busca · Procurar no |  |
+| `realcarBusca` ★ | — | Mais | Busca · Realçar o trecho |  |
 | `animacaoAtiva` | Interação | Mais | Animação · Ativar animações |  |
 | `duracaoDaAnimacao` | Interação | Mais | Animação · Duração (ms) |  |
 | `atrasoDaAnimacao` | Interação | Mais | Animação · Atraso inicial (ms) |  |

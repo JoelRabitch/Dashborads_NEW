@@ -1249,6 +1249,7 @@ export const LIMITE_DO_ROTULO = limiteDoRotulo;
 
 /** Seção antiga → aba nova (seções do kit). */
 const ABA_POR_SECAO = {
+  Busca: 'Interação',
   Título: 'Texto',
   Subtítulo: 'Texto',
   Nota: 'Texto',
@@ -1269,6 +1270,7 @@ const ABA_POR_SECAO = {
 
 /** Prefixo do rótulo por seção antiga do kit. */
 const PREFIXO_POR_SECAO = {
+  Busca: 'Busca',
   Título: 'Título',
   Subtítulo: 'Subtítulo',
   Nota: 'Nota',

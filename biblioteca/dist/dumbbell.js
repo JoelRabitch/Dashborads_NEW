@@ -2572,6 +2572,7 @@
     Avan\u00E7ado: "Mais"
   };
   var ABA_POR_SECAO = {
+    Busca: "Intera\xE7\xE3o",
     T\u00EDtulo: "Texto",
     Subt\u00EDtulo: "Texto",
     Nota: "Texto",
@@ -2590,6 +2591,7 @@
     Avan\u00E7ado: "Avan\xE7ado"
   };
   var PREFIXO_POR_SECAO = {
+    Busca: "Busca",
     T\u00EDtulo: "T\xEDtulo",
     Subt\u00EDtulo: "Subt\xEDtulo",
     Nota: "Nota",

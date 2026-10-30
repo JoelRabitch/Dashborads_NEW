@@ -104,3 +104,8 @@ real antes de considerar resolvido.
   - [ ] "Nota · Texto" = Só meu texto, com "Nota · Meu texto" preenchido; e = Nenhum.
   - [ ] Num tile bem pequeno, a nota some em vez de apertar o gráfico.
   - [ ] kpi_vivo: as opções de título (mostrar, cor, tamanho, alinhamento) valem no título dentro do cartão.
+- **5.3 tabela_completa — busca "contém"**
+  - [ ] Busque um trecho do MEIO e do FIM de um código (ex.: um código "XXXBLACKYY": busque "BLACK" e "YY"). As linhas aparecem. (Em simulação isso já funcionava antes; se no Looker real não funcionar, anote o código exato e se o campo usa `html:` no LookML.)
+  - [ ] "black br" (todas as palavras), "\"frase exata\"", "black -br" (exclui); aba Mais → "Busca · Várias palavras" = Qualquer uma.
+  - [ ] "Busca · Colunas" com um nome de coluna; "Busca · Procurar no" = Valor bruto.
+  - [ ] O trecho aparece realçado em amarelo; a barra mostra "N resultado(s) para …"; o campo não perde o foco nem o cursor enquanto digita.

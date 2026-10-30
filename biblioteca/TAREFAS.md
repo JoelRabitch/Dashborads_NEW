@@ -135,7 +135,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] 5.1c Título, subtítulo e nota explicativa
 
 ### FASE 2 — tabela_completa
-- [ ] 5.3 Busca "contém"
+- [x] 5.3 Busca "contém"
 - [ ] 5.4 Colunas calculadas com fórmulas
 - [ ] 5.5 Layouts da tabela
 

@@ -25,6 +25,7 @@ var FIXTURES_BL = (() => {
     campoDimensao: () => campoDimensao,
     campoMedida: () => campoMedida,
     celula: () => celula,
+    codigosSinteticos: () => codigosSinteticos,
     comPivo: () => comPivo,
     conjuntosBooleanos: () => conjuntosBooleanos,
     conjuntosPorItem: () => conjuntosPorItem,
@@ -32,6 +33,7 @@ var FIXTURES_BL = (() => {
     criarRng: () => criarRng,
     duasDimensoes: () => duasDimensoes,
     hierarquia: () => hierarquia,
+    montarQueryResponse: () => montarQueryResponse,
     ohlc: () => ohlc,
     paiFilho: () => paiFilho,
     rotulosLongos: () => rotulosLongos,
@@ -469,6 +471,25 @@ var FIXTURES_BL = (() => {
     }
     return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
   }
+  function codigosSinteticos() {
+    const dimensoes = [campoDimensao("codigo", "C\xF3digo"), campoDimensao("descricao", "Descri\xE7\xE3o")];
+    const medidas = [campoMedida("qty", "Quantidade"), campoMedida("preco", "Pre\xE7o")];
+    const linhas = [
+      ["ABCBLACKXX", "Caneca preta", 5, 10.5],
+      ["ABCWHITEBR", "Caneca branca", 12, 11],
+      ["XYZBLACKBR", "Copo preto t\xE9rmico", 31, 25],
+      ["QRSKRAFTXX", "Pacote kraft", 55, 3.2],
+      ["BLACKQRS01", "Coador de papel", 70, 8],
+      ["MNOGREENBR", "A\xE7\xFAcar org\xE2nico", 0, 4.75]
+    ];
+    const data = linhas.map(([codigo, descricao, qty, preco]) => ({
+      codigo: celula(codigo),
+      descricao: celula(descricao),
+      qty: celula(qty),
+      preco: celula(preco, `$${preco.toFixed(2)}`)
+    }));
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
   var FIXTURES = {
     semPivo: () => semPivo(),
     semPivoSemNulos: () => semPivo({ comNulos: false }),
@@ -491,6 +512,7 @@ var FIXTURES_BL = (() => {
     rotulosLongos: () => rotulosLongos(),
     grande5k: () => volumeGrande({ linhas: 5e3 }),
     tabelaLarga: () => tabelaLarga(),
+    codigosSinteticos: () => codigosSinteticos(),
     grande50k: () => volumeGrande({ linhas: 5e4 })
   };
   var FIXTURES_BASICAS = [

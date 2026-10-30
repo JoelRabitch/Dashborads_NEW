@@ -51,7 +51,7 @@ export function campoMedida(nome, rotulo, extras = {}) {
   };
 }
 
-function montarQueryResponse({ dimensoes = [], medidas = [], tableCalcs = [], pivots = [], pivotsDeDados = null }) {
+export function montarQueryResponse({ dimensoes = [], medidas = [], tableCalcs = [], pivots = [], pivotsDeDados = null }) {
   return {
     fields: {
       dimensions: dimensoes,
@@ -451,6 +451,30 @@ export function tabelaLarga({ linhas = 500, medidas: quantasMedidas = 48, sement
   return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
 }
 
+/**
+ * Códigos de produto sintéticos (melhorias v3, 5.3 e 5.4): texto com o
+ * termo no começo, no meio e no fim, acentos e uma quantidade numérica.
+ */
+export function codigosSinteticos() {
+  const dimensoes = [campoDimensao('codigo', 'Código'), campoDimensao('descricao', 'Descrição')];
+  const medidas = [campoMedida('qty', 'Quantidade'), campoMedida('preco', 'Preço')];
+  const linhas = [
+    ['ABCBLACKXX', 'Caneca preta', 5, 10.5],
+    ['ABCWHITEBR', 'Caneca branca', 12, 11],
+    ['XYZBLACKBR', 'Copo preto térmico', 31, 25],
+    ['QRSKRAFTXX', 'Pacote kraft', 55, 3.2],
+    ['BLACKQRS01', 'Coador de papel', 70, 8],
+    ['MNOGREENBR', 'Açúcar orgânico', 0, 4.75],
+  ];
+  const data = linhas.map(([codigo, descricao, qty, preco]) => ({
+    codigo: celula(codigo),
+    descricao: celula(descricao),
+    qty: celula(qty),
+    preco: celula(preco, `$${preco.toFixed(2)}`),
+  }));
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
 /** Catálogo nomeado, usado pelo harness e pelo smoke test. */
 export const FIXTURES = {
   semPivo: () => semPivo(),
@@ -474,6 +498,7 @@ export const FIXTURES = {
   rotulosLongos: () => rotulosLongos(),
   grande5k: () => volumeGrande({ linhas: 5000 }),
   tabelaLarga: () => tabelaLarga(),
+  codigosSinteticos: () => codigosSinteticos(),
   grande50k: () => volumeGrande({ linhas: 50000 }),
 };
 

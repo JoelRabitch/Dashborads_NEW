@@ -29,7 +29,8 @@ import {
 } from './render.js';
 
 /** Espera depois da última tecla antes de filtrar (ms). */
-const ESPERA_DO_FILTRO = 200;
+// Espera curta depois da última tecla (5.3, v3: "debounce curto").
+const ESPERA_DO_FILTRO = 150;
 
 /** Define a ordenação inicial a partir da opção do painel. */
 function ordenacaoInicial(config, colunas) {
@@ -354,7 +355,7 @@ export default defineViz({
     function calcularIndices() {
       const todos = modelo.linhas.map((_, i) => i);
       const porColuna = aplicarFiltrosDeColuna(todos, colunasVisiveis, estado.filtros, modelo);
-      const buscados = filtrarIndices(porColuna, colunasVisiveis, estado.busca, modelo);
+      const buscados = filtrarIndices(porColuna, colunasVisiveis, estado.busca, modelo, config);
       return ordenarIndices(buscados, colunas, estado.ordenacao, modelo);
     }
 

@@ -325,6 +325,31 @@ export function opcoesEstaticas() {
       // ---------- Interação ----------
       permitirOrdenar: { type: 'boolean', label: 'Ordenar clicando no cabeçalho', section: 'Interação', default: true },
       mostrarBusca: { type: 'boolean', label: 'Mostrar caixa de busca', section: 'Interação', default: true },
+      // Busca "contém" (5.3, v3). Opções novas, padrão novo.
+      modoDaBusca: {
+        type: 'string',
+        label: 'Várias palavras',
+        section: 'Busca',
+        display: 'select',
+        values: [{ 'Todas precisam aparecer': 'todas' }, { 'Qualquer uma basta': 'qualquer' }],
+        default: 'todas',
+      },
+      colunasDaBusca: {
+        type: 'string',
+        label: 'Colunas (vazio = visíveis)',
+        section: 'Busca',
+        placeholder: 'Código, Descrição',
+        default: '',
+      },
+      buscarEm: {
+        type: 'string',
+        label: 'Procurar no',
+        section: 'Busca',
+        display: 'select',
+        values: [{ 'Texto formatado': 'formatado' }, { 'Valor bruto': 'bruto' }],
+        default: 'formatado',
+      },
+      realcarBusca: { type: 'boolean', label: 'Realçar o trecho', section: 'Busca', default: true },
       mostrarFiltrosPorColuna: {
         type: 'boolean',
         label: 'Mostrar filtro em cada coluna',

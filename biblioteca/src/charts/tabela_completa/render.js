@@ -12,7 +12,7 @@
  */
 
 import { criarEl, limpar, definirTexto, injetarEstilo, preferindoMenosMovimento } from '../../core/dom.js';
-import { criarFiltroDeBusca } from '../../core/interaction.js';
+import { criarBusca, realcarTrechos, colunasDaBusca } from './busca.js';
 import { criarFormatadorNumerico } from '../../core/format.js';
 import { cssDasCelulas } from './celulas.js';
 
@@ -55,6 +55,7 @@ const CSS = `
 .tc-seta-grupo{display:inline-block;width:10px;}
 @keyframes tc-entrada{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .tc-entrando{animation:tc-entrada .22s ease-out both;}
+.tc-realce{background:rgba(250,204,21,.45);color:inherit;padding:0;border-radius:2px;}
 .tc-flash{transition:background-color .7s ease-out;}
 .tc-menu{position:fixed;z-index:50;min-width:170px;padding:4px 0;border-radius:6px;border:1px solid;
   font-size:12px;}
@@ -198,15 +199,25 @@ function compararTextos(a, b) {
 }
 
 /** Aplica a busca global, devolvendo os índices que casam. */
-export function filtrarIndices(indices, colunas, termo, modelo) {
-  if (!termo || !termo.trim()) return indices;
-  const casa = criarFiltroDeBusca(termo);
+/**
+ * Busca geral (5.3, v3): "contém" em qualquer posição, várias palavras,
+ * "frase exata", -exclusão (ver busca.js). `config` traz as opções da
+ * busca: modo (todas/qualquer), colunas e texto formatado × valor bruto.
+ */
+export function filtrarIndices(indices, colunas, termo, modelo, config = {}) {
+  const busca = criarBusca(termo, { modo: config.modoDaBusca === 'qualquer' ? 'qualquer' : 'todas' });
+  if (busca.vazia) return indices;
+  const alvo = colunasDaBusca(colunas, config.colunasDaBusca);
+  const bruto = config.buscarEm === 'bruto';
+  const textoDe = (coluna, linha) => {
+    if (!bruto) return coluna.texto(linha, '');
+    const celula = coluna.celula(linha);
+    const v = celula ? celula.value : coluna.ehMedida ? coluna.valorNumerico(linha) : null;
+    return v === null || v === undefined ? '' : String(v);
+  };
   return indices.filter((i) => {
     const linha = modelo.linhas[i];
-    for (const coluna of colunas) {
-      if (casa(coluna.texto(linha, ''))) return true;
-    }
-    return false;
+    return busca.casa(alvo.map((coluna) => textoDe(coluna, linha)));
   });
 }
 
@@ -386,6 +397,12 @@ export function desenharTabela(params) {
   };
 
   function desenharJanela({ forcar = true } = {}) {
+    // Realce do trecho buscado (5.3, v3), só nas colunas que a busca olha.
+    const busca = criarBusca(estado.busca, { modo: config.modoDaBusca === 'qualquer' ? 'qualquer' : 'todas' });
+    estadoDeDesenho.realce =
+      config.realcarBusca !== false && busca.trechos.length && config.buscarEm !== 'bruto'
+        ? { trechos: busca.trechos, colunas: new Set(colunasDaBusca(colunasVisiveis, config.colunasDaBusca).map((c) => c.id)) }
+        : null;
     const animar = animarProximaJanela;
     animarProximaJanela = false;
     const desenhou = desenharLinhasVisiveis({
@@ -819,6 +836,9 @@ function desenharLinhasVisiveis({
       // O conteúdo em si é desenhado por quem chamou (tipos de célula ricos
       // e regras de formatação condicional vivem no index.js).
       pintarCelula({ td, coluna, linha, indiceDaLinha, visual, posicaoNaJanela: i });
+      if (estadoDeDesenho.realce && estadoDeDesenho.realce.colunas.has(coluna.id)) {
+        realcarTrechos(td, estadoDeDesenho.realce.trechos);
+      }
 
       if (aoMenuDeContexto) {
         ctx.eventos.on(td, 'contextmenu', (ev) => aoMenuDeContexto(ev, { coluna, linha, indiceDaLinha, td }));
@@ -900,7 +920,12 @@ function estiloDeCelula(td, visual, config) {
 }
 
 function atualizarResumo(resumoEl, indicesVisiveis, estado, colunasVisiveis, modelo) {
-  const partes = [`${indicesVisiveis.length.toLocaleString('pt-BR')} linha(s)`];
+  const busca = String(estado.busca || '').trim();
+  const partes = [
+    busca
+      ? `${indicesVisiveis.length.toLocaleString('pt-BR')} resultado(s) para "${busca}"`
+      : `${indicesVisiveis.length.toLocaleString('pt-BR')} linha(s)`,
+  ];
   if (estado.selecionadas.size) {
     partes.push(`${estado.selecionadas.size} selecionada(s)`);
     const primeiraMedida = colunasVisiveis.find((c) => c.ehMedida);

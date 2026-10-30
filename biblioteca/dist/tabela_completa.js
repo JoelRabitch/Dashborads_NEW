@@ -1967,6 +1967,7 @@
     Avan\u00E7ado: "Mais"
   };
   var ABA_POR_SECAO = {
+    Busca: "Intera\xE7\xE3o",
     T\u00EDtulo: "Texto",
     Subt\u00EDtulo: "Texto",
     Nota: "Texto",
@@ -1985,6 +1986,7 @@
     Avan\u00E7ado: "Avan\xE7ado"
   };
   var PREFIXO_POR_SECAO = {
+    Busca: "Busca",
     T\u00EDtulo: "T\xEDtulo",
     Subt\u00EDtulo: "Subt\xEDtulo",
     Nota: "Nota",
@@ -2626,11 +2628,6 @@
   }
 
   // src/core/interaction.js
-  function criarFiltroDeBusca(termo) {
-    const t = normalizarTexto(termo);
-    if (!t) return () => true;
-    return (texto) => normalizarTexto(texto).includes(t);
-  }
   function normalizarTexto(texto) {
     return String(texto != null ? texto : "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
   }
@@ -4010,6 +4007,109 @@
     "estrelas"
   ]);
 
+  // src/charts/tabela_completa/busca.js
+  function analisarBusca(termo) {
+    const incluir = [];
+    const excluir = [];
+    const re2 = /(-?)"([^"]*)"?|(\S+)/g;
+    let m;
+    const texto = String(termo != null ? termo : "");
+    while ((m = re2.exec(texto)) !== null) {
+      if (m[2] !== void 0) {
+        const frase = normalizarTexto(m[2]);
+        if (frase) (m[1] ? excluir : incluir).push(frase);
+        continue;
+      }
+      const palavra = m[3];
+      if (palavra.length > 1 && palavra.startsWith("-")) {
+        const t = normalizarTexto(palavra.slice(1));
+        if (t) excluir.push(t);
+      } else {
+        const t = normalizarTexto(palavra);
+        if (t) incluir.push(t);
+      }
+    }
+    return { incluir, excluir };
+  }
+  function criarBusca(termo, { modo = "todas" } = {}) {
+    const partes = analisarBusca(termo);
+    const vazia = !partes.incluir.length && !partes.excluir.length;
+    const casa = (textos) => {
+      if (vazia) return true;
+      const normalizados = textos.map((t) => normalizarTexto(t));
+      const tem = (p) => normalizados.some((t) => t.includes(p));
+      if (partes.excluir.some(tem)) return false;
+      if (!partes.incluir.length) return true;
+      return modo === "qualquer" ? partes.incluir.some(tem) : partes.incluir.every(tem);
+    };
+    return { vazia, partes, casa, trechos: partes.incluir };
+  }
+  function realcarTrechos(el, trechos) {
+    if (!el || !trechos || !trechos.length) return 0;
+    const doc = el.ownerDocument;
+    const nos = [];
+    const caminhar = (no) => {
+      for (const filho of Array.from(no.childNodes)) {
+        if (filho.nodeType === 3) nos.push(filho);
+        else if (filho.nodeType === 1 && filho.tagName !== "MARK" && filho.tagName !== "svg") caminhar(filho);
+      }
+    };
+    caminhar(el);
+    let total = 0;
+    for (const no of nos) {
+      const original = no.nodeValue;
+      const mapa = [];
+      let normal = "";
+      for (let i = 0; i < original.length; i++) {
+        const n = normalizarTexto(original[i]) || (original[i] === " " ? " " : "");
+        for (const c of n) {
+          normal += c;
+          mapa.push(i);
+        }
+      }
+      const faixas = [];
+      for (const t of trechos) {
+        let de = normal.indexOf(t);
+        while (de >= 0 && t) {
+          const ini = mapa[de];
+          const fim = mapa[de + t.length - 1] + 1;
+          faixas.push([ini, fim]);
+          de = normal.indexOf(t, de + t.length);
+        }
+      }
+      if (!faixas.length) continue;
+      faixas.sort((a, b) => a[0] - b[0]);
+      const juntas = [];
+      for (const f of faixas) {
+        const u = juntas[juntas.length - 1];
+        if (u && f[0] <= u[1]) u[1] = Math.max(u[1], f[1]);
+        else juntas.push(f.slice());
+      }
+      const frag = doc.createDocumentFragment();
+      let pos = 0;
+      for (const [ini, fim] of juntas) {
+        if (ini > pos) frag.appendChild(doc.createTextNode(original.slice(pos, ini)));
+        const mark = doc.createElement("mark");
+        mark.className = "tc-realce";
+        mark.textContent = original.slice(ini, fim);
+        frag.appendChild(mark);
+        total += 1;
+        pos = fim;
+      }
+      if (pos < original.length) frag.appendChild(doc.createTextNode(original.slice(pos)));
+      no.parentNode.replaceChild(frag, no);
+    }
+    return total;
+  }
+  function colunasDaBusca(colunasVisiveis, lista) {
+    const nomes = String(lista || "").split(",").map((n) => normalizarTexto(n)).filter(Boolean);
+    if (!nomes.length) return colunasVisiveis;
+    const escolhidas = colunasVisiveis.filter(
+      (c) => [c.rotulo, c.id, c.campo && c.campo.nome, c.campo && c.campo.rotuloCurto].filter(Boolean).some((n) => nomes.includes(normalizarTexto(n)))
+    );
+    return escolhidas.length ? escolhidas : colunasVisiveis;
+  }
+
   // src/charts/tabela_completa/render.js
   var CSS3 = `
 .tc-raiz{display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;}
@@ -4050,6 +4150,7 @@
 .tc-seta-grupo{display:inline-block;width:10px;}
 @keyframes tc-entrada{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .tc-entrando{animation:tc-entrada .22s ease-out both;}
+.tc-realce{background:rgba(250,204,21,.45);color:inherit;padding:0;border-radius:2px;}
 .tc-flash{transition:background-color .7s ease-out;}
 .tc-menu{position:fixed;z-index:50;min-width:170px;padding:4px 0;border-radius:6px;border:1px solid;
   font-size:12px;}
@@ -4160,15 +4261,20 @@
   function compararTextos(a, b) {
     return String(a).localeCompare(String(b), "pt-BR", { numeric: true, sensitivity: "base" });
   }
-  function filtrarIndices(indices, colunas, termo, modelo) {
-    if (!termo || !termo.trim()) return indices;
-    const casa = criarFiltroDeBusca(termo);
+  function filtrarIndices(indices, colunas, termo, modelo, config = {}) {
+    const busca = criarBusca(termo, { modo: config.modoDaBusca === "qualquer" ? "qualquer" : "todas" });
+    if (busca.vazia) return indices;
+    const alvo = colunasDaBusca(colunas, config.colunasDaBusca);
+    const bruto = config.buscarEm === "bruto";
+    const textoDe = (coluna, linha) => {
+      if (!bruto) return coluna.texto(linha, "");
+      const celula = coluna.celula(linha);
+      const v = celula ? celula.value : coluna.ehMedida ? coluna.valorNumerico(linha) : null;
+      return v === null || v === void 0 ? "" : String(v);
+    };
     return indices.filter((i) => {
       const linha = modelo.linhas[i];
-      for (const coluna of colunas) {
-        if (casa(coluna.texto(linha, ""))) return true;
-      }
-      return false;
+      return busca.casa(alvo.map((coluna) => textoDe(coluna, linha)));
     });
   }
   function agregar(valores2, tipo) {
@@ -4315,6 +4421,8 @@
       janelaAtual: null
     };
     function desenharJanela({ forcar = true } = {}) {
+      const busca = criarBusca(estado.busca, { modo: config.modoDaBusca === "qualquer" ? "qualquer" : "todas" });
+      estadoDeDesenho.realce = config.realcarBusca !== false && busca.trechos.length && config.buscarEm !== "bruto" ? { trechos: busca.trechos, colunas: new Set(colunasDaBusca(colunasVisiveis, config.colunasDaBusca).map((c) => c.id)) } : null;
       const animar = animarProximaJanela;
       animarProximaJanela = false;
       const desenhou = desenharLinhasVisiveis({
@@ -4653,6 +4761,9 @@
           td.style.background = fundoBase === "transparent" ? visual.fundo : fundoBase;
         }
         pintarCelula({ td, coluna, linha, indiceDaLinha, visual, posicaoNaJanela: i });
+        if (estadoDeDesenho.realce && estadoDeDesenho.realce.colunas.has(coluna.id)) {
+          realcarTrechos(td, estadoDeDesenho.realce.trechos);
+        }
         if (aoMenuDeContexto) {
           ctx.eventos.on(td, "contextmenu", (ev) => aoMenuDeContexto(ev, { coluna, linha, indiceDaLinha, td }));
         }
@@ -4721,7 +4832,10 @@
     if (visual.bordasVerticais) td.style.borderRight = `1px solid ${visual.borda}`;
   }
   function atualizarResumo(resumoEl, indicesVisiveis, estado, colunasVisiveis, modelo) {
-    const partes = [`${indicesVisiveis.length.toLocaleString("pt-BR")} linha(s)`];
+    const busca = String(estado.busca || "").trim();
+    const partes = [
+      busca ? `${indicesVisiveis.length.toLocaleString("pt-BR")} resultado(s) para "${busca}"` : `${indicesVisiveis.length.toLocaleString("pt-BR")} linha(s)`
+    ];
     if (estado.selecionadas.size) {
       partes.push(`${estado.selecionadas.size} selecionada(s)`);
       const primeiraMedida = colunasVisiveis.find((c) => c.ehMedida);
@@ -5106,6 +5220,31 @@
         // ---------- Interação ----------
         permitirOrdenar: { type: "boolean", label: "Ordenar clicando no cabe\xE7alho", section: "Intera\xE7\xE3o", default: true },
         mostrarBusca: { type: "boolean", label: "Mostrar caixa de busca", section: "Intera\xE7\xE3o", default: true },
+        // Busca "contém" (5.3, v3). Opções novas, padrão novo.
+        modoDaBusca: {
+          type: "string",
+          label: "V\xE1rias palavras",
+          section: "Busca",
+          display: "select",
+          values: [{ "Todas precisam aparecer": "todas" }, { "Qualquer uma basta": "qualquer" }],
+          default: "todas"
+        },
+        colunasDaBusca: {
+          type: "string",
+          label: "Colunas (vazio = vis\xEDveis)",
+          section: "Busca",
+          placeholder: "C\xF3digo, Descri\xE7\xE3o",
+          default: ""
+        },
+        buscarEm: {
+          type: "string",
+          label: "Procurar no",
+          section: "Busca",
+          display: "select",
+          values: [{ "Texto formatado": "formatado" }, { "Valor bruto": "bruto" }],
+          default: "formatado"
+        },
+        realcarBusca: { type: "boolean", label: "Real\xE7ar o trecho", section: "Busca", default: true },
         mostrarFiltrosPorColuna: {
           type: "boolean",
           label: "Mostrar filtro em cada coluna",
@@ -5554,7 +5693,7 @@
   }
 
   // src/charts/tabela_completa/index.js
-  var ESPERA_DO_FILTRO = 200;
+  var ESPERA_DO_FILTRO = 150;
   function ordenacaoInicial(config, colunas) {
     const escolha = config.ordenacaoInicial || "original";
     if (escolha === "original") return [];
@@ -5795,7 +5934,7 @@
       function calcularIndices() {
         const todos = modelo.linhas.map((_, i) => i);
         const porColuna = aplicarFiltrosDeColuna(todos, colunasVisiveis, estado.filtros, modelo);
-        const buscados = filtrarIndices(porColuna, colunasVisiveis, estado.busca, modelo);
+        const buscados = filtrarIndices(porColuna, colunasVisiveis, estado.busca, modelo, config);
         return ordenarIndices(buscados, colunas, estado.ordenacao, modelo);
       }
       let indicesVisiveis = calcularIndices();

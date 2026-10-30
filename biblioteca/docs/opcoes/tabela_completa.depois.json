@@ -855,6 +855,42 @@
     "dinamica": false
   },
   {
+    "id": "modoDaBusca",
+    "label": "Busca · Várias palavras",
+    "rotuloCompleto": "Busca · Várias palavras",
+    "section": "Mais",
+    "type": "string",
+    "default": "todas",
+    "dinamica": false
+  },
+  {
+    "id": "colunasDaBusca",
+    "label": "Busca · Colunas (vazio = visíveis)",
+    "rotuloCompleto": "Busca · Colunas (vazio = visíveis)",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "buscarEm",
+    "label": "Busca · Procurar no",
+    "rotuloCompleto": "Busca · Procurar no",
+    "section": "Mais",
+    "type": "string",
+    "default": "formatado",
+    "dinamica": false
+  },
+  {
+    "id": "realcarBusca",
+    "label": "Busca · Realçar o trecho",
+    "rotuloCompleto": "Busca · Realçar o trecho",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
     "id": "animacaoAtiva",
     "label": "Animação · Ativar animações",
     "rotuloCompleto": "Animação · Ativar animações",

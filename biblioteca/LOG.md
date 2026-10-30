@@ -3235,3 +3235,22 @@ PRÓXIMA AÇÃO: 5.1c (componente de título, subtítulo e nota).
   nota/título ficam fora da área). `npm test` 829/829; segurança ok.
 
 PRÓXIMA AÇÃO: FASE 2 — 5.3 (busca "contém" na tabela).
+
+### 5.3 Busca "contém" (concluído; conferir no Looker real)
+- O sintoma ("MTC" acha `MTCBLACKBR`, "BLACK"/"BR" não) NÃO se reproduz
+  em simulação: a busca antiga já usava `includes` normalizado (teste com
+  `ABCBLACKXX` passa no bundle anterior). Causa no Looker real não
+  confirmada; hipóteses: campo com `html:` no LookML (o texto exibido não
+  é o `rendered`), ou o tile ainda com uma URL antiga. Passo manual pede o
+  código exato se continuar.
+- Novo `src/charts/tabela_completa/busca.js` (analisador próprio):
+  várias palavras (todas | qualquer), "frase exata", -exclusão, por
+  coluna (uma frase não atravessa colunas), realce com <mark> por nós de
+  texto (sem innerHTML).
+- Opções novas (aba Mais, prefixo "Busca"): `modoDaBusca` (todas),
+  `colunasDaBusca` (''), `buscarEm` (formatado|bruto), `realcarBusca`
+  (true). Debounce 200 → 150 ms. Resumo: "N resultado(s) para …".
+- Fixture sintética `codigosSinteticos`. `test/tabela_busca_v3.test.mjs`
+  (5 de 7 falham no bundle anterior). `npm test` 836/836.
+
+PRÓXIMA AÇÃO: 5.4 (colunas calculadas com fórmulas).
