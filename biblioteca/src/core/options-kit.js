@@ -1249,6 +1249,11 @@ export const LIMITE_DO_ROTULO = limiteDoRotulo;
 
 /** Seção antiga → aba nova (seções do kit). */
 const ABA_POR_SECAO = {
+  // cartao_multivalor (5.14, v3)
+  Cartão: 'Visual',
+  Aparência: 'Visual',
+  Faixas: 'Visual',
+  Cabeçalho: 'Dados',
   Busca: 'Interação',
   Título: 'Texto',
   Subtítulo: 'Texto',
@@ -1270,6 +1275,10 @@ const ABA_POR_SECAO = {
 
 /** Prefixo do rótulo por seção antiga do kit. */
 const PREFIXO_POR_SECAO = {
+  Cartão: 'Cartão',
+  Aparência: 'Cartão',
+  Faixas: 'Faixas',
+  Cabeçalho: 'Topo',
   Busca: 'Busca',
   Título: 'Título',
   Subtítulo: 'Subtítulo',
@@ -1350,6 +1359,10 @@ export function organizarAbas(opcoes) {
       // Tabela: espaços de coluna calculada (5.4, v3) ficam na aba Dados.
       aba = 'Dados';
       prefixo = secaoAntiga;
+    } else if (/^Campo: /.test(secaoAntiga)) {
+      // cartao_multivalor: opções por campo (5.14, v3), como as da tabela.
+      aba = 'Visual';
+      prefixo = secaoAntiga.replace(/^Campo: /, 'Campo ');
     } else if (/^Coluna: /.test(secaoAntiga)) {
       // Tabela: opções por coluna viram uma aba só, com o nome no prefixo.
       aba = 'Visual';

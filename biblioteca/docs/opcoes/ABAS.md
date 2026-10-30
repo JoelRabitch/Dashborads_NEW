@@ -2970,3 +2970,251 @@ Ids marcados com ★ são novos (não existiam antes).
 | `campoDoValor` | Dados | Dados | Medida |  |
 
 </details>
+
+## Cartão Multi-Valores (`cartao_multivalor`)
+
+- Antes (4 abas): Dados · Estilo · Texto · Mais
+- Depois (4 abas): Dados · Estilo · Texto · Mais
+
+<details><summary>Destino de cada opção</summary>
+
+| id | aba antes | aba depois | rótulo no painel | explicação (rótulo completo) |
+|---|---|---|---|---|
+| `valorDoCabecalho` | Dados | Dados | Topo · Valor do topo |  |
+| `camposDoCabecalho` | Dados | Dados | Topo · Campos (vazio = medidas) |  |
+| `formulaDoCabecalho` | Dados | Dados | Topo · Fórmula |  |
+| `formatoDoCabecalho` | Dados | Dados | Topo · Formato |  |
+| `casasDoCabecalho` | Dados | Dados | Topo · Casas decimais |  |
+| `subtituloDoCabecalho` | Dados | Dados | Topo · Subtítulo |  |
+| `textoDoSubtituloMV` | Dados | Dados | Topo · Texto do subtítulo |  |
+| `tamanhoDoValorGrande` | Dados | Dados | Topo · Tamanho do valor (px, 0=auto) |  |
+| `tema` | Estilo | Estilo | Tema · Tema |  |
+| `corDeFundo` | Estilo | Estilo | Cor · Cor de fundo (vazio = do tema) |  |
+| `corDoTexto` | Estilo | Estilo | Cor · Cor do texto (tema personalizado) |  |
+| `corDaBorda` | Estilo | Estilo | Cor · Cor das bordas | Cor · Cor das bordas (tema personalizado) |
+| `corDaGrade` | Estilo | Estilo | Cor · Cor das linhas de grade | Cor · Cor das linhas de grade (tema personalizado) |
+| `familiaDaFonte` | Estilo | Estilo | Tema · Fonte |  |
+| `tamanhoDaFonte` | Estilo | Estilo | Tema · Tamanho base da fonte (px) |  |
+| `modoDoCartao` | Estilo | Estilo | Cartão · Modo |  |
+| `faixasMV` | Estilo | Estilo | Faixas · Faixas | Faixas · Faixas (Nome\|mín\|máx\|cor\|ícone; …) |
+| `corDeFundoMV` | Estilo | Estilo | Cartão · Fundo do cartão (vazio = tema) |  |
+| `colunasDaGradeMV` | Estilo | Estilo | Cartão · Colunas da grade (0 = auto) |  |
+| `campoDasFaixas` | Estilo | Estilo | Faixas · Campo das faixas (vazio = topo) |  |
+| `bordaMV` | Estilo | Estilo | Cartão · Borda do cartão |  |
+| `espacoDaGradeMV` | Estilo | Estilo | Cartão · Espaço entre cartões (px) |  |
+| `mostrarSeloDaFaixa` | Estilo | Estilo | Faixas · Selo da faixa |  |
+| `corDaBordaMV` | Estilo | Estilo | Cartão · Cor da borda (vazio = tema) |  |
+| `layoutDosItens` | Estilo | Estilo | Cartão · Layout dos itens |  |
+| `mostrarLegendaDasFaixas` | Estilo | Estilo | Faixas · Legenda das faixas |  |
+| `sombraMV` | Estilo | Estilo | Cartão · Sombra do cartão |  |
+| `colunasDosItens` | Estilo | Estilo | Cartão · Colunas dos itens (grade) |  |
+| `raioMV` | Estilo | Estilo | Cartão · Arredondamento (px) |  |
+| `divisoriasMV` | Estilo | Estilo | Divisórias entre blocos | Cartão · Divisórias entre blocos |
+| `fonteMV` | Estilo | Estilo | Cartão · Fonte |  |
+| `secoesRecolhiveisMV` | Estilo | Estilo | Cartão · Seções recolhíveis |  |
+| `ajustarAoTileMV` | Estilo | Estilo | Ajustar ao tamanho do tile | Cartão · Ajustar ao tamanho do tile |
+| `titulo` | Texto | Texto | Título · Título |  |
+| `subtitulo` | Texto | Texto | Título · Subtítulo |  |
+| `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
+| `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
+| `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` | Texto | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` | Texto | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` | Texto | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` | Texto | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` | Texto | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` | Texto | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` | Texto | Texto | Título · Fonte |  |
+| `pesoDoTitulo` | Texto | Texto | Título · Peso |  |
+| `corDoTitulo` | Texto | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` | Texto | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` | Texto | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` | Texto | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` | Texto | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` | Texto | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` | Texto | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` | Texto | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` | Texto | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` | Texto | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` | Texto | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` | Texto | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` | Texto | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` | Texto | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` | Texto | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` | Texto | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` | Texto | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` | Texto | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` | Texto | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` | Texto | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` | Texto | Texto | Nota · Fonte |  |
+| `corDaNota` | Texto | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` | Texto | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` | Texto | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` | Texto | Texto | Nota · Texto |  |
+| `meuTextoDaNota` | Texto | Texto | Nota · Meu texto |  |
+| `mostrarTooltip` | Mais | Mais | Tooltip · Mostrar tooltip |  |
+| `tooltipPersonalizado` | Mais | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
+| `modeloDeTooltip` | Mais | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
+| `tooltipComNomeCompleto` | Mais | Mais | Tooltip · Nome completo | Tooltip · Mostrar nome completo do campo no tooltip |
+| `tooltipComValorBruto` | Mais | Mais | Tooltip · Valor sem formato | Tooltip · Mostrar também o valor sem formatação |
+| `acaoDoClique` | Mais | Mais | Clique · Ação do clique | Clique · Ação do clique (Shift+clique sempre fixa; Esc solta) |
+| `permitirHtmlDoLooker` | Mais | Mais | Tooltip · HTML do Looker | Tooltip · Permitir HTML do Looker nas variáveis do tooltip |
+| `corDeFundoDoTooltip` | Mais | Mais | Tooltip · Cor de fundo do tooltip | Tooltip · Cor de fundo do tooltip (vazio = do tema) |
+| `corDaBordaDoTooltip` | Mais | Mais | Tooltip · Cor da borda do tooltip |  |
+| `corDoTextoDoTooltip` | Mais | Mais | Tooltip · Cor do texto do tooltip | Tooltip · Cor do texto do tooltip (vazio = do tema) |
+| `tamanhoDoTooltip` | Mais | Mais | Tooltip · Tamanho da fonte do tooltip | Tooltip · Tamanho da fonte do tooltip (px) |
+| `copiarValorMV` | Mais | Mais | Duplo clique copia o valor | Clique · Duplo clique copia o valor |
+| `destacarItemMV` | Mais | Mais | Destacar item sob o mouse | Clique · Destacar item sob o mouse |
+| `animacaoAtiva` | Mais | Mais | Animação · Ativar animações |  |
+| `duracaoDaAnimacao` | Mais | Mais | Animação · Duração (ms) |  |
+| `atrasoDaAnimacao` | Mais | Mais | Animação · Atraso inicial (ms) |  |
+| `cascataDaAnimacao` | Mais | Mais | Animação · Cascata entre itens (ms) |  |
+| `suavizacaoDaAnimacao` | Mais | Mais | Animação · Curva da animação |  |
+| `quandoAnimar` | Mais | Mais | Animação · Quando animar |  |
+| `contadorAnimado` | Mais | Mais | Animação · Números contando | Animação · Números sobem/descem até o valor (contador) |
+| `animarBarrasMV` | Mais | Mais | Barras e anéis crescem | Animação · Barras e anéis crescem |
+| `destacarMudancaMV` | Mais | Mais | Destacar valor que mudou | Animação · Destacar valor que mudou |
+| `pulsoEmAlertaMV` | Mais | Mais | Animação · Pulso em alerta |  |
+| `digitosRolandoMV` | Mais | Mais | Animação · Dígitos rolando |  |
+| `modoDebug` | Mais | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
+| `configuracaoJson` | Mais | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
+| `aplicarConfiguracaoJson` | Mais | Mais | Aplicar o JSON acima | Aplicar o JSON acima por cima das opções |
+| `destacarAoPassarMouse` | Mais | Mais | Clique · Destacar sob o mouse | Clique · Destacar ao passar o mouse |
+| `mv_cliente_visivel` | Estilo | Estilo | Campo Cliente · Mostrar |  |
+| `mv_cliente_ordem` | Estilo | Estilo | Campo Cliente · Ordem |  |
+| `mv_cliente_rotulo` | Estilo | Estilo | Campo Cliente · Rótulo |  |
+| `mv_cliente_tipo` | Estilo | Estilo | Campo Cliente · Tipo |  |
+| `mv_cliente_formato` | Estilo | Estilo | Campo Cliente · Formato |  |
+| `mv_cliente_casas` | Estilo | Estilo | Campo Cliente · Casas decimais |  |
+| `mv_cliente_prefixo` | Estilo | Estilo | Campo Cliente · Prefixo |  |
+| `mv_cliente_sufixo` | Estilo | Estilo | Campo Cliente · Sufixo |  |
+| `mv_cliente_zero` | Estilo | Estilo | Campo Cliente · Texto para zero | Campo Cliente · Texto para zero (vazio = 0) |
+| `mv_cliente_nulo` | Estilo | Estilo | Campo Cliente · Texto para nulo |  |
+| `mv_cliente_alinhamento` | Estilo | Estilo | Campo Cliente · Alinhamento |  |
+| `mv_cliente_tamanhoRotulo` | Estilo | Estilo | Campo Cliente · Tamanho do rótulo | Campo Cliente · Tamanho do rótulo (0 = auto) |
+| `mv_cliente_tamanhoValor` | Estilo | Estilo | Campo Cliente · Tamanho do valor | Campo Cliente · Tamanho do valor (0 = auto) |
+| `mv_cliente_corRotulo` | Estilo | Estilo | Campo Cliente · Cor do rótulo |  |
+| `mv_cliente_corValor` | Estilo | Estilo | Campo Cliente · Cor do valor |  |
+| `mv_cliente_icone` | Estilo | Estilo | Campo Cliente · Ícone |  |
+| `mv_cliente_meta` | Estilo | Estilo | Campo Cliente · Meta | Campo Cliente · Meta (barra/anel; 0 = 100%) |
+| `mv_nivel_visivel` | Estilo | Estilo | Campo Nível · Mostrar |  |
+| `mv_nivel_ordem` | Estilo | Estilo | Campo Nível · Ordem |  |
+| `mv_nivel_rotulo` | Estilo | Estilo | Campo Nível · Rótulo |  |
+| `mv_nivel_tipo` | Estilo | Estilo | Campo Nível · Tipo |  |
+| `mv_nivel_formato` | Estilo | Estilo | Campo Nível · Formato |  |
+| `mv_nivel_casas` | Estilo | Estilo | Campo Nível · Casas decimais |  |
+| `mv_nivel_prefixo` | Estilo | Estilo | Campo Nível · Prefixo |  |
+| `mv_nivel_sufixo` | Estilo | Estilo | Campo Nível · Sufixo |  |
+| `mv_nivel_zero` | Estilo | Estilo | Campo Nível · Texto para zero | Campo Nível · Texto para zero (vazio = 0) |
+| `mv_nivel_nulo` | Estilo | Estilo | Campo Nível · Texto para nulo |  |
+| `mv_nivel_alinhamento` | Estilo | Estilo | Campo Nível · Alinhamento |  |
+| `mv_nivel_tamanhoRotulo` | Estilo | Estilo | Campo Nível · Tamanho do rótulo | Campo Nível · Tamanho do rótulo (0 = auto) |
+| `mv_nivel_tamanhoValor` | Estilo | Estilo | Campo Nível · Tamanho do valor | Campo Nível · Tamanho do valor (0 = auto) |
+| `mv_nivel_corRotulo` | Estilo | Estilo | Campo Nível · Cor do rótulo |  |
+| `mv_nivel_corValor` | Estilo | Estilo | Campo Nível · Cor do valor |  |
+| `mv_nivel_icone` | Estilo | Estilo | Campo Nível · Ícone |  |
+| `mv_nivel_meta` | Estilo | Estilo | Campo Nível · Meta | Campo Nível · Meta (barra/anel; 0 = 100%) |
+| `mv_visitas_visivel` | Estilo | Estilo | Campo Visitas · Mostrar |  |
+| `mv_visitas_ordem` | Estilo | Estilo | Campo Visitas · Ordem |  |
+| `mv_visitas_rotulo` | Estilo | Estilo | Campo Visitas · Rótulo |  |
+| `mv_visitas_tipo` | Estilo | Estilo | Campo Visitas · Tipo |  |
+| `mv_visitas_formato` | Estilo | Estilo | Campo Visitas · Formato |  |
+| `mv_visitas_casas` | Estilo | Estilo | Campo Visitas · Casas decimais |  |
+| `mv_visitas_prefixo` | Estilo | Estilo | Campo Visitas · Prefixo |  |
+| `mv_visitas_sufixo` | Estilo | Estilo | Campo Visitas · Sufixo |  |
+| `mv_visitas_zero` | Estilo | Estilo | Campo Visitas · Texto para zero | Campo Visitas · Texto para zero (vazio = 0) |
+| `mv_visitas_nulo` | Estilo | Estilo | Campo Visitas · Texto para nulo |  |
+| `mv_visitas_alinhamento` | Estilo | Estilo | Campo Visitas · Alinhamento |  |
+| `mv_visitas_tamanhoRotulo` | Estilo | Estilo | Campo Visitas · Tamanho do rótulo | Campo Visitas · Tamanho do rótulo (0 = auto) |
+| `mv_visitas_tamanhoValor` | Estilo | Estilo | Campo Visitas · Tamanho do valor | Campo Visitas · Tamanho do valor (0 = auto) |
+| `mv_visitas_corRotulo` | Estilo | Estilo | Campo Visitas · Cor do rótulo |  |
+| `mv_visitas_corValor` | Estilo | Estilo | Campo Visitas · Cor do valor |  |
+| `mv_visitas_icone` | Estilo | Estilo | Campo Visitas · Ícone |  |
+| `mv_visitas_meta` | Estilo | Estilo | Campo Visitas · Meta | Campo Visitas · Meta (barra/anel; 0 = 100%) |
+| `mv_compras_visivel` | Estilo | Estilo | Campo Compras · Mostrar |  |
+| `mv_compras_ordem` | Estilo | Estilo | Campo Compras · Ordem |  |
+| `mv_compras_rotulo` | Estilo | Estilo | Campo Compras · Rótulo |  |
+| `mv_compras_tipo` | Estilo | Estilo | Campo Compras · Tipo |  |
+| `mv_compras_formato` | Estilo | Estilo | Campo Compras · Formato |  |
+| `mv_compras_casas` | Estilo | Estilo | Campo Compras · Casas decimais |  |
+| `mv_compras_prefixo` | Estilo | Estilo | Campo Compras · Prefixo |  |
+| `mv_compras_sufixo` | Estilo | Estilo | Campo Compras · Sufixo |  |
+| `mv_compras_zero` | Estilo | Estilo | Campo Compras · Texto para zero | Campo Compras · Texto para zero (vazio = 0) |
+| `mv_compras_nulo` | Estilo | Estilo | Campo Compras · Texto para nulo |  |
+| `mv_compras_alinhamento` | Estilo | Estilo | Campo Compras · Alinhamento |  |
+| `mv_compras_tamanhoRotulo` | Estilo | Estilo | Campo Compras · Tamanho do rótulo | Campo Compras · Tamanho do rótulo (0 = auto) |
+| `mv_compras_tamanhoValor` | Estilo | Estilo | Campo Compras · Tamanho do valor | Campo Compras · Tamanho do valor (0 = auto) |
+| `mv_compras_corRotulo` | Estilo | Estilo | Campo Compras · Cor do rótulo |  |
+| `mv_compras_corValor` | Estilo | Estilo | Campo Compras · Cor do valor |  |
+| `mv_compras_icone` | Estilo | Estilo | Campo Compras · Ícone |  |
+| `mv_compras_meta` | Estilo | Estilo | Campo Compras · Meta | Campo Compras · Meta (barra/anel; 0 = 100%) |
+| `mv_trocas_visivel` | Estilo | Estilo | Campo Trocas · Mostrar |  |
+| `mv_trocas_ordem` | Estilo | Estilo | Campo Trocas · Ordem |  |
+| `mv_trocas_rotulo` | Estilo | Estilo | Campo Trocas · Rótulo |  |
+| `mv_trocas_tipo` | Estilo | Estilo | Campo Trocas · Tipo |  |
+| `mv_trocas_formato` | Estilo | Estilo | Campo Trocas · Formato |  |
+| `mv_trocas_casas` | Estilo | Estilo | Campo Trocas · Casas decimais |  |
+| `mv_trocas_prefixo` | Estilo | Estilo | Campo Trocas · Prefixo |  |
+| `mv_trocas_sufixo` | Estilo | Estilo | Campo Trocas · Sufixo |  |
+| `mv_trocas_zero` | Estilo | Estilo | Campo Trocas · Texto para zero | Campo Trocas · Texto para zero (vazio = 0) |
+| `mv_trocas_nulo` | Estilo | Estilo | Campo Trocas · Texto para nulo |  |
+| `mv_trocas_alinhamento` | Estilo | Estilo | Campo Trocas · Alinhamento |  |
+| `mv_trocas_tamanhoRotulo` | Estilo | Estilo | Campo Trocas · Tamanho do rótulo | Campo Trocas · Tamanho do rótulo (0 = auto) |
+| `mv_trocas_tamanhoValor` | Estilo | Estilo | Campo Trocas · Tamanho do valor | Campo Trocas · Tamanho do valor (0 = auto) |
+| `mv_trocas_corRotulo` | Estilo | Estilo | Campo Trocas · Cor do rótulo |  |
+| `mv_trocas_corValor` | Estilo | Estilo | Campo Trocas · Cor do valor |  |
+| `mv_trocas_icone` | Estilo | Estilo | Campo Trocas · Ícone |  |
+| `mv_trocas_meta` | Estilo | Estilo | Campo Trocas · Meta | Campo Trocas · Meta (barra/anel; 0 = 100%) |
+| `mv_nota_visivel` | Estilo | Estilo | Campo Nota · Mostrar |  |
+| `mv_nota_ordem` | Estilo | Estilo | Campo Nota · Ordem |  |
+| `mv_nota_rotulo` | Estilo | Estilo | Campo Nota · Rótulo |  |
+| `mv_nota_tipo` | Estilo | Estilo | Campo Nota · Tipo |  |
+| `mv_nota_formato` | Estilo | Estilo | Campo Nota · Formato |  |
+| `mv_nota_casas` | Estilo | Estilo | Campo Nota · Casas decimais |  |
+| `mv_nota_prefixo` | Estilo | Estilo | Campo Nota · Prefixo |  |
+| `mv_nota_sufixo` | Estilo | Estilo | Campo Nota · Sufixo |  |
+| `mv_nota_zero` | Estilo | Estilo | Campo Nota · Texto para zero (vazio = 0) |  |
+| `mv_nota_nulo` | Estilo | Estilo | Campo Nota · Texto para nulo |  |
+| `mv_nota_alinhamento` | Estilo | Estilo | Campo Nota · Alinhamento |  |
+| `mv_nota_tamanhoRotulo` | Estilo | Estilo | Campo Nota · Tamanho do rótulo | Campo Nota · Tamanho do rótulo (0 = auto) |
+| `mv_nota_tamanhoValor` | Estilo | Estilo | Campo Nota · Tamanho do valor (0 = auto) |  |
+| `mv_nota_corRotulo` | Estilo | Estilo | Campo Nota · Cor do rótulo |  |
+| `mv_nota_corValor` | Estilo | Estilo | Campo Nota · Cor do valor |  |
+| `mv_nota_icone` | Estilo | Estilo | Campo Nota · Ícone |  |
+| `mv_nota_meta` | Estilo | Estilo | Campo Nota · Meta (barra/anel; 0 = 100%) |  |
+| `mv_estornos_visivel` | Estilo | Estilo | Campo Estornos · Mostrar |  |
+| `mv_estornos_ordem` | Estilo | Estilo | Campo Estornos · Ordem |  |
+| `mv_estornos_rotulo` | Estilo | Estilo | Campo Estornos · Rótulo |  |
+| `mv_estornos_tipo` | Estilo | Estilo | Campo Estornos · Tipo |  |
+| `mv_estornos_formato` | Estilo | Estilo | Campo Estornos · Formato |  |
+| `mv_estornos_casas` | Estilo | Estilo | Campo Estornos · Casas decimais |  |
+| `mv_estornos_prefixo` | Estilo | Estilo | Campo Estornos · Prefixo |  |
+| `mv_estornos_sufixo` | Estilo | Estilo | Campo Estornos · Sufixo |  |
+| `mv_estornos_zero` | Estilo | Estilo | Campo Estornos · Texto para zero | Campo Estornos · Texto para zero (vazio = 0) |
+| `mv_estornos_nulo` | Estilo | Estilo | Campo Estornos · Texto para nulo |  |
+| `mv_estornos_alinhamento` | Estilo | Estilo | Campo Estornos · Alinhamento |  |
+| `mv_estornos_tamanhoRotulo` | Estilo | Estilo | Campo Estornos · Tamanho do rótulo | Campo Estornos · Tamanho do rótulo (0 = auto) |
+| `mv_estornos_tamanhoValor` | Estilo | Estilo | Campo Estornos · Tamanho do valor | Campo Estornos · Tamanho do valor (0 = auto) |
+| `mv_estornos_corRotulo` | Estilo | Estilo | Campo Estornos · Cor do rótulo |  |
+| `mv_estornos_corValor` | Estilo | Estilo | Campo Estornos · Cor do valor |  |
+| `mv_estornos_icone` | Estilo | Estilo | Campo Estornos · Ícone |  |
+| `mv_estornos_meta` | Estilo | Estilo | Campo Estornos · Meta | Campo Estornos · Meta (barra/anel; 0 = 100%) |
+| `mv_pendentes_visivel` | Estilo | Estilo | Campo Pendentes · Mostrar |  |
+| `mv_pendentes_ordem` | Estilo | Estilo | Campo Pendentes · Ordem |  |
+| `mv_pendentes_rotulo` | Estilo | Estilo | Campo Pendentes · Rótulo |  |
+| `mv_pendentes_tipo` | Estilo | Estilo | Campo Pendentes · Tipo |  |
+| `mv_pendentes_formato` | Estilo | Estilo | Campo Pendentes · Formato |  |
+| `mv_pendentes_casas` | Estilo | Estilo | Campo Pendentes · Casas decimais |  |
+| `mv_pendentes_prefixo` | Estilo | Estilo | Campo Pendentes · Prefixo |  |
+| `mv_pendentes_sufixo` | Estilo | Estilo | Campo Pendentes · Sufixo |  |
+| `mv_pendentes_zero` | Estilo | Estilo | Campo Pendentes · Texto para zero | Campo Pendentes · Texto para zero (vazio = 0) |
+| `mv_pendentes_nulo` | Estilo | Estilo | Campo Pendentes · Texto para nulo |  |
+| `mv_pendentes_alinhamento` | Estilo | Estilo | Campo Pendentes · Alinhamento |  |
+| `mv_pendentes_tamanhoRotulo` | Estilo | Estilo | Campo Pendentes · Tamanho do rótulo | Campo Pendentes · Tamanho do rótulo (0 = auto) |
+| `mv_pendentes_tamanhoValor` | Estilo | Estilo | Campo Pendentes · Tamanho do valor | Campo Pendentes · Tamanho do valor (0 = auto) |
+| `mv_pendentes_corRotulo` | Estilo | Estilo | Campo Pendentes · Cor do rótulo |  |
+| `mv_pendentes_corValor` | Estilo | Estilo | Campo Pendentes · Cor do valor |  |
+| `mv_pendentes_icone` | Estilo | Estilo | Campo Pendentes · Ícone |  |
+| `mv_pendentes_meta` | Estilo | Estilo | Campo Pendentes · Meta | Campo Pendentes · Meta (barra/anel; 0 = 100%) |
+
+</details>

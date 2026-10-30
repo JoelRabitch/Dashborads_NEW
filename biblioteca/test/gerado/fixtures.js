@@ -25,6 +25,8 @@ var FIXTURES_BL = (() => {
     bumpLongo: () => bumpLongo,
     campoDimensao: () => campoDimensao,
     campoMedida: () => campoMedida,
+    cartaoGrade: () => cartaoGrade,
+    cartaoUnico: () => cartaoUnico,
     celula: () => celula,
     codigosSinteticos: () => codigosSinteticos,
     comPivo: () => comPivo,
@@ -518,6 +520,47 @@ var FIXTURES_BL = (() => {
     }
     return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
   }
+  function cartaoUnico() {
+    const dimensoes = [campoDimensao("cliente", "Cliente"), campoDimensao("nivel", "N\xEDvel")];
+    const medidas = [
+      campoMedida("visitas", "Visitas"),
+      campoMedida("compras", "Compras"),
+      campoMedida("trocas", "Trocas"),
+      campoMedida("nota", "Nota", { valueFormat: "0.0" }),
+      campoMedida("estornos", "Estornos"),
+      campoMedida("pendentes", "Pendentes")
+    ];
+    const data = [
+      {
+        cliente: celula("Cliente Exemplo 01"),
+        nivel: celula("N\xEDvel 2", "N\xEDvel 2", [{ label: "Detalhar", url: "/explore/x", type: "drill" }]),
+        visitas: celula(6),
+        compras: celula(3),
+        trocas: celula(1),
+        nota: celula(8.7, "8.7"),
+        estornos: celula(0, "0.0"),
+        pendentes: celula(null)
+      },
+      { cliente: celula("Cliente Exemplo 02"), nivel: celula("N\xEDvel 1"), visitas: celula(4), compras: celula(2), trocas: celula(0), nota: celula(6.2, "6.2"), estornos: celula(1), pendentes: celula(2) }
+    ];
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
+  function cartaoGrade({ linhas = 8 } = {}) {
+    const rng = criarRng(71);
+    const dimensoes = [campoDimensao("cliente", "Cliente")];
+    const medidas = [campoMedida("visitas", "Visitas"), campoMedida("compras", "Compras"), campoMedida("nota", "Nota", { valueFormat: "0.0" })];
+    const data = [];
+    for (let i = 0; i < linhas; i++) {
+      const n = Math.round(rng() * 100) / 10;
+      data.push({
+        cliente: celula(`Cliente Exemplo ${String(i + 1).padStart(2, "0")}`),
+        visitas: celula(Math.round(rng() * 20)),
+        compras: celula(Math.round(rng() * 10)),
+        nota: celula(n, n.toFixed(1))
+      });
+    }
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
   var FIXTURES = {
     semPivo: () => semPivo(),
     semPivoSemNulos: () => semPivo({ comNulos: false }),
@@ -542,6 +585,8 @@ var FIXTURES_BL = (() => {
     tabelaLarga: () => tabelaLarga(),
     codigosSinteticos: () => codigosSinteticos(),
     bumpLongo: () => bumpLongo(),
+    cartaoUnico: () => cartaoUnico(),
+    cartaoGrade: () => cartaoGrade(),
     grande50k: () => volumeGrande({ linhas: 5e4 })
   };
   var FIXTURES_BASICAS = [

@@ -3444,3 +3444,24 @@ PRÓXIMA AÇÃO: 5.13b (dot_plot_denso: rótulos nas margens + auditoria).
 - `test/dot_plot_v3.test.mjs` (3; os 3 falhavam antes). 894/894.
 
 PRÓXIMA AÇÃO: FASE 5 — 5.14 cartao_multivalor.
+
+### 5.14 cartao_multivalor (concluído; conferir no Looker real)
+- Novo gráfico (`src/charts/cartao_multivalor/`), registrado em
+  `config/charts.json` (o build gera `dist/cartao_multivalor.js` e a linha
+  no MANIFEST; as URLs saem no fechamento, 5.15). Fixtures sintéticas
+  `cartaoUnico` e `cartaoGrade`. README com "como montar o Explore".
+- Novo `src/core/icones.js`: registro ÚNICO de ícones (contorno e
+  preenchido), base genérica de 15 ícones — é onde os pacotes (5.14b)
+  registram os seus. O kpi_vivo não foi mexido nesta etapa.
+- Decisões: nomes de faixa genéricos (Ouro/Prata/Bronze/Sem nível) nos
+  exemplos e testes — os do pedido podem ser níveis reais (5.14c). Opções
+  por campo `mv_<campo>_<opção>` (17 por campo, seção "Campo: <nome>",
+  aba Estilo). Mini gráfico = série da medida em todas as linhas (no modo
+  grade usa a mesma série). Semáforo: verde ≥ meta, amarelo ≥ 80%, vermelho
+  abaixo (sem meta: pelo sinal). Copiar: duplo clique (clipboard ou
+  execCommand).
+- Herdado do núcleo: título/subtítulo/nota (5.1c), tooltip e clique
+  (5.1), painel em 4 abas (5.1b).
+- `test/cartao_multivalor.test.mjs` (10). 920/920.
+
+PRÓXIMA AÇÃO: FASE 5b — 5.14b (infraestrutura de pacotes).

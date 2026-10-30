@@ -34,6 +34,7 @@ Admin > Visualizations > Add Visualization:
 | `kpi_vivo` | KPI Vivo | `dist/kpi_vivo.js` | (vazio) | 1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline. |
 | `dumbbell` | Halteres | `dist/dumbbell.js` | (vazio) | 1 dimensao (o nome) e 2 medidas (o antes e o depois). |
 | `marimekko` | Marimekko | `dist/marimekko.js` | (vazio) | 2 dimensoes (as colunas e o empilhamento) e 1 medida. |
+| `cartao_multivalor` | Cartão Multi-Valores | `dist/cartao_multivalor.js` | (vazio) | 1+ medidas e, se quiser, dimensões de texto. "Um cartão" usa a primeira linha (filtre para 1 linha); "Um cartão por linha" monta a grade (ex.: uma linha por cliente). Não aceita pivô. |
 
 ## Detalhes por visualização
 
@@ -189,4 +190,11 @@ Duas medidas por categoria ligadas por uma barra, com rolagem virtualizada; o ei
 Barras empilhadas com a LARGURA da coluna tambem proporcional: duas dimensoes em area, com as duas conservacoes (larguras 100%, alturas 100% por coluna).
 
 - **Explore**: 2 dimensoes (as colunas e o empilhamento) e 1 medida.
+- **Aceita pivô**: não
+
+### Cartão Multi-Valores (`cartao_multivalor`)
+
+Cartão com vários valores (medidas e dimensões): valor de topo calculado (soma, média, fórmula) com subtítulo "6 + 3 + 1", itens com 12 tipos de exibição, faixas com selo e legenda, um cartão ou uma grade, animações.
+
+- **Explore**: 1+ medidas e, se quiser, dimensões de texto. "Um cartão" usa a primeira linha (filtre para 1 linha); "Um cartão por linha" monta a grade (ex.: uma linha por cliente). Não aceita pivô.
 - **Aceita pivô**: não

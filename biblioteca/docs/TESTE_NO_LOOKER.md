@@ -150,3 +150,10 @@ real antes de considerar resolvido.
   - [ ] Com todos os valores positivos, o eixo não começa mais em negativo.
   - [ ] A última linha da lista não passa por baixo da régua do eixo (há uma linha separando).
   - [ ] heatmap_denso: os números da régua de cores à direita aparecem inteiros. barras_ranking_denso com "Posição do rótulo" = Fora e dumbbell: o rótulo do maior valor não é cortado.
+- **5.14 cartao_multivalor (novo)**
+  - [ ] Cadastre a URL nova (dist/URLS.md). Explore com 1 linha e medidas Visitas/Compras/Trocas: "Topo · Campos" = Visitas, Compras, Trocas mostra 10 e "6 + 3 + 1".
+  - [ ] Zero e nulo: "Campo X · Texto para zero" e "Texto para nulo" (não aparece mais "0.0" quando configurado).
+  - [ ] Tipos de exibição de um campo (selo, barra, anel, mini gráfico, seta, estrelas, semáforo, ícone, link) e formatos (K/M/B, moeda, %).
+  - [ ] Faixas com selo e legenda; "Modo" = Um cartão por linha (grade); layouts dos itens; divisórias.
+  - [ ] Passe o mouse (tooltip, destaque), clique num campo com link (drill), duplo clique copia o valor.
+  - [ ] Animações (contador, cascata, barras crescendo, destaque quando muda, pulso em alerta) e "Ativar animações" desligado.

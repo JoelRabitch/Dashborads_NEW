@@ -318,5 +318,19 @@ window.REGISTRO_BL = [
       "vazio"
     ],
     "explore": "2 dimensoes (as colunas e o empilhamento) e 1 medida."
+  },
+  {
+    "id": "cartao_multivalor",
+    "label": "Cartão Multi-Valores",
+    "tier": 1,
+    "arquivo": "../dist/cartao_multivalor.js",
+    "existe": true,
+    "fixtures": [
+      "cartaoUnico",
+      "cartaoGrade",
+      "semPivo",
+      "vazio"
+    ],
+    "explore": "1+ medidas e, se quiser, dimensões de texto. \"Um cartão\" usa a primeira linha (filtre para 1 linha); \"Um cartão por linha\" monta a grade (ex.: uma linha por cliente). Não aceita pivô."
   }
 ];

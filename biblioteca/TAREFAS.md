@@ -153,7 +153,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] 5.13b dot_plot_denso: rótulos nas margens + auditoria
 
 ### FASE 5 — cartao_multivalor
-- [ ] 5.14 Cartão Multi-Valores
+- [x] 5.14 Cartão Multi-Valores
 
 ### FASE 5b — pacotes temáticos
 - [ ] 5.14b Infraestrutura de pacotes

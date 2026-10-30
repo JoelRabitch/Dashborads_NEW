@@ -205,7 +205,7 @@ export function montarRotulo({ id, prefixo, rotulo, opcao }) {
 
   // Prefixo com nome vindo dos dados ("Coluna Nome da loja"): vira
   // "Col. Nome…" até caber. Prefixo fixo ("Quadrantes") é omitido.
-  if (prefixo && /^Coluna /.test(prefixo)) {
+  if (prefixo && /^(Coluna|Campo) /.test(prefixo)) {
     const sobra = limite - corpo.length - sep.length;
     const curtoPrefixo = prefixo.replace(/^Coluna /, 'Col. ');
     if (sobra >= 6) return junto(cortar(curtoPrefixo, sobra), corpo);

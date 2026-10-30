@@ -1809,7 +1809,7 @@
     if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
     corpo = corpo.replace(/^Cor do quadrante /, "Cor: ").replace(/^Nome do quadrante /, "Nome: ");
     if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
-    if (prefixo && /^Coluna /.test(prefixo)) {
+    if (prefixo && /^(Coluna|Campo) /.test(prefixo)) {
       const sobra = limite - corpo.length - sep.length;
       const curtoPrefixo = prefixo.replace(/^Coluna /, "Col. ");
       if (sobra >= 6) return junto(cortar(curtoPrefixo, sobra), corpo);
@@ -2211,6 +2211,11 @@
     Avan\u00E7ado: "Mais"
   };
   var ABA_POR_SECAO = {
+    // cartao_multivalor (5.14, v3)
+    Cart\u00E3o: "Visual",
+    Apar\u00EAncia: "Visual",
+    Faixas: "Visual",
+    Cabe\u00E7alho: "Dados",
     Busca: "Intera\xE7\xE3o",
     T\u00EDtulo: "Texto",
     Subt\u00EDtulo: "Texto",
@@ -2230,6 +2235,10 @@
     Avan\u00E7ado: "Avan\xE7ado"
   };
   var PREFIXO_POR_SECAO = {
+    Cart\u00E3o: "Cart\xE3o",
+    Apar\u00EAncia: "Cart\xE3o",
+    Faixas: "Faixas",
+    Cabe\u00E7alho: "Topo",
     Busca: "Busca",
     T\u00EDtulo: "T\xEDtulo",
     Subt\u00EDtulo: "Subt\xEDtulo",
@@ -2294,6 +2303,9 @@
       } else if (/^Fórmula \d+$/.test(secaoAntiga)) {
         aba = "Dados";
         prefixo = secaoAntiga;
+      } else if (/^Campo: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Campo: /, "Campo ");
       } else if (/^Coluna: /.test(secaoAntiga)) {
         aba = "Visual";
         prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");

@@ -48,14 +48,26 @@ antigo sumiu nem mudou de tipo ou default.
 Para conferir no Looker real o que o teste automático não alcança, use o
 checklist [`docs/TESTE_NO_LOOKER.md`](docs/TESTE_NO_LOOKER.md).
 
-## Gráficos mantidos (22)
+## Gráficos (23)
 
 `tabela_completa`, `diagrama_venn`, `upset_plot`, `treemap_carteira`,
 `kpi_vivo`, `heatmap_denso`, `dumbbell`, `drawdown`, `dot_plot_denso`,
 `bump_chart`, `slope_chart`, `bar_race`, `barras_ranking_denso`,
 `arvores_multiplas`, `org_chart`, `pareto`, `marimekko`,
 `quadrant_scatter`, `matriz_2x2`, `matriz_bcg`, `risco_retorno`,
-`grafico_controle`.
+`grafico_controle` e, novo nas melhorias v3, `cartao_multivalor`.
+
+### Cartão Multi-Valores (`cartao_multivalor`) — como montar o Explore
+
+- Escolha 1 ou mais medidas (e, se quiser, dimensões de texto, como nome
+  do cliente e nível). Sem pivô.
+- "Modo" = Um cartão: vale a PRIMEIRA linha (filtre para uma linha); a
+  série de todas as linhas alimenta o tipo "Mini gráfico".
+- "Modo" = Um cartão por linha: uma linha por cartão (ex.: um por loja).
+- Cada campo ganha opções próprias na aba Estilo ("Campo <nome> · …"):
+  tipo de exibição, formato, texto para zero/nulo, cores, ícone, meta.
+- Faixas: "Nome|mín|máx|cor|ícone; …" (ex.:
+  `Ouro|8.4||#B8860B|estrela; Prata|7|8.4|#9CA3AF|; Bronze|5.5|7|#B45309|; Sem nível||5.5|#94A3B8|`).
 
 Outros 32 gráficos da primeira versão foram arquivados em
 [`_arquivados/`](_arquivados/) (fora do build e dos testes). O estado antes
