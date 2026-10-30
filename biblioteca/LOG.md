@@ -3600,3 +3600,9 @@ Tarefa avulsa (a v3 segue concluída; nenhuma fase retomada). Branch
   sem violação (arvores_multiplas e org_chart incluídos); `npm run opcoes`:
   4 abas, ids novos só `tamanhoDoIcone` e `ajusteDeEscala` (★ em ABAS.md).
 - Docs: RELATORIO_MELHORIAS §7, TESTE_NO_LOOKER seção v3.2.
+- Commit 6c360dd (código + bundles) enviado. Tag nova `v3.2` nesse commit
+  (último que alterou `biblioteca/dist`); `git ls-remote` confirma
+  refs/tags/v3.2 → 6c360dda49d10084b300ad0e05f5f3393e5697f2. Nenhuma tag
+  existente foi mexida. `npm run urls -- v3.2` gerou URLS.md/URLS.csv em
+  commit separado. Os outros 21 bundles não mudaram desde a v3.1.
+PRÓXIMA AÇÃO: nenhuma no agente; o usuário confere TESTE_NO_LOOKER.md (v3.2).
