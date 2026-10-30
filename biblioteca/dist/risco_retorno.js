@@ -2786,6 +2786,9 @@
       let prefixo;
       if (DESTINO_POR_ID[id]) {
         [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Fórmula \d+$/.test(secaoAntiga)) {
+        aba = "Dados";
+        prefixo = secaoAntiga;
       } else if (/^Coluna: /.test(secaoAntiga)) {
         aba = "Visual";
         prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");

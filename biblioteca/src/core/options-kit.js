@@ -1346,6 +1346,10 @@ export function organizarAbas(opcoes) {
     let prefixo;
     if (DESTINO_POR_ID[id]) {
       [aba, prefixo] = DESTINO_POR_ID[id];
+    } else if (/^Fórmula \d+$/.test(secaoAntiga)) {
+      // Tabela: espaços de coluna calculada (5.4, v3) ficam na aba Dados.
+      aba = 'Dados';
+      prefixo = secaoAntiga;
     } else if (/^Coluna: /.test(secaoAntiga)) {
       // Tabela: opções por coluna viram uma aba só, com o nome no prefixo.
       aba = 'Visual';

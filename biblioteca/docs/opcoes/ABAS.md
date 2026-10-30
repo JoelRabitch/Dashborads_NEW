@@ -30,6 +30,94 @@ Ids marcados com ★ são novos (não existiam antes).
 | `mostrarTotais` | Dados | Dados | Mostrar linha de totais |  |
 | `agregacaoDoTotal` | Dados | Dados | Como calcular os totais | Como calcular os totais (quando o Looker não envia) |
 | `rotuloDoTotal` | Dados | Dados | Rótulo da linha de totais |  |
+| `calc1Nome` ★ | — | Dados | Fórmula 1 · Nome da coluna |  |
+| `calc2Nome` ★ | — | Dados | Fórmula 2 · Nome da coluna |  |
+| `calc3Nome` ★ | — | Dados | Fórmula 3 · Nome da coluna |  |
+| `calc4Nome` ★ | — | Dados | Fórmula 4 · Nome da coluna |  |
+| `calc5Nome` ★ | — | Dados | Fórmula 5 · Nome da coluna |  |
+| `calc6Nome` ★ | — | Dados | Fórmula 6 · Nome da coluna |  |
+| `calc7Nome` ★ | — | Dados | Fórmula 7 · Nome da coluna |  |
+| `calc8Nome` ★ | — | Dados | Fórmula 8 · Nome da coluna |  |
+| `calc1Formula` ★ | — | Dados | Fórmula 1 · Fórmula |  |
+| `calc2Formula` ★ | — | Dados | Fórmula 2 · Fórmula |  |
+| `calc3Formula` ★ | — | Dados | Fórmula 3 · Fórmula |  |
+| `calc4Formula` ★ | — | Dados | Fórmula 4 · Fórmula |  |
+| `calc5Formula` ★ | — | Dados | Fórmula 5 · Fórmula |  |
+| `calc6Formula` ★ | — | Dados | Fórmula 6 · Fórmula |  |
+| `calc7Formula` ★ | — | Dados | Fórmula 7 · Fórmula |  |
+| `calc8Formula` ★ | — | Dados | Fórmula 8 · Fórmula |  |
+| `calc1Uso` ★ | — | Dados | Fórmula 1 · Uso |  |
+| `calc2Uso` ★ | — | Dados | Fórmula 2 · Uso |  |
+| `calc3Uso` ★ | — | Dados | Fórmula 3 · Uso |  |
+| `calc4Uso` ★ | — | Dados | Fórmula 4 · Uso |  |
+| `calc5Uso` ★ | — | Dados | Fórmula 5 · Uso |  |
+| `calc6Uso` ★ | — | Dados | Fórmula 6 · Uso |  |
+| `calc7Uso` ★ | — | Dados | Fórmula 7 · Uso |  |
+| `calc8Uso` ★ | — | Dados | Fórmula 8 · Uso |  |
+| `calc1Formato` ★ | — | Dados | Fórmula 1 · Formato |  |
+| `calc2Formato` ★ | — | Dados | Fórmula 2 · Formato |  |
+| `calc3Formato` ★ | — | Dados | Fórmula 3 · Formato |  |
+| `calc4Formato` ★ | — | Dados | Fórmula 4 · Formato |  |
+| `calc5Formato` ★ | — | Dados | Fórmula 5 · Formato |  |
+| `calc6Formato` ★ | — | Dados | Fórmula 6 · Formato |  |
+| `calc7Formato` ★ | — | Dados | Fórmula 7 · Formato |  |
+| `calc8Formato` ★ | — | Dados | Fórmula 8 · Formato |  |
+| `calc1Casas` ★ | — | Dados | Fórmula 1 · Casas decimais |  |
+| `calc2Casas` ★ | — | Dados | Fórmula 2 · Casas decimais |  |
+| `calc3Casas` ★ | — | Dados | Fórmula 3 · Casas decimais |  |
+| `calc4Casas` ★ | — | Dados | Fórmula 4 · Casas decimais |  |
+| `calc5Casas` ★ | — | Dados | Fórmula 5 · Casas decimais |  |
+| `calc6Casas` ★ | — | Dados | Fórmula 6 · Casas decimais |  |
+| `calc7Casas` ★ | — | Dados | Fórmula 7 · Casas decimais |  |
+| `calc8Casas` ★ | — | Dados | Fórmula 8 · Casas decimais |  |
+| `calc1TipoDeCelula` ★ | — | Dados | Fórmula 1 · Tipo de célula |  |
+| `calc2TipoDeCelula` ★ | — | Dados | Fórmula 2 · Tipo de célula |  |
+| `calc3TipoDeCelula` ★ | — | Dados | Fórmula 3 · Tipo de célula |  |
+| `calc4TipoDeCelula` ★ | — | Dados | Fórmula 4 · Tipo de célula |  |
+| `calc5TipoDeCelula` ★ | — | Dados | Fórmula 5 · Tipo de célula |  |
+| `calc6TipoDeCelula` ★ | — | Dados | Fórmula 6 · Tipo de célula |  |
+| `calc7TipoDeCelula` ★ | — | Dados | Fórmula 7 · Tipo de célula |  |
+| `calc8TipoDeCelula` ★ | — | Dados | Fórmula 8 · Tipo de célula |  |
+| `calc1Posicao` ★ | — | Dados | Fórmula 1 · Posição |  |
+| `calc2Posicao` ★ | — | Dados | Fórmula 2 · Posição |  |
+| `calc3Posicao` ★ | — | Dados | Fórmula 3 · Posição |  |
+| `calc4Posicao` ★ | — | Dados | Fórmula 4 · Posição |  |
+| `calc5Posicao` ★ | — | Dados | Fórmula 5 · Posição |  |
+| `calc6Posicao` ★ | — | Dados | Fórmula 6 · Posição |  |
+| `calc7Posicao` ★ | — | Dados | Fórmula 7 · Posição |  |
+| `calc8Posicao` ★ | — | Dados | Fórmula 8 · Posição |  |
+| `calc1Pivo` ★ | — | Dados | Fórmula 1 · Modo do pivô |  |
+| `calc2Pivo` ★ | — | Dados | Fórmula 2 · Modo do pivô |  |
+| `calc3Pivo` ★ | — | Dados | Fórmula 3 · Modo do pivô |  |
+| `calc4Pivo` ★ | — | Dados | Fórmula 4 · Modo do pivô |  |
+| `calc5Pivo` ★ | — | Dados | Fórmula 5 · Modo do pivô |  |
+| `calc6Pivo` ★ | — | Dados | Fórmula 6 · Modo do pivô |  |
+| `calc7Pivo` ★ | — | Dados | Fórmula 7 · Modo do pivô |  |
+| `calc8Pivo` ★ | — | Dados | Fórmula 8 · Modo do pivô |  |
+| `calc1Total` ★ | — | Dados | Fórmula 1 · Linha de totais |  |
+| `calc2Total` ★ | — | Dados | Fórmula 2 · Linha de totais |  |
+| `calc3Total` ★ | — | Dados | Fórmula 3 · Linha de totais |  |
+| `calc4Total` ★ | — | Dados | Fórmula 4 · Linha de totais |  |
+| `calc5Total` ★ | — | Dados | Fórmula 5 · Linha de totais |  |
+| `calc6Total` ★ | — | Dados | Fórmula 6 · Linha de totais |  |
+| `calc7Total` ★ | — | Dados | Fórmula 7 · Linha de totais |  |
+| `calc8Total` ★ | — | Dados | Fórmula 8 · Linha de totais |  |
+| `calc1Cor` ★ | — | Dados | Fórmula 1 · Cor (uso colorir) |  |
+| `calc2Cor` ★ | — | Dados | Fórmula 2 · Cor (uso colorir) |  |
+| `calc3Cor` ★ | — | Dados | Fórmula 3 · Cor (uso colorir) |  |
+| `calc4Cor` ★ | — | Dados | Fórmula 4 · Cor (uso colorir) |  |
+| `calc5Cor` ★ | — | Dados | Fórmula 5 · Cor (uso colorir) |  |
+| `calc6Cor` ★ | — | Dados | Fórmula 6 · Cor (uso colorir) |  |
+| `calc7Cor` ★ | — | Dados | Fórmula 7 · Cor (uso colorir) |  |
+| `calc8Cor` ★ | — | Dados | Fórmula 8 · Cor (uso colorir) |  |
+| `calc1Alvo` ★ | — | Dados | Fórmula 1 · Aplicar na coluna |  |
+| `calc2Alvo` ★ | — | Dados | Fórmula 2 · Aplicar na coluna |  |
+| `calc3Alvo` ★ | — | Dados | Fórmula 3 · Aplicar na coluna |  |
+| `calc4Alvo` ★ | — | Dados | Fórmula 4 · Aplicar na coluna |  |
+| `calc5Alvo` ★ | — | Dados | Fórmula 5 · Aplicar na coluna |  |
+| `calc6Alvo` ★ | — | Dados | Fórmula 6 · Aplicar na coluna |  |
+| `calc7Alvo` ★ | — | Dados | Fórmula 7 · Aplicar na coluna |  |
+| `calc8Alvo` ★ | — | Dados | Fórmula 8 · Aplicar na coluna |  |
 | `densidade` | Visual | Estilo | Densidade |  |
 | `alturaDaLinha` | Visual | Estilo | Altura da linha (px) — 0 usa a densidade |  |
 | `alturaDoCabecalho` | Visual | Estilo | Altura do cabeçalho | Altura do cabeçalho (px) — 0 usa a densidade |

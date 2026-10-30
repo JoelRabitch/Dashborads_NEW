@@ -109,3 +109,10 @@ real antes de considerar resolvido.
   - [ ] "black br" (todas as palavras), "\"frase exata\"", "black -br" (exclui); aba Mais → "Busca · Várias palavras" = Qualquer uma.
   - [ ] "Busca · Colunas" com um nome de coluna; "Busca · Procurar no" = Valor bruto.
   - [ ] O trecho aparece realçado em amarelo; a barra mostra "N resultado(s) para …"; o campo não perde o foco nem o cursor enquanto digita.
+- **5.4 tabela_completa — colunas calculadas (aba Dados, "Fórmula 1" a "Fórmula 8")**
+  - [ ] "Fórmula 1 · Nome" = Comissão; "Fórmula" = `IFS(${qty}<=10, 1*${qty}, ${qty}<=30, 2*${qty}, ${qty}<=50, 3*${qty}, ${qty}<=70, 4*${qty}, 5*${qty})` (troque `qty` pelo nome do seu campo, ex.: `${pedidos.quantidade}`). A coluna aparece com os valores certos.
+  - [ ] `IF(CONTAINS(${codigo}, "BLACK"), "Black", "Other")` com Formato = Texto.
+  - [ ] Erre a fórmula de propósito: a célula mostra "#ERRO: …" e um aviso amarelo diz qual espaço.
+  - [ ] "Uso" = Colorir a linha se verdadeira, com `${qty} > 50`.
+  - [ ] Com pivô: "Modo do pivô" = Uma vez por valor do pivô (uma coluna em cada grupo) e = Só nas colunas sem pivô.
+  - [ ] Linha de totais: "Recalcular" mostra a fórmula aplicada aos totais; "Vazio" deixa em branco.

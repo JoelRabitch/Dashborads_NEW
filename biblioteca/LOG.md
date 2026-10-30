@@ -3254,3 +3254,37 @@ PRÓXIMA AÇÃO: FASE 2 — 5.3 (busca "contém" na tabela).
   (5 de 7 falham no bundle anterior). `npm test` 836/836.
 
 PRÓXIMA AÇÃO: 5.4 (colunas calculadas com fórmulas).
+
+### 5.4 Colunas calculadas com fórmulas (concluído; conferir no Looker real)
+- `src/core/formulas.js`: interpretador próprio (tokenizador + descida
+  recursiva + avaliador de árvore), sem eval/new Function. Funções em
+  inglês (IF, IFS, CASE, COALESCE, ISBLANK, ROUND, ABS, MIN, MAX, SUM, AVG,
+  CONTAINS, LEFT, RIGHT, MID, UPPER, LOWER, LEN, CONCAT, TEXT), operadores
+  + - * / %, = <> < <= > >=, AND OR NOT. Limites: 2000 caracteres,
+  profundidade 40, 500 nós. Fica no núcleo para o cartao_multivalor (5.14).
+- Decisões (ambíguas no pedido, escolhi o mais simples):
+  - CASE(valor, caso1, res1, ..., padrão) — estilo "switch"; IFS cobre o
+    caso de condições.
+  - CONTAINS diferencia maiúsculas (como no Looker); a BUSCA da tabela não.
+  - Nulo: conta com nulo = nulo; comparação com nulo = falso; divisão por
+    zero = erro "#ERRO: divisão por zero" na célula.
+  - TEXT(x, casas) ou TEXT(x, "0.00") (conta as casas do padrão).
+  - Moeda das colunas calculadas usa "$" (o formato do campo não se aplica
+    a um valor calculado).
+  - Validação "no painel": não dá sem re-registrar o painel a cada tecla
+    (proibido pela regra do registerOptions). Erro vai para a célula e para
+    o aviso amarelo ("Fórmula N ("nome"): motivo").
+- Tabela: 8 espaços fixos (`calc1Nome` … `calc8Alvo`, 11 opções cada, aba
+  Dados, prefixo "Fórmula N"). Uso: coluna | colorir a linha | colorir
+  células (alvo por nome). Pivô: as duas formas entregues (por valor do
+  pivô, lendo as medidas da mesma coluna; e só sem pivô, lendo o total da
+  linha). Totais: recalcular sobre os totais (do Looker ou o mesmo total
+  calculado pela tabela) ou vazio; dimensão usada → vazio.
+- Chaves nativas do Looker: a tabela NÃO lê `conditional_formatting`,
+  `series_cell_visualizations`, `series_text_format`, `series_labels` nem
+  `series_colors` (grep sem ocorrência); só `hidden_fields` (data-model).
+  Não implementado agora, como pedido.
+- Testes: `test/formulas_v3.test.mjs` (9, unidade) e
+  `test/tabela_formulas_v3.test.mjs` (6). `npm test` 851/851.
+
+PRÓXIMA AÇÃO: 5.5 (layouts da tabela).

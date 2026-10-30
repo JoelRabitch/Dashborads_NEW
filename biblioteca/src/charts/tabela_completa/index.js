@@ -27,6 +27,7 @@ import {
   montarCsv,
   idDoCampo,
 } from './render.js';
+import { regrasDeFormula } from './calculadas.js';
 
 /** Espera depois da última tecla antes de filtrar (ms). */
 // Espera curta depois da última tecla (5.3, v3: "debounce curto").
@@ -76,6 +77,8 @@ function textoParaNulo(config) {
  */
 function criarPintorDeCelula(ctx, nulo, contextos, porId, comparacao) {
   const { config, ponte, modelo } = ctx;
+  // Formatação condicional por fórmula (5.4, v3): "Colorir a linha/células".
+  const porFormula = regrasDeFormula(modelo, config);
 
   return function pintarCelula({ td, coluna, linha, indiceDaLinha }) {
     const estatistica = contextos.get(coluna.id) || null;
@@ -151,6 +154,9 @@ function criarPintorDeCelula(ctx, nulo, contextos, porId, comparacao) {
         if (efeito.linhaInteira.cor) td.parentNode.style.color = efeito.linhaInteira.cor;
       }
     }
+
+    // 5b) Formatação condicional por fórmula (5.4, v3).
+    if (porFormula) porFormula(td, coluna, linha);
 
     // 6) Drill. O tipo "link" já cuida do próprio clique.
     if (config.permitirDrill === false || coluna.tipoDeCelula === 'link') return;
@@ -327,7 +333,9 @@ export default defineViz({
       return;
     }
 
-    const { colunas, colunasVisiveis, temPivo, gruposDePivo } = construirColunas(modelo, config);
+    const { colunas, colunasVisiveis, temPivo, gruposDePivo, errosDeFormula } = construirColunas(modelo, config);
+    // Fórmula com erro: a célula mostra "#ERRO" e o aviso diz qual espaço.
+    for (const erro of errosDeFormula || []) ctx.avisar(erro);
 
     if (!colunasVisiveis.length) {
       ctx.mostrarVazio('Todas as colunas estão ocultas. Reative pelo menos uma no painel.');

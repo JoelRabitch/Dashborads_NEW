@@ -507,7 +507,7 @@ function construirCabecalho({
     // Cada dimensão ganha seu próprio cabeçalho atravessando os dois níveis,
     // senão o nome da coluna sumiria quando há pivô.
     colunasVisiveis.forEach((coluna, i) => {
-      if (coluna.tipo !== 'dimensao') return;
+      if (coluna.tipo !== 'dimensao' && !coluna.soltaNoCabecalho) return;
       const th = criarThDeColuna({ coluna, indice: i, topo: 0, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar });
       th.rowSpan = 2;
       trGrupo.appendChild(th);
@@ -536,7 +536,7 @@ function construirCabecalho({
   for (let i = 0; i < colunasVisiveis.length; i++) {
     const coluna = colunasVisiveis[i];
     // Com pivô, as dimensões já saíram no nível de cima com rowSpan=2.
-    if (temPivo && coluna.tipo === 'dimensao') continue;
+    if (temPivo && (coluna.tipo === 'dimensao' || coluna.soltaNoCabecalho)) continue;
     tr.appendChild(
       criarThDeColuna({ coluna, indice: i, topo, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar })
     );
@@ -658,7 +658,10 @@ function construirRodape({ tfoot, colunasVisiveis, indicesVisiveis, visual, conf
       td.style.position = config.rodapeFixo === false ? 'sticky' : 'sticky';
     }
 
-    if (coluna.ehMedida) {
+    if (typeof coluna.totalCalculado === 'function') {
+      // Coluna calculada (5.4, v3): fórmula sobre os totais, ou vazio.
+      definirTexto(td, coluna.totalCalculado(indicesVisiveis, agregar, config.agregacaoDoTotal || 'soma'));
+    } else if (coluna.ehMedida) {
       // Preferimos o total que o próprio Looker mandou; se não houver,
       // calculamos (e o `index.js` avisa que o cálculo é nosso).
       const doLooker = modelo.totais.encontrados ? modelo.totais.porCampo[coluna.campo.nome] : null;

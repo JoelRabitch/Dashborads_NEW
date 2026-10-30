@@ -13,6 +13,7 @@
 import { sanitizarChave } from '../../core/options-kit.js';
 import { formatadorDeValueFormat, criarFormatadorNumerico } from '../../core/format.js';
 import { REGRAS_POR_COLUNA } from './opcoes.js';
+import { colunasCalculadas } from './calculadas.js';
 
 /** Lê uma opção por coluna, já com o prefixo certo. */
 function opcaoDaColuna(config, idColuna, sufixo) {
@@ -81,10 +82,21 @@ export function construirColunas(modelo, config) {
   }
 
   // ---- Colunas de medida ----
+  // Colunas calculadas por fórmula (5.4, v3).
+  const calculadas = colunasCalculadas(modelo, config, { larguraPadrao });
+
+  // Sem pivô (ou "só nas colunas sem pivô"): "antes das medidas" entra logo
+  // depois das dimensões.
+  colunas.push(...calculadas.soltas.inicio);
+  if (modelo.temPivo) colunas.push(...calculadas.soltas.fim);
+
   const gruposDePivo = [];
   if (modelo.temPivo) {
     for (const pivo of modelo.pivotsDeDados) {
       const colunasDoGrupo = [];
+      const doPivo = calculadas.porPivo.get(pivo.chave) || { inicio: [], fim: [] };
+      colunas.push(...doPivo.inicio);
+      colunasDoGrupo.push(...doPivo.inicio);
       for (const campo of modelo.medidas) {
         const id = `med__${campo.nome}__${pivo.chave}`;
         const coluna = montarColuna({
@@ -101,6 +113,8 @@ export function construirColunas(modelo, config) {
         colunas.push(coluna);
         colunasDoGrupo.push(coluna);
       }
+      colunas.push(...doPivo.fim);
+      colunasDoGrupo.push(...doPivo.fim);
       gruposDePivo.push({ rotulo: pivo.rotulo, chave: pivo.chave, colunas: colunasDoGrupo, ehTotal: false });
     }
 
@@ -147,9 +161,11 @@ export function construirColunas(modelo, config) {
     }
   }
 
+  if (!modelo.temPivo) colunas.push(...calculadas.soltas.fim);
+
   const colunasVisiveis = colunas.filter((c) => c.visivel);
 
-  return { colunas, colunasVisiveis, temPivo: modelo.temPivo, gruposDePivo };
+  return { colunas, colunasVisiveis, temPivo: modelo.temPivo, gruposDePivo, errosDeFormula: calculadas.erros };
 }
 
 function montarColuna({ id, tipo, campo, pivo, rotuloPadrao, larguraPadrao, alinhamentoPadrao, config, modelo }) {

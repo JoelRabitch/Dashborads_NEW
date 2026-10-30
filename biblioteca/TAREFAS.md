@@ -136,7 +136,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 
 ### FASE 2 — tabela_completa
 - [x] 5.3 Busca "contém"
-- [ ] 5.4 Colunas calculadas com fórmulas
+- [x] 5.4 Colunas calculadas com fórmulas
 - [ ] 5.5 Layouts da tabela
 
 ### FASE 3 — bump_chart e diagrama_venn

@@ -15,6 +15,7 @@ import {
   blocoDeTema,
   blocoAvancado,
 } from '../../core/options-kit.js';
+import { opcoesDasCalculadas } from './calculadas.js';
 
 /** Quantas regras de formatação condicional cada coluna oferece. */
 export const REGRAS_POR_COLUNA = 3;
@@ -96,6 +97,8 @@ export function opcoesEstaticas() {
   return montarOpcoes(
     blocoDeTema(),
     blocoAvancado(),
+    // Colunas calculadas por fórmula (5.4, v3): 8 espaços fixos.
+    opcoesDasCalculadas(),
     {
       // ---------- Estrutura ----------
       agruparPor: {

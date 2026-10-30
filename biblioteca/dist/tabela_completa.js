@@ -2047,6 +2047,9 @@
       let prefixo;
       if (DESTINO_POR_ID[id]) {
         [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Fórmula \d+$/.test(secaoAntiga)) {
+        aba = "Dados";
+        prefixo = secaoAntiga;
       } else if (/^Coluna: /.test(secaoAntiga)) {
         aba = "Visual";
         prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
@@ -3901,14 +3904,14 @@
     booleano(ctx) {
       const { td, coluna } = ctx;
       const bruto = ctx.texto.trim().toLowerCase();
-      const verdadeiro = ["sim", "yes", "true", "1", "verdadeiro", "ativo"].includes(bruto);
+      const verdadeiro2 = ["sim", "yes", "true", "1", "verdadeiro", "ativo"].includes(bruto);
       const falso = ["n\xE3o", "nao", "no", "false", "0", "falso", "inativo"].includes(bruto);
-      if (!verdadeiro && !falso) return ctx.comoTexto();
+      if (!verdadeiro2 && !falso) return ctx.comoTexto();
       const caixa = pilha(td, coluna.alinhamento || "center");
-      const marca = criarEl("span", { pai: caixa, texto: verdadeiro ? "\u2713" : "\u2717" });
-      marca.style.color = verdadeiro ? "#16A34A" : "#DC2626";
+      const marca = criarEl("span", { pai: caixa, texto: verdadeiro2 ? "\u2713" : "\u2717" });
+      marca.style.color = verdadeiro2 ? "#16A34A" : "#DC2626";
       marca.style.fontWeight = "700";
-      return verdadeiro ? "\u2713" : "\u2717";
+      return verdadeiro2 ? "\u2713" : "\u2717";
     },
     avatar(ctx) {
       const { td, coluna, visual } = ctx;
@@ -4507,7 +4510,7 @@
         aplicarEstiloDeCabecalho(th, visual, config, 0);
       }
       colunasVisiveis.forEach((coluna, i) => {
-        if (coluna.tipo !== "dimensao") return;
+        if (coluna.tipo !== "dimensao" && !coluna.soltaNoCabecalho) return;
         const th = criarThDeColuna({ coluna, indice: i, topo: 0, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar });
         th.rowSpan = 2;
         trGrupo.appendChild(th);
@@ -4530,7 +4533,7 @@
     }
     for (let i = 0; i < colunasVisiveis.length; i++) {
       const coluna = colunasVisiveis[i];
-      if (temPivo && coluna.tipo === "dimensao") continue;
+      if (temPivo && (coluna.tipo === "dimensao" || coluna.soltaNoCabecalho)) continue;
       tr.appendChild(
         criarThDeColuna({ coluna, indice: i, topo, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar })
       );
@@ -4630,7 +4633,9 @@
         td.style.left = `${deslocamentos.get(coluna.id) || 0}px`;
         td.style.position = config.rodapeFixo === false ? "sticky" : "sticky";
       }
-      if (coluna.ehMedida) {
+      if (typeof coluna.totalCalculado === "function") {
+        definirTexto(td, coluna.totalCalculado(indicesVisiveis, agregar, config.agregacaoDoTotal || "soma"));
+      } else if (coluna.ehMedida) {
         const doLooker = modelo.totais.encontrados ? modelo.totais.porCampo[coluna.campo.nome] : null;
         let valor = null;
         if (doLooker && !coluna.chaveDoPivo) {
@@ -4927,6 +4932,761 @@
     return itens;
   }
 
+  // src/core/formulas.js
+  var LIMITES = { tamanho: 2e3, profundidade: 40, nos: 500 };
+  var ErroDeFormula = class extends Error {
+    constructor(mensagem) {
+      super(mensagem);
+      this.name = "ErroDeFormula";
+    }
+  };
+  var err = (m) => {
+    throw new ErroDeFormula(m);
+  };
+  function tokenizar(texto) {
+    const tokens = [];
+    let i = 0;
+    const n = texto.length;
+    while (i < n) {
+      const c = texto[i];
+      if (/\s/.test(c)) {
+        i += 1;
+        continue;
+      }
+      if (c === "$" && texto[i + 1] === "{") {
+        const fim = texto.indexOf("}", i + 2);
+        if (fim < 0) err('campo sem "}" de fechamento');
+        const nome = texto.slice(i + 2, fim).trim();
+        if (!nome) err("campo vazio: ${}");
+        tokens.push({ t: "campo", v: nome, pos: i });
+        i = fim + 1;
+        continue;
+      }
+      if (c === '"') {
+        let s = "";
+        let j = i + 1;
+        for (; ; ) {
+          if (j >= n) err("texto sem aspas de fechamento");
+          if (texto[j] === '"') {
+            if (texto[j + 1] === '"') {
+              s += '"';
+              j += 2;
+              continue;
+            }
+            break;
+          }
+          s += texto[j];
+          j += 1;
+        }
+        tokens.push({ t: "texto", v: s, pos: i });
+        i = j + 1;
+        continue;
+      }
+      if (/[0-9]/.test(c) || c === "." && /[0-9]/.test(texto[i + 1] || "")) {
+        const m = /^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/.exec(texto.slice(i));
+        tokens.push({ t: "num", v: Number(m[0]), pos: i });
+        i += m[0].length;
+        continue;
+      }
+      if (/[A-Za-z_]/.test(c)) {
+        const m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(texto.slice(i));
+        tokens.push({ t: "nome", v: m[0].toUpperCase(), pos: i });
+        i += m[0].length;
+        continue;
+      }
+      const dois = texto.slice(i, i + 2);
+      if (dois === "<=" || dois === ">=" || dois === "<>" || dois === "!=") {
+        tokens.push({ t: "op", v: dois === "!=" ? "<>" : dois, pos: i });
+        i += 2;
+        continue;
+      }
+      if ("+-*/%=<>(),".includes(c)) {
+        tokens.push({ t: c === "(" || c === ")" || c === "," ? c : "op", v: c, pos: i });
+        i += 1;
+        continue;
+      }
+      err(`caractere inesperado "${c}"`);
+    }
+    tokens.push({ t: "fim", pos: n });
+    return tokens;
+  }
+  var FUNCOES = /* @__PURE__ */ new Set([
+    "IF",
+    "IFS",
+    "CASE",
+    "COALESCE",
+    "ISBLANK",
+    "ROUND",
+    "ABS",
+    "MIN",
+    "MAX",
+    "SUM",
+    "AVG",
+    "CONTAINS",
+    "LEFT",
+    "RIGHT",
+    "MID",
+    "UPPER",
+    "LOWER",
+    "LEN",
+    "CONCAT",
+    "TEXT"
+  ]);
+  function analisar(tokens) {
+    let p = 0;
+    let nos = 0;
+    const olhar = () => tokens[p];
+    const pegar = () => tokens[p++];
+    const no = (obj, prof) => {
+      nos += 1;
+      if (nos > LIMITES.nos) err("f\xF3rmula grande demais");
+      if (prof > LIMITES.profundidade) err("f\xF3rmula aninhada demais");
+      return obj;
+    };
+    const esperar = (t, msg) => {
+      if (olhar().t !== t) err(msg);
+      return pegar();
+    };
+    const ehNome = (v) => olhar().t === "nome" && olhar().v === v;
+    function ou(d) {
+      let e = e_(d + 1);
+      while (ehNome("OR")) {
+        pegar();
+        e = no({ k: "ou", a: e, b: e_(d + 1) }, d);
+      }
+      return e;
+    }
+    function e_(d) {
+      let e = nao(d + 1);
+      while (ehNome("AND")) {
+        pegar();
+        e = no({ k: "e", a: e, b: nao(d + 1) }, d);
+      }
+      return e;
+    }
+    function nao(d) {
+      if (ehNome("NOT")) {
+        pegar();
+        return no({ k: "nao", a: nao(d + 1) }, d);
+      }
+      return comparacao(d + 1);
+    }
+    function comparacao(d) {
+      let e = soma(d + 1);
+      while (olhar().t === "op" && ["=", "<>", "<", "<=", ">", ">="].includes(olhar().v)) {
+        const op = pegar().v;
+        e = no({ k: "cmp", op, a: e, b: soma(d + 1) }, d);
+      }
+      return e;
+    }
+    function soma(d) {
+      let e = produto(d + 1);
+      while (olhar().t === "op" && (olhar().v === "+" || olhar().v === "-")) {
+        const op = pegar().v;
+        e = no({ k: "arit", op, a: e, b: produto(d + 1) }, d);
+      }
+      return e;
+    }
+    function produto(d) {
+      let e = unario(d + 1);
+      while (olhar().t === "op" && ["*", "/", "%"].includes(olhar().v)) {
+        const op = pegar().v;
+        e = no({ k: "arit", op, a: e, b: unario(d + 1) }, d);
+      }
+      return e;
+    }
+    function unario(d) {
+      if (olhar().t === "op" && (olhar().v === "-" || olhar().v === "+")) {
+        const op = pegar().v;
+        const a = unario(d + 1);
+        return op === "-" ? no({ k: "neg", a }, d) : a;
+      }
+      return primario(d + 1);
+    }
+    function primario(d) {
+      const tk = pegar();
+      if (tk.t === "num") return no({ k: "val", v: tk.v }, d);
+      if (tk.t === "texto") return no({ k: "val", v: tk.v }, d);
+      if (tk.t === "campo") return no({ k: "campo", nome: tk.v }, d);
+      if (tk.t === "(") {
+        const e = ou(d + 1);
+        esperar(")", 'falta ")"');
+        return e;
+      }
+      if (tk.t === "nome") {
+        if (tk.v === "TRUE") return no({ k: "val", v: true }, d);
+        if (tk.v === "FALSE") return no({ k: "val", v: false }, d);
+        if (tk.v === "NULL") return no({ k: "val", v: null }, d);
+        if (olhar().t !== "(") err(`nome desconhecido "${tk.v}" (campos v\xE3o entre \${...})`);
+        if (!FUNCOES.has(tk.v)) err(`fun\xE7\xE3o desconhecida "${tk.v}"`);
+        pegar();
+        const args = [];
+        if (olhar().t !== ")") {
+          for (; ; ) {
+            args.push(ou(d + 1));
+            if (olhar().t === ",") {
+              pegar();
+              continue;
+            }
+            break;
+          }
+        }
+        esperar(")", `falta ")" em ${tk.v}`);
+        return no({ k: "fn", nome: tk.v, args }, d);
+      }
+      if (tk.t === "fim") err("f\xF3rmula incompleta");
+      err(`"${tk.v}" fora do lugar`);
+      return null;
+    }
+    const arvore = ou(0);
+    if (olhar().t !== "fim") err(`"${olhar().v}" sobrando no fim`);
+    return arvore;
+  }
+  var ARIDADE = {
+    IF: [2, 3],
+    IFS: [2, Infinity],
+    CASE: [3, Infinity],
+    COALESCE: [1, Infinity],
+    ISBLANK: [1, 1],
+    ROUND: [1, 2],
+    ABS: [1, 1],
+    MIN: [1, Infinity],
+    MAX: [1, Infinity],
+    SUM: [1, Infinity],
+    AVG: [1, Infinity],
+    CONTAINS: [2, 2],
+    LEFT: [2, 2],
+    RIGHT: [2, 2],
+    MID: [3, 3],
+    UPPER: [1, 1],
+    LOWER: [1, 1],
+    LEN: [1, 1],
+    CONCAT: [1, Infinity],
+    TEXT: [1, 2]
+  };
+  function conferirAridade(no) {
+    if (!no || typeof no !== "object") return;
+    if (no.k === "fn") {
+      const [min, max] = ARIDADE[no.nome];
+      if (no.args.length < min || no.args.length > max) {
+        err(`${no.nome} espera ${min === max ? min : max === Infinity ? `${min} ou mais` : `${min} a ${max}`} argumento(s)`);
+      }
+      no.args.forEach(conferirAridade);
+    }
+    for (const k of ["a", "b"]) if (no[k]) conferirAridade(no[k]);
+  }
+  function camposDe(no, saida = /* @__PURE__ */ new Set()) {
+    if (!no) return saida;
+    if (no.k === "campo") saida.add(no.nome);
+    if (no.args) no.args.forEach((a) => camposDe(a, saida));
+    if (no.a) camposDe(no.a, saida);
+    if (no.b) camposDe(no.b, saida);
+    return saida;
+  }
+  function compilarFormula(texto) {
+    try {
+      const fonte = String(texto != null ? texto : "");
+      if (!fonte.trim()) return { ok: false, erro: "f\xF3rmula vazia" };
+      if (fonte.length > LIMITES.tamanho) err(`f\xF3rmula com mais de ${LIMITES.tamanho} caracteres`);
+      const arvore = analisar(tokenizar(fonte));
+      conferirAridade(arvore);
+      return { ok: true, arvore, campos: Array.from(camposDe(arvore)) };
+    } catch (e) {
+      if (e instanceof ErroDeFormula) return { ok: false, erro: e.message };
+      return { ok: false, erro: "f\xF3rmula inv\xE1lida" };
+    }
+  }
+  var ehNulo = (v) => v === null || v === void 0 || typeof v === "number" && !Number.isFinite(v);
+  var verdadeiro = (v) => ehNulo(v) ? false : typeof v === "string" ? v.length > 0 : !!v;
+  function comoNumero(v, onde) {
+    if (ehNulo(v)) return null;
+    if (typeof v === "number") return v;
+    if (typeof v === "boolean") return v ? 1 : 0;
+    const s = String(v).trim();
+    if (s !== "" && Number.isFinite(Number(s))) return Number(s);
+    err(`${onde}: "${v}" n\xE3o \xE9 n\xFAmero`);
+    return null;
+  }
+  var comoTexto = (v) => ehNulo(v) ? "" : typeof v === "boolean" ? v ? "TRUE" : "FALSE" : String(v);
+  function comparar(op, a, b) {
+    if (ehNulo(a) || ehNulo(b)) return false;
+    let x = a;
+    let y = b;
+    if (typeof a === "number" || typeof b === "number") {
+      const nx = typeof a === "number" ? a : Number(a);
+      const ny = typeof b === "number" ? b : Number(b);
+      if (Number.isFinite(nx) && Number.isFinite(ny) && String(a).trim() !== "" && String(b).trim() !== "") {
+        x = nx;
+        y = ny;
+      } else {
+        x = comoTexto(a);
+        y = comoTexto(b);
+      }
+    } else if (typeof a === "boolean" || typeof b === "boolean") {
+      x = verdadeiro(a);
+      y = verdadeiro(b);
+    } else {
+      x = String(a);
+      y = String(b);
+    }
+    switch (op) {
+      case "=":
+        return x === y;
+      case "<>":
+        return x !== y;
+      case "<":
+        return x < y;
+      case "<=":
+        return x <= y;
+      case ">":
+        return x > y;
+      default:
+        return x >= y;
+    }
+  }
+  function numeros(args, onde) {
+    return args.map((v) => comoNumero(v, onde)).filter((v) => v !== null);
+  }
+  function avaliarArvore(arvore, resolver) {
+    const ev = (no) => {
+      switch (no.k) {
+        case "val":
+          return no.v;
+        case "campo":
+          return resolver(no.nome);
+        case "neg": {
+          const v = comoNumero(ev(no.a), "sinal");
+          return v === null ? null : -v;
+        }
+        case "nao":
+          return !verdadeiro(ev(no.a));
+        case "e":
+          return verdadeiro(ev(no.a)) && verdadeiro(ev(no.b));
+        case "ou":
+          return verdadeiro(ev(no.a)) || verdadeiro(ev(no.b));
+        case "cmp":
+          return comparar(no.op, ev(no.a), ev(no.b));
+        case "arit": {
+          const a = comoNumero(ev(no.a), no.op);
+          const b = comoNumero(ev(no.b), no.op);
+          if (a === null || b === null) return null;
+          if (no.op === "+") return a + b;
+          if (no.op === "-") return a - b;
+          if (no.op === "*") return a * b;
+          if (b === 0) err("divis\xE3o por zero");
+          return no.op === "/" ? a / b : a % b;
+        }
+        case "fn":
+          return chamar(no.nome, no.args, ev);
+        default:
+          err("n\xF3 desconhecido");
+          return null;
+      }
+    };
+    return ev(arvore);
+  }
+  function chamar(nome, args, ev) {
+    const todos = () => args.map(ev);
+    switch (nome) {
+      case "IF":
+        return verdadeiro(ev(args[0])) ? ev(args[1]) : args.length > 2 ? ev(args[2]) : null;
+      case "IFS": {
+        let i = 0;
+        for (; i + 1 < args.length; i += 2) if (verdadeiro(ev(args[i]))) return ev(args[i + 1]);
+        return i < args.length ? ev(args[i]) : null;
+      }
+      case "CASE": {
+        const alvo = ev(args[0]);
+        let i = 1;
+        for (; i + 1 < args.length; i += 2) if (comparar("=", alvo, ev(args[i]))) return ev(args[i + 1]);
+        return i < args.length ? ev(args[i]) : null;
+      }
+      case "COALESCE":
+        for (const a of args) {
+          const v = ev(a);
+          if (!ehNulo(v) && v !== "") return v;
+        }
+        return null;
+      case "ISBLANK": {
+        const v = ev(args[0]);
+        return ehNulo(v) || v === "";
+      }
+      case "ROUND": {
+        const x = comoNumero(ev(args[0]), "ROUND");
+        const casas = args[1] ? comoNumero(ev(args[1]), "ROUND") || 0 : 0;
+        if (x === null) return null;
+        const f = 10 ** Math.max(-10, Math.min(10, Math.trunc(casas)));
+        return Math.round((x + Number.EPSILON * Math.sign(x)) * f) / f;
+      }
+      case "ABS": {
+        const x = comoNumero(ev(args[0]), "ABS");
+        return x === null ? null : Math.abs(x);
+      }
+      case "MIN":
+      case "MAX": {
+        const v = numeros(todos(), nome);
+        if (!v.length) return null;
+        return nome === "MIN" ? Math.min(...v) : Math.max(...v);
+      }
+      case "SUM": {
+        const v = numeros(todos(), "SUM");
+        return v.length ? v.reduce((s, x) => s + x, 0) : null;
+      }
+      case "AVG": {
+        const v = numeros(todos(), "AVG");
+        return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null;
+      }
+      case "CONTAINS": {
+        const t = ev(args[0]);
+        if (ehNulo(t)) return false;
+        return comoTexto(t).includes(comoTexto(ev(args[1])));
+      }
+      case "LEFT":
+      case "RIGHT": {
+        const t = ev(args[0]);
+        if (ehNulo(t)) return null;
+        const s = comoTexto(t);
+        const k = Math.max(0, Math.trunc(comoNumero(ev(args[1]), nome) || 0));
+        return nome === "LEFT" ? s.slice(0, k) : k === 0 ? "" : s.slice(-k);
+      }
+      case "MID": {
+        const t = ev(args[0]);
+        if (ehNulo(t)) return null;
+        const ini = Math.max(1, Math.trunc(comoNumero(ev(args[1]), "MID") || 1));
+        const k = Math.max(0, Math.trunc(comoNumero(ev(args[2]), "MID") || 0));
+        return comoTexto(t).slice(ini - 1, ini - 1 + k);
+      }
+      case "UPPER":
+      case "LOWER": {
+        const t = ev(args[0]);
+        if (ehNulo(t)) return null;
+        return nome === "UPPER" ? comoTexto(t).toUpperCase() : comoTexto(t).toLowerCase();
+      }
+      case "LEN": {
+        const t = ev(args[0]);
+        return ehNulo(t) ? 0 : comoTexto(t).length;
+      }
+      case "CONCAT":
+        return todos().map(comoTexto).join("");
+      case "TEXT": {
+        const v = ev(args[0]);
+        if (ehNulo(v)) return "";
+        if (args.length < 2 || typeof v !== "number") return comoTexto(v);
+        const fmt = ev(args[1]);
+        let casas = typeof fmt === "number" ? fmt : String(fmt).includes(".") ? String(fmt).split(".")[1].length : 0;
+        casas = Math.max(0, Math.min(10, Math.trunc(casas)));
+        return v.toFixed(casas);
+      }
+      default:
+        err(`fun\xE7\xE3o desconhecida "${nome}"`);
+        return null;
+    }
+  }
+  function criarResolvedor(campos) {
+    const mapa = /* @__PURE__ */ new Map();
+    const ambiguos = /* @__PURE__ */ new Set();
+    const por = (chave, item) => {
+      const k = String(chave || "").trim().toLowerCase();
+      if (!k) return;
+      if (mapa.has(k) && mapa.get(k) !== item) ambiguos.add(k);
+      else mapa.set(k, item);
+    };
+    campos.forEach((c) => c.nomes.forEach((n) => por(n, c)));
+    return (nome) => {
+      const k = String(nome).trim().toLowerCase();
+      if (ambiguos.has(k)) err(`campo amb\xEDguo: ${nome} (use o nome completo)`);
+      const item = mapa.get(k);
+      if (!item) err(`campo n\xE3o encontrado: ${nome}`);
+      return item.valor();
+    };
+  }
+
+  // src/charts/tabela_completa/calculadas.js
+  var ESPACOS_DE_FORMULA = 8;
+  function opcoesDasCalculadas() {
+    const saida = {};
+    for (let n = 1; n <= ESPACOS_DE_FORMULA; n++) {
+      const s = `F\xF3rmula ${n}`;
+      const p = `calc${n}`;
+      Object.assign(saida, {
+        [`${p}Nome`]: { type: "string", label: "Nome da coluna", section: s, default: "" },
+        [`${p}Formula`]: {
+          type: "string",
+          label: "F\xF3rmula",
+          section: s,
+          placeholder: 'IF(${campo} > 10, "Alto", "Baixo")',
+          default: ""
+        },
+        [`${p}Uso`]: {
+          type: "string",
+          label: "Uso",
+          section: s,
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Coluna com o resultado", valor: "coluna" },
+            { rotulo: "Colorir a linha se verdadeira", valor: "linha" },
+            { rotulo: "Colorir c\xE9lulas se verdadeira", valor: "celula" }
+          ]),
+          default: "coluna"
+        },
+        [`${p}Formato`]: {
+          type: "string",
+          label: "Formato",
+          section: s,
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "N\xFAmero", valor: "numero" },
+            { rotulo: "Moeda", valor: "moeda" },
+            { rotulo: "Percentual", valor: "percentual" },
+            { rotulo: "Texto", valor: "texto" }
+          ]),
+          default: "numero"
+        },
+        [`${p}Casas`]: { type: "number", label: "Casas decimais", section: s, default: 2 },
+        [`${p}TipoDeCelula`]: {
+          type: "string",
+          label: "Tipo de c\xE9lula",
+          section: s,
+          display: "select",
+          values: listaDeValores(TIPOS_DE_CELULA),
+          default: "auto"
+        },
+        [`${p}Posicao`]: {
+          type: "string",
+          label: "Posi\xE7\xE3o",
+          section: s,
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Depois das medidas", valor: "fim" },
+            { rotulo: "Antes das medidas", valor: "inicio" }
+          ]),
+          default: "fim"
+        },
+        [`${p}Pivo`]: {
+          type: "string",
+          label: "Modo do piv\xF4",
+          section: s,
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Uma vez por valor do piv\xF4", valor: "porPivo" },
+            { rotulo: "S\xF3 nas colunas sem piv\xF4", valor: "semPivo" }
+          ]),
+          default: "porPivo"
+        },
+        [`${p}Total`]: {
+          type: "string",
+          label: "Linha de totais",
+          section: s,
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Recalcular sobre os totais", valor: "recalcular" },
+            { rotulo: "Vazio", valor: "vazio" }
+          ]),
+          default: "recalcular"
+        },
+        [`${p}Cor`]: { type: "string", label: "Cor (uso colorir)", section: s, display: "color", default: "#FEF3C7" },
+        [`${p}Alvo`]: { type: "string", label: "Aplicar na coluna", section: s, placeholder: "nome da coluna", default: "" }
+      });
+    }
+    return saida;
+  }
+  function lerEspacos(config) {
+    const espacos = [];
+    for (let n = 1; n <= ESPACOS_DE_FORMULA; n++) {
+      const p = `calc${n}`;
+      const formula = String(config[`${p}Formula`] || "").trim();
+      if (!formula) continue;
+      espacos.push({
+        n,
+        nome: String(config[`${p}Nome`] || "").trim() || `F\xF3rmula ${n}`,
+        formula,
+        compilada: compilarFormula(formula),
+        uso: ["linha", "celula"].includes(config[`${p}Uso`]) ? config[`${p}Uso`] : "coluna",
+        formato: config[`${p}Formato`] || "numero",
+        casas: Number.isFinite(Number(config[`${p}Casas`])) ? Number(config[`${p}Casas`]) : 2,
+        tipoDeCelula: config[`${p}TipoDeCelula`] || "auto",
+        posicao: config[`${p}Posicao`] === "inicio" ? "inicio" : "fim",
+        modoPivo: config[`${p}Pivo`] === "semPivo" ? "semPivo" : "porPivo",
+        total: config[`${p}Total`] === "vazio" ? "vazio" : "recalcular",
+        cor: config[`${p}Cor`] || "#FEF3C7",
+        alvo: String(config[`${p}Alvo`] || "").trim()
+      });
+    }
+    return espacos;
+  }
+  var semView = (nome) => String(nome).split(".").pop();
+  function resolvedorDaLinha(modelo, linha, { chave = null, semPivo = false } = {}) {
+    const campos = [];
+    for (const c of modelo.dimensoes) {
+      campos.push({
+        nomes: [c.nome, semView(c.nome), c.rotuloCurto, c.rotulo],
+        valor: () => {
+          const cel = modelo.celula(linha, c.nome);
+          return cel ? cel.value : null;
+        }
+      });
+    }
+    for (const c of modelo.medidas) {
+      campos.push({
+        nomes: [c.nome, semView(c.nome), c.rotuloCurto, c.rotulo],
+        valor: () => {
+          if (modelo.temPivo && semPivo) {
+            return typeof modelo.totalDaLinha === "function" ? modelo.totalDaLinha(linha, c.nome) : null;
+          }
+          return modelo.valorNumerico(linha, c.nome, chave || void 0);
+        }
+      });
+    }
+    return criarResolvedor(campos);
+  }
+  function avaliadorComCache(espaco, modelo, opcoes) {
+    const cache = /* @__PURE__ */ new WeakMap();
+    return (linha) => {
+      if (!espaco.compilada.ok) return { erro: espaco.compilada.erro };
+      if (cache.has(linha)) return cache.get(linha);
+      let r;
+      try {
+        r = { valor: avaliarArvore(espaco.compilada.arvore, resolvedorDaLinha(modelo, linha, opcoes)) };
+      } catch (e) {
+        r = { erro: e instanceof ErroDeFormula ? e.message : "erro ao calcular" };
+      }
+      cache.set(linha, r);
+      return r;
+    };
+  }
+  function totalDoCampo(modelo, nome, chave, indicesVisiveis, agregar2, tipoDeAgregacao) {
+    const ehMedida = modelo.medidas.some((m) => m.nome === nome);
+    if (!ehMedida) return { tem: false };
+    const t = modelo.totais && modelo.totais.encontrados ? modelo.totais.porCampo[nome] : null;
+    if (t) {
+      const cel = chave ? t[chave] : t;
+      const v = cel && cel.value !== void 0 ? Number(cel.value) : NaN;
+      if (Number.isFinite(v)) return { tem: true, valor: v };
+    }
+    const valores2 = indicesVisiveis.map((i) => modelo.valorNumerico(modelo.linhas[i], nome, chave || void 0));
+    return { tem: true, valor: agregar2(valores2, tipoDeAgregacao) };
+  }
+  function colunasCalculadas(modelo, config, { larguraPadrao = 130 } = {}) {
+    const espacos = lerEspacos(config).filter((e) => e.uso === "coluna");
+    const soltas = { inicio: [], fim: [] };
+    const porPivo = /* @__PURE__ */ new Map();
+    const erros = [];
+    for (const e of espacos) {
+      if (!e.compilada.ok) erros.push(`F\xF3rmula ${e.n} ("${e.nome}"): ${e.compilada.erro}`);
+      if (modelo.temPivo && e.modoPivo === "porPivo") {
+        for (const pivo of modelo.pivotsDeDados) {
+          const col = montarColunaCalculada(e, modelo, { pivo, larguraPadrao });
+          if (!porPivo.has(pivo.chave)) porPivo.set(pivo.chave, { inicio: [], fim: [] });
+          porPivo.get(pivo.chave)[e.posicao].push(col);
+        }
+      } else {
+        const col = montarColunaCalculada(e, modelo, { pivo: null, semPivo: modelo.temPivo, larguraPadrao });
+        col.soltaNoCabecalho = modelo.temPivo;
+        soltas[e.posicao].push(col);
+      }
+    }
+    return { soltas, porPivo, erros };
+  }
+  function montarColunaCalculada(e, modelo, { pivo, semPivo = false, larguraPadrao }) {
+    const chave = pivo ? pivo.chave : null;
+    const avaliar = avaliadorComCache(e, modelo, { chave, semPivo });
+    const ehTexto = e.formato === "texto";
+    const formatar = ehTexto ? null : criarFormatadorNumerico({ estilo: e.formato, casas: e.casas, simboloDaMoeda: "$" });
+    const textoDoValor = (v) => {
+      if (v === null || v === void 0) return null;
+      if (typeof v === "number" && formatar && Number.isFinite(v)) return formatar(v);
+      if (typeof v === "boolean") return v ? "Verdadeiro" : "Falso";
+      return String(v);
+    };
+    const id = `calc${e.n}${chave ? `__${chave}` : ""}`;
+    return {
+      id,
+      tipo: "calculada",
+      ehMedida: !ehTexto,
+      campo: { nome: id, rotulo: e.nome, rotuloCurto: e.nome },
+      pivo,
+      chaveDoPivo: chave || void 0,
+      rotulo: e.nome,
+      rotuloOriginal: e.nome,
+      largura: larguraPadrao,
+      alinhamento: ehTexto ? "left" : "right",
+      visivel: true,
+      tipoDeCelula: e.tipoDeCelula,
+      corDoTexto: "",
+      corDeFundo: "",
+      prefixo: "",
+      sufixo: "",
+      corDaBarra: "#4276BE",
+      escalaDeCor: false,
+      escalaCorMin: "#FFFFFF",
+      escalaCorMax: "#60A5FA",
+      regras: [],
+      formatar: formatar || ((v) => String(v)),
+      formatoProprio: true,
+      espacoDeFormula: e,
+      resultado: avaliar,
+      valorNumerico(linha) {
+        const r = avaliar(linha);
+        return r.erro || typeof r.valor !== "number" || !Number.isFinite(r.valor) ? null : r.valor;
+      },
+      texto(linha, textoNulo) {
+        const r = avaliar(linha);
+        if (r.erro) return `#ERRO: ${r.erro}`;
+        const t = textoDoValor(r.valor);
+        return t === null ? textoNulo : t;
+      },
+      celula() {
+        return void 0;
+      },
+      /** Total da coluna (rodapé): fórmula sobre os totais, ou vazio. */
+      totalCalculado(indicesVisiveis, agregar2, tipoDeAgregacao) {
+        var _a;
+        if (e.total === "vazio" || !e.compilada.ok) return "";
+        const campos = [];
+        for (const nome of e.compilada.campos) {
+          const alvo = [...modelo.dimensoes, ...modelo.medidas].find(
+            (c) => [c.nome, semView(c.nome), c.rotuloCurto, c.rotulo].some((n) => n && n.toLowerCase() === nome.toLowerCase())
+          );
+          if (!alvo) return "";
+          const t = totalDoCampo(modelo, alvo.nome, chave, indicesVisiveis, agregar2, tipoDeAgregacao);
+          if (!t.tem) return "";
+          campos.push({ nomes: [nome], valor: () => t.valor });
+        }
+        try {
+          const v = avaliarArvore(e.compilada.arvore, criarResolvedor(campos));
+          return (_a = textoDoValor(v)) != null ? _a : "";
+        } catch (err2) {
+          return err2 instanceof ErroDeFormula ? `#ERRO: ${err2.message}` : "";
+        }
+      }
+    };
+  }
+  function regrasDeFormula(modelo, config) {
+    const regras = lerEspacos(config).filter((e) => e.uso !== "coluna" && e.compilada.ok).map((e) => ({
+      e,
+      alvo: normalizarTexto(e.alvo),
+      porChave: /* @__PURE__ */ new Map()
+    }));
+    if (!regras.length) return null;
+    return function aplicar(td, coluna, linha) {
+      for (const r of regras) {
+        if (r.e.uso === "celula") {
+          const nomes = [coluna.rotulo, coluna.rotuloOriginal, coluna.campo && coluna.campo.nome].filter(Boolean).map(normalizarTexto);
+          if (!r.alvo || !nomes.includes(r.alvo)) continue;
+        }
+        const chave = coluna.chaveDoPivo || "";
+        if (!r.porChave.has(chave)) {
+          r.porChave.set(chave, avaliadorComCache(r.e, modelo, { chave: chave || null, semPivo: !chave && modelo.temPivo }));
+        }
+        const res = r.porChave.get(chave)(linha);
+        const v = res.valor;
+        if (!res.erro && v !== null && v !== void 0 && v !== false && v !== 0 && v !== "") {
+          td.style.background = r.e.cor;
+        }
+      }
+    };
+  }
+
   // src/charts/tabela_completa/opcoes.js
   var REGRAS_POR_COLUNA = 3;
   var MAXIMO_DE_COLUNAS_CONFIGURAVEIS = 20;
@@ -4995,6 +5755,8 @@
     return montarOpcoes(
       blocoDeTema(),
       blocoAvancado(),
+      // Colunas calculadas por fórmula (5.4, v3): 8 espaços fixos.
+      opcoesDasCalculadas(),
       {
         // ---------- Estrutura ----------
         agruparPor: {
@@ -5557,10 +6319,16 @@
         modelo
       }));
     }
+    const calculadas = colunasCalculadas(modelo, config, { larguraPadrao });
+    colunas.push(...calculadas.soltas.inicio);
+    if (modelo.temPivo) colunas.push(...calculadas.soltas.fim);
     const gruposDePivo = [];
     if (modelo.temPivo) {
       for (const pivo of modelo.pivotsDeDados) {
         const colunasDoGrupo = [];
+        const doPivo = calculadas.porPivo.get(pivo.chave) || { inicio: [], fim: [] };
+        colunas.push(...doPivo.inicio);
+        colunasDoGrupo.push(...doPivo.inicio);
         for (const campo of modelo.medidas) {
           const id = `med__${campo.nome}__${pivo.chave}`;
           const coluna = montarColuna({
@@ -5577,6 +6345,8 @@
           colunas.push(coluna);
           colunasDoGrupo.push(coluna);
         }
+        colunas.push(...doPivo.fim);
+        colunasDoGrupo.push(...doPivo.fim);
         gruposDePivo.push({ rotulo: pivo.rotulo, chave: pivo.chave, colunas: colunasDoGrupo, ehTotal: false });
       }
       if (config.mostrarTotalDeLinha !== false) {
@@ -5620,8 +6390,9 @@
         }));
       }
     }
+    if (!modelo.temPivo) colunas.push(...calculadas.soltas.fim);
     const colunasVisiveis = colunas.filter((c) => c.visivel);
-    return { colunas, colunasVisiveis, temPivo: modelo.temPivo, gruposDePivo };
+    return { colunas, colunasVisiveis, temPivo: modelo.temPivo, gruposDePivo, errosDeFormula: calculadas.erros };
   }
   function montarColuna({ id, tipo, campo, pivo, rotuloPadrao, larguraPadrao, alinhamentoPadrao, config, modelo }) {
     const ehMedida = tipo !== "dimensao";
@@ -5727,6 +6498,7 @@
   }
   function criarPintorDeCelula(ctx, nulo, contextos2, porId, comparacao) {
     const { config, ponte, modelo } = ctx;
+    const porFormula = regrasDeFormula(modelo, config);
     return function pintarCelula({ td, coluna, linha, indiceDaLinha }) {
       const estatistica = contextos2.get(coluna.id) || null;
       if (comparacao && coluna.ehMedida) {
@@ -5786,6 +6558,7 @@
           if (efeito.linhaInteira.cor) td.parentNode.style.color = efeito.linhaInteira.cor;
         }
       }
+      if (porFormula) porFormula(td, coluna, linha);
       if (config.permitirDrill === false || coluna.tipoDeCelula === "link") return;
       const celula = coluna.celula(linha);
       if (celula && ponte.temDrill(celula)) {
@@ -5913,7 +6686,8 @@
         ctx.mostrarVazio();
         return;
       }
-      const { colunas, colunasVisiveis, temPivo, gruposDePivo } = construirColunas(modelo, config);
+      const { colunas, colunasVisiveis, temPivo, gruposDePivo, errosDeFormula } = construirColunas(modelo, config);
+      for (const erro of errosDeFormula || []) ctx.avisar(erro);
       if (!colunasVisiveis.length) {
         ctx.mostrarVazio("Todas as colunas est\xE3o ocultas. Reative pelo menos uma no painel.");
         return;

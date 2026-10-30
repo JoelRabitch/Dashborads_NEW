@@ -108,6 +108,798 @@
     "dinamica": false
   },
   {
+    "id": "calc1Nome",
+    "label": "Fórmula 1 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 1 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Nome",
+    "label": "Fórmula 2 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 2 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Nome",
+    "label": "Fórmula 3 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 3 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Nome",
+    "label": "Fórmula 4 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 4 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Nome",
+    "label": "Fórmula 5 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 5 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Nome",
+    "label": "Fórmula 6 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 6 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Nome",
+    "label": "Fórmula 7 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 7 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Nome",
+    "label": "Fórmula 8 · Nome da coluna",
+    "rotuloCompleto": "Fórmula 8 · Nome da coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Formula",
+    "label": "Fórmula 1 · Fórmula",
+    "rotuloCompleto": "Fórmula 1 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Formula",
+    "label": "Fórmula 2 · Fórmula",
+    "rotuloCompleto": "Fórmula 2 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Formula",
+    "label": "Fórmula 3 · Fórmula",
+    "rotuloCompleto": "Fórmula 3 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Formula",
+    "label": "Fórmula 4 · Fórmula",
+    "rotuloCompleto": "Fórmula 4 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Formula",
+    "label": "Fórmula 5 · Fórmula",
+    "rotuloCompleto": "Fórmula 5 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Formula",
+    "label": "Fórmula 6 · Fórmula",
+    "rotuloCompleto": "Fórmula 6 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Formula",
+    "label": "Fórmula 7 · Fórmula",
+    "rotuloCompleto": "Fórmula 7 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Formula",
+    "label": "Fórmula 8 · Fórmula",
+    "rotuloCompleto": "Fórmula 8 · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Uso",
+    "label": "Fórmula 1 · Uso",
+    "rotuloCompleto": "Fórmula 1 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Uso",
+    "label": "Fórmula 2 · Uso",
+    "rotuloCompleto": "Fórmula 2 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Uso",
+    "label": "Fórmula 3 · Uso",
+    "rotuloCompleto": "Fórmula 3 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Uso",
+    "label": "Fórmula 4 · Uso",
+    "rotuloCompleto": "Fórmula 4 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Uso",
+    "label": "Fórmula 5 · Uso",
+    "rotuloCompleto": "Fórmula 5 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Uso",
+    "label": "Fórmula 6 · Uso",
+    "rotuloCompleto": "Fórmula 6 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Uso",
+    "label": "Fórmula 7 · Uso",
+    "rotuloCompleto": "Fórmula 7 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Uso",
+    "label": "Fórmula 8 · Uso",
+    "rotuloCompleto": "Fórmula 8 · Uso",
+    "section": "Dados",
+    "type": "string",
+    "default": "coluna",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Formato",
+    "label": "Fórmula 1 · Formato",
+    "rotuloCompleto": "Fórmula 1 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Formato",
+    "label": "Fórmula 2 · Formato",
+    "rotuloCompleto": "Fórmula 2 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Formato",
+    "label": "Fórmula 3 · Formato",
+    "rotuloCompleto": "Fórmula 3 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Formato",
+    "label": "Fórmula 4 · Formato",
+    "rotuloCompleto": "Fórmula 4 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Formato",
+    "label": "Fórmula 5 · Formato",
+    "rotuloCompleto": "Fórmula 5 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Formato",
+    "label": "Fórmula 6 · Formato",
+    "rotuloCompleto": "Fórmula 6 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Formato",
+    "label": "Fórmula 7 · Formato",
+    "rotuloCompleto": "Fórmula 7 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Formato",
+    "label": "Fórmula 8 · Formato",
+    "rotuloCompleto": "Fórmula 8 · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "numero",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Casas",
+    "label": "Fórmula 1 · Casas decimais",
+    "rotuloCompleto": "Fórmula 1 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc2Casas",
+    "label": "Fórmula 2 · Casas decimais",
+    "rotuloCompleto": "Fórmula 2 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc3Casas",
+    "label": "Fórmula 3 · Casas decimais",
+    "rotuloCompleto": "Fórmula 3 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc4Casas",
+    "label": "Fórmula 4 · Casas decimais",
+    "rotuloCompleto": "Fórmula 4 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc5Casas",
+    "label": "Fórmula 5 · Casas decimais",
+    "rotuloCompleto": "Fórmula 5 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc6Casas",
+    "label": "Fórmula 6 · Casas decimais",
+    "rotuloCompleto": "Fórmula 6 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc7Casas",
+    "label": "Fórmula 7 · Casas decimais",
+    "rotuloCompleto": "Fórmula 7 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc8Casas",
+    "label": "Fórmula 8 · Casas decimais",
+    "rotuloCompleto": "Fórmula 8 · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "calc1TipoDeCelula",
+    "label": "Fórmula 1 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 1 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc2TipoDeCelula",
+    "label": "Fórmula 2 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 2 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc3TipoDeCelula",
+    "label": "Fórmula 3 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 3 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc4TipoDeCelula",
+    "label": "Fórmula 4 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 4 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc5TipoDeCelula",
+    "label": "Fórmula 5 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 5 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc6TipoDeCelula",
+    "label": "Fórmula 6 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 6 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc7TipoDeCelula",
+    "label": "Fórmula 7 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 7 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc8TipoDeCelula",
+    "label": "Fórmula 8 · Tipo de célula",
+    "rotuloCompleto": "Fórmula 8 · Tipo de célula",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Posicao",
+    "label": "Fórmula 1 · Posição",
+    "rotuloCompleto": "Fórmula 1 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Posicao",
+    "label": "Fórmula 2 · Posição",
+    "rotuloCompleto": "Fórmula 2 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Posicao",
+    "label": "Fórmula 3 · Posição",
+    "rotuloCompleto": "Fórmula 3 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Posicao",
+    "label": "Fórmula 4 · Posição",
+    "rotuloCompleto": "Fórmula 4 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Posicao",
+    "label": "Fórmula 5 · Posição",
+    "rotuloCompleto": "Fórmula 5 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Posicao",
+    "label": "Fórmula 6 · Posição",
+    "rotuloCompleto": "Fórmula 6 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Posicao",
+    "label": "Fórmula 7 · Posição",
+    "rotuloCompleto": "Fórmula 7 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Posicao",
+    "label": "Fórmula 8 · Posição",
+    "rotuloCompleto": "Fórmula 8 · Posição",
+    "section": "Dados",
+    "type": "string",
+    "default": "fim",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Pivo",
+    "label": "Fórmula 1 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 1 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Pivo",
+    "label": "Fórmula 2 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 2 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Pivo",
+    "label": "Fórmula 3 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 3 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Pivo",
+    "label": "Fórmula 4 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 4 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Pivo",
+    "label": "Fórmula 5 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 5 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Pivo",
+    "label": "Fórmula 6 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 6 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Pivo",
+    "label": "Fórmula 7 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 7 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Pivo",
+    "label": "Fórmula 8 · Modo do pivô",
+    "rotuloCompleto": "Fórmula 8 · Modo do pivô",
+    "section": "Dados",
+    "type": "string",
+    "default": "porPivo",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Total",
+    "label": "Fórmula 1 · Linha de totais",
+    "rotuloCompleto": "Fórmula 1 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Total",
+    "label": "Fórmula 2 · Linha de totais",
+    "rotuloCompleto": "Fórmula 2 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Total",
+    "label": "Fórmula 3 · Linha de totais",
+    "rotuloCompleto": "Fórmula 3 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Total",
+    "label": "Fórmula 4 · Linha de totais",
+    "rotuloCompleto": "Fórmula 4 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Total",
+    "label": "Fórmula 5 · Linha de totais",
+    "rotuloCompleto": "Fórmula 5 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Total",
+    "label": "Fórmula 6 · Linha de totais",
+    "rotuloCompleto": "Fórmula 6 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Total",
+    "label": "Fórmula 7 · Linha de totais",
+    "rotuloCompleto": "Fórmula 7 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Total",
+    "label": "Fórmula 8 · Linha de totais",
+    "rotuloCompleto": "Fórmula 8 · Linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "recalcular",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Cor",
+    "label": "Fórmula 1 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 1 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Cor",
+    "label": "Fórmula 2 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 2 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Cor",
+    "label": "Fórmula 3 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 3 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Cor",
+    "label": "Fórmula 4 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 4 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Cor",
+    "label": "Fórmula 5 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 5 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Cor",
+    "label": "Fórmula 6 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 6 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Cor",
+    "label": "Fórmula 7 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 7 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Cor",
+    "label": "Fórmula 8 · Cor (uso colorir)",
+    "rotuloCompleto": "Fórmula 8 · Cor (uso colorir)",
+    "section": "Dados",
+    "type": "string",
+    "default": "#FEF3C7",
+    "dinamica": false
+  },
+  {
+    "id": "calc1Alvo",
+    "label": "Fórmula 1 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 1 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc2Alvo",
+    "label": "Fórmula 2 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 2 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc3Alvo",
+    "label": "Fórmula 3 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 3 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc4Alvo",
+    "label": "Fórmula 4 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 4 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc5Alvo",
+    "label": "Fórmula 5 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 5 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc6Alvo",
+    "label": "Fórmula 6 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 6 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc7Alvo",
+    "label": "Fórmula 7 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 7 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "calc8Alvo",
+    "label": "Fórmula 8 · Aplicar na coluna",
+    "rotuloCompleto": "Fórmula 8 · Aplicar na coluna",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
     "id": "densidade",
     "label": "Densidade",
     "rotuloCompleto": "Densidade",
