@@ -2615,7 +2615,7 @@ nenhum arquivo servido.
 
 1. As 54 URLs do `MANIFEST.md` passaram a trazer o hash completo de 40
    caracteres, no formato exato que o Looker aceitou:
-   `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@<hash>/biblioteca/dist/<id>.js`
+   `https://cdn.jsdelivr.net/gh/<dono>/<repositório>@<hash>/biblioteca/dist/<id>.js`
    O parágrafo que mandava trocar `COMMIT` virou o aviso oposto: as URLs já
    estão fixadas, **não** troque por branch, `@main` nem `@latest`.
 2. `build/build.mjs` ganhou `hashDosBundles()`, que descobre esse hash
@@ -3502,3 +3502,22 @@ PRÓXIMA AÇÃO: FASE 5b — 5.14b (infraestrutura de pacotes).
 
 PRÓXIMA AÇÃO: FASE 6 — 5.15b portabilidade (config/repo.json, varredura,
 MIGRACAO.md) e depois 5.15 (build duplo, tag v3.N, URLs, relatório).
+
+### 5.15b Portabilidade (concluído)
+- `config/repo.json`: único lugar com dono, repositório e hospedagem
+  (`jsdelivr` | `base-url` + `prefixoBaseUrl`). `build/urls.mjs` lê dele
+  (ou do `git remote origin`), exige a tag (`npm run urls -- v3.N`),
+  confere a tag no remoto e os arquivos com `git ls-tree`, e gera DUAS
+  URLs por gráfico (tag e hash do commit da tag).
+- O LOG antigo citava a URL com o dono: trocado por `<dono>/<repositório>`.
+- `test/portabilidade_v3.test.mjs`: varre os arquivos versionados de
+  biblioteca/ (dono, repositório, "Nome Sobrenome" derivado do dono,
+  caminhos locais). Exceções: config/repo.json, dist/URLS.*, e
+  PROMPT_AGENTE.md (decisão: é a cópia literal das instruções do usuário,
+  que a seção 0 manda gravar sem alterar; ela cita a URL do repositório).
+- `docs/MIGRACAO.md` (espelho com branches e tags, o que atualizar, URLs,
+  aviso de que as URLs antigas morrem se o repositório antigo sumir).
+  README: aviso do jsDelivr só público, fluxo com tag, pacotes.
+
+PRÓXIMA AÇÃO: 5.15 — build duplo, testes, commit, tag v3.N, URLs,
+relatório.

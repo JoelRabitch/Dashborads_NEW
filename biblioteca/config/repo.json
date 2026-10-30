@@ -1,0 +1,8 @@
+{
+  "descricao": "ÚNICO lugar com o dono e o nome do repositório (melhorias v3, 5.15b). Usado por build/urls.mjs. hospedagem: 'jsdelivr' (repositório PÚBLICO no GitHub) ou 'base-url' (prefixoBaseUrl/<versão>/<id>.js, num servidor ou bucket interno). Ver docs/MIGRACAO.md.",
+  "dono": "JoelRabitch",
+  "repositorio": "Dashborads_NEW",
+  "hospedagem": "jsdelivr",
+  "prefixoBaseUrl": "",
+  "pastaDosBundles": "biblioteca/dist"
+}

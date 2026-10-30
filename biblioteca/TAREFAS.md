@@ -167,4 +167,4 @@ arquivados em `_arquivados/` e não devem ser retomados:
 
 ### FASE 6 — fechamento
 - [ ] 5.15 Build, testes, tag v3.N, URLs, docs, relatório
-- [ ] 5.15b Portabilidade do repositório
+- [x] 5.15b Portabilidade do repositório
