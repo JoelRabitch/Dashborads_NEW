@@ -3180,3 +3180,24 @@ PRÓXIMA AÇÃO: 5.2 (tabela: rolagem e animação ao rolar).
 - `npm test` 779/779; segurança sem violação.
 
 PRÓXIMA AÇÃO: 5.1b (4 abas e rótulos curtos).
+
+### 5.1b Painel: 4 abas e rótulos curtos (concluído em código; conferir no Looker real)
+- Hipótese do print aceita: o Looker ordena as abas pelo NOME. Abas novas
+  (lista única `ABAS` em `options-kit.js`): Dados, Estilo, Texto, Mais —
+  na barra ficarão "Dados, Estilo, Mais, Texto". Mapeamento das seções
+  antigas: Visual→Estilo, Eixos/Texto→Texto, Interação/Avançado→Mais.
+- Rótulos: 352 de 1766 passavam do limite (30 liga/desliga, 40 demais).
+  Novo `src/core/rotulos-do-painel.js`: dicionário id→corpo curto (85 ids),
+  corpos fixos para as opções por coluna da tabela ("R1: ação"...),
+  quadrantes viram "Cor: <nome>", prefixo de coluna vira "Col. <nome>"
+  quando necessário. Corte com "…" só sobra para nomes vindos dos dados
+  muito longos (nenhum caso nas fixtures).
+- API de ajuda por opção: não conheço campo documentado (não inventei).
+  Decisão: o rótulo completo vai para `docs/opcoes/ABAS.md` (coluna
+  "explicação"), gerado por `npm run opcoes`; o README aponta para lá.
+- Teste: `test/painel_v3.test.mjs` (todas as opções de todos os gráficos:
+  ≤4 abas, nome ≤7, rótulo no limite). Falharia antes (5 abas, "Interação"
+  e "Avançado" com mais de 7 letras).
+- `npm test` 802/802.
+
+PRÓXIMA AÇÃO: 5.1c (componente de título, subtítulo e nota).

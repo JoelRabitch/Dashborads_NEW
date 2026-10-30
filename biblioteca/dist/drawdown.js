@@ -1798,6 +1798,166 @@
     }));
   }
 
+  // src/core/rotulos-do-painel.js
+  function limiteDoRotulo(opcao) {
+    return opcao && opcao.type === "boolean" ? 30 : 40;
+  }
+  var CORPO_CURTO = {
+    // Árvores e organograma
+    espessuraPorValor: "Liga\xE7\xE3o proporcional",
+    escalaPorArvore: "Escala por \xE1rvore",
+    tamanhoPorValor: "N\xF3 pelo valor",
+    comecarRecolhidoAPartirDe: "Recolher a partir do n\xEDvel",
+    preencherCartao: "Cart\xE3o na cor do ramo",
+    espacoEntreIrmaos: "Espa\xE7o entre vizinhos",
+    mostrarValorNoCartao: "Valor no cart\xE3o",
+    mostrarContagemDeEquipe: "Total de descendentes",
+    permitirRecolher: "Recolher ao clicar",
+    campoDoCargo: "Campo da 2\xAA linha",
+    mostrarBotoesDeExpandir: "Bot\xF5es de expandir",
+    // Rótulos
+    evitarColisaoDeRotulos: "Ocultar sobrepostos",
+    truncarRotulo: "Cortar ap\xF3s N caracteres",
+    mostrarRotulosDeFolha: "Nome das folhas",
+    mostrarRotulosInternos: "Nome dos n\xF3s internos",
+    mostrarValorNoRotulo: "Incluir o valor",
+    mostrarPercentual: "Mostrar percentual",
+    mostrarTotalDoConjunto: "Total do conjunto",
+    listarRegioesPequenas: "Listar as pequenas",
+    escreverLimites: "Valores dos limites",
+    escreverPercentuais: "Percentual no bloco",
+    escreverLarguras: "Peso de cada coluna",
+    escreverValores: "Valor junto do nome",
+    mostrarValorNoBloco: "Valor no ret\xE2ngulo",
+    mostrarValorNaBarra: "Valor acima da barra",
+    // Tooltip e clique
+    tooltipPersonalizado: "Personalizado",
+    modeloDeTooltip: "Modelo",
+    tooltipComNomeCompleto: "Nome completo",
+    tooltipComValorBruto: "Valor sem formato",
+    permitirHtmlDoLooker: "HTML do Looker",
+    destacarAoPassarMouse: "Destacar sob o mouse",
+    destacarNoHover: "Destacar sob o mouse",
+    permitirOrdenar: "Ordenar no cabe\xE7alho",
+    mostrarFiltrosPorColuna: "Filtro por coluna",
+    permitirSelecionarLinhas: "Selecionar e somar",
+    destacarLinhaEColuna: "Real\xE7ar linha/coluna",
+    permitirRedimensionarColunas: "Redimensionar colunas",
+    permitirDrill: "Drill na c\xE9lula",
+    mostrarBusca: "Campo de busca",
+    // Animação
+    contadorAnimado: "N\xFAmeros contando",
+    animarEntradaDasLinhas: "Entrada das linhas",
+    animarMudancaDeValor: "Piscar ao mudar",
+    repetir: "Repetir ao terminar",
+    // Avançado
+    aplicarConfiguracaoJson: "Aplicar o JSON acima",
+    // Dados e séries
+    agruparRestoEmOutros: "Agrupar o resto em Outros",
+    mostrarRank: "N\xFAmero do rank",
+    mostrarPontos: "Ponto em cada per\xEDodo",
+    mostrarPosicao: "Posi\xE7\xE3o no ponto",
+    normalizarParticipacao: "X como participa\xE7\xE3o",
+    mostrarTotalDeLinha: "Coluna de total por linha",
+    estiloDeData: "Formato das c\xE9lulas de data",
+    cabecalhoVertical: "Cabe\xE7alho na vertical",
+    esconderIntersecoesVazias: "Ocultar interse\xE7\xF5es vazias",
+    mostrarTotaisDosConjuntos: "Totais dos conjuntos",
+    // Cores e escalas
+    escalaDeCorPersonalizada: "Escala pr\xF3pria",
+    limiteDeCorAutomatico: "Limites autom\xE1ticos",
+    corPorDirecao: "Cor por dire\xE7\xE3o",
+    corDoSinal: "Cor fora de controle",
+    // Legenda e eixos
+    legendaInterativa: "Clique liga/desliga",
+    mostrarValoresNaLegenda: "Mostrar valores",
+    comecarEmZero: "Eixo come\xE7a em zero",
+    gradeEixoX: "Linhas de grade",
+    gradeEixoY: "Linhas de grade",
+    eixoXSimetricoEmTorno1: "Eixo X centrado em 1",
+    // Gráficos específicos
+    ligarPontos: "Ligar os pontos",
+    mostrarGuias: "Guias verticais",
+    destacarPiorQueda: "Destacar pior queda",
+    mostrarRecuperacao: "Dura\xE7\xE3o da queda",
+    periodoBase: "Base: N primeiros per\xEDodos",
+    mostrarZonas: "Zonas de 1\u03C3 e 2\u03C3",
+    colorirVariacao: "Cor pela dire\xE7\xE3o",
+    mostrarVariacaoAbsoluta: "Diferen\xE7a absoluta",
+    mostrarProgressoDaMeta: "Progresso at\xE9 a meta",
+    usarLimites: "Cor por limites",
+    pintarQuadrantes: "Pintar o fundo",
+    mostrarContagemPorQuadrante: "Pontos por quadrante",
+    mostrarCorte: "Marcar o corte",
+    destacarAteOCorte: "Destacar at\xE9 o corte",
+    mostrarPontosDoAcumulado: "Pontos no acumulado",
+    mostrarRetaDeSharpe: "Reta do melhor Sharpe",
+    destacarMelhorSharpe: "Destacar o melhor",
+    mostrarTitulosDeGrupo: "Nome de cada grupo"
+  };
+  var CORPO_POR_SUFIXO_DE_COLUNA = [
+    [/^visivel$/, () => "Mostrar"],
+    [/^rotulo$/, () => "Renomear"],
+    [/^largura$/, () => "Largura (px)"],
+    [/^alinhamento$/, () => "Alinhamento"],
+    [/^tipoDeCelula$/, () => "Tipo de c\xE9lula"],
+    [/^corDoTexto$/, () => "Cor do texto"],
+    [/^corDeFundo$/, () => "Cor de fundo"],
+    [/^prefixo$/, () => "Prefixo"],
+    [/^sufixo$/, () => "Sufixo"],
+    [/^formato$/, () => "Formato"],
+    [/^casasDecimais$/, () => "Casas decimais"],
+    [/^corDaBarra$/, () => "Cor da barra"],
+    [/^escalaDeCor$/, () => "Escala de cor"],
+    [/^escalaCorMin$/, () => "Cor do menor"],
+    [/^escalaCorMax$/, () => "Cor do maior"],
+    [/^regra(\d+)$/, (n) => `R${n}: condi\xE7\xE3o`],
+    [/^regra(\d+)Valor$/, (n) => `R${n}: valor`],
+    [/^regra(\d+)Valor2$/, (n) => `R${n}: valor 2`],
+    [/^regra(\d+)Acao$/, (n) => `R${n}: a\xE7\xE3o`],
+    [/^regra(\d+)Cor$/, (n) => `R${n}: cor`],
+    [/^regra(\d+)Icone$/, (n) => `R${n}: \xEDcone`],
+    [/^regra(\d+)LinhaInteira$/, (n) => `R${n}: linha toda`],
+    [/^regra(\d+)Coluna$/, (n) => `R${n}: comparar com`]
+  ];
+  function corpoDinamico(id) {
+    const m = /^col_(?:dim|med|tab|calc)_.+?_([a-zA-Z0-9]+)$/.exec(id);
+    if (!m) return null;
+    for (const [re2, fn] of CORPO_POR_SUFIXO_DE_COLUNA) {
+      const r = re2.exec(m[1]);
+      if (r) return fn(r[1]);
+    }
+    return null;
+  }
+  function semExplicacao(texto) {
+    return String(texto).replace(/\s*\([^)]*\)/g, "").replace(/\s+[—–]\s+.*$/, "").replace(/\s+-\s+.*$/, "").replace(/\s+/g, " ").trim();
+  }
+  function cortar(texto, limite) {
+    return texto.length <= limite ? texto : `${texto.slice(0, Math.max(1, limite - 1)).trimEnd()}\u2026`;
+  }
+  function montarRotulo({ id, prefixo, rotulo, opcao }) {
+    const limite = limiteDoRotulo(opcao);
+    const sep = " \xB7 ";
+    let corpo = String(rotulo != null ? rotulo : "");
+    if (prefixo && corpo.startsWith(`${prefixo}${sep}`)) corpo = corpo.slice(prefixo.length + sep.length);
+    const junto = (p, c) => p ? `${p}${sep}${c}` : c;
+    const daColuna = corpoDinamico(id);
+    if (daColuna) corpo = daColuna;
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    const curto = CORPO_CURTO[id];
+    if (curto) corpo = curto;
+    else if (corpo.length > limite || junto(prefixo, corpo).length > limite) corpo = semExplicacao(corpo) || corpo;
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    corpo = corpo.replace(/^Cor do quadrante /, "Cor: ").replace(/^Nome do quadrante /, "Nome: ");
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    if (prefixo && /^Coluna /.test(prefixo)) {
+      const sobra = limite - corpo.length - sep.length;
+      const curtoPrefixo = prefixo.replace(/^Coluna /, "Col. ");
+      if (sobra >= 6) return junto(cortar(curtoPrefixo, sobra), corpo);
+    }
+    return cortar(corpo, limite);
+  }
+
   // src/core/options-kit.js
   var SECOES = {
     Dados: 100,
@@ -2570,8 +2730,15 @@
       }
     };
   }
-  var JUNTAR_EIXOS_E_TEXTO = true;
-  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABAS = ["Dados", "Estilo", "Texto", "Mais"];
+  var ABA_FINAL = {
+    Dados: "Dados",
+    Visual: "Estilo",
+    Eixos: "Texto",
+    Texto: "Texto",
+    Intera\u00E7\u00E3o: "Mais",
+    Avan\u00E7ado: "Mais"
+  };
   var ABA_POR_SECAO = {
     Dados: "Dados",
     Medidas: "Dados",
@@ -2658,9 +2825,11 @@
         aba = abaPeloId(id, opcao);
         prefixo = secaoAntiga;
       }
-      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
-      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
-        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      aba = ABA_FINAL[aba] || "Mais";
+      if (typeof opcao.label === "string") {
+        const completo = prefixo && !opcao.label.startsWith(`${prefixo} \xB7 `) ? `${prefixo} \xB7 ${opcao.label}` : opcao.label;
+        Object.defineProperty(opcao, "_rotuloCompleto", { value: completo, enumerable: false });
+        opcao.label = montarRotulo({ id, prefixo, rotulo: opcao.label, opcao });
       }
       opcao.section = aba;
       const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;

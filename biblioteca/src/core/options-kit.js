@@ -13,6 +13,7 @@
  */
 
 import { opcoesDePaleta, opcoesDeEscalaContinua } from './theme.js';
+import { montarRotulo, limiteDoRotulo } from './rotulos-do-painel.js';
 
 /**
  * Ordem das seções no painel. O Looker ordena pelo campo `order`, então
@@ -1207,22 +1208,44 @@ export function blocoAvancado(opcoes = {}) {
 /* ------------------------------------------------------------------ */
 
 /**
- * As abas do painel, na MESMA ordem em todos os gráficos.
+ * As abas do painel — PONTO ÚNICO de configuração, igual em todos os
+ * gráficos (melhorias v3, 5.1b).
  *
- * Por que poucas e com nome curto: a barra de abas do editor do Looker não
- * quebra linha e corta as abas que não cabem à direita (não há CSS nosso
- * que alcance o editor). Com 7–10 abas por gráfico, as últimas sumiam.
+ * Por que 4 e com nome de até 7 letras: a barra de abas do editor do
+ * Looker não quebra linha e corta as que não cabem à direita (não há CSS
+ * nosso que alcance o editor). Com 5 abas ("Dados, Visual, Texto,
+ * Interação, Avançado") a última ficava cortada.
  *
- * **Decisão:** "Eixos" e "Texto" foram juntadas numa aba só ("Texto"),
- * como o PROMPT permite "se ainda não couber": com 6 abas de nome curto a
- * barra ainda passa de ~400 px, mais largo que o painel de edição comum.
- * Para separar de novo, troque JUNTAR_EIXOS_E_TEXTO para false.
- * CONFERIR NO LOOKER REAL: quantas abas cabem e se a ordem respeita `order`.
+ * Conteúdo de cada aba:
+ *   - Dados:  campos, ordenação, limites, formato de números;
+ *   - Estilo: cores, formas, bordas, tema, layout, escalas, grades;
+ *   - Texto:  rótulos, eixos, legenda, título, subtítulo, nota, avisos;
+ *   - Mais:   interação, tooltip, animação, avançado, debug, JSON.
+ *
+ * ORDEM NA BARRA: num print do editor as abas apareciam em ordem
+ * alfabética (Avançado, Dados, Interação, Texto, Visual), ou seja, o
+ * Looker ordena pelo NOME da seção e não pelo `order`. Com estes nomes a
+ * barra fica "Dados, Estilo, Mais, Texto". O código não depende do `order`
+ * para ordenar abas (ele só ordena as opções DENTRO de cada aba).
+ * Só aparece a aba que tiver alguma opção naquele gráfico.
  */
+export const ABAS = ['Dados', 'Estilo', 'Texto', 'Mais'];
+
+/** Compatibilidade com a v2 (eixos e texto já ficavam juntos). */
 export const JUNTAR_EIXOS_E_TEXTO = true;
-export const ABAS = JUNTAR_EIXOS_E_TEXTO
-  ? ['Dados', 'Visual', 'Texto', 'Interação', 'Avançado']
-  : ['Dados', 'Visual', 'Eixos', 'Texto', 'Interação', 'Avançado'];
+
+/** Aba intermediária (nomes da v2) → aba final. */
+const ABA_FINAL = {
+  Dados: 'Dados',
+  Visual: 'Estilo',
+  Eixos: 'Texto',
+  Texto: 'Texto',
+  Interação: 'Mais',
+  Avançado: 'Mais',
+};
+
+/** Limite de caracteres do rótulo (30 liga/desliga, 40 demais). */
+export const LIMITE_DO_ROTULO = limiteDoRotulo;
 
 /** Seção antiga → aba nova (seções do kit). */
 const ABA_POR_SECAO = {
@@ -1329,9 +1352,13 @@ export function organizarAbas(opcoes) {
       aba = abaPeloId(id, opcao);
       prefixo = secaoAntiga;
     }
-    if (aba === 'Eixos' && JUNTAR_EIXOS_E_TEXTO) aba = 'Texto';
-    if (prefixo && typeof opcao.label === 'string' && !opcao.label.startsWith(`${prefixo} · `)) {
-      opcao.label = `${prefixo} · ${opcao.label}`;
+    aba = ABA_FINAL[aba] || 'Mais';
+    if (typeof opcao.label === 'string') {
+      // Rótulo completo guardado para o relatório (docs/opcoes/ABAS.md);
+      // no painel vai a versão dentro do limite (5.1b).
+      const completo = prefixo && !opcao.label.startsWith(`${prefixo} · `) ? `${prefixo} · ${opcao.label}` : opcao.label;
+      Object.defineProperty(opcao, '_rotuloCompleto', { value: completo, enumerable: false });
+      opcao.label = montarRotulo({ id, prefixo, rotulo: opcao.label, opcao });
     }
     opcao.section = aba;
     const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5000 + i;

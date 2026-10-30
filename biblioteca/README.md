@@ -37,6 +37,10 @@ montar o Explore de cada gráfico, em [`dist/MANIFEST.md`](dist/MANIFEST.md).
 6. (Opcional) `npm run urls` regenera `dist/URLS.md`/`URLS.csv` com o hash
    novo para todos; commite num commit seguinte.
 
+O painel de opções tem 4 abas (Dados, Estilo, Texto, Mais) e rótulos
+curtos. A explicação completa de cada opção (o rótulo original, longo)
+está em [`docs/opcoes/ABAS.md`](docs/opcoes/ABAS.md), coluna "explicação".
+
 Depois de mudar opções, `npm run opcoes` regera `docs/opcoes/*.depois.json`
 e `docs/opcoes/ABAS.md`; `test/opcoes.test.mjs` garante que nenhum id
 antigo sumiu nem mudou de tipo ou default.

@@ -93,3 +93,6 @@ real antes de considerar resolvido.
   - [ ] Explore com até 500 linhas e 50 colunas: role com a roda e com a barra (vertical e horizontal). A tabela não fica em branco, não volta ao início e as linhas não "entram" animadas enquanto rola (mesmo com "Animar entrada das linhas" ligado e "Quando animar" = sempre).
   - [ ] Ordene uma coluna e faça uma busca: aí sim as linhas entram animadas.
   - [ ] Com o tile em atualização automática, a posição da rolagem se mantém e só os valores que mudaram piscam em verde/vermelho; rolar depois disso não pisca nada.
+- **5.1b Painel de opções (todos os gráficos)**
+  - [ ] Abra o editor de um tile: aparecem no máximo 4 abas (Dados, Estilo, Mais, Texto — provavelmente nessa ordem alfabética), todas inteiras na barra.
+  - [ ] Percorra as abas: nenhum rótulo termina em "…". Na tabela, as opções por coluna aparecem como "Coluna <nome> · …".

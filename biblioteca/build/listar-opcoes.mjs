@@ -44,6 +44,8 @@ export function opcoesDoGrafico(grafico) {
     return Object.entries(todas).map(([id, o]) => ({
       id,
       label: o.label,
+      // Rótulo original completo (5.1b): o painel mostra a versão curta.
+      rotuloCompleto: o._rotuloCompleto || o.label,
       section: o.section,
       type: o.type,
       default: o.default === undefined ? null : o.default,
