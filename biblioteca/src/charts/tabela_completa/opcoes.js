@@ -16,6 +16,7 @@ import {
   blocoAvancado,
 } from '../../core/options-kit.js';
 import { opcoesDasCalculadas } from './calculadas.js';
+import { LAYOUTS } from './layouts.js';
 
 /** Quantas regras de formatação condicional cada coluna oferece. */
 export const REGRAS_POR_COLUNA = 3;
@@ -181,6 +182,31 @@ export function opcoesEstaticas() {
       },
 
       // ---------- Formato / layout ----------
+      // Layout (5.5, v3): estrutura, separada das cores/tema.
+      layoutDaTabela: {
+        type: 'string',
+        label: 'Layout',
+        section: 'Formato',
+        display: 'select',
+        values: listaDeValores(LAYOUTS),
+        default: 'tabela',
+      },
+      camposDoCartao: {
+        type: 'string',
+        label: 'Campos do cartão/lista (vazio = todos)',
+        section: 'Formato',
+        placeholder: 'Código, Descrição, Valor',
+        default: '',
+      },
+      colunasDosCartoes: { type: 'number', label: 'Cartões por linha (0 = auto)', section: 'Formato', default: 0 },
+      colunasDeCamposDoCartao: { type: 'number', label: 'Colunas de campos no cartão', section: 'Formato', default: 2 },
+      secoesDoLayout: {
+        type: 'string',
+        label: 'Seções (Título: col1, col2; …)',
+        section: 'Formato',
+        placeholder: 'Produto: Código, Descrição; Valores: Qtd, Preço',
+        default: '',
+      },
       densidade: {
         type: 'string',
         label: 'Densidade',

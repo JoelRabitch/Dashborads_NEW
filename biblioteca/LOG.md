@@ -3288,3 +3288,26 @@ PRÓXIMA AÇÃO: 5.4 (colunas calculadas com fórmulas).
   `test/tabela_formulas_v3.test.mjs` (6). `npm test` 851/851.
 
 PRÓXIMA AÇÃO: 5.5 (layouts da tabela).
+
+### 5.5 Layouts da tabela (concluído; conferir no Looker real)
+- Opção nova `layoutDaTabela` (padrão "tabela" = atual) + `camposDoCartao`,
+  `colunasDosCartoes` (0 = automático), `colunasDeCamposDoCartao` (2),
+  `secoesDoLayout`. A `densidade` existente vale em todos.
+- Tabela, Planilha, Relatório financeiro e Ranking usam o render da tabela
+  (mesma virtualização/rolagem da 5.2). Planilha: linha de letras (A…Z,
+  AA…) e números de linha forçados; Financeiro: só CSS (faixas, negrito,
+  tabular-nums, linha dupla no total; o recuo por nível já existia nos
+  grupos); Ranking: barra em gradiente ao fundo das células numéricas
+  (maior |valor| da coluna nas linhas atuais).
+- Cartões, Lista de app, Transposta, Mestre e detalhe e Seções: novo
+  `layouts.js`, virtualizado por faixas (transposta: virtualização
+  horizontal com a coluna de nomes acompanhando a rolagem), usando o MESMO
+  pintor de células (tipos e regras), busca/realce, ordenação ("Ordenar
+  por" + inverter), filtros já aplicados e seleção. Sem animação.
+- Decisões: "quantas colunas" nos cartões = cartões por linha (e a grade
+  interna tem opção própria); Seções padrão = Identificação (dimensões) /
+  Valores (medidas) / Calculadas; Lista usa as 2 primeiras dimensões
+  (título/subtítulo) e até 3 medidas à direita.
+- Teste `test/tabela_layouts_v3.test.mjs` (500×50, 9 layouts). 862/862.
+
+PRÓXIMA AÇÃO: FASE 3 — 5.6 (bump_chart: alinhamento).

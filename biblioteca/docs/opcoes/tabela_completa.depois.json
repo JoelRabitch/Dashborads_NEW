@@ -900,6 +900,51 @@
     "dinamica": false
   },
   {
+    "id": "layoutDaTabela",
+    "label": "Layout",
+    "rotuloCompleto": "Layout",
+    "section": "Estilo",
+    "type": "string",
+    "default": "tabela",
+    "dinamica": false
+  },
+  {
+    "id": "camposDoCartao",
+    "label": "Campos do cartão/lista (vazio = todos)",
+    "rotuloCompleto": "Campos do cartão/lista (vazio = todos)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "colunasDosCartoes",
+    "label": "Cartões por linha (0 = auto)",
+    "rotuloCompleto": "Cartões por linha (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "colunasDeCamposDoCartao",
+    "label": "Colunas de campos no cartão",
+    "rotuloCompleto": "Colunas de campos no cartão",
+    "section": "Estilo",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "secoesDoLayout",
+    "label": "Seções (Título: col1, col2; …)",
+    "rotuloCompleto": "Seções (Título: col1, col2; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
     "id": "densidade",
     "label": "Densidade",
     "rotuloCompleto": "Densidade",

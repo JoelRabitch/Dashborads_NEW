@@ -13,6 +13,8 @@
 
 import { criarEl, limpar, definirTexto, injetarEstilo, preferindoMenosMovimento } from '../../core/dom.js';
 import { criarBusca, realcarTrechos, colunasDaBusca } from './busca.js';
+import { layoutEscolhido, letraDaColuna } from './layouts.js';
+import { comOpacidade } from '../../core/theme.js';
 import { criarFormatadorNumerico } from '../../core/format.js';
 import { cssDasCelulas } from './celulas.js';
 
@@ -56,6 +58,11 @@ const CSS = `
 @keyframes tc-entrada{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .tc-entrando{animation:tc-entrada .22s ease-out both;}
 .tc-realce{background:rgba(250,204,21,.45);color:inherit;padding:0;border-radius:2px;}
+.tc-layout-planilha .tc-tabela td,.tc-layout-planilha .tc-tabela th{border:1px solid rgba(127,127,127,.35);}
+.tc-layout-financeiro .tc-tabela td.tc-num{font-variant-numeric:tabular-nums;}
+.tc-layout-financeiro .tc-grupo td{font-weight:700;border-top:1px solid rgba(127,127,127,.45);}
+.tc-layout-financeiro .tc-grupo{background:rgba(66,118,190,.12)!important;}
+.tc-layout-financeiro tfoot td{border-top:3px double currentColor!important;font-weight:700;}
 .tc-flash{transition:background-color .7s ease-out;}
 .tc-menu{position:fixed;z-index:50;min-width:170px;padding:4px 0;border-radius:6px;border:1px solid;
   font-size:12px;}
@@ -285,7 +292,8 @@ export function desenharTabela(params) {
   limpar(raiz);
   injetarEstilo(raiz, CSS + cssDasCelulas(), 'tc');
 
-  const container = criarEl('div', { classe: 'tc-raiz', pai: raiz });
+  const layout = layoutEscolhido(config);
+  const container = criarEl('div', { classe: `tc-raiz tc-layout-${layout}`, pai: raiz });
   container.style.background = visual.fundo;
   container.style.color = visual.texto;
   container.style.fontSize = `${visual.tamanhoFonte}px`;
@@ -379,7 +387,8 @@ export function desenharTabela(params) {
   desenharRodape();
 
   // Altura total do cabeçalho (para a conta da virtualização).
-  const linhasDeCabecalho = (temPivo ? 2 : 1) + (config.mostrarFiltrosPorColuna ? 1 : 0);
+  const linhasDeCabecalho =
+    (temPivo ? 2 : 1) + (config.mostrarFiltrosPorColuna ? 1 : 0) + (layout === 'planilha' ? 1 : 0);
   const alturaCabecalhoTotal = linhasDeCabecalho * visual.alturaCabecalho;
 
   const estadoDeDesenho = {
@@ -394,6 +403,9 @@ export function desenharTabela(params) {
     // scrollTop se ele fosse aplicado antes de existir conteúdo.
     topoDesejado: estado.rolagemTopo || 0,
     janelaAtual: null,
+    // Layout "Ranking" (5.5, v3): maior |valor| por coluna, para as barras.
+    barras: layout === 'ranking' ? new Map() : null,
+    itensDasBarras: null,
   };
 
   function desenharJanela({ forcar = true } = {}) {
@@ -494,6 +506,27 @@ function construirCabecalho({
   aoRedimensionar,
   aoFiltrarColuna,
 }) {
+  // --- Layout "Planilha" (5.5, v3): linha de letras de coluna no topo ---
+  const planilha = layoutEscolhido(config) === 'planilha';
+  const dt = planilha ? visual.alturaCabecalho : 0;
+  if (planilha) {
+    const trLetras = criarEl('tr', { pai: thead, classe: 'tc-letras' });
+    if (config.mostrarNumeroDaLinha) {
+      const th = criarEl('th', { pai: trLetras });
+      aplicarEstiloDeCabecalho(th, visual, config, 0);
+    }
+    colunasVisiveis.forEach((coluna, i) => {
+      const th = criarEl('th', { pai: trLetras, classe: 'tc-centro', texto: letraDaColuna(i) });
+      aplicarEstiloDeCabecalho(th, visual, config, 0);
+      th.style.fontWeight = '400';
+      th.style.opacity = '.75';
+      if (i < fixas) {
+        th.classList.add('tc-fixa');
+        th.style.left = `${deslocamentos.get(coluna.id) || 0}px`;
+      }
+    });
+  }
+
   // --- Linha 1: grupos do pivô (só quando há pivô) ---
   if (temPivo) {
     const trGrupo = criarEl('tr', { pai: thead });
@@ -501,14 +534,14 @@ function construirCabecalho({
     if (config.mostrarNumeroDaLinha) {
       const th = criarEl('th', { pai: trGrupo });
       th.rowSpan = 2;
-      aplicarEstiloDeCabecalho(th, visual, config, 0);
+      aplicarEstiloDeCabecalho(th, visual, config, dt);
     }
 
     // Cada dimensão ganha seu próprio cabeçalho atravessando os dois níveis,
     // senão o nome da coluna sumiria quando há pivô.
     colunasVisiveis.forEach((coluna, i) => {
       if (coluna.tipo !== 'dimensao' && !coluna.soltaNoCabecalho) return;
-      const th = criarThDeColuna({ coluna, indice: i, topo: 0, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar });
+      const th = criarThDeColuna({ coluna, indice: i, topo: dt, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar });
       th.rowSpan = 2;
       trGrupo.appendChild(th);
     });
@@ -518,7 +551,7 @@ function construirCabecalho({
       if (!visiveisDoGrupo.length) continue;
       const th = criarEl('th', { pai: trGrupo, classe: 'tc-centro' });
       th.colSpan = visiveisDoGrupo.length;
-      aplicarEstiloDeCabecalho(th, visual, config, 0);
+      aplicarEstiloDeCabecalho(th, visual, config, dt);
       criarEl('span', { classe: 'tc-th-conteudo', texto: grupo.rotulo, pai: th });
       th.title = grupo.rotulo;
     }
@@ -526,7 +559,7 @@ function construirCabecalho({
 
   // --- Linha 2 (ou única): colunas ---
   const tr = criarEl('tr', { pai: thead });
-  const topo = temPivo ? visual.alturaCabecalho : 0;
+  const topo = (temPivo ? visual.alturaCabecalho : 0) + dt;
 
   if (config.mostrarNumeroDaLinha && !temPivo) {
     const th = criarEl('th', { pai: tr, texto: '#' });
@@ -842,6 +875,7 @@ function desenharLinhasVisiveis({
       if (estadoDeDesenho.realce && estadoDeDesenho.realce.colunas.has(coluna.id)) {
         realcarTrechos(td, estadoDeDesenho.realce.trechos);
       }
+      if (estadoDeDesenho.barras && coluna.ehMedida) barraNoFundo(td, coluna, linha, itens, modelo, estadoDeDesenho);
 
       if (aoMenuDeContexto) {
         ctx.eventos.on(td, 'contextmenu', (ev) => aoMenuDeContexto(ev, { coluna, linha, indiceDaLinha, td }));
@@ -854,6 +888,33 @@ function desenharLinhasVisiveis({
   }
   trocar();
   return true;
+}
+
+/**
+ * Layout "Ranking" (5.5, v3): barra ao fundo da célula numérica, do
+ * tamanho do |valor| em relação ao maior |valor| da coluna (linhas atuais).
+ */
+function barraNoFundo(td, coluna, linha, itens, modelo, estadoDeDesenho) {
+  if (estadoDeDesenho.itensDasBarras !== itens) {
+    estadoDeDesenho.barras.clear();
+    estadoDeDesenho.itensDasBarras = itens;
+  }
+  if (!estadoDeDesenho.barras.has(coluna.id)) {
+    let maior = 0;
+    for (const it of itens) {
+      if (it.tipo === 'grupo') continue;
+      const v = coluna.valorNumerico(modelo.linhas[it.indice]);
+      if (v !== null && Math.abs(v) > maior) maior = Math.abs(v);
+    }
+    estadoDeDesenho.barras.set(coluna.id, maior);
+  }
+  const maior = estadoDeDesenho.barras.get(coluna.id);
+  const v = coluna.valorNumerico(linha);
+  if (!maior || v === null) return;
+  const pct = Math.max(0, Math.min(100, (Math.abs(v) / maior) * 100)).toFixed(1);
+  const cor = comOpacidade(coluna.corDaBarra || '#4276BE', 0.22);
+  td.classList.add('tc-com-barra');
+  td.style.backgroundImage = `linear-gradient(90deg, ${cor} ${pct}%, transparent ${pct}%)`;
 }
 
 /** Linha de cabeçalho de grupo, com o subtotal já embutido. */

@@ -118,6 +118,11 @@ Ids marcados com ★ são novos (não existiam antes).
 | `calc6Alvo` ★ | — | Dados | Fórmula 6 · Aplicar na coluna |  |
 | `calc7Alvo` ★ | — | Dados | Fórmula 7 · Aplicar na coluna |  |
 | `calc8Alvo` ★ | — | Dados | Fórmula 8 · Aplicar na coluna |  |
+| `layoutDaTabela` ★ | — | Estilo | Layout |  |
+| `camposDoCartao` ★ | — | Estilo | Campos do cartão/lista (vazio = todos) |  |
+| `colunasDosCartoes` ★ | — | Estilo | Cartões por linha (0 = auto) |  |
+| `colunasDeCamposDoCartao` ★ | — | Estilo | Colunas de campos no cartão |  |
+| `secoesDoLayout` ★ | — | Estilo | Seções (Título: col1, col2; …) |  |
 | `densidade` | Visual | Estilo | Densidade |  |
 | `alturaDaLinha` | Visual | Estilo | Altura da linha (px) — 0 usa a densidade |  |
 | `alturaDoCabecalho` | Visual | Estilo | Altura do cabeçalho | Altura do cabeçalho (px) — 0 usa a densidade |

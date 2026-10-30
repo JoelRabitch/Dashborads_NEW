@@ -116,3 +116,7 @@ real antes de considerar resolvido.
   - [ ] "Uso" = Colorir a linha se verdadeira, com `${qty} > 50`.
   - [ ] Com pivô: "Modo do pivô" = Uma vez por valor do pivô (uma coluna em cada grupo) e = Só nas colunas sem pivô.
   - [ ] Linha de totais: "Recalcular" mostra a fórmula aplicada aos totais; "Vazio" deixa em branco.
+- **5.5 tabela_completa — layouts (aba Estilo → "Layout")**
+  - [ ] Percorra os 9: Tabela, Cartões, Lista de app, Transposta, Planilha (letras A, B, C… e números de linha), Relatório financeiro (com "Agrupar linhas por": faixas, subtotais em negrito, total com linha dupla), Ranking (barras ao fundo dos números), Mestre e detalhe (clique na lista à esquerda), Seções.
+  - [ ] Em cada um, com 500 linhas: busca, "Ordenar por" (ou clique no cabeçalho), seleção e rolagem rápida sem animação nem tela em branco.
+  - [ ] Cartões: "Campos do cartão/lista" e "Cartões por linha". Seções: "Seções (Título: col1, col2; …)". Os temas de cor continuam valendo.

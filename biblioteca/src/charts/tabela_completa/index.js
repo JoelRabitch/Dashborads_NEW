@@ -28,6 +28,7 @@ import {
   idDoCampo,
 } from './render.js';
 import { regrasDeFormula } from './calculadas.js';
+import { layoutEscolhido, LAYOUTS_DE_TABELA, desenharLayoutAlternativo } from './layouts.js';
 
 /** Espera depois da última tecla antes de filtrar (ms). */
 // Espera curta depois da última tecla (5.3, v3: "debounce curto").
@@ -419,9 +420,15 @@ export default defineViz({
      */
     function desenhar({ animarEntrada = false } = {}) {
       ctx.eventos.limpar();
-      desenho = desenharTabela({
+      // Layouts (5.5, v3): os de tabela vão para o render da tabela; os
+      // demais para layouts.js. Planilha sempre numera as linhas.
+      const layout = layoutEscolhido(config);
+      const ctxDoDesenho =
+        layout === 'planilha' ? Object.assign({}, ctx, { config: Object.assign({}, config, { mostrarNumeroDaLinha: true }) }) : ctx;
+      const desenhista = LAYOUTS_DE_TABELA.has(layout) ? desenharTabela : desenharLayoutAlternativo;
+      desenho = desenhista({
         animarEntrada,
-        ctx,
+        ctx: ctxDoDesenho,
         colunas,
         gruposDePivo,
         temPivo,
