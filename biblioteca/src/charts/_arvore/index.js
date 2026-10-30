@@ -19,6 +19,7 @@ import { paletaDoConfig, corDoItem, lerContorno, aplicarContorno, aplicarPreench
 import { criarMarcadorSvg, formaDoMarcador } from '../../core/shapes.js';
 import { listaDeValores } from '../../core/options-kit.js';
 import { tree as d3Tree, cluster as d3Cluster } from 'd3-hierarchy';
+import { lerTextoLongo, ajustarRotulo } from '../../core/texto-longo.js';
 
 export const CSS_ARVORE = `
 .av-area{position:relative;width:100%;height:100%;overflow:hidden;}
@@ -241,6 +242,61 @@ export function textoDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor = 
 }
 
 /**
+ * Partes do rótulo de um nó para o "Texto longo" (5.11, v3): o NOME e as
+ * partes extras (valor, percentual), mais o formato de junção. Com
+ * "O que aparece no rótulo" = Automático, o formato é o de antes
+ * (`textoDoRotuloDoNo`): "nome (valor)", "nome: valor"...
+ */
+export function partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor = false, tl } = {}) {
+  const nome = String(no.data.rotulo || '');
+  const semCorte = Object.assign({}, rot, { truncar: 0 });
+  const valor = no.value || 0;
+  const v = () => textoDoRotulo(Object.assign({}, semCorte, { conteudo: 'valor' }), { valor, valueFormat });
+  const p = () => textoDoRotulo(Object.assign({}, semCorte, { conteudo: 'percentual' }), { valor, total, valueFormat });
+  const partes = tl && tl.partes !== 'auto' ? tl.partes : null;
+  if (partes) {
+    const extras = partes === 'nomeValor' ? [v()] : partes === 'nomeValorPct' ? [v(), p()] : partes === 'nomePct' ? [p()] : [];
+    return { nome, extras, formatar: null };
+  }
+  switch (rot.conteudo) {
+    case 'nome':
+      return { nome, extras: [], formatar: null };
+    case 'nomeValor':
+      return { nome, extras: [v()], formatar: (n, e) => (e.length ? `${n}: ${e[0]}` : n) };
+    case 'percentual':
+      return { nome, extras: [p()], formatar: (n, e) => (e.length ? `${n} (${e[0]})` : n) };
+    case 'valorPercentual':
+      return { nome, extras: [v(), p()], formatar: (n, e) => (e.length ? `${n} (${e.join(' · ')})` : n) };
+    case 'valor':
+    default:
+      return mostrarValor
+        ? { nome, extras: [v()], formatar: (n, e) => (e.length ? `${n} (${e[0]})` : n) }
+        : { nome, extras: [], formatar: null };
+  }
+}
+
+/**
+ * Maior largura de rótulo (folhas e nós internos), ANTES do layout: é o
+ * que as árvores reservam no modo "Mostrar inteiro" (5.11).
+ */
+export function medirRotulosDaArvore(raiz, { config, tema, valueFormat, total, limite = Infinity }) {
+  const rot = lerRotulos(config, tema);
+  const tl = lerTextoLongo(config);
+  const saida = { folhas: 0, internos: 0 };
+  if (!rot.mostrar) return saida;
+  for (const no of raiz.descendants()) {
+    const ehFolha = !no.children || !no.children.length;
+    const quer = ehFolha ? config.mostrarRotulosDeFolha !== false : config.mostrarRotulosInternos === true;
+    if (!quer || !no.data.rotulo) continue;
+    const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
+    const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
+    const k = ehFolha ? 'folhas' : 'internos';
+    saida[k] = Math.max(saida[k], aj.largura);
+  }
+  return saida;
+}
+
+/**
  * Desenha uma árvore já posicionada.
  *
  * Opções do painel lidas AQUI, a cada desenho (correções v2):
@@ -272,6 +328,8 @@ export function desenharArvore({
   aoInteragir,
   compacto = false,
   valorDeReferencia = null,
+  chaveDe = null,
+  limiteDoRotulo = Infinity,
 }) {
   const grupo = criarSvgEl('g', { pai: svg });
   if (deslocamento.x || deslocamento.y) {
@@ -311,10 +369,14 @@ export function desenharArvore({
   const formaDoNo = formaDoMarcador(config.formaDoPonto);
   const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
   const rot = lerRotulos(config, tema);
+  // Radial (árvore arquivada) mantém o corte antigo por caracteres; o
+  // horizontal usa o "Texto longo" (5.11).
   const limiteDoNome = rot.truncar > 0 ? rot.truncar : compacto ? 14 : 24;
+  const tl = lerTextoLongo(config);
   const total = totalGeral || raiz.value || 0;
   const saida = [];
   const caixasDeRotulo = [];
+  let maiorRotulo = 0;
 
   for (const no of raiz.descendants()) {
     const [x, y] = modo === 'radial' ? paraCartesiano(no.x, no.y) : [no.y, no.x];
@@ -324,9 +386,15 @@ export function desenharArvore({
       ? tamanhoBase
       : 4;
 
+    // Um <g> por nó (marcador + rótulo + indicador): é ele que anima ao
+    // abrir/fechar (5.9) — o marcador tem o próprio transform de posição.
+    const grupoDoNo = criarSvgEl('g', { pai: grupoDeNos, classe: 'av-no-grupo' });
+    if (chaveDe) grupoDoNo.setAttribute('data-chave', chaveDe(no));
+    no.__grupo = grupoDoNo;
+    no.__xy = { x: x + deslocamento.x, y: y + deslocamento.y };
     if (raioDoNo > 0) {
       const diametro = raioDoNo * 2;
-      const elemento = criarMarcadorSvg(grupoDeNos, formaDoNo, x, y, diametro, {
+      const elemento = criarMarcadorSvg(grupoDoNo, formaDoNo, x, y, diametro, {
         classe: 'av-no',
         'data-diametro': diametro.toFixed(2),
       });
@@ -344,22 +412,16 @@ export function desenharArvore({
       : config.mostrarRotulosInternos === true;
     if (!querRotulo || !no.data.rotulo) continue;
 
-    const texto = textoDoRotuloDoNo(rot, no, {
-      valueFormat,
-      total,
-      mostrarValor: config.mostrarValorNoRotulo === true,
-      limite: limiteDoNome,
-    });
-
-    const el = criarSvgEl('text', {
-      pai: grupo,
-      classe: 'av-rotulo',
-      atributos: { 'dominant-baseline': 'central' },
-    });
-    definirTexto(el, texto);
-
     const afastamento = Math.max(0, raioDoNo) + 4;
     if (modo === 'radial') {
+      const texto = textoDoRotuloDoNo(rot, no, {
+        valueFormat,
+        total,
+        mostrarValor: config.mostrarValorNoRotulo === true,
+        limite: limiteDoNome,
+      });
+      const el = criarSvgEl('text', { pai: grupoDoNo, classe: 'av-rotulo', atributos: { 'dominant-baseline': 'central' } });
+      definirTexto(el, texto);
       // No círculo, o texto acompanha o raio e vira de cabeça para baixo na
       // metade esquerda, senão fica ilegível.
       const viradoParaEsquerda = no.x >= Math.PI;
@@ -392,19 +454,44 @@ export function desenharArvore({
       ancora = aDireita ? 'start' : 'end';
       tx = aDireita ? x + afastamento : x - afastamento;
     }
+    // Texto longo (5.11): inteiro / quebrar / reduzir / cortar / abreviar / só o nome.
+    const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
+    const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limiteDoRotulo, tl, estilo: { negrito: rot.negrito } });
+    const el = criarSvgEl('text', { pai: grupoDoNo, classe: 'av-rotulo', atributos: { 'dominant-baseline': 'central' } });
     el.setAttribute('x', tx);
     el.setAttribute('y', ty);
     el.setAttribute('text-anchor', ancora);
-    estilizarRotulo(el, rot, { x: tx, y: ty });
+    estilizarRotulo(el, { ...rot, tamanho: aj.tamanho }, { x: tx, y: ty });
+    const alturaDaLinha = aj.tamanho * 1.15;
+    if (aj.linhas.length === 1) definirTexto(el, aj.linhas[0]);
+    else {
+      aj.linhas.forEach((linha, i) => {
+        const span = criarSvgEl('tspan', {
+          pai: el,
+          atributos: { x: tx, y: ty + (i - (aj.linhas.length - 1) / 2) * alturaDaLinha, 'dominant-baseline': 'central' },
+        });
+        definirTexto(span, linha);
+      });
+    }
+    if (aj.cortado) {
+      el.setAttribute('data-completo', aj.completo);
+      // Texto completo como dica nativa do nó (fora do <text>, para não
+      // somar ao conteúdo do rótulo).
+      if (tl.tooltipCompleto) {
+        const titulo = criarSvgEl('title', { pai: grupoDoNo });
+        definirTexto(titulo, aj.completo);
+      }
+    }
+    maiorRotulo = Math.max(maiorRotulo, aj.largura);
 
-    const largura = larguraDoTexto(texto, rot.tamanho);
+    const largura = aj.largura;
     caixasDeRotulo.push({
       el,
       peso: no.value || 0,
       x: ancora === 'start' ? tx + largura / 2 : ancora === 'end' ? tx - largura / 2 : tx,
       y: ty,
       largura,
-      altura: rot.tamanho * 1.2,
+      altura: alturaDaLinha * aj.linhas.length,
     });
   }
 
@@ -412,7 +499,7 @@ export function desenharArvore({
   caixasDeRotulo.sort((a, b) => b.peso - a.peso);
   esconderColisoes(caixasDeRotulo, rot);
 
-  return { nos: saida, grupo };
+  return { nos: saida, grupo, maiorRotulo };
 }
 
 /**

@@ -3954,6 +3954,175 @@
     });
   }
 
+  // src/core/texto-longo.js
+  var MODOS_DO_TEXTO_LONGO = [
+    { rotulo: "Mostrar inteiro", valor: "inteiro" },
+    { rotulo: "Quebrar em linhas", valor: "quebrar" },
+    { rotulo: "Reduzir a fonte", valor: "reduzir" },
+    { rotulo: "Cortar com retic\xEAncias", valor: "reticencias" },
+    { rotulo: "Cortar sem retic\xEAncias", valor: "cortar" },
+    { rotulo: "Abreviar n\xFAmeros (K, M, B)", valor: "abreviar" },
+    { rotulo: "S\xF3 o nome (resto no tooltip)", valor: "soNome" }
+  ];
+  function opcoesDeTextoLongo({ secao = "Texto longo", comPartes = true, comMoeda = true } = {}) {
+    const o = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: secao, default: def, ...extra });
+    const saida = {
+      modoDoTextoLongo: o("string", "Modo", "inteiro", { display: "select", values: listaDeValores(MODOS_DO_TEXTO_LONGO) }),
+      larguraMaximaDoRotulo: o("number", "Largura m\xE1xima (px, 0 = auto)", 0),
+      linhasMaximasDoRotulo: o("number", "M\xE1ximo de linhas", 2),
+      fonteMinimaDoRotulo: o("number", "Fonte m\xEDnima (px)", 8),
+      tooltipComTextoCompleto: o("boolean", "Texto completo no tooltip", true),
+      margemExtraDoRotulo: o("number", "Margem extra \xE0 direita (px)", 0),
+      permitirSelecionarTexto: o("boolean", "Permitir selecionar texto", false)
+    };
+    if (comPartes) {
+      Object.assign(saida, {
+        partesDoRotulo: o("string", "O que aparece no r\xF3tulo", "auto", {
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Autom\xE1tico (como antes)", valor: "auto" },
+            { rotulo: "Nome", valor: "nome" },
+            { rotulo: "Nome e valor", valor: "nomeValor" },
+            { rotulo: "Nome, valor e percentual", valor: "nomeValorPct" },
+            { rotulo: "Nome e percentual", valor: "nomePct" }
+          ])
+        }),
+        separadorDoRotulo: o("string", "Separador", " \xB7 ")
+      });
+    }
+    if (comMoeda) {
+      Object.assign(saida, {
+        simboloDaMoedaDoRotulo: o("string", "S\xEDmbolo da moeda", "auto", {
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Autom\xE1tico (como antes)", valor: "auto" },
+            { rotulo: "R$", valor: "R$" },
+            { rotulo: "$", valor: "$" },
+            { rotulo: "\u20AC", valor: "\u20AC" },
+            { rotulo: "Nenhum", valor: "nenhum" },
+            { rotulo: "Personalizado", valor: "personalizado" }
+          ])
+        }),
+        moedaPersonalizadaDoRotulo: o("string", "Moeda personalizada", "")
+      });
+    }
+    return saida;
+  }
+  function lerTextoLongo(config = {}) {
+    const n = (v, d) => Number.isFinite(Number(v)) && v !== "" && v !== null ? Number(v) : d;
+    const modo = MODOS_DO_TEXTO_LONGO.some((m) => m.valor === config.modoDoTextoLongo) ? config.modoDoTextoLongo : "inteiro";
+    return {
+      modo,
+      larguraMaxima: Math.max(0, n(config.larguraMaximaDoRotulo, 0)),
+      linhas: Math.max(1, Math.floor(n(config.linhasMaximasDoRotulo, 2))),
+      fonteMinima: Math.max(5, n(config.fonteMinimaDoRotulo, 8)),
+      tooltipCompleto: config.tooltipComTextoCompleto !== false,
+      margemExtra: Math.max(0, n(config.margemExtraDoRotulo, 0)),
+      selecionavel: config.permitirSelecionarTexto === true,
+      // `truncarRotulo` (opção antiga) só no modo reticências.
+      truncarEmCaracteres: modo === "reticencias" ? Math.max(0, n(config.truncarRotulo, 0)) : 0,
+      partes: config.partesDoRotulo || "auto",
+      separador: typeof config.separadorDoRotulo === "string" ? config.separadorDoRotulo : " \xB7 ",
+      moeda: config.simboloDaMoedaDoRotulo || "auto",
+      moedaPersonalizada: String(config.moedaPersonalizadaDoRotulo || "")
+    };
+  }
+  function trocarMoeda(texto, tl) {
+    if (!tl || tl.moeda === "auto") return texto;
+    const novo = tl.moeda === "nenhum" ? "" : tl.moeda === "personalizado" ? tl.moedaPersonalizada : tl.moeda;
+    const s = String(texto);
+    const re2 = /(R\$|US\$|\$|€|£)\s?/;
+    if (!re2.test(s)) return s;
+    return s.replace(re2, novo ? `${novo}${tl.moeda === "R$" || novo.length > 1 ? " " : ""}` : "").trim();
+  }
+  function abreviarNumeros(texto) {
+    return String(texto).replace(/(-?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|-?\d{4,}(?:[.,]\d+)?)/g, (m) => {
+      const limpo = /[.,]\d{1,2}$/.test(m) ? m.replace(/[.,](\d{1,2})$/, "D$1").replace(/[.,]/g, "").replace("D", ".") : m.replace(/[.,]/g, "");
+      const v = Number(limpo);
+      if (!Number.isFinite(v)) return m;
+      const a = Math.abs(v);
+      const [d, suf] = a >= 1e9 ? [1e9, "B"] : a >= 1e6 ? [1e6, "M"] : a >= 1e3 ? [1e3, "K"] : [1, ""];
+      if (!suf) return m;
+      const x = v / d;
+      return `${Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1).replace(/\.0$/, "")}${suf}`;
+    });
+  }
+  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias) {
+    if (larguraDoTexto(texto, tamanho, opcoes) <= largura) return texto;
+    const sufixo = comReticencias ? "\u2026" : "";
+    let ini = 0;
+    let fim = texto.length;
+    while (ini < fim) {
+      const meio = Math.ceil((ini + fim) / 2);
+      if (larguraDoTexto(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
+      else fim = meio - 1;
+    }
+    return texto.slice(0, Math.max(1, ini)).trimEnd() + sufixo;
+  }
+  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo) {
+    const palavras = String(texto).split(/\s+/).filter(Boolean);
+    const linhas = [];
+    let atual = "";
+    for (const p of palavras) {
+      const t = atual ? `${atual} ${p}` : p;
+      if (!atual || larguraDoTexto(t, tamanho, opcoes) <= largura) atual = t;
+      else {
+        linhas.push(atual);
+        atual = p;
+      }
+    }
+    if (atual) linhas.push(atual);
+    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true));
+    if (saida.length > maximo) {
+      const resto = saida.slice(maximo - 1).join(" ");
+      saida.length = maximo - 1;
+      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true));
+    }
+    return saida;
+  }
+  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null }) {
+    const sep = tl.separador;
+    const juntar = formatar || ((n, e) => [n, ...e].join(sep));
+    const limpos = extras.filter(Boolean).map((e) => trocarMoeda(e, tl));
+    const completo = juntar(String(nome), limpos);
+    let texto = tl.modo === "soNome" ? String(nome) : completo;
+    if (tl.modo === "abreviar") texto = juntar(String(nome), limpos.map(abreviarNumeros));
+    const limite = tl.larguraMaxima > 0 ? Math.min(tl.larguraMaxima, largura > 0 ? largura : Infinity) : largura > 0 ? largura : Infinity;
+    const mede = (t, tam2) => larguraDoTexto(t, tam2, estilo);
+    let linhas = [texto];
+    let tam = tamanho;
+    switch (tl.modo) {
+      case "quebrar":
+        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas);
+        break;
+      case "reduzir":
+        while (Number.isFinite(limite) && mede(texto, tam) > limite && tam > tl.fonteMinima) tam -= 0.5;
+        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true)];
+        break;
+      case "reticencias": {
+        let t = texto;
+        if (tl.truncarEmCaracteres > 0 && t.length > tl.truncarEmCaracteres) {
+          t = `${t.slice(0, Math.max(1, tl.truncarEmCaracteres - 1)).trimEnd()}\u2026`;
+        }
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true) : t];
+        break;
+      }
+      case "cortar":
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false) : texto];
+        break;
+      case "abreviar":
+      case "soNome":
+      case "inteiro":
+      default:
+        if (tl.larguraMaxima > 0 && mede(texto, tam) > tl.larguraMaxima) {
+          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99);
+        }
+        break;
+    }
+    const larguraFinal = Math.max(0, ...linhas.map((l) => mede(l, tam)));
+    return { linhas, tamanho: tam, largura: larguraFinal, completo, cortado: linhas.join(" ") !== completo };
+  }
+
   // node_modules/d3-hierarchy/src/cluster.js
   function defaultSeparation(a, b) {
     return a.parent === b.parent ? 1 : 2;
@@ -4755,9 +4924,6 @@
     el.setAttribute("data-rotulo", "1");
     return el;
   }
-  function larguraDoTexto2(texto, tamanho) {
-    return String(texto || "").length * tamanho * 0.58;
-  }
   function esconderColisoes(caixas, rot) {
     if (!rot || !rot.evitarColisao) return 0;
     const mantidas = [];
@@ -5124,6 +5290,47 @@
         return mostrarValor ? `${nome} (${textoValor()})` : nome;
     }
   }
+  function partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor = false, tl } = {}) {
+    const nome = String(no.data.rotulo || "");
+    const semCorte = Object.assign({}, rot, { truncar: 0 });
+    const valor = no.value || 0;
+    const v = () => textoDoRotulo(Object.assign({}, semCorte, { conteudo: "valor" }), { valor, valueFormat });
+    const p = () => textoDoRotulo(Object.assign({}, semCorte, { conteudo: "percentual" }), { valor, total, valueFormat });
+    const partes = tl && tl.partes !== "auto" ? tl.partes : null;
+    if (partes) {
+      const extras = partes === "nomeValor" ? [v()] : partes === "nomeValorPct" ? [v(), p()] : partes === "nomePct" ? [p()] : [];
+      return { nome, extras, formatar: null };
+    }
+    switch (rot.conteudo) {
+      case "nome":
+        return { nome, extras: [], formatar: null };
+      case "nomeValor":
+        return { nome, extras: [v()], formatar: (n, e) => e.length ? `${n}: ${e[0]}` : n };
+      case "percentual":
+        return { nome, extras: [p()], formatar: (n, e) => e.length ? `${n} (${e[0]})` : n };
+      case "valorPercentual":
+        return { nome, extras: [v(), p()], formatar: (n, e) => e.length ? `${n} (${e.join(" \xB7 ")})` : n };
+      case "valor":
+      default:
+        return mostrarValor ? { nome, extras: [v()], formatar: (n, e) => e.length ? `${n} (${e[0]})` : n } : { nome, extras: [], formatar: null };
+    }
+  }
+  function medirRotulosDaArvore(raiz, { config, tema, valueFormat, total, limite = Infinity }) {
+    const rot = lerRotulos(config, tema);
+    const tl = lerTextoLongo(config);
+    const saida = { folhas: 0, internos: 0 };
+    if (!rot.mostrar) return saida;
+    for (const no of raiz.descendants()) {
+      const ehFolha = !no.children || !no.children.length;
+      const quer = ehFolha ? config.mostrarRotulosDeFolha !== false : config.mostrarRotulosInternos === true;
+      if (!quer || !no.data.rotulo) continue;
+      const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
+      const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
+      const k = ehFolha ? "folhas" : "internos";
+      saida[k] = Math.max(saida[k], aj.largura);
+    }
+    return saida;
+  }
   function desenharArvore({
     svg,
     raiz,
@@ -5136,7 +5343,9 @@
     cores,
     aoInteragir,
     compacto = false,
-    valorDeReferencia = null
+    valorDeReferencia = null,
+    chaveDe = null,
+    limiteDoRotulo: limiteDoRotulo2 = Infinity
   }) {
     const grupo = criarSvgEl("g", { pai: svg });
     if (deslocamento.x || deslocamento.y) {
@@ -5165,15 +5374,21 @@
     const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
     const rot = lerRotulos(config, tema);
     const limiteDoNome = rot.truncar > 0 ? rot.truncar : compacto ? 14 : 24;
+    const tl = lerTextoLongo(config);
     const total = totalGeral || raiz.value || 0;
     const saida = [];
     const caixasDeRotulo = [];
+    let maiorRotulo = 0;
     for (const no of raiz.descendants()) {
       const [x, y] = modo === "radial" ? paraCartesiano(no.x, no.y) : [no.y, no.x];
       const raioDoNo = config.tamanhoPorValor ? Math.max(1.5, (Number.isFinite(tamanhoBase) ? tamanhoBase : 4) * Math.sqrt((no.value || 0) / maiorValor) * 2.2) : Number.isFinite(tamanhoBase) ? tamanhoBase : 4;
+      const grupoDoNo = criarSvgEl("g", { pai: grupoDeNos, classe: "av-no-grupo" });
+      if (chaveDe) grupoDoNo.setAttribute("data-chave", chaveDe(no));
+      no.__grupo = grupoDoNo;
+      no.__xy = { x: x + deslocamento.x, y: y + deslocamento.y };
       if (raioDoNo > 0) {
         const diametro = raioDoNo * 2;
-        const elemento = criarMarcadorSvg(grupoDeNos, formaDoNo, x, y, diametro, {
+        const elemento = criarMarcadorSvg(grupoDoNo, formaDoNo, x, y, diametro, {
           classe: "av-no",
           "data-diametro": diametro.toFixed(2)
         });
@@ -5186,28 +5401,24 @@
       const ehFolha = !no.children || !no.children.length;
       const querRotulo = ehFolha ? config.mostrarRotulosDeFolha !== false : config.mostrarRotulosInternos === true;
       if (!querRotulo || !no.data.rotulo) continue;
-      const texto = textoDoRotuloDoNo(rot, no, {
-        valueFormat,
-        total,
-        mostrarValor: config.mostrarValorNoRotulo === true,
-        limite: limiteDoNome
-      });
-      const el = criarSvgEl("text", {
-        pai: grupo,
-        classe: "av-rotulo",
-        atributos: { "dominant-baseline": "central" }
-      });
-      definirTexto(el, texto);
       const afastamento = Math.max(0, raioDoNo) + 4;
       if (modo === "radial") {
+        const texto = textoDoRotuloDoNo(rot, no, {
+          valueFormat,
+          total,
+          mostrarValor: config.mostrarValorNoRotulo === true,
+          limite: limiteDoNome
+        });
+        const el2 = criarSvgEl("text", { pai: grupoDoNo, classe: "av-rotulo", atributos: { "dominant-baseline": "central" } });
+        definirTexto(el2, texto);
         const viradoParaEsquerda = no.x >= Math.PI;
         const anguloEmGraus = no.x * 180 / Math.PI - 90;
-        el.setAttribute(
+        el2.setAttribute(
           "transform",
           `rotate(${anguloEmGraus}) translate(${no.y + (viradoParaEsquerda ? -afastamento : afastamento)},0)${viradoParaEsquerda ? " rotate(180)" : ""}`
         );
-        el.setAttribute("text-anchor", viradoParaEsquerda ? "end" : "start");
-        estilizarRotulo(el, rot, { x: 0, y: 0 });
+        el2.setAttribute("text-anchor", viradoParaEsquerda ? "end" : "start");
+        estilizarRotulo(el2, rot, { x: 0, y: 0 });
         continue;
       }
       let ancora;
@@ -5222,23 +5433,45 @@
         ancora = aDireita ? "start" : "end";
         tx = aDireita ? x + afastamento : x - afastamento;
       }
+      const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
+      const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limiteDoRotulo2, tl, estilo: { negrito: rot.negrito } });
+      const el = criarSvgEl("text", { pai: grupoDoNo, classe: "av-rotulo", atributos: { "dominant-baseline": "central" } });
       el.setAttribute("x", tx);
       el.setAttribute("y", ty);
       el.setAttribute("text-anchor", ancora);
-      estilizarRotulo(el, rot, { x: tx, y: ty });
-      const largura = larguraDoTexto2(texto, rot.tamanho);
+      estilizarRotulo(el, { ...rot, tamanho: aj.tamanho }, { x: tx, y: ty });
+      const alturaDaLinha = aj.tamanho * 1.15;
+      if (aj.linhas.length === 1) definirTexto(el, aj.linhas[0]);
+      else {
+        aj.linhas.forEach((linha, i) => {
+          const span = criarSvgEl("tspan", {
+            pai: el,
+            atributos: { x: tx, y: ty + (i - (aj.linhas.length - 1) / 2) * alturaDaLinha, "dominant-baseline": "central" }
+          });
+          definirTexto(span, linha);
+        });
+      }
+      if (aj.cortado) {
+        el.setAttribute("data-completo", aj.completo);
+        if (tl.tooltipCompleto) {
+          const titulo = criarSvgEl("title", { pai: grupoDoNo });
+          definirTexto(titulo, aj.completo);
+        }
+      }
+      maiorRotulo = Math.max(maiorRotulo, aj.largura);
+      const largura = aj.largura;
       caixasDeRotulo.push({
         el,
         peso: no.value || 0,
         x: ancora === "start" ? tx + largura / 2 : ancora === "end" ? tx - largura / 2 : tx,
         y: ty,
         largura,
-        altura: rot.tamanho * 1.2
+        altura: alturaDaLinha * aj.linhas.length
       });
     }
     caixasDeRotulo.sort((a, b) => b.peso - a.peso);
     esconderColisoes(caixasDeRotulo, rot);
-    return { nos: saida, grupo };
+    return { nos: saida, grupo, maiorRotulo };
   }
   function criarCoresDaArvore(raiz, config, tema) {
     const paleta = paletaDoConfig(config);
@@ -5274,6 +5507,227 @@
     }
     return linhas;
   }
+
+  // src/charts/_arvore/comum.js
+  var CURVAS_CSS2 = {
+    linear: "linear",
+    saida: "cubic-bezier(.2,.7,.3,1)",
+    entrada: "cubic-bezier(.6,0,.9,.4)",
+    ambos: "ease-in-out"
+  };
+  function opcoesComunsDasArvores({ comCadaArvore = false } = {}) {
+    const anim = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: "Anima\xE7\xE3o", default: def, ...extra });
+    const cen = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: "Centralizar", default: def, ...extra });
+    const saida = {
+      // 5.9 — abrir e fechar
+      animarExpandir: anim("boolean", "Animar abrir/fechar", true),
+      duracaoDeExpandir: anim("number", "Dura\xE7\xE3o abrir/fechar (ms)", 350),
+      movimentoDeExpandir: anim("string", "Movimento abrir/fechar", "saida", {
+        display: "select",
+        values: listaDeValores([
+          { rotulo: "Suave na sa\xEDda", valor: "saida" },
+          { rotulo: "Suave nos dois lados", valor: "ambos" },
+          { rotulo: "Suave na entrada", valor: "entrada" },
+          { rotulo: "Linear", valor: "linear" }
+        ])
+      }),
+      cascataDeExpandir: anim("number", "Atraso entre filhos (ms)", 0),
+      respeitarMenosMovimento: anim("boolean", 'Respeitar "menos movimento"', true),
+      // 5.10 — centralizar
+      alinhamentoHorizontalDaArvore: cen("string", "Horizontal", "centro", {
+        display: "select",
+        values: listaDeValores([
+          { rotulo: "Esquerda", valor: "esquerda" },
+          { rotulo: "Centro", valor: "centro" },
+          { rotulo: "Direita", valor: "direita" }
+        ])
+      }),
+      alinhamentoVerticalDaArvore: cen("string", "Vertical", "meio", {
+        display: "select",
+        values: listaDeValores([
+          { rotulo: "Topo", valor: "topo" },
+          { rotulo: "Meio", valor: "meio" },
+          { rotulo: "Base", valor: "base" }
+        ])
+      }),
+      deslocamentoXDaArvore: cen("number", "Deslocamento X (px)", 0),
+      deslocamentoYDaArvore: cen("number", "Deslocamento Y (px)", 0),
+      oQueCentralizar: cen("string", "O que centralizar", "desenho", {
+        display: "select",
+        values: listaDeValores([
+          { rotulo: "O desenho inteiro", valor: "desenho" },
+          { rotulo: "A raiz", valor: "raiz" },
+          { rotulo: "O n\xF3 selecionado", valor: "selecionado" }
+        ])
+      }),
+      quandoCentralizar: cen("string", "Quando", "carregar", {
+        display: "select",
+        values: listaDeValores([
+          { rotulo: "Ao carregar (e no bot\xE3o)", valor: "carregar" },
+          { rotulo: "A cada abrir/fechar", valor: "sempre" },
+          { rotulo: 'S\xF3 no bot\xE3o "Centralizar"', valor: "botao" }
+        ])
+      }),
+      mostrarBotaoCentralizar: cen("boolean", 'Bot\xE3o "Centralizar"', true),
+      // Botões de expandir (mesmo id e rótulo da v2 no arvores_multiplas).
+      mostrarBotoesDeExpandir: {
+        type: "boolean",
+        label: 'Mostrar bot\xF5es "Expandir tudo" e "Colapsar tudo"',
+        section: "Intera\xE7\xE3o",
+        default: true
+      },
+      // 5.11 — texto longo
+      ...opcoesDeTextoLongo({ secao: "Texto longo" })
+    };
+    if (comCadaArvore) saida.centralizarCadaArvore = cen("boolean", "Cada \xE1rvore na c\xE9lula", true);
+    return saida;
+  }
+  function criarBarraDaArvore({ ctx, pai, config, tema, aoExpandir, aoColapsar, aoCentralizar }) {
+    const comExpandir = config.mostrarBotoesDeExpandir !== false && aoExpandir;
+    const comCentro = config.mostrarBotaoCentralizar !== false && aoCentralizar;
+    if (!comExpandir && !comCentro) return null;
+    const barra = criarEl("div", { classe: "am-barra", pai });
+    const botao = (texto, acao, classe) => {
+      const b = criarEl("button", { pai: barra, texto, classe });
+      b.type = "button";
+      b.style.color = tema.texto;
+      b.style.borderColor = tema.borda;
+      ctx.eventos.on(b, "click", (ev) => {
+        ev.stopPropagation();
+        acao();
+      });
+      return b;
+    };
+    if (comExpandir) {
+      botao("Expandir tudo", aoExpandir, "am-expandir");
+      botao("Colapsar tudo", aoColapsar, "am-colapsar");
+    }
+    if (comCentro) botao("Centralizar", aoCentralizar, "am-centralizar");
+    return barra;
+  }
+  var CSS_BARRA = `
+.am-barra{display:flex;gap:6px;padding:4px 8px 0;flex:0 0 auto;}
+.am-barra button{padding:2px 8px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;
+  font:inherit;font-size:11px;}
+`;
+  function animacaoDeExpandir(config) {
+    const reduzir = config.respeitarMenosMovimento !== false && typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ligada = config.animacaoAtiva !== false && config.animarExpandir !== false && !reduzir;
+    const duracao = Math.max(0, Math.min(3e3, Number.isFinite(Number(config.duracaoDeExpandir)) ? Number(config.duracaoDeExpandir) : 350));
+    return {
+      ligada: ligada && duracao > 0,
+      duracao,
+      curva: CURVAS_CSS2[config.movimentoDeExpandir] || CURVAS_CSS2.saida,
+      cascata: Math.max(0, Number(config.cascataDeExpandir) || 0)
+    };
+  }
+  function animarAbrirFechar({ ctx, anteriores, atuais, camadaDosFantasmas, anim, alternado }) {
+    const posicoes = new Map(atuais.map((a) => [a.chave, a]));
+    if (!anim.ligada || !alternado || !anteriores || !anteriores.size) return posicoes;
+    const transicao = `transform ${anim.duracao}ms ${anim.curva}, opacity ${anim.duracao}ms ${anim.curva}`;
+    const soltar = (el, atraso) => {
+      ctx.agendarQuadro(() => {
+        el.style.transition = transicao;
+        if (atraso) el.style.transitionDelay = `${atraso}ms`;
+        el.style.transform = "";
+        el.style.opacity = "";
+      });
+      ctx.agendarTimer(() => {
+        el.style.transition = "";
+        el.style.transitionDelay = "";
+        el.classList.remove("bl-entrando", "bl-movendo");
+      }, anim.duracao + 40);
+    };
+    let ordem = 0;
+    for (const a of atuais) {
+      const antes = anteriores.get(a.chave);
+      if (antes) {
+        const dx = antes.x - a.x;
+        const dy = antes.y - a.y;
+        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
+        a.el.classList.add("bl-movendo");
+        a.el.style.transition = "none";
+        a.el.style.transform = `translate(${dx}px, ${dy}px)`;
+        soltar(a.el, 0);
+      } else {
+        let origem = null;
+        for (let p = a.pai; p && !origem; p = (posicoes.get(p) || {}).pai) origem = anteriores.get(p) || null;
+        const o = origem || posicoes.get(a.pai) || a;
+        a.el.classList.add("bl-entrando");
+        a.el.style.transition = "none";
+        a.el.style.transform = `translate(${o.x - a.x}px, ${o.y - a.y}px)`;
+        a.el.style.opacity = "0";
+        soltar(a.el, anim.cascata * ordem);
+        ordem += 1;
+      }
+    }
+    for (const [chave, antes] of anteriores) {
+      if (posicoes.has(chave) || !antes.el || !camadaDosFantasmas) continue;
+      let destino = null;
+      for (let p = antes.pai; p && !destino; p = (anteriores.get(p) || {}).pai) destino = posicoes.get(p) || null;
+      if (!destino) continue;
+      const el = antes.el;
+      for (const n of [el, ...el.querySelectorAll("*")]) {
+        n.removeAttribute("data-item");
+        if (n.classList) n.classList.remove("av-no", "av-no-grupo", "oc-cartao", "oc-caixa", "oc-nome", "av-rotulo");
+      }
+      el.classList.add("bl-saindo");
+      el.style.pointerEvents = "none";
+      el.style.transition = "none";
+      el.style.transform = "";
+      el.style.opacity = "1";
+      camadaDosFantasmas.appendChild(el);
+      ctx.agendarQuadro(() => {
+        el.style.transition = transicao;
+        el.style.transform = `translate(${destino.x - antes.x}px, ${destino.y - antes.y}px)`;
+        el.style.opacity = "0";
+      });
+      ctx.agendarTimer(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, anim.duracao + 40);
+    }
+    return posicoes;
+  }
+  function planoDeCentralizacao({ area, desenho, alvo = null, config = {} }) {
+    const h = config.alinhamentoHorizontalDaArvore || "centro";
+    const v = config.alinhamentoVerticalDaArvore || "meio";
+    const dx = Number(config.deslocamentoXDaArvore) || 0;
+    const dy = Number(config.deslocamentoYDaArvore) || 0;
+    const eixo = (visivel, total, pos, alinh, fino, ponto) => {
+      const fator = alinh === "esquerda" || alinh === "topo" ? 0 : alinh === "direita" || alinh === "base" ? 1 : 0.5;
+      if (total <= visivel) {
+        let offset = (visivel - total) * fator + fino;
+        if (ponto !== null && fator === 0.5) offset = visivel / 2 - ponto + fino;
+        offset = Math.max(0, Math.min(visivel - total, offset));
+        return { offset, scroll: 0, tamanho: visivel };
+      }
+      const referencia = ponto !== null ? ponto : total * fator;
+      const scroll = Math.max(0, Math.min(total - visivel, referencia - visivel * fator - fino));
+      return { offset: 0, scroll, tamanho: total };
+    };
+    const ex = eixo(area.largura, desenho.largura, 0, h, dx, alvo ? alvo.x : null);
+    const ey = eixo(area.altura, desenho.altura, 0, v, dy, alvo ? alvo.y : null);
+    return {
+      offsetX: ex.offset,
+      offsetY: ey.offset,
+      scrollLeft: ex.scroll,
+      scrollTop: ey.scroll,
+      largura: ex.tamanho,
+      altura: ey.tamanho
+    };
+  }
+  function deveCentralizar(config, { primeiro, alternou, botao }) {
+    if (botao) return true;
+    const quando = config.quandoCentralizar || "carregar";
+    if (quando === "botao") return false;
+    if (quando === "sempre") return primeiro || alternou;
+    return primeiro;
+  }
+  var CSS_ANIMACAO_ARVORE = `
+.bl-entrando,.bl-movendo,.bl-saindo{will-change:transform,opacity;}
+.am-celula{box-sizing:border-box;overflow:auto;}
+.am-sem-selecao,.am-sem-selecao *{-webkit-user-select:none;user-select:none;}
+`;
 
   // src/charts/arvores_multiplas/index.js
   var MAXIMO_DE_ARVORES = 24;
@@ -5338,13 +5792,13 @@
             step: 1,
             default: 0
           },
-          mostrarBotoesDeExpandir: {
-            type: "boolean",
-            label: 'Mostrar bot\xF5es "Expandir tudo" e "Colapsar tudo"',
-            section: "Intera\xE7\xE3o",
-            default: true
-          }
-        }
+          // Grade (5.12, v3). Largura/altura por árvore são dinâmicas.
+          espacoHorizontalDaGrade: { type: "number", label: "Espa\xE7o entre colunas (px)", section: "Grade", default: 0 },
+          espacoVerticalDaGrade: { type: "number", label: "Espa\xE7o entre linhas (px)", section: "Grade", default: 0 },
+          linhasGuiaDaGrade: { type: "boolean", label: "Linhas-guia da grade", section: "Grade", default: false }
+        },
+        // 5.8–5.11 (v3): opções comuns às árvores e ao organograma.
+        opcoesComunsDasArvores({ comCadaArvore: true })
       ),
       {
         // Em árvore pequena só cabe o nome da folha.
@@ -5353,8 +5807,18 @@
       }
     ),
     exigencia: { dimensoesMin: 1, aceitaPivo: false, exigeLinhas: true },
-    opcoesDinamicas({ modelo }) {
-      return opcoesDinamicasDeHierarquia(modelo);
+    opcoesDinamicas({ modelo, config }) {
+      const saida = opcoesDinamicasDeHierarquia(modelo);
+      try {
+        const { raiz } = construirHierarquia(modelo, config);
+        for (const ramo of (raiz && raiz.children || []).slice(0, MAXIMO_DE_ARVORES)) {
+          const k = sanitizarChave(ramo.data.rotulo);
+          saida[`largura_${k}`] = { type: "number", label: `Largura \u2014 ${ramo.data.rotulo}`, section: "Grade", default: 0 };
+          saida[`altura_${k}`] = { type: "number", label: `Altura \u2014 ${ramo.data.rotulo}`, section: "Grade", default: 0 };
+        }
+      } catch (_) {
+      }
+      return saida;
     },
     render(ctx) {
       const { modelo, config, tema, raiz: elementoRaiz, largura, estado } = ctx;
@@ -5378,7 +5842,10 @@
         ramos = ramos.slice(0, MAXIMO_DE_ARVORES);
       }
       ctx.limparRaiz();
-      injetarEstilo(elementoRaiz, CSS_ARVORE + CSS_EXPANDIR, "av");
+      injetarEstilo(elementoRaiz, CSS_ARVORE + CSS_EXPANDIR + CSS_BARRA + CSS_ANIMACAO_ARVORE, "av");
+      const tl = lerTextoLongo(config);
+      if (!tl.selecionavel) elementoRaiz.classList.add("am-sem-selecao");
+      else elementoRaiz.classList.remove("am-sem-selecao");
       const nivelInicial = Math.max(0, Number(config.nivelInicialExpandido) || 0);
       if (!estado.recolhidos || estado.nivelAplicado !== nivelInicial) {
         estado.recolhidos = recolhidosIniciais(ramos, nivelInicial);
@@ -5387,71 +5854,75 @@
       const recolhidos = estado.recolhidos;
       const alternado = estado.ultimoAlternado || null;
       estado.ultimoAlternado = null;
-      const animacao = opcoesDeAnimacao(config, { primeiraRenderizacao: false });
-      if (config.mostrarBotoesDeExpandir !== false) {
-        const barra = criarEl("div", { classe: "am-barra", pai: elementoRaiz });
-        const botao = (texto, acao) => {
-          const b = criarEl("button", { pai: barra, texto });
-          b.type = "button";
-          b.style.color = tema.texto;
-          b.style.borderColor = tema.borda;
-          ctx.eventos.on(b, "click", () => {
-            acao();
-            ctx.redesenhar();
-          });
-          return b;
-        };
-        botao("Expandir tudo", () => recolhidos.clear());
-        botao("Colapsar tudo", () => {
+      const animacao = animacaoDeExpandir(config);
+      const centralizarAgora = deveCentralizar(config, {
+        primeiro: !estado.jaCentralizou,
+        alternou: !!alternado,
+        botao: !!estado.centralizarAgora
+      });
+      estado.centralizarAgora = false;
+      if (!estado.posicoesPorArvore) estado.posicoesPorArvore = /* @__PURE__ */ new Map();
+      if (!estado.rolagemDasCelulas) estado.rolagemDasCelulas = /* @__PURE__ */ new Map();
+      criarBarraDaArvore({
+        ctx,
+        pai: elementoRaiz,
+        config,
+        tema,
+        aoExpandir: () => {
+          recolhidos.clear();
+          estado.ultimoAlternado = "*";
+          ctx.redesenhar();
+        },
+        aoColapsar: () => {
           recolhidos.clear();
           for (const ramo of ramos) for (const n of ramo.descendants()) if (n !== ramo && temFilhos(n.data)) recolhidos.add(chaveDoNo(n));
-        });
-      }
+          estado.ultimoAlternado = "*";
+          ctx.redesenhar();
+        },
+        aoCentralizar: () => {
+          estado.centralizarAgora = true;
+          ctx.redesenhar();
+        }
+      });
+      const espacoH = Math.max(0, Number(config.espacoHorizontalDaGrade) || 0);
+      const espacoV = Math.max(0, Number(config.espacoVerticalDaGrade) || 0);
       const grade = criarEl("div", { classe: "md-grade", pai: elementoRaiz });
       grade.style.display = "flex";
       grade.style.flexWrap = "wrap";
       grade.style.alignContent = "flex-start";
+      grade.style.columnGap = `${espacoH}px`;
+      grade.style.rowGap = `${espacoV}px`;
+      const alinhH = config.alinhamentoHorizontalDaArvore || "centro";
+      grade.style.justifyContent = alinhH === "esquerda" ? "flex-start" : alinhH === "direita" ? "flex-end" : "center";
       grade.style.width = "100%";
-      grade.style.height = "100%";
+      grade.style.flex = "1 1 auto";
+      grade.style.minHeight = "0";
       grade.style.overflow = "auto";
+      elementoRaiz.style.display = "flex";
+      elementoRaiz.style.flexDirection = "column";
       const larguraMinima = Number(config.larguraMinimaDaArvore) || 260;
       const colunasPedidas = Number(config.colunasDaGrade) || 0;
-      const colunas = colunasPedidas > 0 ? colunasPedidas : Math.max(1, Math.min(ramos.length, Math.floor(largura / larguraMinima) || 1));
-      const larguraDaCelula = Math.max(120, Math.floor(largura / colunas));
-      const alturaDaCelula = Number(config.alturaDaArvore) || 200;
+      const colunas = colunasPedidas > 0 ? colunasPedidas : Math.max(1, Math.min(ramos.length, Math.floor((largura + espacoH) / (larguraMinima + espacoH)) || 1));
+      const larguraPadrao = Math.max(120, Math.floor((largura - espacoH * (colunas - 1)) / colunas));
+      const alturaPadrao = Number(config.alturaDaArvore) || 200;
       const cores = criarCoresDaArvore(raiz, config, tema);
       const valueFormat = campoDoValor ? campoDoValor.valueFormat : void 0;
       const formatar = formatadorDeValueFormat(valueFormat);
       const tooltip = ctx.tooltip();
       const maiorGlobal = raiz.value || 1;
       const espacoDoTitulo = 18;
+      const semRotulos = config.mostrarRotulos === false || config.mostrarRotulosDeFolha === false;
       for (const ramo of ramos) {
-        const celula = criarEl("div", { pai: grade });
+        const chaveDoRamo = chaveDoNo(ramo);
+        const larguraDaCelula = Number(config[`largura_${sanitizarChave(ramo.data.rotulo)}`]) || larguraPadrao;
+        const alturaDaCelula = Number(config[`altura_${sanitizarChave(ramo.data.rotulo)}`]) || alturaPadrao;
+        const celula = criarEl("div", { pai: grade, classe: "am-celula" });
         celula.style.width = `${larguraDaCelula}px`;
         celula.style.height = `${alturaDaCelula}px`;
-        celula.style.boxSizing = "border-box";
-        const svg = criarSvgEl("svg", {
-          pai: celula,
-          atributos: {
-            width: larguraDaCelula,
-            height: alturaDaCelula,
-            viewBox: `0 0 ${larguraDaCelula} ${alturaDaCelula}`
-          }
-        });
-        const titulo = criarSvgEl("text", {
-          pai: svg,
-          classe: "av-titulo-arvore",
-          atributos: {
-            x: 8,
-            y: 12,
-            "font-size": Math.max(9, tema.tamanhoBase - 1),
-            fill: cores(ramo)
-          }
-        });
-        definirTexto(
-          titulo,
-          `${truncar(ramo.data.rotulo, 22)} (${formatar(ramo.value || 0)})`
-        );
+        celula.style.flex = "0 0 auto";
+        celula.style.display = "flex";
+        celula.setAttribute("data-arvore", chaveDoRamo);
+        if (config.linhasGuiaDaGrade === true) celula.style.outline = `1px dashed ${tema.borda}`;
         const globalPorDados = new Map(ramo.descendants().map((n) => [n.data, n]));
         const chavePorDados = new Map(ramo.descendants().map((n) => [n.data, chaveDoNo(n)]));
         const estaRecolhido = (dados) => recolhidos.has(chavePorDados.get(dados));
@@ -5463,17 +5934,50 @@
           return no.filhos && no.filhos.length ? 0 : no.valor || 0;
         }).sort((a, b) => (b.value || 0) - (a.value || 0));
         const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
-        const reservaDaDireita = config.mostrarRotulosDeFolha === false || config.mostrarRotulos === false ? 12 : larguraDaCelula * 0.38;
+        const limiteFixo = Math.max(40, larguraDaCelula * 0.38 - 10);
+        const limite = tl.modo === "inteiro" ? Infinity : limiteFixo;
+        const medida = medirRotulosDaArvore(subRaiz, { config, tema, valueFormat, total: maiorGlobal, limite });
+        const reservaDireita = semRotulos ? 12 : (tl.modo === "inteiro" ? medida.folhas : Math.min(medida.folhas, limiteFixo)) + 12 + tl.margemExtra;
+        const reservaEsquerda = 12 + (config.mostrarRotulosInternos === true && medida.internos ? medida.internos + 8 : 0);
+        const profundidade = Math.max(1, subRaiz.height);
+        const larguraDoLayout = Math.max(profundidade * 48, larguraDaCelula - reservaEsquerda - reservaDireita);
+        const larguraDoSvg = reservaEsquerda + larguraDoLayout + reservaDireita;
+        const alturaDoSvg = alturaDaCelula;
+        const svg = criarSvgEl("svg", {
+          pai: celula,
+          atributos: {
+            width: larguraDoSvg,
+            height: alturaDoSvg,
+            viewBox: `0 0 ${larguraDoSvg} ${alturaDoSvg}`
+          }
+        });
+        svg.style.display = "block";
+        svg.style.flex = "0 0 auto";
+        if (config.centralizarCadaArvore !== false && larguraDoSvg < larguraDaCelula) {
+          svg.style.marginLeft = alinhH === "esquerda" ? "0" : "auto";
+          svg.style.marginRight = alinhH === "direita" ? "0" : "auto";
+        }
+        const titulo = criarSvgEl("text", {
+          pai: svg,
+          classe: "av-titulo-arvore",
+          atributos: {
+            x: 8,
+            y: 12,
+            "font-size": Math.max(9, tema.tamanhoBase - 1),
+            fill: cores(ramo)
+          }
+        });
+        definirTexto(titulo, `${ramo.data.rotulo} (${formatar(ramo.value || 0)})`);
         layoutHorizontal(subRaiz, {
-          largura: Math.max(20, larguraDaCelula - 24 - reservaDaDireita),
-          altura: Math.max(20, alturaDaCelula - espacoDoTitulo - 12),
+          largura: Math.max(20, larguraDoLayout),
+          altura: Math.max(20, alturaDoSvg - espacoDoTitulo - 12),
           config
         });
-        desenharArvore({
+        const desenho = desenharArvore({
           svg,
           raiz: subRaiz,
           modo: "horizontal",
-          deslocamento: { x: 12, y: espacoDoTitulo },
+          deslocamento: { x: reservaEsquerda, y: espacoDoTitulo },
           config,
           valorDeReferencia: config.escalaPorArvore ? null : maiorGlobal,
           tema,
@@ -5481,6 +5985,8 @@
           totalGeral: maiorGlobal,
           cores: corDoNo,
           compacto: true,
+          chaveDe: (n) => chavePorDados.get(n.data),
+          limiteDoRotulo: limite,
           aoInteragir(elemento, no) {
             const conteudo = () => ({
               titulo: `${ramo.data.rotulo} \u203A ${no.data.rotulo}`,
@@ -5494,15 +6000,14 @@
             const chave = chavePorDados.get(no.data);
             const comFilhos = temFilhos(no.data);
             elemento.setAttribute("data-item", chave);
+            if (estado.selecionado === chave) elemento.setAttribute("data-selecionado", "1");
             if (comFilhos) {
               elemento.setAttribute("data-recolhido", estaRecolhido(no.data) ? "1" : "0");
               elemento.style.cursor = "pointer";
               desenharIndicador(elemento, estaRecolhido(no.data), tema);
             }
-            if (alternado && animacao.ligada && chave !== alternado && chave.startsWith(`${alternado}\u203A`)) {
-              elemento.style.animation = `bl-surgir ${Math.max(150, animacao.duracao)}ms ease-out backwards`;
-            }
             ctx.eventos.on(elemento, "click", (ev) => {
+              estado.selecionado = chave;
               if (comFilhos && !ev.shiftKey) {
                 if (recolhidos.has(chave)) recolhidos.delete(chave);
                 else recolhidos.add(chave);
@@ -5515,13 +6020,44 @@
             });
           }
         });
+        const atuais = subRaiz.descendants().map((n) => ({
+          chave: chavePorDados.get(n.data),
+          el: n.__grupo,
+          x: n.__xy.x,
+          y: n.__xy.y,
+          pai: n.parent ? chavePorDados.get(n.parent.data) : null
+        }));
+        const mudouAqui = alternado === "*" || alternado && (alternado === chaveDoRamo || alternado.startsWith(`${chaveDoRamo}\u203A`));
+        estado.posicoesPorArvore.set(
+          chaveDoRamo,
+          animarAbrirFechar({
+            ctx,
+            anteriores: estado.posicoesPorArvore.get(chaveDoRamo),
+            atuais,
+            camadaDosFantasmas: desenho.grupo,
+            anim: animacao,
+            alternado: mudouAqui ? alternado : null
+          })
+        );
+        const rolagemGuardada = estado.rolagemDasCelulas.get(chaveDoRamo);
+        if (centralizarAgora && larguraDoSvg > larguraDaCelula) {
+          const alvoNo = config.oQueCentralizar === "raiz" ? subRaiz : config.oQueCentralizar === "selecionado" ? subRaiz.descendants().find((n) => chavePorDados.get(n.data) === estado.selecionado) || null : null;
+          const plano = planoDeCentralizacao({
+            area: { largura: larguraDaCelula, altura: alturaDaCelula },
+            desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
+            alvo: alvoNo ? alvoNo.__xy : null,
+            config
+          });
+          celula.scrollLeft = plano.scrollLeft;
+        } else if (rolagemGuardada) {
+          celula.scrollLeft = rolagemGuardada;
+        }
+        ctx.eventos.on(celula, "scroll", () => estado.rolagemDasCelulas.set(chaveDoRamo, celula.scrollLeft));
       }
+      if (centralizarAgora) estado.jaCentralizou = true;
     }
   });
   var CSS_EXPANDIR = `
-.am-barra{display:flex;gap:6px;padding:4px 8px 0;}
-.am-barra button{padding:2px 8px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;
-  font:inherit;font-size:11px;}
 .am-indicador{pointer-events:none;font-weight:700;}
 @keyframes bl-surgir{from{opacity:0}to{opacity:1}}
 `;

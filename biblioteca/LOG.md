@@ -3362,3 +3362,24 @@ PRÓXIMA AÇÃO: 5.7 (diagrama_venn: layout e hover).
 - 876/876; segurança ok.
 
 PRÓXIMA AÇÃO: FASE 4 — 5.8 (base `_arvore`), 5.9, 5.10, 5.11 juntos.
+
+### FASE 4 — em andamento (commit intermediário)
+- Feito: `src/core/texto-longo.js` (genérico: 7 modos, opções com os mesmos
+  ids em todos), `src/charts/_arvore/comum.js` (opções comuns, barra
+  Expandir/Colapsar/Centralizar, animação FLIP de abrir/fechar,
+  centralização), `_arvore/index.js` (um <g> por nó, rótulo pelo Texto
+  longo com várias linhas, `medirRotulosDaArvore`), `arvores_multiplas`
+  reescrito no desenho (grade com espaços, largura/altura por árvore,
+  linhas-guia, cada árvore centralizada na célula, rolagem horizontal da
+  célula no modo "Mostrar inteiro").
+- Decisão (5.12): arrastar a borda da célula NÃO foi feito. O adaptador
+  usa `trigger('updateConfig')` só como "melhor esforço" (não confirmado
+  na API) — entregues só os campos numéricos `largura_<árvore>` e
+  `altura_<árvore>`.
+- Testes antigos: `truncarRotulo` agora testado no modo "Cortar com
+  reticências" (regra 4.1); os "fantasmas" da animação de fechar perdem a
+  classe de nó.
+- Falta: org_chart (5.13), testes novos de 5.9/5.10/5.11/5.12, 5.13b.
+
+PRÓXIMA AÇÃO: org_chart (botões, estética, contador, rolagem, animação,
+centralizar, Texto longo).
