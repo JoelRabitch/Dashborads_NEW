@@ -60,6 +60,7 @@ export function opcoesDeTracado({ secao = 'Formato', espessuraPadrao = 2 } = {})
         { rotulo: 'Reta', valor: 'linear' },
         { rotulo: 'Degraus', valor: 'stepAfter' },
         { rotulo: 'Catmull-Rom', valor: 'catmull' },
+        { rotulo: 'Bump (horizontal nas pontas)', valor: 'bump' },
       ]),
     },
     espessuraDaLinha: {

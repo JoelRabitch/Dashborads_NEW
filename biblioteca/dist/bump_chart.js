@@ -4160,17 +4160,11 @@
     };
   }
 
-  // node_modules/d3-shape/src/math.js
-  var epsilon = 1e-12;
-  var pi = Math.PI;
-  var halfPi = pi / 2;
-  var tau = 2 * pi;
-
   // node_modules/d3-path/src/path.js
-  var pi2 = Math.PI;
-  var tau2 = 2 * pi2;
-  var epsilon2 = 1e-6;
-  var tauEpsilon = tau2 - epsilon2;
+  var pi = Math.PI;
+  var tau = 2 * pi;
+  var epsilon = 1e-6;
+  var tauEpsilon = tau - epsilon;
   function append(strings) {
     this._ += strings[0];
     for (let i = 1, n = strings.length; i < n; ++i) {
@@ -4220,12 +4214,12 @@
       let x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
       if (this._x1 === null) {
         this._append`M${this._x1 = x1},${this._y1 = y1}`;
-      } else if (!(l01_2 > epsilon2)) ;
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon2) || !r) {
+      } else if (!(l01_2 > epsilon)) ;
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
         this._append`L${this._x1 = x1},${this._y1 = y1}`;
       } else {
-        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi2 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
-        if (Math.abs(t01 - 1) > epsilon2) {
+        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
+        if (Math.abs(t01 - 1) > epsilon) {
           this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
         }
         this._append`A${r},${r},0,0,${+(y01 * x20 > x01 * y20)},${this._x1 = x1 + t21 * x21},${this._y1 = y1 + t21 * y21}`;
@@ -4237,15 +4231,15 @@
       let dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x2 + dx, y0 = y2 + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
       if (this._x1 === null) {
         this._append`M${x0},${y0}`;
-      } else if (Math.abs(this._x1 - x0) > epsilon2 || Math.abs(this._y1 - y0) > epsilon2) {
+      } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
         this._append`L${x0},${y0}`;
       }
       if (!r) return;
-      if (da < 0) da = da % tau2 + tau2;
+      if (da < 0) da = da % tau + tau;
       if (da > tauEpsilon) {
         this._append`A${r},${r},0,1,${cw},${x2 - dx},${y2 - dy}A${r},${r},0,1,${cw},${this._x1 = x0},${this._y1 = y0}`;
-      } else if (da > epsilon2) {
-        this._append`A${r},${r},0,${+(da >= pi2)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
+      } else if (da > epsilon) {
+        this._append`A${r},${r},0,${+(da >= pi)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
       }
     }
     rect(x2, y2, w, h) {
@@ -4362,6 +4356,50 @@
       return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
     };
     return line;
+  }
+
+  // node_modules/d3-shape/src/curve/bump.js
+  var Bump = class {
+    constructor(context, x2) {
+      this._context = context;
+      this._x = x2;
+    }
+    areaStart() {
+      this._line = 0;
+    }
+    areaEnd() {
+      this._line = NaN;
+    }
+    lineStart() {
+      this._point = 0;
+    }
+    lineEnd() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    }
+    point(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0: {
+          this._point = 1;
+          if (this._line) this._context.lineTo(x2, y2);
+          else this._context.moveTo(x2, y2);
+          break;
+        }
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._x) this._context.bezierCurveTo(this._x0 = (this._x0 + x2) / 2, this._y0, this._x0, y2, x2, y2);
+          else this._context.bezierCurveTo(this._x0, this._y0 = (this._y0 + y2) / 2, x2, this._y0, x2, y2);
+          break;
+        }
+      }
+      this._x0 = x2, this._y0 = y2;
+    }
+  };
+  function bumpX(context) {
+    return new Bump(context, true);
   }
 
   // node_modules/d3-shape/src/curve/basis.js
@@ -4497,85 +4535,6 @@
     return cardinal;
   })(0);
 
-  // node_modules/d3-shape/src/curve/catmullRom.js
-  function point4(that, x2, y2) {
-    var x1 = that._x1, y1 = that._y1, x22 = that._x2, y22 = that._y2;
-    if (that._l01_a > epsilon) {
-      var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
-      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
-      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
-    }
-    if (that._l23_a > epsilon) {
-      var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
-      x22 = (x22 * b + that._x1 * that._l23_2a - x2 * that._l12_2a) / m;
-      y22 = (y22 * b + that._y1 * that._l23_2a - y2 * that._l12_2a) / m;
-    }
-    that._context.bezierCurveTo(x1, y1, x22, y22, that._x2, that._y2);
-  }
-  function CatmullRom(context, alpha) {
-    this._context = context;
-    this._alpha = alpha;
-  }
-  CatmullRom.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x2, this._y2);
-          break;
-        case 3:
-          this.point(this._x2, this._y2);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      if (this._point) {
-        var x23 = this._x2 - x2, y23 = this._y2 - y2;
-        this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
-      }
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-        // falls through
-        default:
-          point4(this, x2, y2);
-          break;
-      }
-      this._l01_a = this._l12_a, this._l12_a = this._l23_a;
-      this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a;
-      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x2;
-      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y2;
-    }
-  };
-  var catmullRom_default = (function custom2(alpha) {
-    function catmullRom(context) {
-      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
-    }
-    catmullRom.alpha = function(alpha2) {
-      return custom2(+alpha2);
-    };
-    return catmullRom;
-  })(0.5);
-
   // node_modules/d3-shape/src/curve/monotone.js
   function sign(x2) {
     return x2 < 0 ? -1 : 1;
@@ -4588,7 +4547,7 @@
     var h = that._x1 - that._x0;
     return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
   }
-  function point5(that, t0, t1) {
+  function point4(that, t0, t1) {
     var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
     that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
   }
@@ -4612,7 +4571,7 @@
           this._context.lineTo(this._x1, this._y1);
           break;
         case 3:
-          point5(this, this._t0, slope2(this, this._t0));
+          point4(this, this._t0, slope2(this, this._t0));
           break;
       }
       if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
@@ -4632,10 +4591,10 @@
           break;
         case 2:
           this._point = 3;
-          point5(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
+          point4(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
           break;
         default:
-          point5(this, this._t0, t1 = slope3(this, x2, y2));
+          point4(this, this._t0, t1 = slope3(this, x2, y2));
           break;
       }
       this._x0 = this._x1, this._x1 = x2;
@@ -4780,12 +4739,57 @@
   }
 
   // src/core/shapes.js
+  function CatmullLimitada(contexto) {
+    this._context = contexto;
+  }
+  CatmullLimitada.prototype = {
+    areaStart() {
+      this._line = 0;
+    },
+    areaEnd() {
+      this._line = NaN;
+    },
+    lineStart() {
+      this._pontos = [];
+    },
+    point(x2, y2) {
+      this._pontos.push([+x2, +y2]);
+    },
+    lineEnd() {
+      const p = this._pontos;
+      const n = p.length;
+      const c = this._context;
+      if (n) {
+        if (this._line) c.lineTo(p[0][0], p[0][1]);
+        else c.moveTo(p[0][0], p[0][1]);
+        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = p[i - 1] || p[i];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = p[i + 2] || p2;
+          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
+          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
+          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
+          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
+          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) c.closePath();
+      this._line = 1 - this._line;
+    }
+  };
+  function curvaCatmullLimitada(contexto) {
+    return new CatmullLimitada(contexto);
+  }
   var CURVAS = {
     linear: linear_default,
     monotone: monotoneX,
     monotoneY,
     basis: basis_default2,
-    catmull: catmullRom_default.alpha(0.5),
+    catmull: curvaCatmullLimitada,
+    // "bump" (v3, 5.6): tangente horizontal nas duas pontas, sem overshoot.
+    bump: bumpX,
     cardinal: cardinal_default,
     natural: natural_default,
     step: step_default,
@@ -4996,28 +5000,6 @@
     estilizarRotulo(el, rot, { corAutomatica, x: x2, y: y2 });
     pai.appendChild(el);
     return el;
-  }
-  function larguraDoTexto2(texto, tamanho) {
-    return String(texto || "").length * tamanho * 0.58;
-  }
-  function esconderColisoes(caixas, rot) {
-    if (!rot || !rot.evitarColisao) return 0;
-    const mantidas = [];
-    let escondidos = 0;
-    for (const c of caixas) {
-      if (!c || !c.el) continue;
-      const colide = mantidas.some(
-        (m) => Math.abs(m.x - c.x) * 2 < m.largura + c.largura && Math.abs(m.y - c.y) * 2 < m.altura + c.altura
-      );
-      if (colide) {
-        c.el.setAttribute("display", "none");
-        if (c.el.style) c.el.style.display = "none";
-        escondidos += 1;
-      } else {
-        mantidas.push(c);
-      }
-    }
-    return escondidos;
   }
 
   // src/core/cores.js
@@ -5307,7 +5289,8 @@
           { rotulo: "Suave sem ultrapassar (monotone)", valor: "monotone" },
           { rotulo: "Reta", valor: "linear" },
           { rotulo: "Degraus", valor: "stepAfter" },
-          { rotulo: "Catmull-Rom", valor: "catmull" }
+          { rotulo: "Catmull-Rom", valor: "catmull" },
+          { rotulo: "Bump (horizontal nas pontas)", valor: "bump" }
         ])
       },
       espessuraDaLinha: {
@@ -5443,55 +5426,6 @@
     }
     return formatar(valor);
   }
-  function desenharRotulosDosPontos({ plano, rot, grupos, quantidadeDePeriodos, posicaoAuto = "acima", raio = 3, pai, quais = "auto", classe }) {
-    if (!rot || !rot.mostrar) return [];
-    const destino = pai || plano.svg;
-    const validos = grupos.map((g) => ({ ...g, pontos: g.pontos.filter((p) => p && p.texto !== "" && Number.isFinite(p.y)) }));
-    const maior = validos.reduce(
-      (a, g) => g.pontos.reduce((b, p) => Math.max(b, larguraDoTexto2(p.texto, rot.tamanho)), a),
-      0
-    );
-    const passo = plano.retangulo.largura / Math.max(1, (quantidadeDePeriodos || 2) - 1);
-    const todos = quais !== "ultimo" && passo >= maior + 4;
-    const lado = rot.posicao === "centro" ? "centro" : rot.posicao === "dentro" ? "abaixo" : rot.posicao === "fora" || rot.posicao === "foraComLinha" ? "acima" : posicaoAuto;
-    const deslocamento = lado === "centro" ? 0 : raio + rot.tamanho / 2 + 3;
-    const dy = lado === "abaixo" ? deslocamento : -deslocamento;
-    const esquerda = Math.min(plano.retangulo.esquerda, plano.retangulo.esquerda + plano.retangulo.largura);
-    const direita = esquerda + plano.retangulo.largura;
-    const prioritarios = [];
-    const demais = [];
-    for (const g of validos) {
-      if (!g.pontos.length) continue;
-      const ultimo = g.pontos.reduce((a, p) => p.indice > a.indice ? p : a, g.pontos[0]);
-      for (const p of todos ? g.pontos : [ultimo]) {
-        const largura = larguraDoTexto2(p.texto, rot.tamanho);
-        let ancora = "middle";
-        let cx = p.x;
-        if (p.x + largura / 2 > direita + 4) {
-          ancora = "end";
-          cx = p.x - largura / 2;
-        } else if (p.x - largura / 2 < esquerda - 4) {
-          ancora = "start";
-          cx = p.x + largura / 2;
-        }
-        const el = criarRotuloSvg(destino, rot, {
-          x: p.x,
-          y: p.y + dy,
-          texto: p.texto,
-          ancora,
-          corAutomatica: p.cor || g.cor
-        });
-        if (!el) continue;
-        if (classe) el.setAttribute("class", `bl-rotulo ${classe}`);
-        if (g.aoCriar) g.aoCriar(el);
-        const caixa = { el, x: cx, y: p.y + dy, largura, altura: rot.tamanho };
-        (p === ultimo ? prioritarios : demais).push(caixa);
-      }
-    }
-    const caixas = prioritarios.concat(demais);
-    esconderColisoes(caixas, rot);
-    return caixas.map((c) => c.el);
-  }
   function destruirSerieTemporal() {
   }
 
@@ -5507,6 +5441,7 @@
 .bp-nota{position:absolute;left:8px;bottom:4px;font-size:10px;opacity:.75;pointer-events:none;}
 `;
   var MAXIMO_DE_SERIES = 30;
+  var POSICOES_DO_VALOR = ["auto", "lado", "acima", "abaixo", "tooltip"];
   var index_default = defineViz({
     id: "bump_chart",
     label: "Bump Chart",
@@ -5536,6 +5471,21 @@
             label: "N\xFAmero da posi\xE7\xE3o dentro do ponto",
             section: "Ranking",
             default: true
+          },
+          // 5.6 (v3): onde o valor do último ponto aparece.
+          posicaoDoValor: {
+            type: "string",
+            label: "Posi\xE7\xE3o do valor",
+            section: "R\xF3tulos",
+            display: "select",
+            default: "auto",
+            values: listaDeValores([
+              { rotulo: "Autom\xE1tica", valor: "auto" },
+              { rotulo: "Ao lado do c\xEDrculo", valor: "lado" },
+              { rotulo: "Acima", valor: "acima" },
+              { rotulo: "Abaixo", valor: "abaixo" },
+              { rotulo: "S\xF3 no tooltip", valor: "tooltip" }
+            ])
           },
           rotulosNasPontas: {
             type: "string",
@@ -5609,11 +5559,60 @@
       const modoDosRotulos = rot.mostrar ? config.rotulosNasPontas || "ambas" : "nenhum";
       const limiteDoNome = rot.truncar > 0 ? rot.truncar : 20;
       const nomeCurto = (s) => truncar(s.rotulo, limiteDoNome);
-      const maiorNome = series.reduce((a, s) => Math.max(a, larguraAproximada(nomeCurto(s), rot.tamanho)), 0);
-      const margemEsquerda = modoDosRotulos === "ambas" || modoDosRotulos === "esquerda" ? maiorNome + 14 : 18;
-      const margemDireita = modoDosRotulos === "ambas" || modoDosRotulos === "direita" ? maiorNome + 14 : 18;
-      const margemDeCima = fonte + 14 + (rot.mostrar ? rot.tamanho + 2 : 0);
-      const margemDeBaixo = fonte + 14;
+      const nomesEsquerda = modoDosRotulos === "ambas" || modoDosRotulos === "esquerda";
+      const nomesDireita = modoDosRotulos === "ambas" || modoDosRotulos === "direita";
+      const posicaoDoValor = POSICOES_DO_VALOR.includes(config.posicaoDoValor) ? config.posicaoDoValor : "auto";
+      const comValor = rot.mostrar && posicaoDoValor !== "tooltip";
+      const valorAoLado = posicaoDoValor === "auto" || posicaoDoValor === "lado";
+      const ultimoPeriodo = serie.categorias.length - 1;
+      const totalNoPeriodo = (i) => series.reduce((a, s) => a + (Number.isFinite(s.valores[i]) ? s.valores[i] : 0), 0);
+      const raioDoPonto = (Number(config.tamanhoDoPonto) || 12) / 2;
+      const comNumero = config.mostrarPosicao !== false;
+      const desenharPontos = comNumero || config.mostrarPontos === true;
+      const raio = desenharPontos ? raioDoPonto : 2;
+      const FOLGA2 = 5;
+      const compacto = criarFormatadorNumerico({ estilo: "compacto", casas: 1 });
+      series.forEach((s, indice) => {
+        s.cor = corDoItem(config, indice, s.chave);
+        s.posicoes = posicoes[indice];
+        s.formatar = formatadorDaSerie(serie, s, config);
+        s.primeira = s.posicoes.findIndex((p) => p !== null);
+        s.ultima = s.primeira < 0 ? -1 : s.posicoes.length - 1 - [...s.posicoes].reverse().findIndex((p) => p !== null);
+        s.textoDoValor = (abreviar2) => {
+          if (s.ultima < 0) return "";
+          const v = s.valores[s.ultima];
+          return textoDoRotulo(rot, {
+            valor: v,
+            nome: s.rotulo,
+            total: s.ultima === ultimoPeriodo ? totalNoPeriodo(s.ultima) : void 0,
+            valueFormat: valueFormatDaSerie(serie, s),
+            // Abreviado (K, M): o valor completo continua no tooltip.
+            textoDoValor: abreviar2 && Number.isFinite(v) ? compacto(v) : textoDoPonto(ctx, serie.matriz, s.ultima, s, v, s.formatar)
+          });
+        };
+      });
+      const peso = { negrito: !!rot.negrito };
+      const direitaNecessaria = (t, abreviar2) => raio + FOLGA2 + Math.max(
+        0,
+        ...series.map((s) => {
+          if (s.ultima !== ultimoPeriodo) return 0;
+          const v = comValor ? larguraDoTexto(s.textoDoValor(abreviar2), t, peso) : 0;
+          const n = nomesDireita ? larguraDoTexto(nomeCurto(s), t, peso) : 0;
+          if (valorAoLado) return v + (v && n ? 2 * FOLGA2 : 0) + n;
+          return Math.max(n, v / 2 - raio - FOLGA2);
+        })
+      ) + 4;
+      const esquerdaNecessaria = (t) => raio + FOLGA2 + (nomesEsquerda ? Math.max(0, ...series.map((s) => larguraDoTexto(nomeCurto(s), t, peso))) : 0) + 4;
+      let tamanho = rot.tamanho;
+      let abreviar = false;
+      const limite = largura * 0.62;
+      while (direitaNecessaria(tamanho, false) + esquerdaNecessaria(tamanho) > limite && tamanho > 8) tamanho -= 1;
+      if (direitaNecessaria(tamanho, false) + esquerdaNecessaria(tamanho) > limite) abreviar = true;
+      const rotV = Object.assign({}, rot, { tamanho });
+      const margemEsquerda = Math.max(raio + 4, esquerdaNecessaria(tamanho));
+      const margemDireita = Math.max(raio + 4, direitaNecessaria(tamanho, abreviar));
+      const margemDeCima = fonte + 8 + raio + 4 + (comValor && posicaoDoValor === "acima" ? tamanho + 2 : 0);
+      const margemDeBaixo = raio + 4 + (comValor && posicaoDoValor === "abaixo" ? tamanho + 2 : 0);
       const escalaX = escalaDePonto({
         dominio: serie.categorias.map((c) => c.chave),
         intervalo: [margemEsquerda, Math.max(margemEsquerda + 20, largura - margemDireita)],
@@ -5622,6 +5621,7 @@
       const alturaUtil = Math.max(20, altura - margemDeCima - margemDeBaixo);
       const passoY = maiorPosicao > 1 ? alturaUtil / (maiorPosicao - 1) : 0;
       const y2 = (posicao) => margemDeCima + (posicao - 1) * passoY;
+      const xDe = (i) => escalaX(serie.categorias[i].chave);
       const svg = criarSvgEl("svg", {
         pai: area,
         classe: "bp-svg",
@@ -5646,19 +5646,13 @@
       });
       const curva = config.curvaDaLinha || "monotone";
       const espessura = Number(config.espessuraDaLinha) || 2.5;
-      const raioDoPonto = (Number(config.tamanhoDoPonto) || 12) / 2;
-      const comNumero = config.mostrarPosicao !== false;
-      const desenharPontos = comNumero || config.mostrarPontos === true;
       const grupoDasLinhas = criarSvgEl("g", { pai: svg, classe: "bp-linhas" });
-      const gruposDeValor = [];
-      const ultimoPeriodo = serie.categorias.length - 1;
-      const totalNoPeriodo = (i) => series.reduce((a, s) => a + (Number.isFinite(s.valores[i]) ? s.valores[i] : 0), 0);
-      series.forEach((s, indice) => {
-        s.cor = corDoItem(config, indice, s.chave);
-        s.posicoes = posicoes[indice];
-        s.formatar = formatadorDaSerie(serie, s, config);
+      const grupoDosPontos = criarSvgEl("g", { pai: svg, classe: "bp-pontos" });
+      const grupoDosTextos = criarSvgEl("g", { pai: svg, classe: "bp-textos" });
+      const circulos = [];
+      series.forEach((s) => {
         const gerador = geradorDeLinha({
-          x: (_, i) => escalaX(serie.categorias[i].chave),
+          x: (_, i) => xDe(i),
           y: (_, i) => y2(s.posicoes[i]),
           curva,
           definido: (_, i) => s.posicoes[i] !== null
@@ -5676,10 +5670,12 @@
         });
         s.marcas = [];
         serie.categorias.forEach((_, i) => {
-          if (s.posicoes[i] === null || !desenharPontos) return;
-          const px = escalaX(serie.categorias[i].chave);
+          if (s.posicoes[i] === null) return;
+          const px = xDe(i);
           const py = y2(s.posicoes[i]);
-          const ponto = criarMarcadorSvg(grupoDasLinhas, "circulo", px, py, raioDoPonto * 2, {
+          circulos.push({ x: px, y: py });
+          if (!desenharPontos) return;
+          const ponto = criarMarcadorSvg(grupoDosPontos, "circulo", px, py, raioDoPonto * 2, {
             classe: "bp-ponto",
             fill: s.cor,
             "fill-opacity": opacidade,
@@ -5690,8 +5686,8 @@
           s.marcas.push(ponto);
           if (comNumero && raioDoPonto >= 7) {
             const numero = criarSvgEl("text", {
-              pai: grupoDasLinhas,
-              classe: "bp-ponto",
+              pai: grupoDosPontos,
+              classe: "bp-ponto bp-numero",
               atributos: {
                 x: px,
                 y: py,
@@ -5707,62 +5703,62 @@
             s.marcas.push(numero);
           }
         });
-        const primeira = s.posicoes.findIndex((p) => p !== null);
-        const ultima = s.posicoes.length - 1 - [...s.posicoes].reverse().findIndex((p) => p !== null);
-        const folga = (desenharPontos ? raioDoPonto : 0) + 5;
-        const nome = (indiceDoPeriodo2, ancora, dx) => {
-          const texto = criarRotuloSvg(svg, rot, {
-            x: escalaX(serie.categorias[indiceDoPeriodo2].chave) + dx,
-            y: y2(s.posicoes[indiceDoPeriodo2]),
-            texto: nomeCurto(s),
-            ancora,
-            corAutomatica: tema.texto
-          });
-          if (texto) {
-            texto.setAttribute("class", "bl-rotulo bp-rotulo");
-            s.marcas.push(texto);
-          }
-        };
-        if ((modoDosRotulos === "ambas" || modoDosRotulos === "esquerda") && primeira >= 0) {
-          nome(primeira, "end", -folga);
-        }
-        if ((modoDosRotulos === "ambas" || modoDosRotulos === "direita") && primeira >= 0) {
-          nome(ultima, "start", folga);
-        }
-        if (primeira >= 0) {
-          const v = s.valores[ultima];
-          gruposDeValor.push({
-            cor: s.cor,
-            aoCriar: (el) => s.marcas.push(el),
-            pontos: [
-              {
-                indice: ultima,
-                x: escalaX(serie.categorias[ultima].chave),
-                y: y2(s.posicoes[ultima]),
-                texto: textoDoRotulo(rot, {
-                  valor: v,
-                  nome: s.rotulo,
-                  total: ultima === ultimoPeriodo ? totalNoPeriodo(ultima) : void 0,
-                  valueFormat: valueFormatDaSerie(serie, s),
-                  textoDoValor: textoDoPonto(ctx, serie.matriz, ultima, s, v, s.formatar)
-                })
-              }
-            ]
-          });
-        }
       });
-      desenharRotulosDosPontos({
-        plano: {
-          svg,
-          retangulo: { esquerda: margemEsquerda, largura: Math.max(20, largura - margemDireita - margemEsquerda) }
-        },
-        rot,
-        grupos: gruposDeValor,
-        quantidadeDePeriodos: serie.categorias.length,
-        raio: desenharPontos ? raioDoPonto : 2,
-        quais: "ultimo",
-        classe: "bp-valor"
-      });
+      const caixas = [];
+      const cabe = (c) => c.x0 >= 0 && c.x1 <= largura && c.y0 >= 0 && c.y1 <= altura;
+      const cruza = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+      const sobreCirculo = (c) => circulos.some((p) => c.x0 < p.x + raio && c.x1 > p.x - raio && c.y0 < p.y + raio && c.y1 > p.y - raio);
+      const caixaDe = (x2, yc, w, ancora) => {
+        const x0 = ancora === "middle" ? x2 - w / 2 : ancora === "end" ? x2 - w : x2;
+        return { x0, x1: x0 + w, y0: yc - tamanho / 2, y1: yc + tamanho / 2 };
+      };
+      const colocar = (s, { x: x2, yc, texto, ancora, classe, extra = {} }) => {
+        if (!texto) return null;
+        const c = caixaDe(x2, yc, larguraDoTexto(texto, tamanho, peso), ancora);
+        if (!cabe(c) || sobreCirculo(c) || caixas.some((o) => cruza(o, c))) return null;
+        const el = criarRotuloSvg(grupoDosTextos, rotV, { x: x2, y: yc, texto, ancora, corAutomatica: classe === "bp-valor" ? s.cor : tema.texto });
+        if (!el) return null;
+        el.setAttribute("class", `bl-rotulo ${classe}`);
+        el.setAttribute("stroke", tema.fundo || "#FFFFFF");
+        el.setAttribute("stroke-width", "3");
+        el.setAttribute("stroke-linejoin", "round");
+        el.setAttribute("paint-order", "stroke");
+        for (const [k, v] of Object.entries(extra)) el.setAttribute(k, String(v));
+        caixas.push(c);
+        s.marcas.push(el);
+        return el;
+      };
+      const larguraDoValor = (s) => larguraDoTexto(s.textoDoValor(abreviar), tamanho, peso);
+      if (comValor) {
+        for (const s of [...series].sort((a, b) => (a.posicoes[a.ultima] || 0) - (b.posicoes[b.ultima] || 0))) {
+          if (s.ultima < 0) continue;
+          const cx = xDe(s.ultima);
+          const cy = y2(s.posicoes[s.ultima]);
+          const texto = s.textoDoValor(abreviar);
+          const origem = { "data-cx": cx, "data-cy": cy };
+          const tentar = (pos) => pos === "lado" ? colocar(s, { x: cx + raio + FOLGA2, yc: cy, texto, ancora: "start", classe: "bp-valor", extra: { ...origem, "data-posicao": "lado" } }) : colocar(s, {
+            x: cx,
+            yc: pos === "acima" ? cy - raio - tamanho / 2 - 2 : cy + raio + tamanho / 2 + 2,
+            texto,
+            ancora: "middle",
+            classe: "bp-valor",
+            extra: { ...origem, "data-posicao": pos }
+          });
+          if (posicaoDoValor === "auto") tentar("lado") || tentar("acima") || tentar("abaixo");
+          else tentar(posicaoDoValor);
+        }
+      }
+      for (const s of series) {
+        if (s.primeira < 0) continue;
+        if (nomesEsquerda) {
+          colocar(s, { x: xDe(s.primeira) - raio - FOLGA2, yc: y2(s.posicoes[s.primeira]), texto: nomeCurto(s), ancora: "end", classe: "bp-rotulo" });
+        }
+        if (nomesDireita) {
+          const valorDoLado = comValor && valorAoLado ? larguraDoValor(s) + 2 * FOLGA2 : 0;
+          const x2 = xDe(s.ultima) + raio + FOLGA2;
+          colocar(s, { x: x2 + valorDoLado, yc: y2(s.posicoes[s.ultima]), texto: nomeCurto(s), ancora: "start", classe: "bp-rotulo" }) || colocar(s, { x: x2, yc: y2(s.posicoes[s.ultima]), texto: nomeCurto(s), ancora: "start", classe: "bp-rotulo" });
+        }
+      }
       const nota = ctx.nota;
       nota.style.color = tema.textoSuave;
       const comLacunas = series.some((s) => s.posicoes.some((p) => p === null));

@@ -140,7 +140,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] 5.5 Layouts da tabela
 
 ### FASE 3 — bump_chart e diagrama_venn
-- [ ] 5.6 bump_chart: alinhamento
+- [x] 5.6 bump_chart: alinhamento
 - [ ] 5.7 diagrama_venn: layout e hover
 
 ### FASE 4 — árvores e organograma

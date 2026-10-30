@@ -475,6 +475,28 @@ export function codigosSinteticos() {
   return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
 }
 
+/**
+ * Bump chart como o do print relatado (melhorias v3, 5.6), sintético:
+ * 11 séries × 7 períodos; só 5 séries têm dado nos DOIS últimos períodos;
+ * valores grandes com decimais (rótulos com percentual ficam longos).
+ */
+export function bumpLongo() {
+  const rng = criarRng(53);
+  const dimensoes = [campoDimensao('periodo', 'Período'), campoDimensao('serie', 'Série')];
+  const medidas = [campoMedida('valor', 'Valor', { valueFormat: '#,##0.00' })];
+  const nomes = ['Alfa Norte', 'Beta Sul', 'Gama Centro', 'Delta Leste', 'Épsilon Oeste', 'Zeta Litoral',
+    'Eta Serra', 'Teta Vale', 'Iota Planalto', 'Capa Interior', 'Lambda Capital'];
+  const data = [];
+  for (let p = 0; p < 7; p++) {
+    nomes.forEach((nome, s) => {
+      if (p >= 5 && s >= 5) return; // só 5 séries nos dois últimos períodos
+      const v = Math.round((150000 + rng() * 900000) * 100) / 100;
+      data.push({ periodo: celula(`Semana ${p + 1}`), serie: celula(nome), valor: celula(v, v.toLocaleString('en-US', { minimumFractionDigits: 2 })) });
+    });
+  }
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
 /** Catálogo nomeado, usado pelo harness e pelo smoke test. */
 export const FIXTURES = {
   semPivo: () => semPivo(),
@@ -499,6 +521,7 @@ export const FIXTURES = {
   grande5k: () => volumeGrande({ linhas: 5000 }),
   tabelaLarga: () => tabelaLarga(),
   codigosSinteticos: () => codigosSinteticos(),
+  bumpLongo: () => bumpLongo(),
   grande50k: () => volumeGrande({ linhas: 50000 }),
 };
 

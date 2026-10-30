@@ -32,6 +32,23 @@
  *     sempre desenhado (é o suporte do número); com ele desligado, os
  *     pontos seguem "Marcar cada período com um ponto".
  *   - Tooltip único; valor no texto do Looker; clique pela "Ação do clique".
+ *
+ * Melhorias v3 (5.6):
+ *   - "Posição do valor" (`posicaoDoValor`, novo): Automática (padrão: ao
+ *     lado do círculo, na altura do centro, a 5 px; se não couber, acima,
+ *     abaixo ou só no tooltip) | Ao lado | Acima | Abaixo | Só no tooltip.
+ *     Textos com halo na cor do fundo, numa camada ACIMA das linhas e dos
+ *     círculos; nenhum texto cobre um círculo ou outro texto.
+ *   - Margens pela largura estimada (medida-texto.js) do maior valor + nome
+ *     à direita e do maior nome à esquerda. Sem espaço: a fonte diminui até
+ *     8 px e depois os números são abreviados (K, M); o valor completo fica
+ *     no tooltip.
+ *   - Curvas: "catmull" (valor salvo em tiles) não ultrapassa mais a faixa
+ *     entre os dois círculos; novo valor "bump" (tangente horizontal).
+ *   - A nota fica na faixa própria do rodapé (5.1c): não encosta no rank
+ *     mais baixo; em tile pequeno ela some.
+ *   - "Nomes também à direita": já existe em "Nomes nas pontas" (Nos dois
+ *     lados / Só à direita).
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -39,7 +56,8 @@ import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom
 import { escalaDePonto } from '../../core/scales.js';
 import { geradorDeLinha, criarMarcadorSvg } from '../../core/shapes.js';
 import { textoLegivelSobre } from '../../core/theme.js';
-import { truncar } from '../../core/format.js';
+import { truncar, criarFormatadorNumerico } from '../../core/format.js';
+import { larguraDoTexto } from '../../core/medida-texto.js';
 import { larguraAproximada } from '../../core/eixos.js';
 import { corDoItem, opacidadeDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
 import { lerRotulos, textoDoRotulo, criarRotuloSvg } from '../../core/rotulos.js';
@@ -47,7 +65,6 @@ import {
   opcoesDeTracado,
   opcoesDinamicasDeSerie,
   lerSerieTemporal,
-  desenharRotulosDosPontos,
   celulaDoPonto,
   textoDoPonto,
   formatadorDaSerie,
@@ -80,6 +97,9 @@ const CSS = `
 /** Acima disso as posições ficam a menos de 10 px e nada é seguível. */
 const MAXIMO_DE_SERIES = 30;
 
+/** Valores de "Posição do valor" (5.6, v3). */
+const POSICOES_DO_VALOR = ['auto', 'lado', 'acima', 'abaixo', 'tooltip'];
+
 export default defineViz({
   id: 'bump_chart',
   label: 'Bump Chart',
@@ -109,6 +129,21 @@ export default defineViz({
           label: 'Número da posição dentro do ponto',
           section: 'Ranking',
           default: true,
+        },
+        // 5.6 (v3): onde o valor do último ponto aparece.
+        posicaoDoValor: {
+          type: 'string',
+          label: 'Posição do valor',
+          section: 'Rótulos',
+          display: 'select',
+          default: 'auto',
+          values: listaDeValores([
+            { rotulo: 'Automática', valor: 'auto' },
+            { rotulo: 'Ao lado do círculo', valor: 'lado' },
+            { rotulo: 'Acima', valor: 'acima' },
+            { rotulo: 'Abaixo', valor: 'abaixo' },
+            { rotulo: 'Só no tooltip', valor: 'tooltip' },
+          ]),
         },
         rotulosNasPontas: {
           type: 'string',
@@ -198,15 +233,77 @@ export default defineViz({
     const modoDosRotulos = rot.mostrar ? config.rotulosNasPontas || 'ambas' : 'nenhum';
     const limiteDoNome = rot.truncar > 0 ? rot.truncar : 20;
     const nomeCurto = (s) => truncar(s.rotulo, limiteDoNome);
-    const maiorNome = series.reduce((a, s) => Math.max(a, larguraAproximada(nomeCurto(s), rot.tamanho)), 0);
-    const margemEsquerda =
-      modoDosRotulos === 'ambas' || modoDosRotulos === 'esquerda' ? maiorNome + 14 : 18;
-    const margemDireita =
-      modoDosRotulos === 'ambas' || modoDosRotulos === 'direita' ? maiorNome + 14 : 18;
-    // O rótulo de valor fica ACIMA do último ponto: a 1ª posição precisa
-    // de espaço para ele abaixo da linha dos períodos.
-    const margemDeCima = fonte + 14 + (rot.mostrar ? rot.tamanho + 2 : 0);
-    const margemDeBaixo = fonte + 14;
+    const nomesEsquerda = modoDosRotulos === 'ambas' || modoDosRotulos === 'esquerda';
+    const nomesDireita = modoDosRotulos === 'ambas' || modoDosRotulos === 'direita';
+    // 5.6 (v3): "Posição do valor" — padrão Automática (ao lado do círculo).
+    const posicaoDoValor = POSICOES_DO_VALOR.includes(config.posicaoDoValor) ? config.posicaoDoValor : 'auto';
+    const comValor = rot.mostrar && posicaoDoValor !== 'tooltip';
+    const valorAoLado = posicaoDoValor === 'auto' || posicaoDoValor === 'lado';
+    const ultimoPeriodo = serie.categorias.length - 1;
+    const totalNoPeriodo = (i) => series.reduce((a, s) => a + (Number.isFinite(s.valores[i]) ? s.valores[i] : 0), 0);
+
+    const raioDoPonto = (Number(config.tamanhoDoPonto) || 12) / 2;
+    const comNumero = config.mostrarPosicao !== false;
+    // O disco é o suporte do número da posição; sem o número, os pontos
+    // seguem "Marcar cada período com um ponto".
+    const desenharPontos = comNumero || config.mostrarPontos === true;
+    const raio = desenharPontos ? raioDoPonto : 2;
+    const FOLGA = 5; // distância fixa entre o círculo e o texto ao lado
+
+    // Dados de cada série, antes das margens (que dependem dos textos).
+    const compacto = criarFormatadorNumerico({ estilo: 'compacto', casas: 1 });
+    series.forEach((s, indice) => {
+      s.cor = corDoItem(config, indice, s.chave);
+      s.posicoes = posicoes[indice];
+      s.formatar = formatadorDaSerie(serie, s, config);
+      s.primeira = s.posicoes.findIndex((p) => p !== null);
+      s.ultima = s.primeira < 0 ? -1 : s.posicoes.length - 1 - [...s.posicoes].reverse().findIndex((p) => p !== null);
+      s.textoDoValor = (abreviar) => {
+        if (s.ultima < 0) return '';
+        const v = s.valores[s.ultima];
+        return textoDoRotulo(rot, {
+          valor: v,
+          nome: s.rotulo,
+          total: s.ultima === ultimoPeriodo ? totalNoPeriodo(s.ultima) : undefined,
+          valueFormat: valueFormatDaSerie(serie, s),
+          // Abreviado (K, M): o valor completo continua no tooltip.
+          textoDoValor: abreviar && Number.isFinite(v) ? compacto(v) : textoDoPonto(ctx, serie.matriz, s.ultima, s, v, s.formatar),
+        });
+      };
+    });
+
+    // ---------- Margens pela largura ESTIMADA dos textos (5.6, v3) ----------
+    // Direita: valor ao lado + nome das séries que chegam ao último período.
+    // Esquerda: o maior nome. Se não couber, reduz a fonte até 8 px e,
+    // depois, abrevia os números (K, M).
+    const peso = { negrito: !!rot.negrito };
+    const direitaNecessaria = (t, abreviar) =>
+      raio +
+      FOLGA +
+      Math.max(
+        0,
+        ...series.map((s) => {
+          if (s.ultima !== ultimoPeriodo) return 0;
+          const v = comValor ? larguraDoTexto(s.textoDoValor(abreviar), t, peso) : 0;
+          const n = nomesDireita ? larguraDoTexto(nomeCurto(s), t, peso) : 0;
+          if (valorAoLado) return v + (v && n ? 2 * FOLGA : 0) + n;
+          return Math.max(n, v / 2 - raio - FOLGA);
+        })
+      ) +
+      4;
+    const esquerdaNecessaria = (t) =>
+      raio + FOLGA + (nomesEsquerda ? Math.max(0, ...series.map((s) => larguraDoTexto(nomeCurto(s), t, peso))) : 0) + 4;
+    let tamanho = rot.tamanho;
+    let abreviar = false;
+    const limite = largura * 0.62;
+    while (direitaNecessaria(tamanho, false) + esquerdaNecessaria(tamanho) > limite && tamanho > 8) tamanho -= 1;
+    if (direitaNecessaria(tamanho, false) + esquerdaNecessaria(tamanho) > limite) abreviar = true;
+    const rotV = Object.assign({}, rot, { tamanho });
+
+    const margemEsquerda = Math.max(raio + 4, esquerdaNecessaria(tamanho));
+    const margemDireita = Math.max(raio + 4, direitaNecessaria(tamanho, abreviar));
+    const margemDeCima = fonte + 8 + raio + 4 + (comValor && posicaoDoValor === 'acima' ? tamanho + 2 : 0);
+    const margemDeBaixo = raio + 4 + (comValor && posicaoDoValor === 'abaixo' ? tamanho + 2 : 0);
 
     const escalaX = escalaDePonto({
       dominio: serie.categorias.map((c) => c.chave),
@@ -216,6 +313,7 @@ export default defineViz({
     const alturaUtil = Math.max(20, altura - margemDeCima - margemDeBaixo);
     const passoY = maiorPosicao > 1 ? alturaUtil / (maiorPosicao - 1) : 0;
     const y = (posicao) => margemDeCima + (posicao - 1) * passoY;
+    const xDe = (i) => escalaX(serie.categorias[i].chave);
 
     const svg = criarSvgEl('svg', {
       pai: area,
@@ -242,32 +340,23 @@ export default defineViz({
       definirTexto(texto, serie.rotuloDaCategoria(categoria));
     });
 
-    // ---------- Linhas ----------
+    // ---------- Camadas: linhas por baixo, círculos, textos por cima ----------
     const curva = config.curvaDaLinha || 'monotone';
     const espessura = Number(config.espessuraDaLinha) || 2.5;
-    const raioDoPonto = (Number(config.tamanhoDoPonto) || 12) / 2;
-    const comNumero = config.mostrarPosicao !== false;
-    // O disco é o suporte do número da posição; sem o número, os pontos
-    // seguem "Marcar cada período com um ponto".
-    const desenharPontos = comNumero || config.mostrarPontos === true;
-
     const grupoDasLinhas = criarSvgEl('g', { pai: svg, classe: 'bp-linhas' });
-    const gruposDeValor = [];
-    const ultimoPeriodo = serie.categorias.length - 1;
-    const totalNoPeriodo = (i) => series.reduce((a, s) => a + (Number.isFinite(s.valores[i]) ? s.valores[i] : 0), 0);
+    const grupoDosPontos = criarSvgEl('g', { pai: svg, classe: 'bp-pontos' });
+    const grupoDosTextos = criarSvgEl('g', { pai: svg, classe: 'bp-textos' });
+    const circulos = [];
 
-    series.forEach((s, indice) => {
-      s.cor = corDoItem(config, indice, s.chave);
-      s.posicoes = posicoes[indice];
-      s.formatar = formatadorDaSerie(serie, s, config);
-
+    series.forEach((s) => {
+      // A linha entra no CENTRO de cada círculo; "catmull" e "bump" não
+      // saem da faixa vertical entre os dois círculos (ver shapes.js).
       const gerador = geradorDeLinha({
-        x: (_, i) => escalaX(serie.categorias[i].chave),
+        x: (_, i) => xDe(i),
         y: (_, i) => y(s.posicoes[i]),
         curva,
         definido: (_, i) => s.posicoes[i] !== null,
       });
-
       s.caminho = criarSvgEl('path', {
         pai: grupoDasLinhas,
         classe: 'bp-linha',
@@ -282,10 +371,12 @@ export default defineViz({
 
       s.marcas = [];
       serie.categorias.forEach((_, i) => {
-        if (s.posicoes[i] === null || !desenharPontos) return;
-        const px = escalaX(serie.categorias[i].chave);
+        if (s.posicoes[i] === null) return;
+        const px = xDe(i);
         const py = y(s.posicoes[i]);
-        const ponto = criarMarcadorSvg(grupoDasLinhas, 'circulo', px, py, raioDoPonto * 2, {
+        circulos.push({ x: px, y: py });
+        if (!desenharPontos) return;
+        const ponto = criarMarcadorSvg(grupoDosPontos, 'circulo', px, py, raioDoPonto * 2, {
           classe: 'bp-ponto',
           fill: s.cor,
           'fill-opacity': opacidade,
@@ -297,8 +388,8 @@ export default defineViz({
 
         if (comNumero && raioDoPonto >= 7) {
           const numero = criarSvgEl('text', {
-            pai: grupoDasLinhas,
-            classe: 'bp-ponto',
+            pai: grupoDosPontos,
+            classe: 'bp-ponto bp-numero',
             atributos: {
               x: px,
               y: py,
@@ -314,70 +405,76 @@ export default defineViz({
           s.marcas.push(numero);
         }
       });
-
-      // --- Nomes nas pontas (estilo do bloco Rótulos) ---
-      const primeira = s.posicoes.findIndex((p) => p !== null);
-      const ultima = s.posicoes.length - 1 - [...s.posicoes].reverse().findIndex((p) => p !== null);
-      const folga = (desenharPontos ? raioDoPonto : 0) + 5;
-
-      const nome = (indiceDoPeriodo, ancora, dx) => {
-        const texto = criarRotuloSvg(svg, rot, {
-          x: escalaX(serie.categorias[indiceDoPeriodo].chave) + dx,
-          y: y(s.posicoes[indiceDoPeriodo]),
-          texto: nomeCurto(s),
-          ancora,
-          corAutomatica: tema.texto,
-        });
-        if (texto) {
-          texto.setAttribute('class', 'bl-rotulo bp-rotulo');
-          s.marcas.push(texto);
-        }
-      };
-      if ((modoDosRotulos === 'ambas' || modoDosRotulos === 'esquerda') && primeira >= 0) {
-        nome(primeira, 'end', -folga);
-      }
-      if ((modoDosRotulos === 'ambas' || modoDosRotulos === 'direita') && primeira >= 0) {
-        nome(ultima, 'start', folga);
-      }
-
-      // --- Valor no último ponto (rótulo de dado) ---
-      // O ranking apaga a magnitude: o valor ao lado da última posição é
-      // a forma mais barata de devolvê-la.
-      if (primeira >= 0) {
-        const v = s.valores[ultima];
-        gruposDeValor.push({
-          cor: s.cor,
-          aoCriar: (el) => s.marcas.push(el),
-          pontos: [
-            {
-              indice: ultima,
-              x: escalaX(serie.categorias[ultima].chave),
-              y: y(s.posicoes[ultima]),
-              texto: textoDoRotulo(rot, {
-                valor: v,
-                nome: s.rotulo,
-                total: ultima === ultimoPeriodo ? totalNoPeriodo(ultima) : undefined,
-                valueFormat: valueFormatDaSerie(serie, s),
-                textoDoValor: textoDoPonto(ctx, serie.matriz, ultima, s, v, s.formatar),
-              }),
-            },
-          ],
-        });
-      }
     });
 
-    desenharRotulosDosPontos({
-      plano: {
-        svg,
-        retangulo: { esquerda: margemEsquerda, largura: Math.max(20, largura - margemDireita - margemEsquerda) },
-      },
-      rot,
-      grupos: gruposDeValor,
-      quantidadeDePeriodos: serie.categorias.length,
-      raio: desenharPontos ? raioDoPonto : 2,
-      quais: 'ultimo',
-      classe: 'bp-valor',
-    });
+    // ---------- Textos: nomes e valores, com halo e anti-colisão ----------
+    const caixas = [];
+    const cabe = (c) => c.x0 >= 0 && c.x1 <= largura && c.y0 >= 0 && c.y1 <= altura;
+    const cruza = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+    const sobreCirculo = (c) =>
+      circulos.some((p) => c.x0 < p.x + raio && c.x1 > p.x - raio && c.y0 < p.y + raio && c.y1 > p.y - raio);
+    const caixaDe = (x, yc, w, ancora) => {
+      const x0 = ancora === 'middle' ? x - w / 2 : ancora === 'end' ? x - w : x;
+      return { x0, x1: x0 + w, y0: yc - tamanho / 2, y1: yc + tamanho / 2 };
+    };
+    /** Coloca um texto se couber, sem cobrir círculo nem outro texto. */
+    const colocar = (s, { x, yc, texto, ancora, classe, extra = {} }) => {
+      if (!texto) return null;
+      const c = caixaDe(x, yc, larguraDoTexto(texto, tamanho, peso), ancora);
+      if (!cabe(c) || sobreCirculo(c) || caixas.some((o) => cruza(o, c))) return null;
+      const el = criarRotuloSvg(grupoDosTextos, rotV, { x, y: yc, texto, ancora, corAutomatica: classe === 'bp-valor' ? s.cor : tema.texto });
+      if (!el) return null;
+      el.setAttribute('class', `bl-rotulo ${classe}`);
+      // Halo na cor do fundo: legível mesmo sobre uma linha.
+      el.setAttribute('stroke', tema.fundo || '#FFFFFF');
+      el.setAttribute('stroke-width', '3');
+      el.setAttribute('stroke-linejoin', 'round');
+      el.setAttribute('paint-order', 'stroke');
+      for (const [k, v] of Object.entries(extra)) el.setAttribute(k, String(v));
+      caixas.push(c);
+      s.marcas.push(el);
+      return el;
+    };
+
+    // Valores primeiro (são a magnitude que o ranking apaga), em ordem de posição.
+    const larguraDoValor = (s) => larguraDoTexto(s.textoDoValor(abreviar), tamanho, peso);
+    if (comValor) {
+      for (const s of [...series].sort((a, b) => (a.posicoes[a.ultima] || 0) - (b.posicoes[b.ultima] || 0))) {
+        if (s.ultima < 0) continue;
+        const cx = xDe(s.ultima);
+        const cy = y(s.posicoes[s.ultima]);
+        const texto = s.textoDoValor(abreviar);
+        const origem = { 'data-cx': cx, 'data-cy': cy };
+        const tentar = (pos) =>
+          pos === 'lado'
+            ? colocar(s, { x: cx + raio + FOLGA, yc: cy, texto, ancora: 'start', classe: 'bp-valor', extra: { ...origem, 'data-posicao': 'lado' } })
+            : colocar(s, {
+              x: cx,
+              yc: pos === 'acima' ? cy - raio - tamanho / 2 - 2 : cy + raio + tamanho / 2 + 2,
+              texto,
+              ancora: 'middle',
+              classe: 'bp-valor',
+              extra: { ...origem, 'data-posicao': pos },
+            });
+        if (posicaoDoValor === 'auto') tentar('lado') || tentar('acima') || tentar('abaixo');
+        else tentar(posicaoDoValor);
+      }
+    }
+
+    // Nomes nas pontas (estilo do bloco Rótulos). À direita, depois do valor.
+    for (const s of series) {
+      if (s.primeira < 0) continue;
+      if (nomesEsquerda) {
+        colocar(s, { x: xDe(s.primeira) - raio - FOLGA, yc: y(s.posicoes[s.primeira]), texto: nomeCurto(s), ancora: 'end', classe: 'bp-rotulo' });
+      }
+      if (nomesDireita) {
+        const valorDoLado = comValor && valorAoLado ? larguraDoValor(s) + 2 * FOLGA : 0;
+        const x = xDe(s.ultima) + raio + FOLGA;
+        // Primeiro depois do valor; se o valor não coube ao lado, encostado no círculo.
+        colocar(s, { x: x + valorDoLado, yc: y(s.posicoes[s.ultima]), texto: nomeCurto(s), ancora: 'start', classe: 'bp-rotulo' }) ||
+          colocar(s, { x, yc: y(s.posicoes[s.ultima]), texto: nomeCurto(s), ancora: 'start', classe: 'bp-rotulo' });
+      }
+    }
 
     // ---------- Nota ----------
     const nota = ctx.nota; // 5.1c: texto automático da nota

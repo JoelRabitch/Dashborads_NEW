@@ -120,3 +120,9 @@ real antes de considerar resolvido.
   - [ ] Percorra os 9: Tabela, Cartões, Lista de app, Transposta, Planilha (letras A, B, C… e números de linha), Relatório financeiro (com "Agrupar linhas por": faixas, subtotais em negrito, total com linha dupla), Ranking (barras ao fundo dos números), Mestre e detalhe (clique na lista à esquerda), Seções.
   - [ ] Em cada um, com 500 linhas: busca, "Ordenar por" (ou clique no cabeçalho), seleção e rolagem rápida sem animação nem tela em branco.
   - [ ] Cartões: "Campos do cartão/lista" e "Cartões por linha". Seções: "Seções (Título: col1, col2; …)". Os temas de cor continuam valendo.
+- **5.6 bump_chart**
+  - [ ] Tile com ~11 séries e ~7 períodos, rótulos de valor ligados (com percentual): cada valor aparece AO LADO do seu círculo, na mesma altura, por cima das linhas (com contorno da cor do fundo).
+  - [ ] A última coluna não encosta na borda direita; nenhum valor ou nome fica sobre um círculo.
+  - [ ] A linha do rank mais baixo não encosta na nota (a nota está numa faixa própria embaixo).
+  - [ ] Com "Suavização da linha" = Catmull-Rom (valor salvo no tile), as curvas não fazem mais "ondas" entre colunas; teste também "Bump (horizontal nas pontas)".
+  - [ ] "Posição do valor" = Acima / Abaixo / Só no tooltip. Num tile estreito, a fonte diminui e os números viram 1.2M (o valor completo fica no tooltip).

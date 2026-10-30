@@ -4218,17 +4218,11 @@
     };
   }
 
-  // node_modules/d3-shape/src/math.js
-  var epsilon = 1e-12;
-  var pi = Math.PI;
-  var halfPi = pi / 2;
-  var tau = 2 * pi;
-
   // node_modules/d3-path/src/path.js
-  var pi2 = Math.PI;
-  var tau2 = 2 * pi2;
-  var epsilon2 = 1e-6;
-  var tauEpsilon = tau2 - epsilon2;
+  var pi = Math.PI;
+  var tau = 2 * pi;
+  var epsilon = 1e-6;
+  var tauEpsilon = tau - epsilon;
   function append(strings) {
     this._ += strings[0];
     for (let i = 1, n = strings.length; i < n; ++i) {
@@ -4278,12 +4272,12 @@
       let x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
       if (this._x1 === null) {
         this._append`M${this._x1 = x1},${this._y1 = y1}`;
-      } else if (!(l01_2 > epsilon2)) ;
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon2) || !r) {
+      } else if (!(l01_2 > epsilon)) ;
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
         this._append`L${this._x1 = x1},${this._y1 = y1}`;
       } else {
-        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi2 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
-        if (Math.abs(t01 - 1) > epsilon2) {
+        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
+        if (Math.abs(t01 - 1) > epsilon) {
           this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
         }
         this._append`A${r},${r},0,0,${+(y01 * x20 > x01 * y20)},${this._x1 = x1 + t21 * x21},${this._y1 = y1 + t21 * y21}`;
@@ -4295,15 +4289,15 @@
       let dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x2 + dx, y0 = y2 + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
       if (this._x1 === null) {
         this._append`M${x0},${y0}`;
-      } else if (Math.abs(this._x1 - x0) > epsilon2 || Math.abs(this._y1 - y0) > epsilon2) {
+      } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
         this._append`L${x0},${y0}`;
       }
       if (!r) return;
-      if (da < 0) da = da % tau2 + tau2;
+      if (da < 0) da = da % tau + tau;
       if (da > tauEpsilon) {
         this._append`A${r},${r},0,1,${cw},${x2 - dx},${y2 - dy}A${r},${r},0,1,${cw},${this._x1 = x0},${this._y1 = y0}`;
-      } else if (da > epsilon2) {
-        this._append`A${r},${r},0,${+(da >= pi2)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
+      } else if (da > epsilon) {
+        this._append`A${r},${r},0,${+(da >= pi)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
       }
     }
     rect(x2, y2, w, h) {
@@ -4420,6 +4414,50 @@
       return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
     };
     return line;
+  }
+
+  // node_modules/d3-shape/src/curve/bump.js
+  var Bump = class {
+    constructor(context, x2) {
+      this._context = context;
+      this._x = x2;
+    }
+    areaStart() {
+      this._line = 0;
+    }
+    areaEnd() {
+      this._line = NaN;
+    }
+    lineStart() {
+      this._point = 0;
+    }
+    lineEnd() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    }
+    point(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0: {
+          this._point = 1;
+          if (this._line) this._context.lineTo(x2, y2);
+          else this._context.moveTo(x2, y2);
+          break;
+        }
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._x) this._context.bezierCurveTo(this._x0 = (this._x0 + x2) / 2, this._y0, this._x0, y2, x2, y2);
+          else this._context.bezierCurveTo(this._x0, this._y0 = (this._y0 + y2) / 2, x2, this._y0, x2, y2);
+          break;
+        }
+      }
+      this._x0 = x2, this._y0 = y2;
+    }
+  };
+  function bumpX(context) {
+    return new Bump(context, true);
   }
 
   // node_modules/d3-shape/src/curve/basis.js
@@ -4555,85 +4593,6 @@
     return cardinal;
   })(0);
 
-  // node_modules/d3-shape/src/curve/catmullRom.js
-  function point3(that, x2, y2) {
-    var x1 = that._x1, y1 = that._y1, x22 = that._x2, y22 = that._y2;
-    if (that._l01_a > epsilon) {
-      var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
-      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
-      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
-    }
-    if (that._l23_a > epsilon) {
-      var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
-      x22 = (x22 * b + that._x1 * that._l23_2a - x2 * that._l12_2a) / m;
-      y22 = (y22 * b + that._y1 * that._l23_2a - y2 * that._l12_2a) / m;
-    }
-    that._context.bezierCurveTo(x1, y1, x22, y22, that._x2, that._y2);
-  }
-  function CatmullRom(context, alpha) {
-    this._context = context;
-    this._alpha = alpha;
-  }
-  CatmullRom.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x2, this._y2);
-          break;
-        case 3:
-          this.point(this._x2, this._y2);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      if (this._point) {
-        var x23 = this._x2 - x2, y23 = this._y2 - y2;
-        this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
-      }
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-        // falls through
-        default:
-          point3(this, x2, y2);
-          break;
-      }
-      this._l01_a = this._l12_a, this._l12_a = this._l23_a;
-      this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a;
-      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x2;
-      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y2;
-    }
-  };
-  var catmullRom_default = (function custom2(alpha) {
-    function catmullRom(context) {
-      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
-    }
-    catmullRom.alpha = function(alpha2) {
-      return custom2(+alpha2);
-    };
-    return catmullRom;
-  })(0.5);
-
   // node_modules/d3-shape/src/curve/monotone.js
   function sign(x2) {
     return x2 < 0 ? -1 : 1;
@@ -4646,7 +4605,7 @@
     var h = that._x1 - that._x0;
     return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
   }
-  function point4(that, t0, t1) {
+  function point3(that, t0, t1) {
     var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
     that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
   }
@@ -4670,7 +4629,7 @@
           this._context.lineTo(this._x1, this._y1);
           break;
         case 3:
-          point4(this, this._t0, slope2(this, this._t0));
+          point3(this, this._t0, slope2(this, this._t0));
           break;
       }
       if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
@@ -4690,10 +4649,10 @@
           break;
         case 2:
           this._point = 3;
-          point4(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
+          point3(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
           break;
         default:
-          point4(this, this._t0, t1 = slope3(this, x2, y2));
+          point3(this, this._t0, t1 = slope3(this, x2, y2));
           break;
       }
       this._x0 = this._x1, this._x1 = x2;
@@ -4838,12 +4797,57 @@
   }
 
   // src/core/shapes.js
+  function CatmullLimitada(contexto) {
+    this._context = contexto;
+  }
+  CatmullLimitada.prototype = {
+    areaStart() {
+      this._line = 0;
+    },
+    areaEnd() {
+      this._line = NaN;
+    },
+    lineStart() {
+      this._pontos = [];
+    },
+    point(x2, y2) {
+      this._pontos.push([+x2, +y2]);
+    },
+    lineEnd() {
+      const p = this._pontos;
+      const n = p.length;
+      const c = this._context;
+      if (n) {
+        if (this._line) c.lineTo(p[0][0], p[0][1]);
+        else c.moveTo(p[0][0], p[0][1]);
+        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = p[i - 1] || p[i];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = p[i + 2] || p2;
+          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
+          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
+          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
+          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
+          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) c.closePath();
+      this._line = 1 - this._line;
+    }
+  };
+  function curvaCatmullLimitada(contexto) {
+    return new CatmullLimitada(contexto);
+  }
   var CURVAS = {
     linear: linear_default,
     monotone: monotoneX,
     monotoneY,
     basis: basis_default2,
-    catmull: catmullRom_default.alpha(0.5),
+    catmull: curvaCatmullLimitada,
+    // "bump" (v3, 5.6): tangente horizontal nas duas pontas, sem overshoot.
+    bump: bumpX,
     cardinal: cardinal_default,
     natural: natural_default,
     step: step_default,
@@ -5686,7 +5690,7 @@
     };
     return scale;
   }
-  function point5() {
+  function point4() {
     return pointish(band.apply(null, arguments).paddingInner(1));
   }
 
@@ -6060,7 +6064,7 @@
     return escala;
   }
   function escalaDePonto({ dominio, intervalo, preenchimento = 0.5 }) {
-    return point5().domain(dominio).range(intervalo).padding(preenchimento);
+    return point4().domain(dominio).range(intervalo).padding(preenchimento);
   }
   function ticksDoEixo(escala, quantidadeAlvo = 5) {
     if (typeof escala.ticks === "function") return escala.ticks(quantidadeAlvo);
@@ -6329,7 +6333,8 @@
           { rotulo: "Suave sem ultrapassar (monotone)", valor: "monotone" },
           { rotulo: "Reta", valor: "linear" },
           { rotulo: "Degraus", valor: "stepAfter" },
-          { rotulo: "Catmull-Rom", valor: "catmull" }
+          { rotulo: "Catmull-Rom", valor: "catmull" },
+          { rotulo: "Bump (horizontal nas pontas)", valor: "bump" }
         ])
       },
       espessuraDaLinha: {

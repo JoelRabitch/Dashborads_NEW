@@ -306,6 +306,15 @@
     "dinamica": false
   },
   {
+    "id": "posicaoDoValor",
+    "label": "Rótulo · Posição do valor",
+    "rotuloCompleto": "Rótulo · Posição do valor",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
     "id": "rotulosNasPontas",
     "label": "Rótulo · Nomes nas pontas",
     "rotuloCompleto": "Rótulo · Nomes nas pontas",

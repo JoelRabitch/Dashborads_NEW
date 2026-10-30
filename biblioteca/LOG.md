@@ -3311,3 +3311,30 @@ PRÓXIMA AÇÃO: 5.5 (layouts da tabela).
 - Teste `test/tabela_layouts_v3.test.mjs` (500×50, 9 layouts). 862/862.
 
 PRÓXIMA AÇÃO: FASE 3 — 5.6 (bump_chart: alinhamento).
+
+### 5.6 bump_chart: alinhamento (concluído em código; conferir no Looker real)
+- Causas lidas no código: (1) o valor do último ponto ia ACIMA do ponto
+  (dy = −(raio + tamanho/2 + 3)) por `desenharRotulosDosPontos`, com
+  âncora "end" perto da borda — por isso ficava "solto"; (2) margens só
+  consideravam os nomes, nunca o rótulo de valor; nomes de séries que
+  terminam antes caíam sobre os círculos da coluna seguinte (reproduzido
+  num tile de 560 px); (3) `curveCatmullRom.alpha(.5)` do d3 faz overshoot;
+  (4) a nota era absoluta sobre a área (resolvido pela 5.1c).
+- Testes primeiro: `test/bump_v3.test.mjs` com fixture sintética
+  `bumpLongo` (11×7, 5 séries nos 2 últimos, valores grandes, valor+%):
+  (a) rótulo na altura do centro, deslocamento fixo, acima das linhas, com
+  halo; (b) tudo dentro do SVG e nenhum texto sobre círculo/outro texto
+  (900×560 e 560×380, 4 configurações); (c) rank mais baixo × nota;
+  (d) nenhuma curva fora da faixa entre os círculos (catmull, bump,
+  monotone). (a), (b) e (d) falhavam antes.
+- Correção: bloco de margens/camadas/rótulos reescrito no bump_chart;
+  opção nova `posicaoDoValor` (padrão "auto"); `shapes.js`: "catmull"
+  limitado (pontos de controle presos à faixa do trecho, mesmo nome do
+  valor) e valor novo "bump" (`d3.curveBumpX`, existe no d3-shape 3.2.0),
+  também listado em "Suavização da linha" dos outros gráficos de série.
+- A correção do catmull vale para TODOS os gráficos que oferecem o valor
+  (é defeito de código, 4.1).
+- Opcional "Nomes também à direita": já coberto por "Nomes nas pontas".
+- 867/867; segurança ok.
+
+PRÓXIMA AÇÃO: 5.7 (diagrama_venn: layout e hover).

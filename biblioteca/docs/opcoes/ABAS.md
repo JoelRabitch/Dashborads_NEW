@@ -2276,6 +2276,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `conteudoDoRotulo` | Texto | Texto | Rótulo · O que mostrar no rótulo |  |
 | `formatoDoRotulo` | Texto | Texto | Rótulo · Formato do número no rótulo |  |
 | `casasDecimaisDoRotulo` | Texto | Texto | Rótulo · Casas decimais no rótulo |  |
+| `posicaoDoValor` ★ | — | Texto | Rótulo · Posição do valor |  |
 | `rotulosNasPontas` | Texto | Texto | Rótulo · Nomes nas pontas |  |
 | `titulo` | Texto | Texto | Título · Título |  |
 | `subtitulo` | Texto | Texto | Título · Subtítulo |  |

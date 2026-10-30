@@ -22,6 +22,7 @@ var FIXTURES_BL = (() => {
   __export(index_exports, {
     FIXTURES: () => FIXTURES,
     FIXTURES_BASICAS: () => FIXTURES_BASICAS,
+    bumpLongo: () => bumpLongo,
     campoDimensao: () => campoDimensao,
     campoMedida: () => campoMedida,
     celula: () => celula,
@@ -490,6 +491,33 @@ var FIXTURES_BL = (() => {
     }));
     return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
   }
+  function bumpLongo() {
+    const rng = criarRng(53);
+    const dimensoes = [campoDimensao("periodo", "Per\xEDodo"), campoDimensao("serie", "S\xE9rie")];
+    const medidas = [campoMedida("valor", "Valor", { valueFormat: "#,##0.00" })];
+    const nomes = [
+      "Alfa Norte",
+      "Beta Sul",
+      "Gama Centro",
+      "Delta Leste",
+      "\xC9psilon Oeste",
+      "Zeta Litoral",
+      "Eta Serra",
+      "Teta Vale",
+      "Iota Planalto",
+      "Capa Interior",
+      "Lambda Capital"
+    ];
+    const data = [];
+    for (let p = 0; p < 7; p++) {
+      nomes.forEach((nome, s) => {
+        if (p >= 5 && s >= 5) return;
+        const v = Math.round((15e4 + rng() * 9e5) * 100) / 100;
+        data.push({ periodo: celula(`Semana ${p + 1}`), serie: celula(nome), valor: celula(v, v.toLocaleString("en-US", { minimumFractionDigits: 2 })) });
+      });
+    }
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
   var FIXTURES = {
     semPivo: () => semPivo(),
     semPivoSemNulos: () => semPivo({ comNulos: false }),
@@ -513,6 +541,7 @@ var FIXTURES_BL = (() => {
     grande5k: () => volumeGrande({ linhas: 5e3 }),
     tabelaLarga: () => tabelaLarga(),
     codigosSinteticos: () => codigosSinteticos(),
+    bumpLongo: () => bumpLongo(),
     grande50k: () => volumeGrande({ linhas: 5e4 })
   };
   var FIXTURES_BASICAS = [
