@@ -166,5 +166,5 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [ ] 5.14i (opcional) Cardápio, Comanda, vapor
 
 ### FASE 6 — fechamento
-- [ ] 5.15 Build, testes, tag v3.N, URLs, docs, relatório
+- [x] 5.15 Build, testes, tag v3.N, URLs, docs, relatório
 - [x] 5.15b Portabilidade do repositório

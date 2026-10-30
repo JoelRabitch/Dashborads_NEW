@@ -3530,3 +3530,16 @@ relatório.
   tabela de opções salvas, ids novos, o que não foi possível).
 - Tag: nenhuma `v3.*` existia → `v3.1` no último commit que alterou
   `biblioteca/dist` (4a715c1); URLs geradas depois, em commit separado.
+- `git push origin v3.1` feito; `git ls-remote --tags origin` mostra
+  `refs/tags/v3.1` → 4a715c13b49b6cbf15040218efa1e30e0f200988; `git ls-tree
+  v3.1 biblioteca/dist/` tem os 23 bundles. `npm run urls -- v3.1` gerou
+  URLS.md/URLS.csv (principal @v3.1, alternativa @hash), em commit separado.
+- Pendência fora do repositório: na sessão anterior foi criado por engano
+  um arquivo `placeholder.txt` (conteúdo "x") numa pasta `JOELRA~1` na
+  raiz do disco C:. A remoção foi bloqueada pela proteção do ambiente;
+  o usuário pode apagá-lo.
+
+TODAS AS TAREFAS DA V3 CONCLUÍDAS, exceto 5.14i (opcional, não feito).
+PRÓXIMA AÇÃO: nenhuma no agente. O usuário confere
+`docs/TESTE_NO_LOOKER.md` (seção Melhorias v3) e lê
+`docs/RELATORIO_MELHORIAS.md`.

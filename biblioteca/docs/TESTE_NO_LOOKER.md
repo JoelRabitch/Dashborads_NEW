@@ -161,3 +161,5 @@ real antes de considerar resolvido.
   - [ ] Aba Estilo → "Tema · Pacote temático" = Café (padrão): paletas "Café · Espresso/Latte/Caramelo/Crema/Mocha", escalas "Café · Torra", formas Xícara/Grão/Copo em "Forma do ponto", ícones do Café no kpi_vivo ("Ícone"), no cartão, na tabela (tipo "Ícone por valor") e nos nós (Ícone por valor · Mapa).
   - [ ] "Pacote temático" = Nenhum: as listas param de mostrar os itens do Café (o painel é registrado de novo só nessa troca); um tile que já usava uma paleta do Café continua com ela.
   - [ ] "Estilo do ícone" = Preenchido. "Meta em xícara" no kpi_vivo (com meta); tipo "Progresso em xícara" no cartão e na tabela.
+- **5.15 URLs da v3.1**
+  - [ ] Abra uma URL principal de `dist/URLS.md` (com `@v3.1`) no navegador: o arquivo carrega. Se não carregar, use a alternativa (com o hash). Troque o Main de cada visualização e cadastre o `cartao_multivalor`.
