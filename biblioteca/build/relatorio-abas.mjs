@@ -17,12 +17,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const RAIZ = resolve(__dirname, '..');
 
 const linhas = [];
-linhas.push('# Abas do painel — antes e depois (módulo 2.8)');
+linhas.push('# Abas do painel e rótulos — antes e depois (2.8 e melhorias v3, 5.1b)');
 linhas.push('');
 linhas.push(`Gerado por \`build/relatorio-abas.mjs\`. Abas novas, nesta ordem: **${ABAS.join(' · ')}**.`);
+linhas.push('');
+linhas.push('O editor do Looker costuma mostrar as abas em ordem ALFABÉTICA (Dados · Estilo · Mais · Texto). As opções de eixo ficam na aba **Texto**; interação, tooltip, animação e avançado ficam em **Mais**.');
+linhas.push('');
+linhas.push('Os rótulos do painel têm no máximo 30 caracteres (liga/desliga) ou 40 (demais). A coluna "explicação" traz o rótulo original completo — é a ajuda de cada opção, já que a API de opções do Looker não tem campo de texto de ajuda.');
 if (JUNTAR_EIXOS_E_TEXTO) {
-  linhas.push('');
-  linhas.push('As opções de eixo ficam na aba **Texto** (Eixos e Texto juntas para caber na barra do editor).');
+  /* mantido por compatibilidade */
 }
 linhas.push('');
 linhas.push('Nenhuma opção foi removida nem teve id, tipo ou default alterado (conferido por `test/opcoes.test.mjs`).');
@@ -42,13 +45,14 @@ for (const g of lerRegistro()) {
   linhas.push('');
   linhas.push('<details><summary>Destino de cada opção</summary>');
   linhas.push('');
-  linhas.push('| id | aba antes | aba depois | rótulo no painel |');
-  linhas.push('|---|---|---|---|');
+  linhas.push('| id | aba antes | aba depois | rótulo no painel | explicação (rótulo completo) |');
+  linhas.push('|---|---|---|---|---|');
   for (const o of agora) {
     const a = antesPorId.get(o.id);
     const marca = a ? '' : ' ★';
     const rotulo = String(o.label || '').replace(/\|/g, '\\|');
-    linhas.push(`| \`${o.id}\`${marca} | ${a ? a.section : '—'} | ${o.section} | ${rotulo} |`);
+    const completo = String(o.rotuloCompleto || o.label || '').replace(/\|/g, '\\|');
+    linhas.push(`| \`${o.id}\`${marca} | ${a ? a.section : '—'} | ${o.section} | ${rotulo} | ${completo === rotulo ? '' : completo} |`);
   }
   linhas.push('');
   linhas.push('</details>');

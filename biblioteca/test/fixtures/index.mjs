@@ -51,7 +51,7 @@ export function campoMedida(nome, rotulo, extras = {}) {
   };
 }
 
-function montarQueryResponse({ dimensoes = [], medidas = [], tableCalcs = [], pivots = [], pivotsDeDados = null }) {
+export function montarQueryResponse({ dimensoes = [], medidas = [], tableCalcs = [], pivots = [], pivotsDeDados = null }) {
   return {
     fields: {
       dimensions: dimensoes,
@@ -430,6 +430,121 @@ export function rotulosLongos({ linhas = 10 } = {}) {
   return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
 }
 
+/**
+ * Tabela larga (melhorias v3, 5.2): 500 linhas × 50 colunas (2 dimensões +
+ * 48 medidas), códigos sintéticos. Usada nos testes de rolagem.
+ */
+export function tabelaLarga({ linhas = 500, medidas: quantasMedidas = 48, semente = 11 } = {}) {
+  const rng = criarRng(semente);
+  const dimensoes = [campoDimensao('codigo', 'Código'), campoDimensao('grupo', 'Grupo')];
+  const medidas = [];
+  for (let m = 0; m < quantasMedidas; m++) medidas.push(campoMedida(`m${m}`, `Medida ${m + 1}`));
+  const data = new Array(linhas);
+  for (let i = 0; i < linhas; i++) {
+    const linha = {
+      codigo: celula(`ABC${String(i).padStart(4, '0')}XX`),
+      grupo: celula(`Grupo ${String.fromCharCode(65 + (i % 6))}`),
+    };
+    for (let m = 0; m < quantasMedidas; m++) linha[`m${m}`] = celula(Math.round(rng() * 10000) / 10);
+    data[i] = linha;
+  }
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
+/**
+ * Códigos de produto sintéticos (melhorias v3, 5.3 e 5.4): texto com o
+ * termo no começo, no meio e no fim, acentos e uma quantidade numérica.
+ */
+export function codigosSinteticos() {
+  const dimensoes = [campoDimensao('codigo', 'Código'), campoDimensao('descricao', 'Descrição')];
+  const medidas = [campoMedida('qty', 'Quantidade'), campoMedida('preco', 'Preço')];
+  const linhas = [
+    ['ABCBLACKXX', 'Caneca preta', 5, 10.5],
+    ['ABCWHITEBR', 'Caneca branca', 12, 11],
+    ['XYZBLACKBR', 'Copo preto térmico', 31, 25],
+    ['QRSKRAFTXX', 'Pacote kraft', 55, 3.2],
+    ['BLACKQRS01', 'Coador de papel', 70, 8],
+    ['MNOGREENBR', 'Açúcar orgânico', 0, 4.75],
+  ];
+  const data = linhas.map(([codigo, descricao, qty, preco]) => ({
+    codigo: celula(codigo),
+    descricao: celula(descricao),
+    qty: celula(qty),
+    preco: celula(preco, `$${preco.toFixed(2)}`),
+  }));
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
+/**
+ * Bump chart como o do print relatado (melhorias v3, 5.6), sintético:
+ * 11 séries × 7 períodos; só 5 séries têm dado nos DOIS últimos períodos;
+ * valores grandes com decimais (rótulos com percentual ficam longos).
+ */
+export function bumpLongo() {
+  const rng = criarRng(53);
+  const dimensoes = [campoDimensao('periodo', 'Período'), campoDimensao('serie', 'Série')];
+  const medidas = [campoMedida('valor', 'Valor', { valueFormat: '#,##0.00' })];
+  const nomes = ['Alfa Norte', 'Beta Sul', 'Gama Centro', 'Delta Leste', 'Épsilon Oeste', 'Zeta Litoral',
+    'Eta Serra', 'Teta Vale', 'Iota Planalto', 'Capa Interior', 'Lambda Capital'];
+  const data = [];
+  for (let p = 0; p < 7; p++) {
+    nomes.forEach((nome, s) => {
+      if (p >= 5 && s >= 5) return; // só 5 séries nos dois últimos períodos
+      const v = Math.round((150000 + rng() * 900000) * 100) / 100;
+      data.push({ periodo: celula(`Semana ${p + 1}`), serie: celula(nome), valor: celula(v, v.toLocaleString('en-US', { minimumFractionDigits: 2 })) });
+    });
+  }
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
+/**
+ * Cartão Multi-Valores (melhorias v3, 5.14), sintético: uma linha com
+ * dimensões de texto e medidas (inclui zero e nulo).
+ */
+export function cartaoUnico() {
+  const dimensoes = [campoDimensao('cliente', 'Cliente'), campoDimensao('nivel', 'Nível')];
+  const medidas = [
+    campoMedida('visitas', 'Visitas'),
+    campoMedida('compras', 'Compras'),
+    campoMedida('trocas', 'Trocas'),
+    campoMedida('nota', 'Nota', { valueFormat: '0.0' }),
+    campoMedida('estornos', 'Estornos'),
+    campoMedida('pendentes', 'Pendentes'),
+  ];
+  const data = [
+    {
+      cliente: celula('Cliente Exemplo 01'),
+      nivel: celula('Nível 2', 'Nível 2', [{ label: 'Detalhar', url: '/explore/x', type: 'drill' }]),
+      visitas: celula(6),
+      compras: celula(3),
+      trocas: celula(1),
+      nota: celula(8.7, '8.7'),
+      estornos: celula(0, '0.0'),
+      pendentes: celula(null),
+    },
+    { cliente: celula('Cliente Exemplo 02'), nivel: celula('Nível 1'), visitas: celula(4), compras: celula(2), trocas: celula(0), nota: celula(6.2, '6.2'), estornos: celula(1), pendentes: celula(2) },
+  ];
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
+/** Grade de cartões: uma linha por cliente sintético. */
+export function cartaoGrade({ linhas = 8 } = {}) {
+  const rng = criarRng(71);
+  const dimensoes = [campoDimensao('cliente', 'Cliente')];
+  const medidas = [campoMedida('visitas', 'Visitas'), campoMedida('compras', 'Compras'), campoMedida('nota', 'Nota', { valueFormat: '0.0' })];
+  const data = [];
+  for (let i = 0; i < linhas; i++) {
+    const n = Math.round(rng() * 100) / 10;
+    data.push({
+      cliente: celula(`Cliente Exemplo ${String(i + 1).padStart(2, '0')}`),
+      visitas: celula(Math.round(rng() * 20)),
+      compras: celula(Math.round(rng() * 10)),
+      nota: celula(n, n.toFixed(1)),
+    });
+  }
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
 /** Catálogo nomeado, usado pelo harness e pelo smoke test. */
 export const FIXTURES = {
   semPivo: () => semPivo(),
@@ -452,6 +567,11 @@ export const FIXTURES = {
   somenteNulos: () => somenteNulos(),
   rotulosLongos: () => rotulosLongos(),
   grande5k: () => volumeGrande({ linhas: 5000 }),
+  tabelaLarga: () => tabelaLarga(),
+  codigosSinteticos: () => codigosSinteticos(),
+  bumpLongo: () => bumpLongo(),
+  cartaoUnico: () => cartaoUnico(),
+  cartaoGrade: () => cartaoGrade(),
   grande50k: () => volumeGrande({ linhas: 50000 }),
 };
 

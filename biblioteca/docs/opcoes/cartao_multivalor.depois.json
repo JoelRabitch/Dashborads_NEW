@@ -1,0 +1,2180 @@
+[
+  {
+    "id": "valorDoCabecalho",
+    "label": "Topo · Valor do topo",
+    "rotuloCompleto": "Topo · Valor do topo",
+    "section": "Dados",
+    "type": "string",
+    "default": "soma",
+    "dinamica": false
+  },
+  {
+    "id": "camposDoCabecalho",
+    "label": "Topo · Campos (vazio = medidas)",
+    "rotuloCompleto": "Topo · Campos (vazio = medidas)",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "formulaDoCabecalho",
+    "label": "Topo · Fórmula",
+    "rotuloCompleto": "Topo · Fórmula",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "formatoDoCabecalho",
+    "label": "Topo · Formato",
+    "rotuloCompleto": "Topo · Formato",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "casasDoCabecalho",
+    "label": "Topo · Casas decimais",
+    "rotuloCompleto": "Topo · Casas decimais",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "subtituloDoCabecalho",
+    "label": "Topo · Subtítulo",
+    "rotuloCompleto": "Topo · Subtítulo",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "textoDoSubtituloMV",
+    "label": "Topo · Texto do subtítulo",
+    "rotuloCompleto": "Topo · Texto do subtítulo",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoValorGrande",
+    "label": "Topo · Tamanho do valor (px, 0=auto)",
+    "rotuloCompleto": "Topo · Tamanho do valor (px, 0=auto)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tema",
+    "label": "Tema · Tema",
+    "rotuloCompleto": "Tema · Tema",
+    "section": "Estilo",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundo",
+    "label": "Cor · Cor de fundo (vazio = do tema)",
+    "rotuloCompleto": "Cor · Cor de fundo (vazio = do tema)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTexto",
+    "label": "Cor · Cor do texto (tema personalizado)",
+    "rotuloCompleto": "Cor · Cor do texto (tema personalizado)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBorda",
+    "label": "Cor · Cor das bordas",
+    "rotuloCompleto": "Cor · Cor das bordas (tema personalizado)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaGrade",
+    "label": "Cor · Cor das linhas de grade",
+    "rotuloCompleto": "Cor · Cor das linhas de grade (tema personalizado)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "familiaDaFonte",
+    "label": "Tema · Fonte",
+    "rotuloCompleto": "Tema · Fonte",
+    "section": "Estilo",
+    "type": "string",
+    "default": "sistema",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaFonte",
+    "label": "Tema · Tamanho base da fonte (px)",
+    "rotuloCompleto": "Tema · Tamanho base da fonte (px)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "estiloDoIcone",
+    "label": "Tema · Estilo do ícone",
+    "rotuloCompleto": "Tema · Estilo do ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "contorno",
+    "dinamica": false
+  },
+  {
+    "id": "modoDoCartao",
+    "label": "Cartão · Modo",
+    "rotuloCompleto": "Cartão · Modo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "unico",
+    "dinamica": false
+  },
+  {
+    "id": "faixasMV",
+    "label": "Faixas · Faixas",
+    "rotuloCompleto": "Faixas · Faixas (Nome|mín|máx|cor|ícone; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundoMV",
+    "label": "Cartão · Fundo do cartão (vazio = tema)",
+    "rotuloCompleto": "Cartão · Fundo do cartão (vazio = tema)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "colunasDaGradeMV",
+    "label": "Cartão · Colunas da grade (0 = auto)",
+    "rotuloCompleto": "Cartão · Colunas da grade (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "campoDasFaixas",
+    "label": "Faixas · Campo das faixas (vazio = topo)",
+    "rotuloCompleto": "Faixas · Campo das faixas (vazio = topo)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "bordaMV",
+    "label": "Cartão · Borda do cartão",
+    "rotuloCompleto": "Cartão · Borda do cartão",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "espacoDaGradeMV",
+    "label": "Cartão · Espaço entre cartões (px)",
+    "rotuloCompleto": "Cartão · Espaço entre cartões (px)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSeloDaFaixa",
+    "label": "Faixas · Selo da faixa",
+    "rotuloCompleto": "Faixas · Selo da faixa",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "corDaBordaMV",
+    "label": "Cartão · Cor da borda (vazio = tema)",
+    "rotuloCompleto": "Cartão · Cor da borda (vazio = tema)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "layoutDosItens",
+    "label": "Cartão · Layout dos itens",
+    "rotuloCompleto": "Cartão · Layout dos itens",
+    "section": "Estilo",
+    "type": "string",
+    "default": "pilha",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarLegendaDasFaixas",
+    "label": "Faixas · Legenda das faixas",
+    "rotuloCompleto": "Faixas · Legenda das faixas",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "sombraMV",
+    "label": "Cartão · Sombra do cartão",
+    "rotuloCompleto": "Cartão · Sombra do cartão",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "colunasDosItens",
+    "label": "Cartão · Colunas dos itens (grade)",
+    "rotuloCompleto": "Cartão · Colunas dos itens (grade)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "raioMV",
+    "label": "Cartão · Arredondamento (px)",
+    "rotuloCompleto": "Cartão · Arredondamento (px)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 10,
+    "dinamica": false
+  },
+  {
+    "id": "divisoriasMV",
+    "label": "Divisórias entre blocos",
+    "rotuloCompleto": "Cartão · Divisórias entre blocos",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "fonteMV",
+    "label": "Cartão · Fonte",
+    "rotuloCompleto": "Cartão · Fonte",
+    "section": "Estilo",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "secoesRecolhiveisMV",
+    "label": "Cartão · Seções recolhíveis",
+    "rotuloCompleto": "Cartão · Seções recolhíveis",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "ajustarAoTileMV",
+    "label": "Ajustar ao tamanho do tile",
+    "rotuloCompleto": "Cartão · Ajustar ao tamanho do tile",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mapaDeIconesPorValor",
+    "label": "Cartão · Mapa (valor=ícone; …)",
+    "rotuloCompleto": "Cartão · Mapa (valor=ícone; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "iconePadraoPorValor",
+    "label": "Cartão · Ícone padrão",
+    "rotuloCompleto": "Cartão · Ícone padrão",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": false
+  },
+  {
+    "id": "coresPorValor",
+    "label": "Cartão · Cores (valor=#cor; …)",
+    "rotuloCompleto": "Cartão · Cores (valor=#cor; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "campoDoIconePorValor",
+    "label": "Cartão · Campo (nome ou rótulo)",
+    "rotuloCompleto": "Cartão · Campo (nome ou rótulo)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
+    "dinamica": false
+  },
+  {
+    "id": "titulo",
+    "label": "Título · Título",
+    "rotuloCompleto": "Título · Título",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "subtitulo",
+    "label": "Título · Subtítulo",
+    "rotuloCompleto": "Título · Subtítulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "textoSemDados",
+    "label": "Aviso · Mensagem quando não há dados",
+    "rotuloCompleto": "Aviso · Mensagem quando não há dados",
+    "section": "Texto",
+    "type": "string",
+    "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarAvisos",
+    "label": "Aviso · Mostrar avisos",
+    "rotuloCompleto": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDosAvisos",
+    "label": "Aviso · Posição dos avisos",
+    "rotuloCompleto": "Aviso · Posição dos avisos",
+    "section": "Texto",
+    "type": "string",
+    "default": "topo",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarTitulo",
+    "label": "Título · Mostrar",
+    "rotuloCompleto": "Título · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoTitulo",
+    "label": "Título · Posição",
+    "rotuloCompleto": "Título · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoTitulo",
+    "label": "Título · Alinhamento",
+    "rotuloCompleto": "Título · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoTitulo",
+    "label": "Título · Deslocamento X (px)",
+    "rotuloCompleto": "Título · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoTitulo",
+    "label": "Título · Deslocamento Y (px)",
+    "rotuloCompleto": "Título · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoTitulo",
+    "label": "Título · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Título · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoTitulo",
+    "label": "Título · Fonte",
+    "rotuloCompleto": "Título · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoTitulo",
+    "label": "Título · Peso",
+    "rotuloCompleto": "Título · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "negrito",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTitulo",
+    "label": "Título · Cor (vazio = tema)",
+    "rotuloCompleto": "Título · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoTitulo",
+    "label": "Título · Margem (px)",
+    "rotuloCompleto": "Título · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarTitulo",
+    "label": "Título · Quebrar linha",
+    "rotuloCompleto": "Título · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoTitulo",
+    "label": "Título · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Título · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSubtitulo",
+    "label": "Subtítulo · Mostrar",
+    "rotuloCompleto": "Subtítulo · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoSubtitulo",
+    "label": "Subtítulo · Posição",
+    "rotuloCompleto": "Subtítulo · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoSubtitulo",
+    "label": "Subtítulo · Alinhamento",
+    "rotuloCompleto": "Subtítulo · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoSubtitulo",
+    "label": "Subtítulo · Deslocamento X (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoSubtitulo",
+    "label": "Subtítulo · Deslocamento Y (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoSubtitulo",
+    "label": "Subtítulo · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Subtítulo · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoSubtitulo",
+    "label": "Subtítulo · Fonte",
+    "rotuloCompleto": "Subtítulo · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoSubtitulo",
+    "label": "Subtítulo · Peso",
+    "rotuloCompleto": "Subtítulo · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "normal",
+    "dinamica": false
+  },
+  {
+    "id": "corDoSubtitulo",
+    "label": "Subtítulo · Cor (vazio = tema)",
+    "rotuloCompleto": "Subtítulo · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoSubtitulo",
+    "label": "Subtítulo · Margem (px)",
+    "rotuloCompleto": "Subtítulo · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarSubtitulo",
+    "label": "Subtítulo · Quebrar linha",
+    "rotuloCompleto": "Subtítulo · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoSubtitulo",
+    "label": "Subtítulo · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Subtítulo · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarNota",
+    "label": "Nota · Mostrar",
+    "rotuloCompleto": "Nota · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDaNota",
+    "label": "Nota · Posição",
+    "rotuloCompleto": "Nota · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "abaixo",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDaNota",
+    "label": "Nota · Alinhamento",
+    "rotuloCompleto": "Nota · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaNota",
+    "label": "Nota · Tamanho (px)",
+    "rotuloCompleto": "Nota · Tamanho (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 10,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDaNota",
+    "label": "Nota · Fonte",
+    "rotuloCompleto": "Nota · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "corDaNota",
+    "label": "Nota · Cor (vazio = tema)",
+    "rotuloCompleto": "Nota · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "quebrarNota",
+    "label": "Nota · Quebrar linha",
+    "rotuloCompleto": "Nota · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDaNota",
+    "label": "Nota · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Nota · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "textoDaNota",
+    "label": "Nota · Texto",
+    "rotuloCompleto": "Nota · Texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "meuTextoDaNota",
+    "label": "Nota · Meu texto",
+    "rotuloCompleto": "Nota · Meu texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarTooltip",
+    "label": "Tooltip · Mostrar tooltip",
+    "rotuloCompleto": "Tooltip · Mostrar tooltip",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tooltipPersonalizado",
+    "label": "Tooltip · Personalizado",
+    "rotuloCompleto": "Tooltip · Usar tooltip personalizado",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "modeloDeTooltip",
+    "label": "Tooltip · Modelo",
+    "rotuloCompleto": "Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "tooltipComNomeCompleto",
+    "label": "Tooltip · Nome completo",
+    "rotuloCompleto": "Tooltip · Mostrar nome completo do campo no tooltip",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "tooltipComValorBruto",
+    "label": "Tooltip · Valor sem formato",
+    "rotuloCompleto": "Tooltip · Mostrar também o valor sem formatação",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "acaoDoClique",
+    "label": "Clique · Ação do clique",
+    "rotuloCompleto": "Clique · Ação do clique (Shift+clique sempre fixa; Esc solta)",
+    "section": "Mais",
+    "type": "string",
+    "default": "drill",
+    "dinamica": false
+  },
+  {
+    "id": "permitirHtmlDoLooker",
+    "label": "Tooltip · HTML do Looker",
+    "rotuloCompleto": "Tooltip · Permitir HTML do Looker nas variáveis do tooltip",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundoDoTooltip",
+    "label": "Tooltip · Cor de fundo do tooltip",
+    "rotuloCompleto": "Tooltip · Cor de fundo do tooltip (vazio = do tema)",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBordaDoTooltip",
+    "label": "Tooltip · Cor da borda do tooltip",
+    "rotuloCompleto": "Tooltip · Cor da borda do tooltip",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTextoDoTooltip",
+    "label": "Tooltip · Cor do texto do tooltip",
+    "rotuloCompleto": "Tooltip · Cor do texto do tooltip (vazio = do tema)",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoTooltip",
+    "label": "Tooltip · Tamanho da fonte do tooltip",
+    "rotuloCompleto": "Tooltip · Tamanho da fonte do tooltip (px)",
+    "section": "Mais",
+    "type": "number",
+    "default": 11,
+    "dinamica": false
+  },
+  {
+    "id": "copiarValorMV",
+    "label": "Duplo clique copia o valor",
+    "rotuloCompleto": "Clique · Duplo clique copia o valor",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "destacarItemMV",
+    "label": "Destacar item sob o mouse",
+    "rotuloCompleto": "Clique · Destacar item sob o mouse",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "animacaoAtiva",
+    "label": "Animação · Ativar animações",
+    "rotuloCompleto": "Animação · Ativar animações",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "duracaoDaAnimacao",
+    "label": "Animação · Duração (ms)",
+    "rotuloCompleto": "Animação · Duração (ms)",
+    "section": "Mais",
+    "type": "number",
+    "default": 600,
+    "dinamica": false
+  },
+  {
+    "id": "atrasoDaAnimacao",
+    "label": "Animação · Atraso inicial (ms)",
+    "rotuloCompleto": "Animação · Atraso inicial (ms)",
+    "section": "Mais",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "cascataDaAnimacao",
+    "label": "Animação · Cascata entre itens (ms)",
+    "rotuloCompleto": "Animação · Cascata entre itens (ms)",
+    "section": "Mais",
+    "type": "number",
+    "default": 20,
+    "dinamica": false
+  },
+  {
+    "id": "suavizacaoDaAnimacao",
+    "label": "Animação · Curva da animação",
+    "rotuloCompleto": "Animação · Curva da animação",
+    "section": "Mais",
+    "type": "string",
+    "default": "saida",
+    "dinamica": false
+  },
+  {
+    "id": "quandoAnimar",
+    "label": "Animação · Quando animar",
+    "rotuloCompleto": "Animação · Quando animar",
+    "section": "Mais",
+    "type": "string",
+    "default": "sempre",
+    "dinamica": false
+  },
+  {
+    "id": "contadorAnimado",
+    "label": "Animação · Números contando",
+    "rotuloCompleto": "Animação · Números sobem/descem até o valor (contador)",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "animarBarrasMV",
+    "label": "Barras e anéis crescem",
+    "rotuloCompleto": "Animação · Barras e anéis crescem",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "destacarMudancaMV",
+    "label": "Destacar valor que mudou",
+    "rotuloCompleto": "Animação · Destacar valor que mudou",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "pulsoEmAlertaMV",
+    "label": "Animação · Pulso em alerta",
+    "rotuloCompleto": "Animação · Pulso em alerta",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "digitosRolandoMV",
+    "label": "Animação · Dígitos rolando",
+    "rotuloCompleto": "Animação · Dígitos rolando",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "modoDebug",
+    "label": "Modo debug",
+    "rotuloCompleto": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON",
+    "rotuloCompleto": "Configuração em JSON (cole aqui para importar)",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima",
+    "rotuloCompleto": "Aplicar o JSON acima por cima das opções",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "destacarAoPassarMouse",
+    "label": "Clique · Destacar sob o mouse",
+    "rotuloCompleto": "Clique · Destacar ao passar o mouse",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mv_cliente_visivel",
+    "label": "Campo Cliente · Mostrar",
+    "rotuloCompleto": "Campo Cliente · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_ordem",
+    "label": "Campo Cliente · Ordem",
+    "rotuloCompleto": "Campo Cliente · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_rotulo",
+    "label": "Campo Cliente · Rótulo",
+    "rotuloCompleto": "Campo Cliente · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_tipo",
+    "label": "Campo Cliente · Tipo",
+    "rotuloCompleto": "Campo Cliente · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_formato",
+    "label": "Campo Cliente · Formato",
+    "rotuloCompleto": "Campo Cliente · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "texto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_casas",
+    "label": "Campo Cliente · Casas decimais",
+    "rotuloCompleto": "Campo Cliente · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_prefixo",
+    "label": "Campo Cliente · Prefixo",
+    "rotuloCompleto": "Campo Cliente · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_sufixo",
+    "label": "Campo Cliente · Sufixo",
+    "rotuloCompleto": "Campo Cliente · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_zero",
+    "label": "Campo Cliente · Texto para zero",
+    "rotuloCompleto": "Campo Cliente · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_nulo",
+    "label": "Campo Cliente · Texto para nulo",
+    "rotuloCompleto": "Campo Cliente · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_alinhamento",
+    "label": "Campo Cliente · Alinhamento",
+    "rotuloCompleto": "Campo Cliente · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_tamanhoRotulo",
+    "label": "Campo Cliente · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Cliente · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_tamanhoValor",
+    "label": "Campo Cliente · Tamanho do valor",
+    "rotuloCompleto": "Campo Cliente · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_corRotulo",
+    "label": "Campo Cliente · Cor do rótulo",
+    "rotuloCompleto": "Campo Cliente · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_corValor",
+    "label": "Campo Cliente · Cor do valor",
+    "rotuloCompleto": "Campo Cliente · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_icone",
+    "label": "Campo Cliente · Ícone",
+    "rotuloCompleto": "Campo Cliente · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_cliente_meta",
+    "label": "Campo Cliente · Meta",
+    "rotuloCompleto": "Campo Cliente · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_visivel",
+    "label": "Campo Nível · Mostrar",
+    "rotuloCompleto": "Campo Nível · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_ordem",
+    "label": "Campo Nível · Ordem",
+    "rotuloCompleto": "Campo Nível · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_rotulo",
+    "label": "Campo Nível · Rótulo",
+    "rotuloCompleto": "Campo Nível · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_tipo",
+    "label": "Campo Nível · Tipo",
+    "rotuloCompleto": "Campo Nível · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_formato",
+    "label": "Campo Nível · Formato",
+    "rotuloCompleto": "Campo Nível · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "texto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_casas",
+    "label": "Campo Nível · Casas decimais",
+    "rotuloCompleto": "Campo Nível · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_prefixo",
+    "label": "Campo Nível · Prefixo",
+    "rotuloCompleto": "Campo Nível · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_sufixo",
+    "label": "Campo Nível · Sufixo",
+    "rotuloCompleto": "Campo Nível · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_zero",
+    "label": "Campo Nível · Texto para zero",
+    "rotuloCompleto": "Campo Nível · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_nulo",
+    "label": "Campo Nível · Texto para nulo",
+    "rotuloCompleto": "Campo Nível · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_alinhamento",
+    "label": "Campo Nível · Alinhamento",
+    "rotuloCompleto": "Campo Nível · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_tamanhoRotulo",
+    "label": "Campo Nível · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Nível · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_tamanhoValor",
+    "label": "Campo Nível · Tamanho do valor",
+    "rotuloCompleto": "Campo Nível · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_corRotulo",
+    "label": "Campo Nível · Cor do rótulo",
+    "rotuloCompleto": "Campo Nível · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_corValor",
+    "label": "Campo Nível · Cor do valor",
+    "rotuloCompleto": "Campo Nível · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_icone",
+    "label": "Campo Nível · Ícone",
+    "rotuloCompleto": "Campo Nível · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nivel_meta",
+    "label": "Campo Nível · Meta",
+    "rotuloCompleto": "Campo Nível · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_visivel",
+    "label": "Campo Visitas · Mostrar",
+    "rotuloCompleto": "Campo Visitas · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_ordem",
+    "label": "Campo Visitas · Ordem",
+    "rotuloCompleto": "Campo Visitas · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 2,
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_rotulo",
+    "label": "Campo Visitas · Rótulo",
+    "rotuloCompleto": "Campo Visitas · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_tipo",
+    "label": "Campo Visitas · Tipo",
+    "rotuloCompleto": "Campo Visitas · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_formato",
+    "label": "Campo Visitas · Formato",
+    "rotuloCompleto": "Campo Visitas · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_casas",
+    "label": "Campo Visitas · Casas decimais",
+    "rotuloCompleto": "Campo Visitas · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_prefixo",
+    "label": "Campo Visitas · Prefixo",
+    "rotuloCompleto": "Campo Visitas · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_sufixo",
+    "label": "Campo Visitas · Sufixo",
+    "rotuloCompleto": "Campo Visitas · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_zero",
+    "label": "Campo Visitas · Texto para zero",
+    "rotuloCompleto": "Campo Visitas · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_nulo",
+    "label": "Campo Visitas · Texto para nulo",
+    "rotuloCompleto": "Campo Visitas · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_alinhamento",
+    "label": "Campo Visitas · Alinhamento",
+    "rotuloCompleto": "Campo Visitas · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_tamanhoRotulo",
+    "label": "Campo Visitas · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Visitas · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_tamanhoValor",
+    "label": "Campo Visitas · Tamanho do valor",
+    "rotuloCompleto": "Campo Visitas · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_corRotulo",
+    "label": "Campo Visitas · Cor do rótulo",
+    "rotuloCompleto": "Campo Visitas · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_corValor",
+    "label": "Campo Visitas · Cor do valor",
+    "rotuloCompleto": "Campo Visitas · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_icone",
+    "label": "Campo Visitas · Ícone",
+    "rotuloCompleto": "Campo Visitas · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_visitas_meta",
+    "label": "Campo Visitas · Meta",
+    "rotuloCompleto": "Campo Visitas · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_visivel",
+    "label": "Campo Compras · Mostrar",
+    "rotuloCompleto": "Campo Compras · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_ordem",
+    "label": "Campo Compras · Ordem",
+    "rotuloCompleto": "Campo Compras · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 3,
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_rotulo",
+    "label": "Campo Compras · Rótulo",
+    "rotuloCompleto": "Campo Compras · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_tipo",
+    "label": "Campo Compras · Tipo",
+    "rotuloCompleto": "Campo Compras · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_formato",
+    "label": "Campo Compras · Formato",
+    "rotuloCompleto": "Campo Compras · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_casas",
+    "label": "Campo Compras · Casas decimais",
+    "rotuloCompleto": "Campo Compras · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_prefixo",
+    "label": "Campo Compras · Prefixo",
+    "rotuloCompleto": "Campo Compras · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_sufixo",
+    "label": "Campo Compras · Sufixo",
+    "rotuloCompleto": "Campo Compras · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_zero",
+    "label": "Campo Compras · Texto para zero",
+    "rotuloCompleto": "Campo Compras · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_nulo",
+    "label": "Campo Compras · Texto para nulo",
+    "rotuloCompleto": "Campo Compras · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_alinhamento",
+    "label": "Campo Compras · Alinhamento",
+    "rotuloCompleto": "Campo Compras · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_tamanhoRotulo",
+    "label": "Campo Compras · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Compras · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_tamanhoValor",
+    "label": "Campo Compras · Tamanho do valor",
+    "rotuloCompleto": "Campo Compras · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_corRotulo",
+    "label": "Campo Compras · Cor do rótulo",
+    "rotuloCompleto": "Campo Compras · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_corValor",
+    "label": "Campo Compras · Cor do valor",
+    "rotuloCompleto": "Campo Compras · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_icone",
+    "label": "Campo Compras · Ícone",
+    "rotuloCompleto": "Campo Compras · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_compras_meta",
+    "label": "Campo Compras · Meta",
+    "rotuloCompleto": "Campo Compras · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_visivel",
+    "label": "Campo Trocas · Mostrar",
+    "rotuloCompleto": "Campo Trocas · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_ordem",
+    "label": "Campo Trocas · Ordem",
+    "rotuloCompleto": "Campo Trocas · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 4,
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_rotulo",
+    "label": "Campo Trocas · Rótulo",
+    "rotuloCompleto": "Campo Trocas · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_tipo",
+    "label": "Campo Trocas · Tipo",
+    "rotuloCompleto": "Campo Trocas · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_formato",
+    "label": "Campo Trocas · Formato",
+    "rotuloCompleto": "Campo Trocas · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_casas",
+    "label": "Campo Trocas · Casas decimais",
+    "rotuloCompleto": "Campo Trocas · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_prefixo",
+    "label": "Campo Trocas · Prefixo",
+    "rotuloCompleto": "Campo Trocas · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_sufixo",
+    "label": "Campo Trocas · Sufixo",
+    "rotuloCompleto": "Campo Trocas · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_zero",
+    "label": "Campo Trocas · Texto para zero",
+    "rotuloCompleto": "Campo Trocas · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_nulo",
+    "label": "Campo Trocas · Texto para nulo",
+    "rotuloCompleto": "Campo Trocas · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_alinhamento",
+    "label": "Campo Trocas · Alinhamento",
+    "rotuloCompleto": "Campo Trocas · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_tamanhoRotulo",
+    "label": "Campo Trocas · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Trocas · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_tamanhoValor",
+    "label": "Campo Trocas · Tamanho do valor",
+    "rotuloCompleto": "Campo Trocas · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_corRotulo",
+    "label": "Campo Trocas · Cor do rótulo",
+    "rotuloCompleto": "Campo Trocas · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_corValor",
+    "label": "Campo Trocas · Cor do valor",
+    "rotuloCompleto": "Campo Trocas · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_icone",
+    "label": "Campo Trocas · Ícone",
+    "rotuloCompleto": "Campo Trocas · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_trocas_meta",
+    "label": "Campo Trocas · Meta",
+    "rotuloCompleto": "Campo Trocas · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_visivel",
+    "label": "Campo Nota · Mostrar",
+    "rotuloCompleto": "Campo Nota · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_ordem",
+    "label": "Campo Nota · Ordem",
+    "rotuloCompleto": "Campo Nota · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 5,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_rotulo",
+    "label": "Campo Nota · Rótulo",
+    "rotuloCompleto": "Campo Nota · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_tipo",
+    "label": "Campo Nota · Tipo",
+    "rotuloCompleto": "Campo Nota · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_formato",
+    "label": "Campo Nota · Formato",
+    "rotuloCompleto": "Campo Nota · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_casas",
+    "label": "Campo Nota · Casas decimais",
+    "rotuloCompleto": "Campo Nota · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_prefixo",
+    "label": "Campo Nota · Prefixo",
+    "rotuloCompleto": "Campo Nota · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_sufixo",
+    "label": "Campo Nota · Sufixo",
+    "rotuloCompleto": "Campo Nota · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_zero",
+    "label": "Campo Nota · Texto para zero (vazio = 0)",
+    "rotuloCompleto": "Campo Nota · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_nulo",
+    "label": "Campo Nota · Texto para nulo",
+    "rotuloCompleto": "Campo Nota · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_alinhamento",
+    "label": "Campo Nota · Alinhamento",
+    "rotuloCompleto": "Campo Nota · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_tamanhoRotulo",
+    "label": "Campo Nota · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Nota · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_tamanhoValor",
+    "label": "Campo Nota · Tamanho do valor (0 = auto)",
+    "rotuloCompleto": "Campo Nota · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_corRotulo",
+    "label": "Campo Nota · Cor do rótulo",
+    "rotuloCompleto": "Campo Nota · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_corValor",
+    "label": "Campo Nota · Cor do valor",
+    "rotuloCompleto": "Campo Nota · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_icone",
+    "label": "Campo Nota · Ícone",
+    "rotuloCompleto": "Campo Nota · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_nota_meta",
+    "label": "Campo Nota · Meta (barra/anel; 0 = 100%)",
+    "rotuloCompleto": "Campo Nota · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_visivel",
+    "label": "Campo Estornos · Mostrar",
+    "rotuloCompleto": "Campo Estornos · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_ordem",
+    "label": "Campo Estornos · Ordem",
+    "rotuloCompleto": "Campo Estornos · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 6,
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_rotulo",
+    "label": "Campo Estornos · Rótulo",
+    "rotuloCompleto": "Campo Estornos · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_tipo",
+    "label": "Campo Estornos · Tipo",
+    "rotuloCompleto": "Campo Estornos · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_formato",
+    "label": "Campo Estornos · Formato",
+    "rotuloCompleto": "Campo Estornos · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_casas",
+    "label": "Campo Estornos · Casas decimais",
+    "rotuloCompleto": "Campo Estornos · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_prefixo",
+    "label": "Campo Estornos · Prefixo",
+    "rotuloCompleto": "Campo Estornos · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_sufixo",
+    "label": "Campo Estornos · Sufixo",
+    "rotuloCompleto": "Campo Estornos · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_zero",
+    "label": "Campo Estornos · Texto para zero",
+    "rotuloCompleto": "Campo Estornos · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_nulo",
+    "label": "Campo Estornos · Texto para nulo",
+    "rotuloCompleto": "Campo Estornos · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_alinhamento",
+    "label": "Campo Estornos · Alinhamento",
+    "rotuloCompleto": "Campo Estornos · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_tamanhoRotulo",
+    "label": "Campo Estornos · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Estornos · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_tamanhoValor",
+    "label": "Campo Estornos · Tamanho do valor",
+    "rotuloCompleto": "Campo Estornos · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_corRotulo",
+    "label": "Campo Estornos · Cor do rótulo",
+    "rotuloCompleto": "Campo Estornos · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_corValor",
+    "label": "Campo Estornos · Cor do valor",
+    "rotuloCompleto": "Campo Estornos · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_icone",
+    "label": "Campo Estornos · Ícone",
+    "rotuloCompleto": "Campo Estornos · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_estornos_meta",
+    "label": "Campo Estornos · Meta",
+    "rotuloCompleto": "Campo Estornos · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_visivel",
+    "label": "Campo Pendentes · Mostrar",
+    "rotuloCompleto": "Campo Pendentes · Mostrar",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_ordem",
+    "label": "Campo Pendentes · Ordem",
+    "rotuloCompleto": "Campo Pendentes · Ordem",
+    "section": "Estilo",
+    "type": "number",
+    "default": 7,
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_rotulo",
+    "label": "Campo Pendentes · Rótulo",
+    "rotuloCompleto": "Campo Pendentes · Rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_tipo",
+    "label": "Campo Pendentes · Tipo",
+    "rotuloCompleto": "Campo Pendentes · Tipo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_formato",
+    "label": "Campo Pendentes · Formato",
+    "rotuloCompleto": "Campo Pendentes · Formato",
+    "section": "Estilo",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_casas",
+    "label": "Campo Pendentes · Casas decimais",
+    "rotuloCompleto": "Campo Pendentes · Casas decimais",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1,
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_prefixo",
+    "label": "Campo Pendentes · Prefixo",
+    "rotuloCompleto": "Campo Pendentes · Prefixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_sufixo",
+    "label": "Campo Pendentes · Sufixo",
+    "rotuloCompleto": "Campo Pendentes · Sufixo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_zero",
+    "label": "Campo Pendentes · Texto para zero",
+    "rotuloCompleto": "Campo Pendentes · Texto para zero (vazio = 0)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_nulo",
+    "label": "Campo Pendentes · Texto para nulo",
+    "rotuloCompleto": "Campo Pendentes · Texto para nulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "—",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_alinhamento",
+    "label": "Campo Pendentes · Alinhamento",
+    "rotuloCompleto": "Campo Pendentes · Alinhamento",
+    "section": "Estilo",
+    "type": "string",
+    "default": "centro",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_tamanhoRotulo",
+    "label": "Campo Pendentes · Tamanho do rótulo",
+    "rotuloCompleto": "Campo Pendentes · Tamanho do rótulo (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_tamanhoValor",
+    "label": "Campo Pendentes · Tamanho do valor",
+    "rotuloCompleto": "Campo Pendentes · Tamanho do valor (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_corRotulo",
+    "label": "Campo Pendentes · Cor do rótulo",
+    "rotuloCompleto": "Campo Pendentes · Cor do rótulo",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_corValor",
+    "label": "Campo Pendentes · Cor do valor",
+    "rotuloCompleto": "Campo Pendentes · Cor do valor",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_icone",
+    "label": "Campo Pendentes · Ícone",
+    "rotuloCompleto": "Campo Pendentes · Ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": true
+  },
+  {
+    "id": "mv_pendentes_meta",
+    "label": "Campo Pendentes · Meta",
+    "rotuloCompleto": "Campo Pendentes · Meta (barra/anel; 0 = 100%)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  }
+]

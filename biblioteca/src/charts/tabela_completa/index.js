@@ -27,9 +27,12 @@ import {
   montarCsv,
   idDoCampo,
 } from './render.js';
+import { regrasDeFormula } from './calculadas.js';
+import { layoutEscolhido, LAYOUTS_DE_TABELA, desenharLayoutAlternativo } from './layouts.js';
 
 /** Espera depois da última tecla antes de filtrar (ms). */
-const ESPERA_DO_FILTRO = 200;
+// Espera curta depois da última tecla (5.3, v3: "debounce curto").
+const ESPERA_DO_FILTRO = 150;
 
 /** Define a ordenação inicial a partir da opção do painel. */
 function ordenacaoInicial(config, colunas) {
@@ -75,6 +78,8 @@ function textoParaNulo(config) {
  */
 function criarPintorDeCelula(ctx, nulo, contextos, porId, comparacao) {
   const { config, ponte, modelo } = ctx;
+  // Formatação condicional por fórmula (5.4, v3): "Colorir a linha/células".
+  const porFormula = regrasDeFormula(modelo, config);
 
   return function pintarCelula({ td, coluna, linha, indiceDaLinha }) {
     const estatistica = contextos.get(coluna.id) || null;
@@ -150,6 +155,9 @@ function criarPintorDeCelula(ctx, nulo, contextos, porId, comparacao) {
         if (efeito.linhaInteira.cor) td.parentNode.style.color = efeito.linhaInteira.cor;
       }
     }
+
+    // 5b) Formatação condicional por fórmula (5.4, v3).
+    if (porFormula) porFormula(td, coluna, linha);
 
     // 6) Drill. O tipo "link" já cuida do próprio clique.
     if (config.permitirDrill === false || coluna.tipoDeCelula === 'link') return;
@@ -326,7 +334,9 @@ export default defineViz({
       return;
     }
 
-    const { colunas, colunasVisiveis, temPivo, gruposDePivo } = construirColunas(modelo, config);
+    const { colunas, colunasVisiveis, temPivo, gruposDePivo, errosDeFormula } = construirColunas(modelo, config);
+    // Fórmula com erro: a célula mostra "#ERRO" e o aviso diz qual espaço.
+    for (const erro of errosDeFormula || []) ctx.avisar(erro);
 
     if (!colunasVisiveis.length) {
       ctx.mostrarVazio('Todas as colunas estão ocultas. Reative pelo menos uma no painel.');
@@ -354,7 +364,7 @@ export default defineViz({
     function calcularIndices() {
       const todos = modelo.linhas.map((_, i) => i);
       const porColuna = aplicarFiltrosDeColuna(todos, colunasVisiveis, estado.filtros, modelo);
-      const buscados = filtrarIndices(porColuna, colunasVisiveis, estado.busca, modelo);
+      const buscados = filtrarIndices(porColuna, colunasVisiveis, estado.busca, modelo, config);
       return ordenarIndices(buscados, colunas, estado.ordenacao, modelo);
     }
 
@@ -382,7 +392,7 @@ export default defineViz({
     function redesenhar() {
       recalcular();
       pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, null);
-      desenhar();
+      desenhar({ animarEntrada: true });
     }
 
     /**
@@ -403,10 +413,22 @@ export default defineViz({
 
     let desenho = null;
 
-    function desenhar() {
+    /**
+     * `animarEntrada` (5.2, v3): só carregar, ordenar, agrupar e (via
+     * atualizarDados) buscar/filtrar animam a entrada das linhas.
+     * Selecionar e redimensionar redesenham sem animação.
+     */
+    function desenhar({ animarEntrada = false } = {}) {
       ctx.eventos.limpar();
-      desenho = desenharTabela({
-        ctx,
+      // Layouts (5.5, v3): os de tabela vão para o render da tabela; os
+      // demais para layouts.js. Planilha sempre numera as linhas.
+      const layout = layoutEscolhido(config);
+      const ctxDoDesenho =
+        layout === 'planilha' ? Object.assign({}, ctx, { config: Object.assign({}, config, { mostrarNumeroDaLinha: true }) }) : ctx;
+      const desenhista = LAYOUTS_DE_TABELA.has(layout) ? desenharTabela : desenharLayoutAlternativo;
+      desenho = desenhista({
+        animarEntrada,
+        ctx: ctxDoDesenho,
         colunas,
         gruposDePivo,
         temPivo,
@@ -539,11 +561,15 @@ export default defineViz({
       return colunasVisiveis.map((c) => c.texto(linha, nulo)).join('\t');
     }
 
-    desenhar();
+    desenhar({ animarEntrada: true });
 
     // A virtualização só pinta a janela visível, então o mapa cobre o que
     // apareceu. Mesclamos com o anterior para não perder o resto da tabela.
     estado.valoresAnteriores = new Map([...(estado.valoresAnteriores || []), ...comparacao.novos]);
+    // 5.2 (v3): o destaque de valor que mudou vale só nesta primeira pintura.
+    // Linhas que entram depois (rolagem, seleção) usam o mesmo pintor e não
+    // podem piscar: a comparação é desligada aqui.
+    comparacao.anteriores = null;
   },
 
   aoDestruir({ estado }) {

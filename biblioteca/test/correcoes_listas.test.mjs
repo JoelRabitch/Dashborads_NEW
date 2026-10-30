@@ -162,7 +162,8 @@ test('barras_ranking_denso — posição do rótulo: fora e centro', () => {
   const fora = desenhar('barras_ranking_denso', 'semPivo', { posicaoDoRotulo: 'fora' });
   const centro = desenhar('barras_ranking_denso', 'semPivo', { posicaoDoRotulo: 'centro' });
   try {
-    const f = fora.palco.querySelector('[data-rotulo]');
+    // v3 (5.13b): o rótulo da MAIOR barra não cabe fora e vai para dentro; os outros ficam fora.
+    const f = Array.from(fora.palco.querySelectorAll('[data-rotulo]')).find((e) => e.dataset.posicao === 'fora');
     const c = centro.palco.querySelector('[data-rotulo]');
     assert.equal(f.dataset.posicao, 'fora');
     assert.equal(c.dataset.posicao, 'centro');
@@ -317,7 +318,7 @@ for (const { id, fixture, linha } of LISTAS) {
     }
   });
 
-  test(`${id} — clique: drill com links, fixa o tooltip sem links`, () => {
+  test(`${id} — clique: drill com links; sem links não fixa no modo drill e fixa no modo "fixar" (v3, 5.1)`, () => {
     const comLinks = desenhar(id, fixture, {});
     try {
       comLinks.clicar(comLinks.palco.querySelector(`${linha} [class$="-nome"]`));
@@ -332,9 +333,16 @@ for (const { id, fixture, linha } of LISTAS) {
       assert.ok(alvo, 'nenhuma linha na fixture sem links');
       semLinks.clicar(alvo);
       assert.equal(semLinks.amb.chamadasDeApi.drills, 0);
-      assert.ok(semLinks.doc.querySelector('.bl-tooltip.bl-fixo'), 'sem links, o clique fixa o tooltip');
+      assert.equal(semLinks.doc.querySelector('.bl-tooltip.bl-fixo'), null, 'sem links, no modo drill (padrão), o clique NÃO fixa (v3, 5.1)');
     } finally {
       semLinks.fim();
+    }
+    const fixar = desenhar(id, 'duasDimensoes', { acaoDoClique: 'fixar' });
+    try {
+      fixar.clicar(fixar.palco.querySelector(`${linha} [class$="-nome"]`));
+      assert.ok(fixar.doc.querySelector('.bl-tooltip.bl-fixo'), 'modo "fixar": o clique fixa o tooltip');
+    } finally {
+      fixar.fim();
     }
   });
 }
@@ -409,7 +417,7 @@ test('heatmap_denso — no canvas, o rótulo usa tamanho, cor, negrito e o texto
   assert.equal(chamadas[0].t, '1,235');
 });
 
-test('heatmap_denso — tooltip com texto do Looker e clique fixa sem links', () => {
+test('heatmap_denso — tooltip com texto do Looker; sem links o clique não fixa (v3, 5.1)', () => {
   const r = desenhar('heatmap_denso', 'duasDimensoes', {});
   try {
     const cel = r.palco.querySelector('rect.hd-celula');
@@ -422,7 +430,7 @@ test('heatmap_denso — tooltip com texto do Looker e clique fixa sem links', ()
     const renderizados = r.dados.map((d) => String(d.receita.rendered));
     assert.ok(renderizados.some((t) => tip.textContent.includes(t)), `tooltip sem rendered: ${tip.textContent}`);
     r.clicar(area, x, y);
-    assert.ok(r.doc.querySelector('.bl-tooltip.bl-fixo'), 'clique sem links fixa o tooltip');
+    assert.equal(r.doc.querySelector('.bl-tooltip.bl-fixo'), null, 'sem links, no modo drill (padrão), o clique NÃO fixa (v3, 5.1)');
   } finally {
     r.fim();
   }

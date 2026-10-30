@@ -77,3 +77,89 @@ em `faltandoNoConfig`, o Looker não está mandando o valor.
   - [ ] Ícone, limites verde/amarelo/vermelho, layouts Compacto e Horizontal, subtítulo.
   - [ ] O título aparece UMA vez só.
   - [ ] Clique no cartão abre o drill.
+
+## Melhorias v3
+
+Cada item abaixo foi testado só em simulação (jsdom). Confira no Looker
+real antes de considerar resolvido.
+
+- **5.1 Tooltip preso (todos os gráficos com tooltip)**
+  - [ ] Com "Ação do clique" = Drill (o valor salvo nos tiles), clique num ponto SEM link: o tooltip NÃO fica fixo (antes ficava).
+  - [ ] Clique num ponto COM link: o tooltip some antes de o menu de drill aparecer; feche o menu (Esc ou clique fora): nada fica na tela.
+  - [ ] Com o menu de drill aberto, leve o mouse para fora do gráfico: nenhum tooltip sobra.
+  - [ ] Shift+clique (ou "Ação do clique" = Fixar tooltip): o tooltip fixa e mostra um "×"; o "×", Esc e clique fora soltam.
+  - [ ] Clique em outra parte do dashboard (fora do iframe): o tooltip fixo some.
+- **5.2 tabela_completa — rolagem**
+  - [ ] Explore com até 500 linhas e 50 colunas: role com a roda e com a barra (vertical e horizontal). A tabela não fica em branco, não volta ao início e as linhas não "entram" animadas enquanto rola (mesmo com "Animar entrada das linhas" ligado e "Quando animar" = sempre).
+  - [ ] Ordene uma coluna e faça uma busca: aí sim as linhas entram animadas.
+  - [ ] Com o tile em atualização automática, a posição da rolagem se mantém e só os valores que mudaram piscam em verde/vermelho; rolar depois disso não pisca nada.
+- **5.1b Painel de opções (todos os gráficos)**
+  - [ ] Abra o editor de um tile: aparecem no máximo 4 abas (Dados, Estilo, Mais, Texto — provavelmente nessa ordem alfabética), todas inteiras na barra.
+  - [ ] Percorra as abas: nenhum rótulo termina em "…". Na tabela, as opções por coluna aparecem como "Coluna <nome> · …".
+- **5.1c Título, subtítulo e nota (todos os gráficos)**
+  - [ ] Sem mexer em nada, o visual é o de antes: título e subtítulo à esquerda no topo, nota pequena e cinza no rodapé.
+  - [ ] A nota fica ABAIXO do gráfico (não por cima): no bump_chart a última linha não encosta mais na nota; no bar_race a nota não cobre o botão de avançar.
+  - [ ] Aba Texto: "Título · Posição" = Abaixo, "Alinhamento" = Centro, "Tamanho", "Cor", "Fonte", "Peso", "Deslocamento X/Y"; o gráfico se reajusta ao espaço.
+  - [ ] "Nota · Posição" = Só no ícone ⓘ: aparece um ⓘ no canto superior direito; passar o mouse mostra o texto.
+  - [ ] "Nota · Texto" = Só meu texto, com "Nota · Meu texto" preenchido; e = Nenhum.
+  - [ ] Num tile bem pequeno, a nota some em vez de apertar o gráfico.
+  - [ ] kpi_vivo: as opções de título (mostrar, cor, tamanho, alinhamento) valem no título dentro do cartão.
+- **5.3 tabela_completa — busca "contém"**
+  - [ ] Busque um trecho do MEIO e do FIM de um código (ex.: um código "XXXBLACKYY": busque "BLACK" e "YY"). As linhas aparecem. (Em simulação isso já funcionava antes; se no Looker real não funcionar, anote o código exato e se o campo usa `html:` no LookML.)
+  - [ ] "black br" (todas as palavras), "\"frase exata\"", "black -br" (exclui); aba Mais → "Busca · Várias palavras" = Qualquer uma.
+  - [ ] "Busca · Colunas" com um nome de coluna; "Busca · Procurar no" = Valor bruto.
+  - [ ] O trecho aparece realçado em amarelo; a barra mostra "N resultado(s) para …"; o campo não perde o foco nem o cursor enquanto digita.
+- **5.4 tabela_completa — colunas calculadas (aba Dados, "Fórmula 1" a "Fórmula 8")**
+  - [ ] "Fórmula 1 · Nome" = Comissão; "Fórmula" = `IFS(${qty}<=10, 1*${qty}, ${qty}<=30, 2*${qty}, ${qty}<=50, 3*${qty}, ${qty}<=70, 4*${qty}, 5*${qty})` (troque `qty` pelo nome do seu campo, ex.: `${pedidos.quantidade}`). A coluna aparece com os valores certos.
+  - [ ] `IF(CONTAINS(${codigo}, "BLACK"), "Black", "Other")` com Formato = Texto.
+  - [ ] Erre a fórmula de propósito: a célula mostra "#ERRO: …" e um aviso amarelo diz qual espaço.
+  - [ ] "Uso" = Colorir a linha se verdadeira, com `${qty} > 50`.
+  - [ ] Com pivô: "Modo do pivô" = Uma vez por valor do pivô (uma coluna em cada grupo) e = Só nas colunas sem pivô.
+  - [ ] Linha de totais: "Recalcular" mostra a fórmula aplicada aos totais; "Vazio" deixa em branco.
+- **5.5 tabela_completa — layouts (aba Estilo → "Layout")**
+  - [ ] Percorra os 9: Tabela, Cartões, Lista de app, Transposta, Planilha (letras A, B, C… e números de linha), Relatório financeiro (com "Agrupar linhas por": faixas, subtotais em negrito, total com linha dupla), Ranking (barras ao fundo dos números), Mestre e detalhe (clique na lista à esquerda), Seções.
+  - [ ] Em cada um, com 500 linhas: busca, "Ordenar por" (ou clique no cabeçalho), seleção e rolagem rápida sem animação nem tela em branco.
+  - [ ] Cartões: "Campos do cartão/lista" e "Cartões por linha". Seções: "Seções (Título: col1, col2; …)". Os temas de cor continuam valendo.
+- **5.6 bump_chart**
+  - [ ] Tile com ~11 séries e ~7 períodos, rótulos de valor ligados (com percentual): cada valor aparece AO LADO do seu círculo, na mesma altura, por cima das linhas (com contorno da cor do fundo).
+  - [ ] A última coluna não encosta na borda direita; nenhum valor ou nome fica sobre um círculo.
+  - [ ] A linha do rank mais baixo não encosta na nota (a nota está numa faixa própria embaixo).
+  - [ ] Com "Suavização da linha" = Catmull-Rom (valor salvo no tile), as curvas não fazem mais "ondas" entre colunas; teste também "Bump (horizontal nas pontas)".
+  - [ ] "Posição do valor" = Acima / Abaixo / Só no tooltip. Num tile estreito, a fonte diminui e os números viram 1.2M (o valor completo fica no tooltip).
+- **5.7 diagrama_venn — layout Moderno (padrão)**
+  - [ ] Com 3 conjuntos de nomes longos "(Yes / No)": o diagrama ocupa a área; os nomes aparecem DENTRO de cada conjunto, sem o "(Yes / No)", uma vez só (sem legenda repetida).
+  - [ ] Os números ficam maiores, com contorno da cor do fundo, valor e percentual em linhas separadas (ligue "Mostrar o percentual"); regiões pequenas levam o número para fora, com linha-guia.
+  - [ ] Passe o mouse: a região cresce um pouco, ganha contorno forte e as outras clareiam; tooltip com nome, valor e %. Clique fixa; Esc ou clique fora solta; com drill, o menu do Looker abre.
+  - [ ] Teste tiles pequenos e grandes, 2 a 5 conjuntos, "Nomes dos conjuntos" = Fora / Só na legenda, "Apelidos", "Tamanho dos textos" = Fixo, e "Layout" = Clássico (o desenho anterior).
+- **5.8/5.9 Árvores e organograma — abrir e fechar**
+  - [ ] arvores_multiplas e org_chart: ao abrir um nó, os filhos saem do pai deslizando e aparecendo; ao fechar, voltam para ele; irmãos se reposicionam sem pulo. "Animar abrir/fechar" desligado (aba Mais) = sem animação. Rolar não anima nada.
+- **5.10 Centralizar**
+  - [ ] Ao carregar, o desenho fica centralizado; botão "Centralizar" ao lado de "Expandir tudo"/"Colapsar tudo". Árvore maior que a área: rola nas duas direções e o lado esquerdo não fica cortado. Teste "Centralizar · O que centralizar" = A raiz / O nó selecionado e "Quando" = Só no botão.
+- **5.11 Texto longo (árvores, organograma)**
+  - [ ] Com rótulos longos (nome + valor + %), "Texto longo · Modo" = Mostrar inteiro (padrão): nada é cortado; a árvore ganha rolagem horizontal; no organograma o cartão cresce. Teste os outros modos; "Cortar com reticências" usa o "Truncar rótulo" salvo (60).
+  - [ ] Clique/duplo clique no gráfico não deixa texto selecionado em azul ("Permitir selecionar texto" desligado). "Símbolo da moeda" = $ troca o R$ dos rótulos.
+- **5.12 arvores_multiplas — grade**
+  - [ ] "Espaço entre colunas/linhas", "Linhas-guia da grade" e "Largura — <árvore>" / "Altura — <árvore>" na aba Estilo. (Arrastar a borda não foi feito.)
+- **5.13 org_chart**
+  - [ ] Os botões "Expandir tudo", "Colapsar tudo" e "Centralizar" aparecem (antes não apareciam mesmo com a opção ligada).
+  - [ ] O contador "+20" fica dentro do círculo; teste "Estilo do contador" = Pílula/Oculto; "Cor do cartão por", sombra, fonte, alinhamento do texto, ligações (cor, espessura, cotovelo/reta/curva).
+  - [ ] Sem barras de rolagem quando o organograma cabe na área.
+- **5.13b dot_plot_denso (e família)**
+  - [ ] Lista com valores em milhões e "Escrever os valores" ligado: o rótulo do MAIOR valor, no fim da escala, aparece inteiro (ex.: "74.05M (21.3%)"), à esquerda do ponto se não couber à direita. Teste "Rótulo na borda" = Reservar folga / Reduzir a fonte.
+  - [ ] Os nomes não terminam mais em "…" ("South Ko…"): a coluna de nomes tem a largura do maior nome (até 35% do gráfico). Com "Texto longo · Modo" = Cortar com reticências, volta a valer a "Largura do nome" salva (80).
+  - [ ] Com todos os valores positivos, o eixo não começa mais em negativo.
+  - [ ] A última linha da lista não passa por baixo da régua do eixo (há uma linha separando).
+  - [ ] heatmap_denso: os números da régua de cores à direita aparecem inteiros. barras_ranking_denso com "Posição do rótulo" = Fora e dumbbell: o rótulo do maior valor não é cortado.
+- **5.14 cartao_multivalor (novo)**
+  - [ ] Cadastre a URL nova (dist/URLS.md). Explore com 1 linha e medidas Visitas/Compras/Trocas: "Topo · Campos" = Visitas, Compras, Trocas mostra 10 e "6 + 3 + 1".
+  - [ ] Zero e nulo: "Campo X · Texto para zero" e "Texto para nulo" (não aparece mais "0.0" quando configurado).
+  - [ ] Tipos de exibição de um campo (selo, barra, anel, mini gráfico, seta, estrelas, semáforo, ícone, link) e formatos (K/M/B, moeda, %).
+  - [ ] Faixas com selo e legenda; "Modo" = Um cartão por linha (grade); layouts dos itens; divisórias.
+  - [ ] Passe o mouse (tooltip, destaque), clique num campo com link (drill), duplo clique copia o valor.
+  - [ ] Animações (contador, cascata, barras crescendo, destaque quando muda, pulso em alerta) e "Ativar animações" desligado.
+- **5.14b–h Pacote temático Café (opcional)**
+  - [ ] Aba Estilo → "Tema · Pacote temático" = Café (padrão): paletas "Café · Espresso/Latte/Caramelo/Crema/Mocha", escalas "Café · Torra", formas Xícara/Grão/Copo em "Forma do ponto", ícones do Café no kpi_vivo ("Ícone"), no cartão, na tabela (tipo "Ícone por valor") e nos nós (Ícone por valor · Mapa).
+  - [ ] "Pacote temático" = Nenhum: as listas param de mostrar os itens do Café (o painel é registrado de novo só nessa troca); um tile que já usava uma paleta do Café continua com ela.
+  - [ ] "Estilo do ícone" = Preenchido. "Meta em xícara" no kpi_vivo (com meta); tipo "Progresso em xícara" no cartão e na tabela.
+- **5.15 URLs da v3.1**
+  - [ ] Abra uma URL principal de `dist/URLS.md` (com `@v3.1`) no navegador: o arquivo carrega. Se não carregar, use a alternativa (com o hash). Troque o Main de cada visualização e cadastre o `cartao_multivalor`.

@@ -79,7 +79,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     })),
     colunas: Array.from(palco.querySelectorAll('.mk-coluna')).map((t) => t.textContent),
     rotulos: Array.from(palco.querySelectorAll('.mk-rotulo')).map((t) => t.textContent),
-    nota: palco.querySelector('.mk-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     vazio: palco.querySelector('.bl-vazio')?.textContent || '',
     fim: () => amb.restaurar(),

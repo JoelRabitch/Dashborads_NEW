@@ -58,7 +58,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     pontos: Array.from(palco.querySelectorAll('.bl-marcador.bp-ponto')),
     rotulos: Array.from(palco.querySelectorAll('.bp-rotulo')).map((t) => t.textContent),
     periodos: Array.from(palco.querySelectorAll('.bp-periodo')).map((t) => t.textContent),
-    nota: palco.querySelector('.bp-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     vazio: palco.querySelector('.bl-vazio')?.textContent || '',
     fim: () => amb.restaurar(),

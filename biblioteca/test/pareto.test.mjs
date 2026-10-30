@@ -67,7 +67,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     amb,
     palco,
     barras: Array.from(palco.querySelectorAll('.pt-barra')),
-    nota: palco.querySelector('.pt-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     eixoSecundario: Array.from(palco.querySelectorAll('.bl-eixo-secundario text')).map((t) => t.textContent),
     fim: () => amb.restaurar(),

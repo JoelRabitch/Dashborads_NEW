@@ -68,7 +68,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     seta: palco.querySelector('.kv-seta')?.textContent || '',
     base: palco.querySelector('.kv-base')?.textContent || '',
     spark: palco.querySelector('.kv-spark'),
-    nota: palco.querySelector('.kv-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     vazio: palco.querySelector('.bl-vazio')?.textContent || '',
     fim: () => amb.restaurar(),

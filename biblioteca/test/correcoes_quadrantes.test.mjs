@@ -359,7 +359,7 @@ test('tooltip — modelo do usuário recebe {{categoria}} e {{valor}}', () => {
   }
 });
 
-test('clique — com links abre o drill; sem links fixa o tooltip; um tooltip só', () => {
+test('clique — com links abre o drill; sem links não fixa no modo drill, fixa no modo "fixar" (v3); um tooltip só', () => {
   for (const id of GRAFICOS) {
     const r = abrir(id, {});
     try {
@@ -372,8 +372,11 @@ test('clique — com links abre o drill; sem links fixa o tooltip; um tooltip s�
       r.desenhar({}, { comLinks: false });
       const semLink = posicaoDoMarcador(r, 1) || passarMouseAteAcharPonto(r);
       clicar(r, semLink);
-      assert.ok(r.doc.querySelector('.bl-tooltip.bl-fixo'), `${id}: sem links o clique deveria fixar o tooltip`);
+      assert.equal(r.doc.querySelector('.bl-tooltip.bl-fixo'), null, `${id}: sem links, no modo drill, o clique não pode fixar (v3)`);
       assert.equal(r.amb.chamadasDeApi.drills, antes + 1, `${id}: sem links não pode abrir drill`);
+      r.desenhar({ acaoDoClique: 'fixar' }, { comLinks: false });
+      clicar(r, posicaoDoMarcador(r, 1) || passarMouseAteAcharPonto(r));
+      assert.ok(r.doc.querySelector('.bl-tooltip.bl-fixo'), `${id}: modo "fixar" deveria fixar o tooltip`);
 
       r.desenhar({ acaoDoClique: 'nenhuma' });
       const outro = posicaoDoMarcador(r, 0) || passarMouseAteAcharPonto(r);

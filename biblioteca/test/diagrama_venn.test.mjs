@@ -30,7 +30,8 @@ function renderizar(nomeDaFixture, ajustes = {}) {
   const palco = amb.window.document.getElementById('palco');
 
   instancia.create(palco, configPadrao(definicao));
-  const config = Object.assign(configPadrao(definicao), ajustes);
+  // v3 (5.7): o layout anterior continua como "Clássico" (o Moderno tem test/venn_v3).
+  const config = Object.assign(configPadrao(definicao), { layoutDoVenn: 'classico' }, ajustes);
   let chamouDone = false;
   instancia.updateAsync(data, palco, config, queryResponse, {}, () => { chamouDone = true; });
   assert.ok(chamouDone, 'done() precisa ser chamado sempre');

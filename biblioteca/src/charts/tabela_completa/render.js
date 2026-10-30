@@ -12,7 +12,9 @@
  */
 
 import { criarEl, limpar, definirTexto, injetarEstilo, preferindoMenosMovimento } from '../../core/dom.js';
-import { criarFiltroDeBusca } from '../../core/interaction.js';
+import { criarBusca, realcarTrechos, colunasDaBusca } from './busca.js';
+import { layoutEscolhido, letraDaColuna } from './layouts.js';
+import { comOpacidade } from '../../core/theme.js';
 import { criarFormatadorNumerico } from '../../core/format.js';
 import { cssDasCelulas } from './celulas.js';
 
@@ -55,6 +57,12 @@ const CSS = `
 .tc-seta-grupo{display:inline-block;width:10px;}
 @keyframes tc-entrada{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .tc-entrando{animation:tc-entrada .22s ease-out both;}
+.tc-realce{background:rgba(250,204,21,.45);color:inherit;padding:0;border-radius:2px;}
+.tc-layout-planilha .tc-tabela td,.tc-layout-planilha .tc-tabela th{border:1px solid rgba(127,127,127,.35);}
+.tc-layout-financeiro .tc-tabela td.tc-num{font-variant-numeric:tabular-nums;}
+.tc-layout-financeiro .tc-grupo td{font-weight:700;border-top:1px solid rgba(127,127,127,.45);}
+.tc-layout-financeiro .tc-grupo{background:rgba(66,118,190,.12)!important;}
+.tc-layout-financeiro tfoot td{border-top:3px double currentColor!important;font-weight:700;}
 .tc-flash{transition:background-color .7s ease-out;}
 .tc-menu{position:fixed;z-index:50;min-width:170px;padding:4px 0;border-radius:6px;border:1px solid;
   font-size:12px;}
@@ -198,15 +206,25 @@ function compararTextos(a, b) {
 }
 
 /** Aplica a busca global, devolvendo os índices que casam. */
-export function filtrarIndices(indices, colunas, termo, modelo) {
-  if (!termo || !termo.trim()) return indices;
-  const casa = criarFiltroDeBusca(termo);
+/**
+ * Busca geral (5.3, v3): "contém" em qualquer posição, várias palavras,
+ * "frase exata", -exclusão (ver busca.js). `config` traz as opções da
+ * busca: modo (todas/qualquer), colunas e texto formatado × valor bruto.
+ */
+export function filtrarIndices(indices, colunas, termo, modelo, config = {}) {
+  const busca = criarBusca(termo, { modo: config.modoDaBusca === 'qualquer' ? 'qualquer' : 'todas' });
+  if (busca.vazia) return indices;
+  const alvo = colunasDaBusca(colunas, config.colunasDaBusca);
+  const bruto = config.buscarEm === 'bruto';
+  const textoDe = (coluna, linha) => {
+    if (!bruto) return coluna.texto(linha, '');
+    const celula = coluna.celula(linha);
+    const v = celula ? celula.value : coluna.ehMedida ? coluna.valorNumerico(linha) : null;
+    return v === null || v === undefined ? '' : String(v);
+  };
   return indices.filter((i) => {
     const linha = modelo.linhas[i];
-    for (const coluna of colunas) {
-      if (casa(coluna.texto(linha, ''))) return true;
-    }
-    return false;
+    return busca.casa(alvo.map((coluna) => textoDe(coluna, linha)));
   });
 }
 
@@ -258,6 +276,10 @@ export function desenharTabela(params) {
     aoFiltrarColuna,
     aoMenuDeContexto,
   } = params;
+  // 5.2 (v3): a entrada animada das linhas só vale para o PRIMEIRO desenho
+  // da janela depois de carregar, ordenar, filtrar ou buscar. Selecionar,
+  // redimensionar e — principalmente — ROLAR não animam.
+  let animarProximaJanela = params.animarEntrada !== false;
   // Mutáveis: busca e filtros trocam linhas, totais e pintor SEM refazer o
   // cabeçalho e a barra (ver `atualizarDados` no fim) — é o que mantém o
   // foco e o cursor no campo enquanto o usuário digita.
@@ -270,7 +292,8 @@ export function desenharTabela(params) {
   limpar(raiz);
   injetarEstilo(raiz, CSS + cssDasCelulas(), 'tc');
 
-  const container = criarEl('div', { classe: 'tc-raiz', pai: raiz });
+  const layout = layoutEscolhido(config);
+  const container = criarEl('div', { classe: `tc-raiz tc-layout-${layout}`, pai: raiz });
   container.style.background = visual.fundo;
   container.style.color = visual.texto;
   container.style.fontSize = `${visual.tamanhoFonte}px`;
@@ -364,7 +387,8 @@ export function desenharTabela(params) {
   desenharRodape();
 
   // Altura total do cabeçalho (para a conta da virtualização).
-  const linhasDeCabecalho = (temPivo ? 2 : 1) + (config.mostrarFiltrosPorColuna ? 1 : 0);
+  const linhasDeCabecalho =
+    (temPivo ? 2 : 1) + (config.mostrarFiltrosPorColuna ? 1 : 0) + (layout === 'planilha' ? 1 : 0);
   const alturaCabecalhoTotal = linhasDeCabecalho * visual.alturaCabecalho;
 
   const estadoDeDesenho = {
@@ -374,10 +398,28 @@ export function desenharTabela(params) {
     deslocamentos,
     fixas,
     alturaCabecalhoTotal,
+    // Posição desejada no primeiro desenho (restaurada de uma atualização
+    // anterior): o corpo ainda está vazio, então o navegador cortaria o
+    // scrollTop se ele fosse aplicado antes de existir conteúdo.
+    topoDesejado: estado.rolagemTopo || 0,
+    janelaAtual: null,
+    // Layout "Ranking" (5.5, v3): maior |valor| por coluna, para as barras.
+    barras: layout === 'ranking' ? new Map() : null,
+    itensDasBarras: null,
   };
 
-  function desenharJanela() {
-    desenharLinhasVisiveis({
+  function desenharJanela({ forcar = true } = {}) {
+    // Realce do trecho buscado (5.3, v3), só nas colunas que a busca olha.
+    const busca = criarBusca(estado.busca, { modo: config.modoDaBusca === 'qualquer' ? 'qualquer' : 'todas' });
+    estadoDeDesenho.realce =
+      config.realcarBusca !== false && busca.trechos.length && config.buscarEm !== 'bruto'
+        ? { trechos: busca.trechos, colunas: new Set(colunasDaBusca(colunasVisiveis, config.colunasDaBusca).map((c) => c.id)) }
+        : null;
+    const animar = animarProximaJanela;
+    animarProximaJanela = false;
+    const desenhou = desenharLinhasVisiveis({
+      forcar,
+      animar,
       ctx,
       estadoDeDesenho,
       itens,
@@ -390,17 +432,20 @@ export function desenharTabela(params) {
       aoMenuDeContexto,
       pintarCelula,
     });
-    if (resumoEl) atualizarResumo(resumoEl, indicesDeDados, estado, colunasVisiveis, modelo);
+    if (desenhou && resumoEl) atualizarResumo(resumoEl, indicesDeDados, estado, colunasVisiveis, modelo);
   }
 
-  // Preserva a rolagem entre atualizações.
+  // Rolagem: guarda a posição e redesenha SÓ se a janela de linhas mudou
+  // (rolagem horizontal ou dentro da margem não recria nada), sem animação
+  // e sem destaque de valor.
   ctx.eventos.on(rolagem, 'scroll', () => {
     estado.rolagemTopo = rolagem.scrollTop;
     estado.rolagemEsquerda = rolagem.scrollLeft;
-    desenharJanela();
+    desenharJanela({ forcar: false });
   });
 
   desenharJanela();
+  estadoDeDesenho.topoDesejado = 0;
 
   if (estado.rolagemTopo) rolagem.scrollTop = estado.rolagemTopo;
   if (estado.rolagemEsquerda) rolagem.scrollLeft = estado.rolagemEsquerda;
@@ -415,6 +460,7 @@ export function desenharTabela(params) {
     desenharRodape();
     rolagem.scrollTop = 0;
     estado.rolagemTopo = 0;
+    animarProximaJanela = true; // busca/filtro: as linhas novas entram animadas
     desenharJanela();
   }
 
@@ -460,6 +506,27 @@ function construirCabecalho({
   aoRedimensionar,
   aoFiltrarColuna,
 }) {
+  // --- Layout "Planilha" (5.5, v3): linha de letras de coluna no topo ---
+  const planilha = layoutEscolhido(config) === 'planilha';
+  const dt = planilha ? visual.alturaCabecalho : 0;
+  if (planilha) {
+    const trLetras = criarEl('tr', { pai: thead, classe: 'tc-letras' });
+    if (config.mostrarNumeroDaLinha) {
+      const th = criarEl('th', { pai: trLetras });
+      aplicarEstiloDeCabecalho(th, visual, config, 0);
+    }
+    colunasVisiveis.forEach((coluna, i) => {
+      const th = criarEl('th', { pai: trLetras, classe: 'tc-centro', texto: letraDaColuna(i) });
+      aplicarEstiloDeCabecalho(th, visual, config, 0);
+      th.style.fontWeight = '400';
+      th.style.opacity = '.75';
+      if (i < fixas) {
+        th.classList.add('tc-fixa');
+        th.style.left = `${deslocamentos.get(coluna.id) || 0}px`;
+      }
+    });
+  }
+
   // --- Linha 1: grupos do pivô (só quando há pivô) ---
   if (temPivo) {
     const trGrupo = criarEl('tr', { pai: thead });
@@ -467,14 +534,14 @@ function construirCabecalho({
     if (config.mostrarNumeroDaLinha) {
       const th = criarEl('th', { pai: trGrupo });
       th.rowSpan = 2;
-      aplicarEstiloDeCabecalho(th, visual, config, 0);
+      aplicarEstiloDeCabecalho(th, visual, config, dt);
     }
 
     // Cada dimensão ganha seu próprio cabeçalho atravessando os dois níveis,
     // senão o nome da coluna sumiria quando há pivô.
     colunasVisiveis.forEach((coluna, i) => {
-      if (coluna.tipo !== 'dimensao') return;
-      const th = criarThDeColuna({ coluna, indice: i, topo: 0, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar });
+      if (coluna.tipo !== 'dimensao' && !coluna.soltaNoCabecalho) return;
+      const th = criarThDeColuna({ coluna, indice: i, topo: dt, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar });
       th.rowSpan = 2;
       trGrupo.appendChild(th);
     });
@@ -484,7 +551,7 @@ function construirCabecalho({
       if (!visiveisDoGrupo.length) continue;
       const th = criarEl('th', { pai: trGrupo, classe: 'tc-centro' });
       th.colSpan = visiveisDoGrupo.length;
-      aplicarEstiloDeCabecalho(th, visual, config, 0);
+      aplicarEstiloDeCabecalho(th, visual, config, dt);
       criarEl('span', { classe: 'tc-th-conteudo', texto: grupo.rotulo, pai: th });
       th.title = grupo.rotulo;
     }
@@ -492,7 +559,7 @@ function construirCabecalho({
 
   // --- Linha 2 (ou única): colunas ---
   const tr = criarEl('tr', { pai: thead });
-  const topo = temPivo ? visual.alturaCabecalho : 0;
+  const topo = (temPivo ? visual.alturaCabecalho : 0) + dt;
 
   if (config.mostrarNumeroDaLinha && !temPivo) {
     const th = criarEl('th', { pai: tr, texto: '#' });
@@ -502,7 +569,7 @@ function construirCabecalho({
   for (let i = 0; i < colunasVisiveis.length; i++) {
     const coluna = colunasVisiveis[i];
     // Com pivô, as dimensões já saíram no nível de cima com rowSpan=2.
-    if (temPivo && coluna.tipo === 'dimensao') continue;
+    if (temPivo && (coluna.tipo === 'dimensao' || coluna.soltaNoCabecalho)) continue;
     tr.appendChild(
       criarThDeColuna({ coluna, indice: i, topo, visual, config, estado, deslocamentos, fixas, ctx, aoOrdenar, aoRedimensionar })
     );
@@ -624,7 +691,10 @@ function construirRodape({ tfoot, colunasVisiveis, indicesVisiveis, visual, conf
       td.style.position = config.rodapeFixo === false ? 'sticky' : 'sticky';
     }
 
-    if (coluna.ehMedida) {
+    if (typeof coluna.totalCalculado === 'function') {
+      // Coluna calculada (5.4, v3): fórmula sobre os totais, ou vazio.
+      definirTexto(td, coluna.totalCalculado(indicesVisiveis, agregar, config.agregacaoDoTotal || 'soma'));
+    } else if (coluna.ehMedida) {
       // Preferimos o total que o próprio Looker mandou; se não houver,
       // calculamos (e o `index.js` avisa que o cálculo é nosso).
       const doLooker = modelo.totais.encontrados ? modelo.totais.porCampo[coluna.campo.nome] : null;
@@ -653,8 +723,20 @@ function estiloDeRodape(td, visual, config) {
   if (config.rodapeFixo === false) td.style.position = 'static';
 }
 
-/** Desenha só a janela de linhas visível (virtualização). */
+/**
+ * Desenha só a janela de linhas visível (virtualização).
+ *
+ * 5.2 (v3): mede a posição ANTES de mexer no corpo e troca as linhas de uma
+ * vez (fragmento + replaceChildren). Antes o corpo era esvaziado primeiro;
+ * a leitura de `scrollTop`/`clientHeight` com o corpo vazio forçava um
+ * layout em que o conteúdo não tinha altura, o navegador cortava o
+ * scrollTop e a tabela "piscava em branco e voltava ao início".
+ *
+ * @returns {boolean} se redesenhou
+ */
 function desenharLinhasVisiveis({
+  forcar = true,
+  animar: animarEstaJanela = false,
   ctx,
   estadoDeDesenho,
   itens,
@@ -667,27 +749,16 @@ function desenharLinhasVisiveis({
   aoMenuDeContexto,
   pintarCelula,
 }) {
-  const { rolagem, tbody, colunasVisiveis, deslocamentos, fixas, alturaCabecalhoTotal } = estadoDeDesenho;
+  const { rolagem, tbody: tbodyReal, colunasVisiveis, deslocamentos, fixas, alturaCabecalhoTotal } = estadoDeDesenho;
   const alturaLinha = visual.alturaLinha;
   const total = itens.length;
 
-  limpar(tbody);
-
-  if (!total) {
-    const tr = criarEl('tr', { pai: tbody });
-    const td = criarEl('td', { pai: tr, classe: 'tc-vazio' });
-    td.colSpan = colunasVisiveis.length + (config.mostrarNumeroDaLinha ? 1 : 0);
-    const temFiltro = estado.busca || Object.values(estado.filtros).some((v) => v && v.trim());
-    definirTexto(
-      td,
-      temFiltro ? 'Nenhuma linha encontrada para a busca.' : config.textoSemDados || 'Sem dados para exibir'
-    );
-    return;
-  }
+  // Medidas primeiro (corpo ainda intacto).
+  const alturaUtil = rolagem.clientHeight || 400;
+  const topoAtual = Math.max(rolagem.scrollTop || 0, estadoDeDesenho.topoDesejado || 0);
 
   const margem = 10;
-  const alturaUtil = rolagem.clientHeight || 400;
-  const deslocamento = Math.max(0, (rolagem.scrollTop || 0) - alturaCabecalhoTotal);
+  const deslocamento = Math.max(0, topoAtual - alturaCabecalhoTotal);
   let inicio = Math.max(0, Math.floor(deslocamento / alturaLinha) - margem);
   let fim = Math.min(total, inicio + Math.ceil(alturaUtil / alturaLinha) + margem * 2);
 
@@ -699,12 +770,43 @@ function desenharLinhasVisiveis({
     fim = Math.min(total, inicio + porPagina);
   }
 
+  // Rolagem que não muda a janela (horizontal, ou dentro da margem): nada a fazer.
+  const chave = `${inicio}|${fim}|${total}`;
+  if (!forcar && estadoDeDesenho.janelaAtual === chave) return false;
+  estadoDeDesenho.janelaAtual = chave;
+
+  // As linhas são montadas fora do documento e entram de uma vez.
+  const tbody = document.createDocumentFragment();
+  const trocar = () => {
+    if (typeof tbodyReal.replaceChildren === 'function') tbodyReal.replaceChildren(tbody);
+    else {
+      limpar(tbodyReal);
+      tbodyReal.appendChild(tbody);
+    }
+  };
+
+  if (!total) {
+    const tr = criarEl('tr', { pai: tbody });
+    const td = criarEl('td', { pai: tr, classe: 'tc-vazio' });
+    td.colSpan = colunasVisiveis.length + (config.mostrarNumeroDaLinha ? 1 : 0);
+    const temFiltro = estado.busca || Object.values(estado.filtros).some((v) => v && v.trim());
+    definirTexto(
+      td,
+      temFiltro ? 'Nenhuma linha encontrada para a busca.' : config.textoSemDados || 'Sem dados para exibir'
+    );
+    trocar();
+    return true;
+  }
+
   if (inicio > 0) tbody.appendChild(linhaEspacadora(inicio * alturaLinha, colunasVisiveis.length + 1));
 
   // "Ativar animações" (interruptor de todo gráfico, 2.7) também desliga a
   // entrada das linhas da tabela, que anima por conta própria.
   const animar =
-    config.animacaoAtiva !== false && config.animarEntradaDasLinhas !== false && !preferindoMenosMovimento();
+    animarEstaJanela &&
+    config.animacaoAtiva !== false &&
+    config.animarEntradaDasLinhas !== false &&
+    !preferindoMenosMovimento();
 
   for (let i = inicio; i < fim; i++) {
     const item = itens[i];
@@ -770,6 +872,10 @@ function desenharLinhasVisiveis({
       // O conteúdo em si é desenhado por quem chamou (tipos de célula ricos
       // e regras de formatação condicional vivem no index.js).
       pintarCelula({ td, coluna, linha, indiceDaLinha, visual, posicaoNaJanela: i });
+      if (estadoDeDesenho.realce && estadoDeDesenho.realce.colunas.has(coluna.id)) {
+        realcarTrechos(td, estadoDeDesenho.realce.trechos);
+      }
+      if (estadoDeDesenho.barras && coluna.ehMedida) barraNoFundo(td, coluna, linha, itens, modelo, estadoDeDesenho);
 
       if (aoMenuDeContexto) {
         ctx.eventos.on(td, 'contextmenu', (ev) => aoMenuDeContexto(ev, { coluna, linha, indiceDaLinha, td }));
@@ -780,6 +886,35 @@ function desenharLinhasVisiveis({
   if (fim < total && porPagina <= 0) {
     tbody.appendChild(linhaEspacadora((total - fim) * alturaLinha, colunasVisiveis.length + 1));
   }
+  trocar();
+  return true;
+}
+
+/**
+ * Layout "Ranking" (5.5, v3): barra ao fundo da célula numérica, do
+ * tamanho do |valor| em relação ao maior |valor| da coluna (linhas atuais).
+ */
+function barraNoFundo(td, coluna, linha, itens, modelo, estadoDeDesenho) {
+  if (estadoDeDesenho.itensDasBarras !== itens) {
+    estadoDeDesenho.barras.clear();
+    estadoDeDesenho.itensDasBarras = itens;
+  }
+  if (!estadoDeDesenho.barras.has(coluna.id)) {
+    let maior = 0;
+    for (const it of itens) {
+      if (it.tipo === 'grupo') continue;
+      const v = coluna.valorNumerico(modelo.linhas[it.indice]);
+      if (v !== null && Math.abs(v) > maior) maior = Math.abs(v);
+    }
+    estadoDeDesenho.barras.set(coluna.id, maior);
+  }
+  const maior = estadoDeDesenho.barras.get(coluna.id);
+  const v = coluna.valorNumerico(linha);
+  if (!maior || v === null) return;
+  const pct = Math.max(0, Math.min(100, (Math.abs(v) / maior) * 100)).toFixed(1);
+  const cor = comOpacidade(coluna.corDaBarra || '#4276BE', 0.22);
+  td.classList.add('tc-com-barra');
+  td.style.backgroundImage = `linear-gradient(90deg, ${cor} ${pct}%, transparent ${pct}%)`;
 }
 
 /** Linha de cabeçalho de grupo, com o subtotal já embutido. */
@@ -849,7 +984,12 @@ function estiloDeCelula(td, visual, config) {
 }
 
 function atualizarResumo(resumoEl, indicesVisiveis, estado, colunasVisiveis, modelo) {
-  const partes = [`${indicesVisiveis.length.toLocaleString('pt-BR')} linha(s)`];
+  const busca = String(estado.busca || '').trim();
+  const partes = [
+    busca
+      ? `${indicesVisiveis.length.toLocaleString('pt-BR')} resultado(s) para "${busca}"`
+      : `${indicesVisiveis.length.toLocaleString('pt-BR')} linha(s)`,
+  ];
   if (estado.selecionadas.size) {
     partes.push(`${estado.selecionadas.size} selecionada(s)`);
     const primeiraMedida = colunasVisiveis.find((c) => c.ehMedida);

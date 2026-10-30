@@ -95,7 +95,7 @@
        * @param {object} opcoesDinamicas opções novas (serão mescladas às estáticas)
        * @returns {boolean} true se chegou a registrar agora
        */
-      registrarOpcoes(opcoesDinamicas) {
+      registrarOpcoes(opcoesDinamicas, extra = "") {
         if (!instancia || typeof instancia.trigger !== "function") {
           avisarUmaVez(
             "sem-trigger",
@@ -104,7 +104,7 @@
           return false;
         }
         const dinamicas = opcoesDinamicas || {};
-        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
+        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas) + "|" + extra;
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
         const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
@@ -424,7 +424,7 @@
     var group = locale2.grouping === void 0 || locale2.thousands === void 0 ? identity_default : formatGroup_default(map.call(locale2.grouping, Number), locale2.thousands + ""), currencyPrefix = locale2.currency === void 0 ? "" : locale2.currency[0] + "", currencySuffix = locale2.currency === void 0 ? "" : locale2.currency[1] + "", decimal = locale2.decimal === void 0 ? "." : locale2.decimal + "", numerals = locale2.numerals === void 0 ? identity_default : formatNumerals_default(map.call(locale2.numerals, String)), percent = locale2.percent === void 0 ? "%" : locale2.percent + "", minus = locale2.minus === void 0 ? "\u2212" : locale2.minus + "", nan = locale2.nan === void 0 ? "NaN" : locale2.nan + "";
     function newFormat(specifier, options) {
       specifier = formatSpecifier(specifier);
-      var fill = specifier.fill, align = specifier.align, sign2 = specifier.sign, symbol = specifier.symbol, zero2 = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
+      var fill = specifier.fill, align = specifier.align, sign = specifier.sign, symbol = specifier.symbol, zero2 = specifier.zero, width = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type = specifier.type;
       if (type === "n") comma = true, type = "g";
       else if (!formatTypes_default[type]) precision === void 0 && (precision = 12), trim = true, type = "g";
       if (zero2 || fill === "0" && align === "=") zero2 = true, fill = "0", align = "=";
@@ -441,9 +441,9 @@
           var valueNegative = value < 0 || 1 / value < 0;
           value = isNaN(value) ? nan : formatType(Math.abs(value), precision);
           if (trim) value = formatTrim_default(value);
-          if (valueNegative && +value === 0 && sign2 !== "+") valueNegative = false;
-          valuePrefix = (valueNegative ? sign2 === "(" ? sign2 : minus : sign2 === "-" || sign2 === "(" ? "" : sign2) + valuePrefix;
-          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign2 === "(" ? ")" : "");
+          if (valueNegative && +value === 0 && sign !== "+") valueNegative = false;
+          valuePrefix = (valueNegative ? sign === "(" ? sign : minus : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
+          valueSuffix = (type === "s" && !isNaN(value) && prefixExponent !== void 0 ? prefixes[8 + prefixExponent / 3] : "") + valueSuffix + (valueNegative && sign === "(" ? ")" : "");
           if (maybeSuffix) {
             i = -1, n = value.length;
             while (++i < n) {
@@ -927,31 +927,6 @@
     }
     return null;
   }
-
-  // node_modules/d3-scale-chromatic/src/colors.js
-  function colors_default(specifier) {
-    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
-    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
-    return colors;
-  }
-
-  // node_modules/d3-scale-chromatic/src/categorical/category10.js
-  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
-  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
-
-  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
-  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
-  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
-  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
-  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
 
   // node_modules/d3-color/src/define.js
   function define_default(constructor, factory, prototype) {
@@ -1510,6 +1485,31 @@
     };
   }
 
+  // node_modules/d3-scale-chromatic/src/colors.js
+  function colors_default(specifier) {
+    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
+    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
+    return colors;
+  }
+
+  // node_modules/d3-scale-chromatic/src/categorical/category10.js
+  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
+  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
+
+  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
+  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
+  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
+  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
+  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
+
   // node_modules/d3-scale-chromatic/src/ramp.js
   var ramp_default = (scheme8) => rgbBasis(scheme8[scheme8.length - 1]);
 
@@ -1773,6 +1773,18 @@
     tema.metricas = METRICAS;
     return tema;
   }
+  function registrarPaletaCategorica(id, { rotulo, cores, pacote = null }) {
+    PALETAS_CATEGORICAS[id] = { rotulo, cores: cores.slice(), pacote };
+  }
+  function registrarEscalaContinua(id, { rotulo, cores, tipo = "sequencial", pacote = null }) {
+    const paradas = cores.slice();
+    const interpolador = (t) => {
+      const x = Math.max(0, Math.min(1, Number(t) || 0)) * (paradas.length - 1);
+      const i = Math.min(paradas.length - 2, Math.floor(x));
+      return rgb_default(paradas[i], paradas[i + 1])(x - i);
+    };
+    ESCALAS_CONTINUAS[id] = { rotulo, interpolador, tipo, pacote };
+  }
   function coresDaPaleta(nomeDaPaleta) {
     const p = PALETAS_CATEGORICAS[nomeDaPaleta] || PALETAS_CATEGORICAS.looker;
     return p.cores;
@@ -1813,6 +1825,229 @@
     m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(t);
     if (m) return [Number(m[1]), Number(m[2]), Number(m[3])];
     return null;
+  }
+
+  // src/core/shapes.js
+  function CatmullLimitada(contexto) {
+    this._context = contexto;
+  }
+  CatmullLimitada.prototype = {
+    areaStart() {
+      this._line = 0;
+    },
+    areaEnd() {
+      this._line = NaN;
+    },
+    lineStart() {
+      this._pontos = [];
+    },
+    point(x, y) {
+      this._pontos.push([+x, +y]);
+    },
+    lineEnd() {
+      const p = this._pontos;
+      const n = p.length;
+      const c = this._context;
+      if (n) {
+        if (this._line) c.lineTo(p[0][0], p[0][1]);
+        else c.moveTo(p[0][0], p[0][1]);
+        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = p[i - 1] || p[i];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = p[i + 2] || p2;
+          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
+          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
+          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
+          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
+          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) c.closePath();
+      this._line = 1 - this._line;
+    }
+  };
+  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
+  var ROTULOS_DAS_FORMAS = {
+    circulo: "C\xEDrculo",
+    quadrado: "Quadrado",
+    triangulo: "Tri\xE2ngulo",
+    losango: "Losango",
+    cruz: "Cruz",
+    estrela: "Estrela",
+    wye: "Wye (Y)"
+  };
+  var FORMAS_EXTRAS = {};
+  function registrarForma(id, { rotulo, caminho, pacote = null }) {
+    FORMAS_EXTRAS[id] = { rotulo: rotulo || id, caminho, pacote };
+    if (!FORMAS_DE_MARCADOR.includes(id)) FORMAS_DE_MARCADOR.push(id);
+    ROTULOS_DAS_FORMAS[id] = rotulo || id;
+  }
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
+    return null;
+  }
+
+  // src/core/rotulos-do-painel.js
+  function limiteDoRotulo(opcao) {
+    return opcao && opcao.type === "boolean" ? 30 : 40;
+  }
+  var CORPO_CURTO = {
+    // Árvores e organograma
+    espessuraPorValor: "Liga\xE7\xE3o proporcional",
+    escalaPorArvore: "Escala por \xE1rvore",
+    tamanhoPorValor: "N\xF3 pelo valor",
+    comecarRecolhidoAPartirDe: "Recolher a partir do n\xEDvel",
+    preencherCartao: "Cart\xE3o na cor do ramo",
+    espacoEntreIrmaos: "Espa\xE7o entre vizinhos",
+    mostrarValorNoCartao: "Valor no cart\xE3o",
+    mostrarContagemDeEquipe: "Total de descendentes",
+    permitirRecolher: "Recolher ao clicar",
+    campoDoCargo: "Campo da 2\xAA linha",
+    mostrarBotoesDeExpandir: "Bot\xF5es de expandir",
+    // Rótulos
+    evitarColisaoDeRotulos: "Ocultar sobrepostos",
+    truncarRotulo: "Cortar ap\xF3s N caracteres",
+    mostrarRotulosDeFolha: "Nome das folhas",
+    mostrarRotulosInternos: "Nome dos n\xF3s internos",
+    mostrarValorNoRotulo: "Incluir o valor",
+    mostrarPercentual: "Mostrar percentual",
+    mostrarTotalDoConjunto: "Total do conjunto",
+    listarRegioesPequenas: "Listar as pequenas",
+    escreverLimites: "Valores dos limites",
+    escreverPercentuais: "Percentual no bloco",
+    escreverLarguras: "Peso de cada coluna",
+    escreverValores: "Valor junto do nome",
+    mostrarValorNoBloco: "Valor no ret\xE2ngulo",
+    mostrarValorNaBarra: "Valor acima da barra",
+    // Tooltip e clique
+    tooltipPersonalizado: "Personalizado",
+    modeloDeTooltip: "Modelo",
+    tooltipComNomeCompleto: "Nome completo",
+    tooltipComValorBruto: "Valor sem formato",
+    permitirHtmlDoLooker: "HTML do Looker",
+    destacarAoPassarMouse: "Destacar sob o mouse",
+    destacarNoHover: "Destacar sob o mouse",
+    permitirOrdenar: "Ordenar no cabe\xE7alho",
+    mostrarFiltrosPorColuna: "Filtro por coluna",
+    permitirSelecionarLinhas: "Selecionar e somar",
+    destacarLinhaEColuna: "Real\xE7ar linha/coluna",
+    permitirRedimensionarColunas: "Redimensionar colunas",
+    permitirDrill: "Drill na c\xE9lula",
+    mostrarBusca: "Campo de busca",
+    // Animação
+    contadorAnimado: "N\xFAmeros contando",
+    animarEntradaDasLinhas: "Entrada das linhas",
+    animarMudancaDeValor: "Piscar ao mudar",
+    repetir: "Repetir ao terminar",
+    // Avançado
+    aplicarConfiguracaoJson: "Aplicar o JSON acima",
+    // Dados e séries
+    agruparRestoEmOutros: "Agrupar o resto em Outros",
+    mostrarRank: "N\xFAmero do rank",
+    mostrarPontos: "Ponto em cada per\xEDodo",
+    mostrarPosicao: "Posi\xE7\xE3o no ponto",
+    normalizarParticipacao: "X como participa\xE7\xE3o",
+    mostrarTotalDeLinha: "Coluna de total por linha",
+    estiloDeData: "Formato das c\xE9lulas de data",
+    cabecalhoVertical: "Cabe\xE7alho na vertical",
+    esconderIntersecoesVazias: "Ocultar interse\xE7\xF5es vazias",
+    mostrarTotaisDosConjuntos: "Totais dos conjuntos",
+    // Cores e escalas
+    escalaDeCorPersonalizada: "Escala pr\xF3pria",
+    limiteDeCorAutomatico: "Limites autom\xE1ticos",
+    corPorDirecao: "Cor por dire\xE7\xE3o",
+    corDoSinal: "Cor fora de controle",
+    // Legenda e eixos
+    legendaInterativa: "Clique liga/desliga",
+    mostrarValoresNaLegenda: "Mostrar valores",
+    comecarEmZero: "Eixo come\xE7a em zero",
+    gradeEixoX: "Linhas de grade",
+    gradeEixoY: "Linhas de grade",
+    eixoXSimetricoEmTorno1: "Eixo X centrado em 1",
+    // Gráficos específicos
+    ligarPontos: "Ligar os pontos",
+    mostrarGuias: "Guias verticais",
+    destacarPiorQueda: "Destacar pior queda",
+    mostrarRecuperacao: "Dura\xE7\xE3o da queda",
+    periodoBase: "Base: N primeiros per\xEDodos",
+    mostrarZonas: "Zonas de 1\u03C3 e 2\u03C3",
+    colorirVariacao: "Cor pela dire\xE7\xE3o",
+    mostrarVariacaoAbsoluta: "Diferen\xE7a absoluta",
+    mostrarProgressoDaMeta: "Progresso at\xE9 a meta",
+    usarLimites: "Cor por limites",
+    pintarQuadrantes: "Pintar o fundo",
+    mostrarContagemPorQuadrante: "Pontos por quadrante",
+    mostrarCorte: "Marcar o corte",
+    destacarAteOCorte: "Destacar at\xE9 o corte",
+    mostrarPontosDoAcumulado: "Pontos no acumulado",
+    mostrarRetaDeSharpe: "Reta do melhor Sharpe",
+    destacarMelhorSharpe: "Destacar o melhor",
+    mostrarTitulosDeGrupo: "Nome de cada grupo"
+  };
+  var CORPO_POR_SUFIXO_DE_COLUNA = [
+    [/^visivel$/, () => "Mostrar"],
+    [/^rotulo$/, () => "Renomear"],
+    [/^largura$/, () => "Largura (px)"],
+    [/^alinhamento$/, () => "Alinhamento"],
+    [/^tipoDeCelula$/, () => "Tipo de c\xE9lula"],
+    [/^corDoTexto$/, () => "Cor do texto"],
+    [/^corDeFundo$/, () => "Cor de fundo"],
+    [/^prefixo$/, () => "Prefixo"],
+    [/^sufixo$/, () => "Sufixo"],
+    [/^formato$/, () => "Formato"],
+    [/^casasDecimais$/, () => "Casas decimais"],
+    [/^corDaBarra$/, () => "Cor da barra"],
+    [/^escalaDeCor$/, () => "Escala de cor"],
+    [/^escalaCorMin$/, () => "Cor do menor"],
+    [/^escalaCorMax$/, () => "Cor do maior"],
+    [/^regra(\d+)$/, (n) => `R${n}: condi\xE7\xE3o`],
+    [/^regra(\d+)Valor$/, (n) => `R${n}: valor`],
+    [/^regra(\d+)Valor2$/, (n) => `R${n}: valor 2`],
+    [/^regra(\d+)Acao$/, (n) => `R${n}: a\xE7\xE3o`],
+    [/^regra(\d+)Cor$/, (n) => `R${n}: cor`],
+    [/^regra(\d+)Icone$/, (n) => `R${n}: \xEDcone`],
+    [/^regra(\d+)LinhaInteira$/, (n) => `R${n}: linha toda`],
+    [/^regra(\d+)Coluna$/, (n) => `R${n}: comparar com`]
+  ];
+  function corpoDinamico(id) {
+    const m = /^col_(?:dim|med|tab|calc)_.+?_([a-zA-Z0-9]+)$/.exec(id);
+    if (!m) return null;
+    for (const [re2, fn] of CORPO_POR_SUFIXO_DE_COLUNA) {
+      const r = re2.exec(m[1]);
+      if (r) return fn(r[1]);
+    }
+    return null;
+  }
+  function semExplicacao(texto) {
+    return String(texto).replace(/\s*\([^)]*\)/g, "").replace(/\s+[—–]\s+.*$/, "").replace(/\s+-\s+.*$/, "").replace(/\s+/g, " ").trim();
+  }
+  function cortar(texto, limite) {
+    return texto.length <= limite ? texto : `${texto.slice(0, Math.max(1, limite - 1)).trimEnd()}\u2026`;
+  }
+  function montarRotulo({ id, prefixo, rotulo, opcao }) {
+    const limite = limiteDoRotulo(opcao);
+    const sep = " \xB7 ";
+    let corpo = String(rotulo != null ? rotulo : "");
+    if (prefixo && corpo.startsWith(`${prefixo}${sep}`)) corpo = corpo.slice(prefixo.length + sep.length);
+    const junto = (p, c) => p ? `${p}${sep}${c}` : c;
+    const daColuna = corpoDinamico(id);
+    if (daColuna) corpo = daColuna;
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    const curto = CORPO_CURTO[id];
+    if (curto) corpo = curto;
+    else if (corpo.length > limite || junto(prefixo, corpo).length > limite) corpo = semExplicacao(corpo) || corpo;
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    corpo = corpo.replace(/^Cor do quadrante /, "Cor: ").replace(/^Nome do quadrante /, "Nome: ");
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    if (prefixo && /^(Coluna|Campo) /.test(prefixo)) {
+      const sobra = limite - corpo.length - sep.length;
+      const curtoPrefixo = prefixo.replace(/^Coluna /, "Col. ");
+      if (sobra >= 6) return junto(cortar(curtoPrefixo, sobra), corpo);
+    }
+    return cortar(corpo, limite);
   }
 
   // src/core/options-kit.js
@@ -2486,9 +2721,25 @@
       }
     };
   }
-  var JUNTAR_EIXOS_E_TEXTO = true;
-  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABAS = ["Dados", "Estilo", "Texto", "Mais"];
+  var ABA_FINAL = {
+    Dados: "Dados",
+    Visual: "Estilo",
+    Eixos: "Texto",
+    Texto: "Texto",
+    Intera\u00E7\u00E3o: "Mais",
+    Avan\u00E7ado: "Mais"
+  };
   var ABA_POR_SECAO = {
+    // cartao_multivalor (5.14, v3)
+    Cart\u00E3o: "Visual",
+    Apar\u00EAncia: "Visual",
+    Faixas: "Visual",
+    Cabe\u00E7alho: "Dados",
+    Busca: "Intera\xE7\xE3o",
+    T\u00EDtulo: "Texto",
+    Subt\u00EDtulo: "Texto",
+    Nota: "Texto",
     Dados: "Dados",
     Medidas: "Dados",
     Formato: "Visual",
@@ -2504,6 +2755,14 @@
     Avan\u00E7ado: "Avan\xE7ado"
   };
   var PREFIXO_POR_SECAO = {
+    Cart\u00E3o: "Cart\xE3o",
+    Apar\u00EAncia: "Cart\xE3o",
+    Faixas: "Faixas",
+    Cabe\u00E7alho: "Topo",
+    Busca: "Busca",
+    T\u00EDtulo: "T\xEDtulo",
+    Subt\u00EDtulo: "Subt\xEDtulo",
+    Nota: "Nota",
     Cores: "Cor",
     Cor: "Cor",
     R\u00F3tulos: "R\xF3tulo",
@@ -2561,6 +2820,12 @@
       let prefixo;
       if (DESTINO_POR_ID[id]) {
         [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Fórmula \d+$/.test(secaoAntiga)) {
+        aba = "Dados";
+        prefixo = secaoAntiga;
+      } else if (/^Campo: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Campo: /, "Campo ");
       } else if (/^Coluna: /.test(secaoAntiga)) {
         aba = "Visual";
         prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
@@ -2574,9 +2839,11 @@
         aba = abaPeloId(id, opcao);
         prefixo = secaoAntiga;
       }
-      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
-      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
-        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      aba = ABA_FINAL[aba] || "Mais";
+      if (typeof opcao.label === "string") {
+        const completo = prefixo && !opcao.label.startsWith(`${prefixo} \xB7 `) ? `${prefixo} \xB7 ${opcao.label}` : opcao.label;
+        Object.defineProperty(opcao, "_rotuloCompleto", { value: completo, enumerable: false });
+        opcao.label = montarRotulo({ id, prefixo, rotulo: opcao.label, opcao });
       }
       opcao.section = aba;
       const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;
@@ -2841,6 +3108,514 @@
     return marcas.length;
   }
 
+  // src/core/icones.js
+  var registro = /* @__PURE__ */ new Map();
+  function registrarIcone(id, def) {
+    registro.set(id, { rotulo: def.rotulo || id, pacote: def.pacote || null, contorno: def.contorno, preenchido: def.preenchido || null });
+  }
+  function existeIcone(id) {
+    return registro.has(id);
+  }
+  var BASE = {
+    seta: ["Seta", "M5 12h14M13 6l6 6-6 6"],
+    estrela: ["Estrela", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"],
+    carrinho: ["Carrinho", "M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2M9 20h.01M17 20h.01"],
+    pessoa: ["Pessoa", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7"],
+    moeda: ["Moeda", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"],
+    grafico: ["Gr\xE1fico", "M4 20V10M10 20V4M16 20v-7M22 20H2"],
+    relogio: ["Rel\xF3gio", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2"],
+    alerta: ["Alerta", "M12 3l10 18H2zM12 10v5M12 18v.01", "M12 2.5L22.5 21h-21zM11 10h2v5h-2zM11 17h2v2h-2z"],
+    alvo: ["Alvo", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"],
+    check: ["Confirmado", "M4 12l5 5L20 6"],
+    xis: ["Recusado", "M6 6l12 12M18 6L6 18"],
+    coracao: ["Cora\xE7\xE3o", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"],
+    casa: ["Casa", "M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"],
+    sobe: ["Sobe", "M12 19V5M6 11l6-6 6 6"],
+    desce: ["Desce", "M12 5v14M6 13l6 6 6-6"]
+  };
+  for (const [id, [rotulo, contorno, preenchido]] of Object.entries(BASE)) registrarIcone(id, { rotulo, contorno, preenchido });
+
+  // src/core/pacotes.js
+  var PACOTE_PADRAO = "cafe";
+  var pacotes = /* @__PURE__ */ new Map();
+  var progressos = /* @__PURE__ */ new Map();
+  var presets = /* @__PURE__ */ new Map();
+  function registrarPacote({ id, nome, icones = {}, formas = {}, paletas = {}, escalas = {}, progressos: prog = {}, presets: pre = {} }) {
+    const prefixo = `${id}_`;
+    const conferir = (chave) => {
+      if (!chave.startsWith(prefixo)) throw new Error(`pacote ${id}: o id "${chave}" precisa come\xE7ar com "${prefixo}"`);
+    };
+    pacotes.set(id, { id, nome });
+    for (const [k, def] of Object.entries(icones)) {
+      conferir(k);
+      registrarIcone(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(formas)) {
+      conferir(k);
+      registrarForma(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(paletas)) {
+      conferir(k);
+      registrarPaletaCategorica(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(escalas)) {
+      conferir(k);
+      registrarEscalaContinua(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(prog)) {
+      conferir(k);
+      progressos.set(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(pre)) {
+      conferir(k);
+      presets.set(k, { ...def, pacote: id });
+    }
+  }
+  function listarPacotes() {
+    return Array.from(pacotes.values());
+  }
+  function pacotesLigados(config = {}) {
+    const escolhido = config.pacoteTematico;
+    if (escolhido === "nenhum") return [];
+    if (escolhido && pacotes.has(escolhido)) return [escolhido];
+    return pacotes.has(PACOTE_PADRAO) ? [PACOTE_PADRAO] : [];
+  }
+  function prefixosDesligados(config = {}) {
+    const ligados = pacotesLigados(config);
+    return listarPacotes().map((p) => p.id).filter((id) => !ligados.includes(id)).map((id) => `${id}_`);
+  }
+  function usaItensDePacote(opcoes2) {
+    const prefixos = listarPacotes().map((p) => `${p.id}_`);
+    if (!prefixos.length) return false;
+    return Object.values(opcoes2 || {}).some(
+      (o) => o && Array.isArray(o.values) && o.values.some((v) => prefixos.some((p) => String(Object.values(v)[0]).startsWith(p)))
+    );
+  }
+  function filtrarOpcoesPorPacote(opcoes2, config) {
+    const prefixos = prefixosDesligados(config);
+    if (!prefixos.length) return opcoes2;
+    const saida = {};
+    for (const [id, o] of Object.entries(opcoes2 || {})) {
+      if (o && Array.isArray(o.values)) {
+        const copia = { ...o, values: o.values.filter((v) => !prefixos.some((p) => String(Object.values(v)[0]).startsWith(p))) };
+        if (o._organizada) Object.defineProperty(copia, "_organizada", { value: true, enumerable: false });
+        saida[id] = copia;
+      } else saida[id] = o;
+    }
+    return saida;
+  }
+  function opcaoDePacoteTematico() {
+    const lista = [{ "Nenhum": "nenhum" }].concat(listarPacotes().map((p) => ({ [p.nome]: p.id })));
+    return {
+      pacoteTematico: {
+        type: "string",
+        label: "Pacote tem\xE1tico",
+        section: "Tema",
+        display: "select",
+        default: pacotes.has(PACOTE_PADRAO) ? PACOTE_PADRAO : "nenhum",
+        values: lista
+      }
+    };
+  }
+
+  // src/packs/cafe/index.js
+  var ICONES = {
+    cafe_xicara: ["X\xEDcara", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M7 3.5v3M10 3.5v3M13 3.5v3M3 21h15", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h1.5a3 3 0 0 1 0 6H16v-1.5h1.5a1.5 1.5 0 0 0 0-3H16zM3 20h15v1.5H3z"],
+    cafe_copo: ["Copo de viagem", "M7 6h10l-1.3 14.5H8.3zM6 6h12M8.5 2.5h7L16 6H8zM7.6 11h8.8", "M6 5.2h12V7H6zM8.4 2.2h7.2L16.4 5H7.6zM7.1 7.6h9.8l-1.2 13H8.3z"],
+    cafe_grao: ["Gr\xE3o", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9zM12.5 3.2c-2.2 3-2.2 6 0 8.8s2.2 5.8 0 8.8", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9z"],
+    cafe_prensa: ["Prensa francesa", "M7 7h9v13H7zM5.5 20.5h12M11.5 2.5v9M9 2.5h5M7 11.5h9M16 9.5h2.5v8H16", "M7 7h9v13H7zM5.5 19.8h12v1.5h-12zM10.8 2h1.4v5h-1.4zM16 9h3v9h-3v-1.5h1.5v-6H16z"],
+    cafe_moedor: ["Moedor", "M6 10h12l-1.2 11H7.2zM8 10V7h8v3M12 7V4.5M12 4.5h4.5M10 15h4", "M6 10h12l-1.2 11H7.2zM8 6.5h8V10H8zM11.3 4h1.4v2.5h-1.4zM11.3 3.8h5.4v1.4h-5.4z"],
+    cafe_espresso: ["M\xE1quina de espresso", "M5 3h14v6H5zM7 9v4h10V9M9.5 13v2M14.5 13v2M8.5 17h7v4h-7zM4 21h16M8 6h3", "M5 3h14v6H5zM7 9h10v4H7zM8.5 16.5h7V21h-7zM4 20.2h16v1.5H4z"],
+    cafe_croissant: ["Croissant", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1zM12 5.5V11M7.5 8l1.5 5M16.5 8L15 13", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1z"],
+    cafe_bolo: ["Bolo", "M4 12h16v8H4zM4 15c2 1.2 4-1 6 0s4 1.2 6 0 3-1 4 0M12 4.5v4M10.5 6.5h3M8 12V9.5h8V12", "M4 12h16v8H4zM8 9h8v3H8zM11.3 4h1.4v5h-1.4z"],
+    cafe_loja: ["Loja", "M3.5 9L5.5 4h13l2 5M3.5 9h17M5 9v11h14V9M10 20v-5.5h4V20M3.5 9a2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0", "M5.5 4h13l2 5h-17zM5 10.5h14V20h-5v-5.5h-4V20H5z"],
+    cafe_quiosque: ["Quiosque", "M4 10h16M6 10v10M18 10v10M4 20h16M4 10l2-6h12l2 6M9 14h6v6H9z", "M6 4h12l2 6H4zM6 11h12v9H6z"],
+    cafe_caminhao: ["Caminh\xE3o de entrega", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7M6 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7zM6 20a2.3 2.3 0 1 0 0-4.6A2.3 2.3 0 0 0 6 20zM17 20a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6z"],
+    cafe_cupom: ["Cupom", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM9 7v10M13 10.5h.01M17 13.5h.01M17.5 10l-5 4", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"],
+    cafe_fidelidade: ["Estrela de fidelidade", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19zM12 6.5l1.7 3.5 3.8.6-2.7 2.6.6 3.8L12 15.2 8.6 17l.6-3.8-2.7-2.6 3.8-.6z", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19z"],
+    cafe_coroa: ["Coroa", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 21h14", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 20.2h14v1.5H5z"],
+    cafe_cartao: ["Cart\xE3o", "M3 6h18v12H3zM3 10h18M6 14.5h4", "M3 6h18v3.2H3zM3 10.8h18V18H3z"]
+  };
+  var FORMAS = {
+    cafe_xicara: {
+      rotulo: "X\xEDcara",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.85)},${f(-0.55)}h${f(1.35)}v${f(0.6)}a${f(0.675)},${f(0.6)} 0 0 1 ${f(-1.35)},0zM${f(0.5)},${f(-0.4)}h${f(0.25)}a${f(0.3)},${f(0.3)} 0 0 1 0,${f(0.6)}h${f(-0.25)}z`;
+      }
+    },
+    cafe_grao: {
+      rotulo: "Gr\xE3o",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        return `M${(-0.72 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(1.44 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(-1.44 * r).toFixed(2)},0z`;
+      }
+    },
+    cafe_copo: {
+      rotulo: "Copo",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.65)},${f(-1)}h${f(1.3)}l${f(-0.22)},${f(2)}h${f(-0.86)}z`;
+      }
+    }
+  };
+  var PALETAS = {
+    cafe_espresso: { rotulo: "Caf\xE9 \xB7 Espresso", cores: ["#3B2416", "#6F4E37", "#A0522D", "#C8A27A", "#E6CCB2", "#7F5539", "#B08968", "#DDB892", "#4A3728"] },
+    cafe_latte: { rotulo: "Caf\xE9 \xB7 Latte", cores: ["#C8A27A", "#E3C9A8", "#8B5E3C", "#F2E6D8", "#A47551", "#D6B48C", "#6B4F3A", "#BFA58A"] },
+    cafe_caramelo: { rotulo: "Caf\xE9 \xB7 Caramelo", cores: ["#AF6E4D", "#D4A373", "#E9C46A", "#F4A261", "#8D5524", "#C68B59", "#FFD8A9", "#7B3F00"] },
+    cafe_crema: { rotulo: "Caf\xE9 \xB7 Crema", cores: ["#FFF1D6", "#F3D9B1", "#E8C39E", "#D9A86C", "#C08552", "#A0673D", "#7A4E2D", "#5C3A21"] },
+    cafe_mocha: { rotulo: "Caf\xE9 \xB7 Mocha", cores: ["#4B3832", "#854442", "#BE9B7B", "#FFF4E6", "#3C2F2F", "#A47148", "#D4A574", "#6E4C3A"] }
+  };
+  var ESCALAS = {
+    cafe_torra: { rotulo: "Caf\xE9 \xB7 Torra (clara \u2192 escura)", cores: ["#F5E6D3", "#D9B48F", "#A9744F", "#6F4E37", "#3B2416"], tipo: "sequencial" },
+    cafe_torra_divergente: { rotulo: "Caf\xE9 \xB7 Torra divergente", cores: ["#3B2416", "#A9744F", "#F5F0E8", "#7FA7A0", "#2F5D57"], tipo: "divergente" }
+  };
+  var contador = 0;
+  function desenharXicara(pai, fracao, { lado = 40, cor = "#6F4E37", contornoCor = "currentColor", animar = false, duracao = 600, curva = "ease-out", agendarQuadro = null } = {}) {
+    const id = `cafe-xic-${contador += 1}`;
+    const svg = criarSvgEl("svg", {
+      pai,
+      classe: "cafe-xicara",
+      atributos: { width: lado, height: lado, viewBox: "0 0 24 24", "data-fracao": fracao.toFixed(3), role: "img", "aria-label": `${Math.round(fracao * 100)}%` }
+    });
+    const defs = criarSvgEl("defs", { pai: svg });
+    const clip = criarSvgEl("clipPath", { pai: defs, atributos: { id } });
+    criarSvgEl("path", { pai: clip, atributos: { d: "M4.6 9.6h10.8v4.4a4.4 4.4 0 0 1-4.4 4.4H9a4.4 4.4 0 0 1-4.4-4.4z" } });
+    const g = criarSvgEl("g", { pai: svg, atributos: { "clip-path": `url(#${id})` } });
+    const liquido = criarSvgEl("rect", { pai: g, classe: "cafe-liquido", atributos: { x: 4, y: 9.6, width: 12, height: 8.8, fill: cor } });
+    liquido.style.transformBox = "fill-box";
+    liquido.style.transformOrigin = "50% 100%";
+    const final = `scaleY(${fracao})`;
+    if (animar && agendarQuadro) {
+      liquido.style.transform = "scaleY(0)";
+      liquido.style.transition = `transform ${duracao}ms ${curva}`;
+      agendarQuadro(() => {
+        liquido.style.transform = final;
+      });
+    } else liquido.style.transform = final;
+    criarSvgEl("path", {
+      pai: svg,
+      atributos: { d: ICONES.cafe_xicara[1], fill: "none", stroke: contornoCor, "stroke-width": 1.6, "stroke-linecap": "round", "stroke-linejoin": "round" }
+    });
+    return svg;
+  }
+  registrarPacote({
+    id: "cafe",
+    nome: "Caf\xE9",
+    icones: Object.fromEntries(Object.entries(ICONES).map(([k, [rotulo, contorno, preenchido]]) => [k, { rotulo: `Caf\xE9 \xB7 ${rotulo}`, contorno, preenchido }])),
+    formas: FORMAS,
+    paletas: PALETAS,
+    escalas: ESCALAS,
+    progressos: { cafe_xicara: { rotulo: "Progresso em x\xEDcara", desenhar: desenharXicara } }
+  });
+
+  // src/core/medida-texto.js
+  var ESTREITOS = /* @__PURE__ */ new Set([...`iljtf.,:;|!'"()[]{} `]);
+  var LARGOS = /* @__PURE__ */ new Set([..."mwMWQGOD@%"]);
+  function larguraDoTexto(texto, tamanho = 12, { negrito = false, mono = false } = {}) {
+    const s = String(texto != null ? texto : "");
+    if (!s) return 0;
+    if (mono) return s.length * 0.62 * tamanho;
+    let em = 0;
+    for (const ch of s) {
+      if (ESTREITOS.has(ch)) em += 0.32;
+      else if (LARGOS.has(ch)) em += 0.86;
+      else if (ch >= "A" && ch <= "Z") em += 0.68;
+      else if (ch >= "0" && ch <= "9") em += 0.56;
+      else em += 0.53;
+    }
+    return em * tamanho * (negrito ? 1.09 : 1);
+  }
+  function linhasDoTexto(texto, larguraDisponivel, tamanho = 12, opcoes2 = {}) {
+    const s = String(texto != null ? texto : "").trim();
+    if (!s) return 0;
+    if (!(larguraDisponivel > 0)) return 1;
+    const espaco = larguraDoTexto(" ", tamanho, opcoes2);
+    let linhas = 1;
+    let atual = 0;
+    for (const palavra of s.split(/\s+/)) {
+      const w = larguraDoTexto(palavra, tamanho, opcoes2);
+      if (atual === 0) {
+        atual = w;
+        if (w > larguraDisponivel) {
+          linhas += Math.ceil(w / larguraDisponivel) - 1;
+          atual = w % larguraDisponivel;
+        }
+      } else if (atual + espaco + w <= larguraDisponivel) {
+        atual += espaco + w;
+      } else {
+        linhas += 1;
+        atual = Math.min(w, larguraDisponivel);
+        if (w > larguraDisponivel) linhas += Math.ceil(w / larguraDisponivel) - 1;
+      }
+    }
+    return linhas;
+  }
+
+  // src/core/cabecalho.js
+  var valores = (pares) => pares.map(([rotulo, valor]) => ({ [rotulo]: valor }));
+  var ALINHAMENTOS = valores([["Esquerda", "esquerda"], ["Centro", "centro"], ["Direita", "direita"]]);
+  var FONTES = valores([["Do tema", "tema"], ["Sistema", "sistema"], ["Monoespa\xE7ada", "mono"], ["Serifada", "serifada"]]);
+  var PESOS = valores([["Negrito", "negrito"], ["Normal", "normal"]]);
+  function blocoDeTexto(sufixo, secao, { peso, tamanho }) {
+    const o = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: secao, default: def, ...extra });
+    return {
+      [`mostrar${sufixo}`]: o("boolean", "Mostrar", true),
+      [`posicaoDo${sufixo}`]: o("string", "Posi\xE7\xE3o", "acima", {
+        display: "select",
+        values: valores([["Acima do gr\xE1fico", "acima"], ["Abaixo do gr\xE1fico", "abaixo"]])
+      }),
+      [`alinhamentoDo${sufixo}`]: o("string", "Alinhamento", "esquerda", { display: "select", values: ALINHAMENTOS }),
+      [`deslocamentoXDo${sufixo}`]: o("number", "Deslocamento X (px)", 0),
+      [`deslocamentoYDo${sufixo}`]: o("number", "Deslocamento Y (px)", 0),
+      [`tamanhoDo${sufixo}`]: o("number", "Tamanho (px, 0 = auto)", tamanho),
+      [`fonteDo${sufixo}`]: o("string", "Fonte", "tema", { display: "select", values: FONTES }),
+      [`pesoDo${sufixo}`]: o("string", "Peso", peso, { display: "select", values: PESOS }),
+      [`corDo${sufixo}`]: o("string", "Cor (vazio = tema)", "", { display: "color" }),
+      [`margemDo${sufixo}`]: o("number", "Margem (px)", 0),
+      [`quebrar${sufixo}`]: o("boolean", "Quebrar linha", true),
+      [`linhasDo${sufixo}`]: o("number", "M\xE1ximo de linhas (0 = sem)", 0)
+    };
+  }
+  function opcoesDoCabecalho() {
+    const n = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: "Nota", default: def, ...extra });
+    return {
+      ...blocoDeTexto("Titulo", "T\xEDtulo", { peso: "negrito", tamanho: 0 }),
+      ...blocoDeTexto("Subtitulo", "Subt\xEDtulo", { peso: "normal", tamanho: 0 }),
+      mostrarNota: n("boolean", "Mostrar", true),
+      posicaoDaNota: n("string", "Posi\xE7\xE3o", "abaixo", {
+        display: "select",
+        values: valores([
+          ["Abaixo do gr\xE1fico", "abaixo"],
+          ["Acima do gr\xE1fico", "acima"],
+          ["S\xF3 no \xEDcone \u24D8", "icone"]
+        ])
+      }),
+      alinhamentoDaNota: n("string", "Alinhamento", "esquerda", { display: "select", values: ALINHAMENTOS }),
+      tamanhoDaNota: n("number", "Tamanho (px)", 10),
+      fonteDaNota: n("string", "Fonte", "tema", { display: "select", values: FONTES }),
+      corDaNota: n("string", "Cor (vazio = tema)", "", { display: "color" }),
+      quebrarNota: n("boolean", "Quebrar linha", true),
+      linhasDaNota: n("number", "M\xE1ximo de linhas (0 = sem)", 0),
+      textoDaNota: n("string", "Texto", "auto", {
+        display: "select",
+        values: valores([
+          ["Autom\xE1tico", "auto"],
+          ["Autom\xE1tico + meu texto", "auto_mais"],
+          ["S\xF3 meu texto", "meu"],
+          ["Nenhum", "nenhum"]
+        ])
+      }),
+      meuTextoDaNota: n("string", "Meu texto", "")
+    };
+  }
+  function textoFinalDaNota(config = {}, automatico = "") {
+    const auto = String(automatico || "").trim();
+    const meu = String(config.meuTextoDaNota || "").trim();
+    switch (config.textoDaNota) {
+      case "nenhum":
+        return "";
+      case "meu":
+        return meu;
+      case "auto_mais":
+        return [auto, meu].filter(Boolean).join(" \xB7 ");
+      default:
+        return auto;
+    }
+  }
+  var num = (v, padrao) => Number.isFinite(Number(v)) && v !== "" && v !== null ? Number(v) : padrao;
+  function familia(fonte, tema) {
+    if (fonte === "sistema") return 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    if (fonte === "mono") return 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
+    if (fonte === "serifada") return 'Georgia, "Times New Roman", serif';
+    return tema && tema.fonte || "";
+  }
+  function estiloDoTexto(tipo, config = {}, tema = {}) {
+    const base = num(tema.tamanhoBase, 12);
+    if (tipo === "nota") {
+      return {
+        mostrar: config.mostrarNota !== false,
+        posicao: ["acima", "icone"].includes(config.posicaoDaNota) ? config.posicaoDaNota : "abaixo",
+        alinhamento: config.alinhamentoDaNota || "esquerda",
+        dx: 0,
+        dy: 0,
+        tamanho: Math.max(6, num(config.tamanhoDaNota, 10) || 10),
+        fonte: familia(config.fonteDaNota, tema),
+        mono: config.fonteDaNota === "mono",
+        negrito: false,
+        cor: (config.corDaNota || "").trim() || tema.textoSuave || "",
+        opacidade: (config.corDaNota || "").trim() ? 1 : 0.75,
+        margem: 0,
+        quebrar: config.quebrarNota !== false,
+        linhas: Math.max(0, Math.floor(num(config.linhasDaNota, 0))),
+        alturaDaLinha: 1.35
+      };
+    }
+    const S = tipo === "titulo" ? "Titulo" : "Subtitulo";
+    const automatico = tipo === "titulo" ? Math.round(base * 1.25) : Math.round(base * 0.95);
+    const tamanho = num(config[`tamanhoDo${S}`], 0);
+    const peso = config[`pesoDo${S}`] || (tipo === "titulo" ? "negrito" : "normal");
+    const cor = (config[`corDo${S}`] || "").trim();
+    return {
+      mostrar: config[`mostrar${S}`] !== false,
+      posicao: config[`posicaoDo${S}`] === "abaixo" ? "abaixo" : "acima",
+      alinhamento: config[`alinhamentoDo${S}`] || "esquerda",
+      dx: num(config[`deslocamentoXDo${S}`], 0),
+      dy: num(config[`deslocamentoYDo${S}`], 0),
+      tamanho: tamanho > 0 ? tamanho : automatico,
+      fonte: familia(config[`fonteDo${S}`], tema),
+      mono: config[`fonteDo${S}`] === "mono",
+      negrito: peso === "negrito",
+      cor: cor || "",
+      opacidade: tipo === "subtitulo" && !cor ? 0.7 : 1,
+      margem: Math.max(0, num(config[`margemDo${S}`], 0)),
+      quebrar: config[`quebrar${S}`] !== false,
+      linhas: Math.max(0, Math.floor(num(config[`linhasDo${S}`], 0))),
+      alturaDaLinha: 1.2
+    };
+  }
+  var FOLGA = { lateral: 10, topo: 6, base: 4, entreItens: 2, icone: 18 };
+  function planejarCabecalho({ largura, altura, config = {}, tema = {}, textos = {}, areaMinima }) {
+    const minimo = areaMinima != null ? areaMinima : Math.max(40, Math.round(altura * 0.25));
+    const ocultos = [];
+    const pedidos = [];
+    for (const tipo of ["titulo", "subtitulo", "nota"]) {
+      const texto = String(textos[tipo] || "").trim();
+      const estilo = estiloDoTexto(tipo, config, tema);
+      if (!texto || !estilo.mostrar) continue;
+      pedidos.push({ tipo, texto, estilo });
+    }
+    const calcular = (itens) => {
+      const icone = itens.find((i) => i.tipo === "nota" && i.estilo.posicao === "icone");
+      const noFluxo = itens.filter((i) => i !== icone);
+      const larguraUtil = Math.max(20, largura - 2 * FOLGA.lateral);
+      const medir2 = (i) => {
+        const reservaDoIcone = icone && i.estilo.posicao === "acima" ? FOLGA.icone + 4 : 0;
+        const larguraDoItem = Math.max(20, larguraUtil - Math.abs(i.estilo.dx) - reservaDoIcone);
+        const opts = { negrito: i.estilo.negrito, mono: i.estilo.mono };
+        let linhas = i.estilo.quebrar ? linhasDoTexto(i.texto, larguraDoItem, i.estilo.tamanho, opts) : 1;
+        if (i.estilo.linhas > 0) linhas = Math.min(linhas, i.estilo.linhas);
+        const alturaDoTexto = Math.ceil(linhas * i.estilo.tamanho * i.estilo.alturaDaLinha);
+        return { ...i, linhas, largura: larguraDoItem, alturaDoTexto, altura: alturaDoTexto + 2 * i.estilo.margem };
+      };
+      const topo = noFluxo.filter((i) => i.estilo.posicao === "acima").map(medir2);
+      const base = noFluxo.filter((i) => i.estilo.posicao === "abaixo").map(medir2);
+      const somar = (lista) => lista.reduce((s, i) => s + i.altura, 0) + Math.max(0, lista.length - 1) * FOLGA.entreItens;
+      let alturaTopo = topo.length ? FOLGA.topo + somar(topo) : 0;
+      if (icone) alturaTopo = Math.max(alturaTopo, FOLGA.topo + FOLGA.icone);
+      const alturaBase = base.length ? somar(base) + FOLGA.base : 0;
+      let y = FOLGA.topo;
+      for (const i of topo) {
+        i.x = FOLGA.lateral + i.estilo.dx;
+        i.y = y + i.estilo.margem + i.estilo.dy;
+        y += i.altura + FOLGA.entreItens;
+      }
+      y = altura - alturaBase;
+      for (const i of base) {
+        i.x = FOLGA.lateral + i.estilo.dx;
+        i.y = y + i.estilo.margem + i.estilo.dy;
+        y += i.altura + FOLGA.entreItens;
+      }
+      return {
+        topo,
+        base,
+        icone: icone ? icone.texto : "",
+        estiloDoIcone: icone ? icone.estilo : null,
+        alturaTopo,
+        alturaBase,
+        area: { y: alturaTopo, altura: altura - alturaTopo - alturaBase }
+      };
+    };
+    let plano = calcular(pedidos);
+    for (const tipo of ["nota", "subtitulo", "titulo"]) {
+      if (plano.area.altura >= minimo) break;
+      const idx = pedidos.findIndex((p) => p.tipo === tipo);
+      if (idx < 0) continue;
+      pedidos.splice(idx, 1);
+      ocultos.push(tipo);
+      plano = calcular(pedidos);
+    }
+    return { ...plano, ocultos };
+  }
+  var CSS = `
+.bl-cabecalho,.bl-rodape{position:relative;flex:0 0 auto;overflow:hidden;padding:0 ${FOLGA.lateral}px;}
+.bl-cabecalho{padding-top:${FOLGA.topo}px;}
+.bl-rodape{padding-bottom:${FOLGA.base}px;}
+.bl-cabecalho>.bl-texto+.bl-texto,.bl-rodape>.bl-texto+.bl-texto{margin-top:${FOLGA.entreItens}px;}
+.bl-texto{position:relative;overflow:hidden;}
+.bl-texto.bl-sem-quebra{white-space:nowrap;text-overflow:ellipsis;}
+.bl-texto.bl-limitado{display:-webkit-box;-webkit-box-orient:vertical;}
+.bl-nota-icone{position:absolute;top:${FOLGA.topo - 2}px;right:${FOLGA.lateral - 4}px;width:${FOLGA.icone}px;height:${FOLGA.icone}px;
+  border:0;padding:0;background:transparent;color:inherit;font:inherit;font-size:14px;line-height:${FOLGA.icone}px;cursor:help;opacity:.7;}
+.bl-nota-icone:hover,.bl-nota-icone:focus{opacity:1;}
+.bl-nota-balao{position:absolute;z-index:5;right:${FOLGA.lateral}px;top:${FOLGA.topo + FOLGA.icone + 2}px;max-width:calc(100% - ${2 * FOLGA.lateral}px);
+  padding:6px 8px;border-radius:6px;box-shadow:0 4px 14px rgba(15,23,42,.22);display:none;line-height:1.35;}
+.bl-nota-balao.bl-visivel{display:block;}
+`;
+  function cssDoCabecalho() {
+    return CSS;
+  }
+  function aplicarEstilo(el, item, tema) {
+    const e = item.estilo;
+    el.className = `bl-texto bl-${item.tipo}`;
+    el.style.fontSize = `${e.tamanho}px`;
+    el.style.lineHeight = String(e.alturaDaLinha);
+    el.style.fontWeight = e.negrito ? "600" : "400";
+    el.style.fontFamily = e.fonte || "";
+    el.style.color = e.cor || "";
+    el.style.opacity = String(e.opacidade);
+    el.style.textAlign = e.alinhamento === "centro" ? "center" : e.alinhamento === "direita" ? "right" : "left";
+    el.style.left = `${e.dx}px`;
+    el.style.top = `${e.dy}px`;
+    el.style.margin = `${e.margem}px 0`;
+    el.style.height = `${item.alturaDoTexto}px`;
+    if (!e.quebrar) el.classList.add("bl-sem-quebra");
+    if (e.linhas > 0 && e.quebrar) {
+      el.classList.add("bl-limitado");
+      el.style.webkitLineClamp = String(e.linhas);
+    }
+    definirTexto(el, item.texto);
+    if (item.tipo === "nota" && !e.cor) el.style.color = tema.textoSuave || "";
+  }
+  function desenharCabecalho(bl, plano, tema = {}) {
+    for (const [faixa, itens, altura] of [
+      [bl.cabecalho, plano.topo, plano.alturaTopo],
+      [bl.rodape, plano.base, plano.alturaBase]
+    ]) {
+      if (!faixa) continue;
+      limpar(faixa);
+      faixa.style.display = altura > 0 ? "block" : "none";
+      faixa.style.height = `${altura}px`;
+      for (const item of itens) aplicarEstilo(criarEl("div", { pai: faixa }), item, tema);
+    }
+    if (plano.icone && bl.cabecalho) {
+      const botao = criarEl("button", { classe: "bl-nota-icone", texto: "\u24D8", pai: bl.cabecalho });
+      botao.type = "button";
+      botao.setAttribute("aria-label", "Nota explicativa");
+      const balao = criarEl("div", { classe: "bl-nota-balao bl-texto bl-nota", pai: bl.raiz });
+      definirTexto(balao, plano.icone);
+      const e = plano.estiloDoIcone || {};
+      balao.style.fontSize = `${e.tamanho || 10}px`;
+      balao.style.fontFamily = e.fonte || "";
+      balao.style.background = tema.tooltipFundo || "rgba(15,23,42,.94)";
+      balao.style.color = tema.tooltipTexto || "#F8FAFC";
+      balao.style.textAlign = e.alinhamento === "centro" ? "center" : e.alinhamento === "direita" ? "right" : "left";
+      const mostrar = () => balao.classList.add("bl-visivel");
+      const esconder = () => balao.classList.remove("bl-visivel");
+      botao.addEventListener("pointerenter", mostrar);
+      botao.addEventListener("focus", mostrar);
+      botao.addEventListener("pointerleave", esconder);
+      botao.addEventListener("blur", esconder);
+      bl.balaoDaNota = balao;
+    }
+  }
+  function limparBalaoDaNota(bl) {
+    if (bl.balaoDaNota && bl.balaoDaNota.parentNode) bl.balaoDaNota.parentNode.removeChild(bl.balaoDaNota);
+    bl.balaoDaNota = null;
+  }
+
   // src/core/interaction.js
   var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
   var CSS_DESTAQUE = `
@@ -2885,7 +3660,10 @@
   padding:6px 9px;border-radius:6px;font-size:11px;line-height:1.5;border:1px solid transparent;
   box-shadow:0 6px 18px rgba(15,23,42,.25);opacity:0;transition:opacity .12s ease;}
 .bl-tooltip.bl-visivel{opacity:1;}
-.bl-tooltip.bl-fixo{box-shadow:0 0 0 2px rgba(66,118,190,.55),0 6px 18px rgba(15,23,42,.25);}
+.bl-tooltip.bl-fixo{pointer-events:auto;padding-right:24px;box-shadow:0 0 0 2px rgba(66,118,190,.55),0 6px 18px rgba(15,23,42,.25);}
+.bl-tooltip-fechar{position:absolute;top:2px;right:3px;width:18px;height:18px;padding:0;border:0;border-radius:4px;
+  background:transparent;color:inherit;font:inherit;font-size:14px;line-height:18px;cursor:pointer;opacity:.8;}
+.bl-tooltip-fechar:hover{opacity:1;background:rgba(127,127,127,.25);}
 .bl-tooltip-linha{display:flex;gap:8px;justify-content:space-between;white-space:nowrap;}
 .bl-tooltip-rotulo{opacity:.75;}
 .bl-tooltip-valor{font-weight:600;}
@@ -2893,7 +3671,7 @@
 .bl-tooltip-chip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
 .bl-tooltip-dica{opacity:.6;font-size:.9em;margin-top:3px;}
 `;
-  var registro = /* @__PURE__ */ new WeakMap();
+  var registro2 = /* @__PURE__ */ new WeakMap();
   var contextos = /* @__PURE__ */ new WeakMap();
   var TAGS_DO_MODELO = /* @__PURE__ */ new Set(["b", "i", "br", "span"]);
   var TAGS_DO_HTML_DO_LOOKER = /* @__PURE__ */ new Set(["b", "i", "br", "span", "strong", "em", "p", "div", "u", "small"]);
@@ -2906,31 +3684,28 @@
     const r = raizDe(raiz);
     if (!r) return;
     contextos.set(r, { config: config || {}, ponte: ponte || null });
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.aplicarEstilo();
   }
   function esconderTooltipsDe(raiz) {
-    const t = registro.get(raizDe(raiz));
-    if (t) {
-      t.soltar();
-      t.esconder();
-    }
+    const t = registro2.get(raizDe(raiz));
+    if (t) t.soltarEEsconder();
   }
   function destruirTooltipsDe(raiz) {
     const r = raizDe(raiz);
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.destruir();
     contextos.delete(r);
   }
   function criarTooltip(hospedeiro, tema) {
     const raiz = raizDe(hospedeiro);
-    const existente = registro.get(raiz);
+    const existente = registro2.get(raiz);
     if (existente && existente.elemento.isConnected) {
       existente.definirTema(tema);
       return existente;
     }
     const t = construirTooltip(raiz, tema);
-    registro.set(raiz, t);
+    registro2.set(raiz, t);
     return t;
   }
   function construirTooltip(raiz, temaInicial) {
@@ -2958,7 +3733,7 @@
       const c = contextos.get(raiz);
       return c && c.config || {};
     }
-    function aplicarEstilo() {
+    function aplicarEstilo2() {
       const c = config();
       const cor = (v) => typeof v === "string" && v.trim() ? v.trim() : "";
       el.style.background = cor(c.corDeFundoDoTooltip) || tema.tooltipFundo || "rgba(15,23,42,.94)";
@@ -3006,6 +3781,20 @@
         criarEl("span", { classe: "bl-tooltip-valor", texto: (_b = linha.valor) != null ? _b : "", pai: l });
       }
     }
+    function colocarBotaoFechar() {
+      removerBotaoFechar();
+      const botao = criarEl("button", { classe: "bl-tooltip-fechar", texto: "\xD7", pai: el });
+      botao.setAttribute("type", "button");
+      botao.setAttribute("aria-label", "Fechar");
+      botao.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        api.soltar();
+      });
+    }
+    function removerBotaoFechar() {
+      const b = el.querySelector(".bl-tooltip-fechar");
+      if (b && b.parentNode) b.parentNode.removeChild(b);
+    }
     const api = {
       elemento: el,
       get visivel() {
@@ -3017,9 +3806,9 @@
       ultimoConteudo: null,
       definirTema(novo) {
         tema = novo || tema;
-        aplicarEstilo();
+        aplicarEstilo2();
       },
-      aplicarEstilo,
+      aplicarEstilo: aplicarEstilo2,
       /**
        * Mostra o tooltip.
        * @param {{titulo?:string, linhas?:Array<{rotulo:string,valor:string,cor?:string}>,
@@ -3056,14 +3845,21 @@
         fixo = true;
         fixadoEm = Date.now();
         el.classList.add("bl-fixo");
+        colocarBotaoFechar();
         return true;
       },
       soltar() {
         if (!fixo) return;
         fixo = false;
         el.classList.remove("bl-fixo");
+        removerBotaoFechar();
         el.classList.remove("bl-visivel");
         visivel = false;
+      },
+      /** Solta (se fixo) e esconde (se visível): nada fica na tela. */
+      soltarEEsconder() {
+        api.soltar();
+        api.esconder();
       },
       destruir() {
         for (const r of removedores.splice(0)) r();
@@ -3071,7 +3867,7 @@
           if (el.parentNode) el.parentNode.removeChild(el);
         } catch (_) {
         }
-        if (registro.get(raiz) === api) registro.delete(raiz);
+        if (registro2.get(raiz) === api) registro2.delete(raiz);
         visivel = false;
         fixo = false;
       }
@@ -3085,12 +3881,26 @@
       }, true);
     }
     ouvir(document, "keydown", (ev) => {
-      if (ev && ev.key === "Escape") api.soltar();
+      if (ev && ev.key === "Escape") api.soltarEEsconder();
     });
-    ouvir(document, "pointerdown", () => {
+    ouvir(document, "pointerdown", (ev) => {
+      if (ev && ev.target && el.contains(ev.target)) return;
       if (fixo && Date.now() - fixadoEm > 50) api.soltar();
     }, true);
-    aplicarEstilo();
+    if (typeof window !== "undefined") {
+      ouvir(window, "blur", () => api.soltarEEsconder());
+      ouvir(window, "focus", () => api.soltarEEsconder());
+    }
+    if (document.documentElement) {
+      ouvir(document.documentElement, "mouseleave", () => api.soltarEEsconder());
+    }
+    ouvir(document, "mouseout", (ev) => {
+      if (ev && !ev.relatedTarget && (!ev.target || !el.contains(ev.target))) api.esconder();
+    });
+    ouvir(document, "visibilitychange", () => {
+      if (document.hidden) api.soltarEEsconder();
+    });
+    aplicarEstilo2();
     return api;
   }
   function variaveisDoConteudo(conteudo = {}) {
@@ -3202,11 +4012,12 @@
       return tooltip && tooltip.fixar(conteudo, x, y) ? "fixou" : "nada";
     }
     if (acao === "nenhuma") return "nada";
-    if (acao === "drill" && config.permitirDrill !== false && ponte && ponte.temDrill(celula)) {
-      if (tooltip) tooltip.soltar();
+    if (acao === "fixar") return tooltip && tooltip.fixar(conteudo, x, y) ? "fixou" : "nada";
+    if (config.permitirDrill !== false && ponte && ponte.temDrill(celula)) {
+      if (tooltip) tooltip.soltarEEsconder();
       return ponte.abrirDrill(celula, evento) ? "drill" : "nada";
     }
-    return tooltip && tooltip.fixar(conteudo, x, y) ? "fixou" : "nada";
+    return "nada";
   }
 
   // src/core/define-viz.js
@@ -3214,9 +4025,6 @@
 .bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
   display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
-.bl-titulo{font-weight:600;line-height:1.2;}
-.bl-subtitulo{opacity:.7;line-height:1.2;}
 .bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
 .bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
   border-radius:4px;font-size:11px;line-height:1.35;}
@@ -3246,28 +4054,27 @@
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
-    const opcoes2 = organizarAbas(
-      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
-    );
+    const juntas = Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho());
+    if (usaItensDePacote(juntas)) Object.assign(juntas, opcaoDePacoteTematico());
+    if (!juntas.estiloDoIcone && temListaDeIcones(juntas)) Object.assign(juntas, OPCAO_ESTILO_DO_ICONE);
+    const opcoes2 = organizarAbas(juntas);
     const definicao = {
       id,
       label,
       options: opcoes2,
       create(element, _config) {
         limpar(element);
-        injetarEstilo(element, CSS_BASE, "bl-base");
+        injetarEstilo(element, CSS_BASE + cssDoCabecalho(), "bl-base");
         const raiz = criarEl("div", { classe: "bl-raiz", pai: element });
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
-        const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
-        const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
         const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
+        const rodape = criarEl("div", { classe: "bl-rodape", pai: raiz });
         this._bl = {
           element,
           raiz,
           cabecalho,
-          tituloEl,
-          subtituloEl,
+          rodape,
           area,
           avisoEl,
           eventos: criarGerenciadorDeEventos(),
@@ -3336,22 +4143,35 @@
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
     const { id, opcoes: opcoes2, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
-    const ponte = criarPonte(this, opcoes2);
+    const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes2, config || {}));
     ponte.limparErros();
     if (!this._bl) {
       definicaoCreateManual.call(this, element);
     }
     const bl = this._bl;
+    const abrirDrillDoLooker = ponte.abrirDrill;
+    ponte.abrirDrill = (celula, evento) => {
+      esconderTooltipsDe(bl.raiz);
+      return abrirDrillDoLooker(celula, evento);
+    };
     limparPendencias(bl);
     esconderTooltipsDe(bl.raiz);
     limparAviso(bl);
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
+    const pacoteAgora = pacotesLigados(configFinal).join(",") || "nenhum";
+    const pacoteAntes = bl.pacoteRegistrado === void 0 ? PACOTE_PADRAO : bl.pacoteRegistrado;
+    const trocouPacote = "pacoteTematico" in opcoes2 && pacoteAgora !== pacoteAntes;
+    bl.pacoteRegistrado = pacoteAgora;
+    if (trocouPacote && typeof opcoesDinamicas !== "function") {
+      ponte.registrarOpcoes({}, pacoteAgora);
+    }
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
+        const extra = trocouPacote || bl.pacoteRegistrado !== PACOTE_PADRAO ? pacoteAgora : "";
+        if (dinamicas && (Object.keys(dinamicas).length || trocouPacote) && ponte.registrarOpcoes(filtrarOpcoesPorPacote(organizarAbas(dinamicas), configFinal), extra)) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -3370,7 +4190,13 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
+    const textosDoCabecalho = () => ({
+      titulo: cabecalhoProprio ? "" : configFinal.titulo,
+      subtitulo: cabecalhoProprio ? "" : configFinal.subtitulo,
+      nota: textoFinalDaNota(configFinal, bl.notaAutomatica || "")
+    });
+    const aplicarCabecalhoV3 = () => aplicarCabecalho(bl, configFinal, tema, textosDoCabecalho());
+    aplicarCabecalhoV3();
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
@@ -3394,6 +4220,11 @@
       detalhes: details,
       primeiraRenderizacao: bl.primeiraRenderizacao,
       recursosDoLooker: recursosDoLooker(),
+      /**
+       * Texto AUTOMÁTICO da nota (5.1c): o gráfico escreve aqui (é um
+       * elemento fora do documento); o núcleo decide onde e se mostra.
+       */
+      nota: null,
       limparRaiz() {
         limpar(bl.area);
       },
@@ -3442,19 +4273,38 @@
         esconderTooltipsDe(bl.raiz);
         limparAviso(bl);
         try {
-          render(ctx);
+          renderizar();
           ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
       }
     };
+    function renderizar({ repetir = true } = {}) {
+      ctx.nota = criarEl("div");
+      render(ctx);
+      const nova = (ctx.nota.textContent || "").trim();
+      if (nova !== (bl.notaAutomatica || "")) {
+        bl.notaAutomatica = nova;
+        aplicarCabecalhoV3();
+        const tamanho = medir(bl.area);
+        if (repetir && (tamanho.largura !== ctx.largura || tamanho.altura !== ctx.altura)) {
+          ctx.largura = tamanho.largura;
+          ctx.altura = tamanho.altura;
+          bl.eventos.limpar();
+          limparPendencias(bl);
+          esconderTooltipsDe(bl.raiz);
+          renderizar({ repetir: false });
+        }
+      }
+    }
     bl.raiz.style.background = tema.fundo;
     bl.raiz.style.color = tema.texto;
     bl.raiz.style.fontFamily = tema.fonte;
     bl.raiz.style.fontSize = `${tema.tamanhoBase}px`;
     bl.ultimoDesenho = () => {
       if (!this._bl) return;
+      aplicarCabecalhoV3();
       const tamanho = medir(bl.area);
       if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
       ctx.largura = tamanho.largura;
@@ -3463,13 +4313,13 @@
       esconderTooltipsDe(bl.raiz);
       limparAviso(bl);
       try {
-        render(ctx);
+        renderizar();
         ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
-    render(ctx);
+    renderizar();
     ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     if (!animacaoPropria) {
       animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
@@ -3484,19 +4334,17 @@
   }
   function definicaoCreateManual(element) {
     limpar(element);
-    injetarEstilo(element, CSS_BASE, "bl-base");
+    injetarEstilo(element, CSS_BASE + cssDoCabecalho(), "bl-base");
     const raiz = criarEl("div", { classe: "bl-raiz", pai: element });
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
-    const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
-    const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
     const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
+    const rodape = criarEl("div", { classe: "bl-rodape", pai: raiz });
     this._bl = {
       element,
       raiz,
       cabecalho,
-      tituloEl,
-      subtituloEl,
+      rodape,
       area,
       avisoEl,
       eventos: criarGerenciadorDeEventos(),
@@ -3508,16 +4356,13 @@
       cancelarObservador: null
     };
   }
-  function aplicarCabecalho(bl, config, tema) {
-    const titulo = (config.titulo || "").trim();
-    const subtitulo = (config.subtitulo || "").trim();
-    definirTexto(bl.tituloEl, titulo);
-    definirTexto(bl.subtituloEl, subtitulo);
-    bl.tituloEl.style.display = titulo ? "block" : "none";
-    bl.subtituloEl.style.display = subtitulo ? "block" : "none";
-    bl.tituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 1.25)}px`;
-    bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
-    bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
+  function aplicarCabecalho(bl, config, tema, textos) {
+    const { largura, altura } = medir(bl.raiz);
+    limparBalaoDaNota(bl);
+    const plano = planejarCabecalho({ largura, altura, config, tema, textos });
+    desenharCabecalho(bl, plano, tema);
+    bl.planoDoCabecalho = plano;
+    return plano;
   }
   function criarAviso(raiz) {
     const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
@@ -3551,7 +4396,7 @@
     const ligado = config.mostrarAvisos !== false;
     bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
     if (bl.posicaoDoAviso === "rodape") {
-      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+      if (bl.area.nextSibling !== bl.avisoEl) bl.raiz.insertBefore(bl.avisoEl, bl.area.nextSibling);
     } else if (bl.avisoEl.nextSibling !== bl.area) {
       bl.raiz.insertBefore(bl.avisoEl, bl.area);
     }
@@ -3570,6 +4415,21 @@
     bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
+  }
+  var OPCAO_ESTILO_DO_ICONE = {
+    estiloDoIcone: {
+      type: "string",
+      label: "Estilo do \xEDcone",
+      section: "Tema",
+      display: "select",
+      default: "contorno",
+      values: [{ Contorno: "contorno" }, { Preenchido: "preenchido" }]
+    }
+  };
+  function temListaDeIcones(opcoes2) {
+    return Object.values(opcoes2 || {}).some(
+      (o) => o && Array.isArray(o.values) && /[íi]cone/i.test(o.label || "") && o.values.some((v) => existeIcone(String(Object.values(v)[0])))
+    );
   }
   var OPCOES_DE_AVISO = {
     mostrarAvisos: {
@@ -3709,7 +4569,7 @@
     el.setAttribute("data-rotulo", "1");
     return el;
   }
-  function larguraDoTexto(texto, tamanho) {
+  function larguraDoTexto2(texto, tamanho) {
     return String(texto || "").length * tamanho * 0.58;
   }
   function esconderColisoes(caixas, rot) {
@@ -3730,483 +4590,6 @@
       }
     }
     return escondidos;
-  }
-
-  // node_modules/d3-shape/src/math.js
-  var epsilon = 1e-12;
-  var pi = Math.PI;
-  var halfPi = pi / 2;
-  var tau = 2 * pi;
-
-  // node_modules/d3-shape/src/curve/linear.js
-  function Linear(context) {
-    this._context = context;
-  }
-  Linear.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x, y) {
-      x = +x, y = +y;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-          break;
-        case 1:
-          this._point = 2;
-        // falls through
-        default:
-          this._context.lineTo(x, y);
-          break;
-      }
-    }
-  };
-  function linear_default(context) {
-    return new Linear(context);
-  }
-
-  // node_modules/d3-shape/src/curve/basis.js
-  function point(that, x, y) {
-    that._context.bezierCurveTo(
-      (2 * that._x0 + that._x1) / 3,
-      (2 * that._y0 + that._y1) / 3,
-      (that._x0 + 2 * that._x1) / 3,
-      (that._y0 + 2 * that._y1) / 3,
-      (that._x0 + 4 * that._x1 + x) / 6,
-      (that._y0 + 4 * that._y1 + y) / 6
-    );
-  }
-  function Basis(context) {
-    this._context = context;
-  }
-  Basis.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 3:
-          point(this, this._x1, this._y1);
-        // falls through
-        case 2:
-          this._context.lineTo(this._x1, this._y1);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x, y) {
-      x = +x, y = +y;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
-        // falls through
-        default:
-          point(this, x, y);
-          break;
-      }
-      this._x0 = this._x1, this._x1 = x;
-      this._y0 = this._y1, this._y1 = y;
-    }
-  };
-  function basis_default2(context) {
-    return new Basis(context);
-  }
-
-  // node_modules/d3-shape/src/curve/cardinal.js
-  function point2(that, x, y) {
-    that._context.bezierCurveTo(
-      that._x1 + that._k * (that._x2 - that._x0),
-      that._y1 + that._k * (that._y2 - that._y0),
-      that._x2 + that._k * (that._x1 - x),
-      that._y2 + that._k * (that._y1 - y),
-      that._x2,
-      that._y2
-    );
-  }
-  function Cardinal(context, tension) {
-    this._context = context;
-    this._k = (1 - tension) / 6;
-  }
-  Cardinal.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x2, this._y2);
-          break;
-        case 3:
-          point2(this, this._x1, this._y1);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x, y) {
-      x = +x, y = +y;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-          break;
-        case 1:
-          this._point = 2;
-          this._x1 = x, this._y1 = y;
-          break;
-        case 2:
-          this._point = 3;
-        // falls through
-        default:
-          point2(this, x, y);
-          break;
-      }
-      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
-      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
-    }
-  };
-  var cardinal_default = (function custom(tension) {
-    function cardinal(context) {
-      return new Cardinal(context, tension);
-    }
-    cardinal.tension = function(tension2) {
-      return custom(+tension2);
-    };
-    return cardinal;
-  })(0);
-
-  // node_modules/d3-shape/src/curve/catmullRom.js
-  function point3(that, x, y) {
-    var x1 = that._x1, y1 = that._y1, x2 = that._x2, y2 = that._y2;
-    if (that._l01_a > epsilon) {
-      var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
-      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
-      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
-    }
-    if (that._l23_a > epsilon) {
-      var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
-      x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
-      y2 = (y2 * b + that._y1 * that._l23_2a - y * that._l12_2a) / m;
-    }
-    that._context.bezierCurveTo(x1, y1, x2, y2, that._x2, that._y2);
-  }
-  function CatmullRom(context, alpha) {
-    this._context = context;
-    this._alpha = alpha;
-  }
-  CatmullRom.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x2, this._y2);
-          break;
-        case 3:
-          this.point(this._x2, this._y2);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x, y) {
-      x = +x, y = +y;
-      if (this._point) {
-        var x23 = this._x2 - x, y23 = this._y2 - y;
-        this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
-      }
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-        // falls through
-        default:
-          point3(this, x, y);
-          break;
-      }
-      this._l01_a = this._l12_a, this._l12_a = this._l23_a;
-      this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a;
-      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x;
-      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y;
-    }
-  };
-  var catmullRom_default = (function custom2(alpha) {
-    function catmullRom(context) {
-      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
-    }
-    catmullRom.alpha = function(alpha2) {
-      return custom2(+alpha2);
-    };
-    return catmullRom;
-  })(0.5);
-
-  // node_modules/d3-shape/src/curve/monotone.js
-  function sign(x) {
-    return x < 0 ? -1 : 1;
-  }
-  function slope3(that, x2, y2) {
-    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
-    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
-  }
-  function slope2(that, t) {
-    var h = that._x1 - that._x0;
-    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
-  }
-  function point4(that, t0, t1) {
-    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
-    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
-  }
-  function MonotoneX(context) {
-    this._context = context;
-  }
-  MonotoneX.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x1, this._y1);
-          break;
-        case 3:
-          point4(this, this._t0, slope2(this, this._t0));
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x, y) {
-      var t1 = NaN;
-      x = +x, y = +y;
-      if (x === this._x1 && y === this._y1) return;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-          point4(this, slope2(this, t1 = slope3(this, x, y)), t1);
-          break;
-        default:
-          point4(this, this._t0, t1 = slope3(this, x, y));
-          break;
-      }
-      this._x0 = this._x1, this._x1 = x;
-      this._y0 = this._y1, this._y1 = y;
-      this._t0 = t1;
-    }
-  };
-  function MonotoneY(context) {
-    this._context = new ReflectContext(context);
-  }
-  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x, y) {
-    MonotoneX.prototype.point.call(this, y, x);
-  };
-  function ReflectContext(context) {
-    this._context = context;
-  }
-  ReflectContext.prototype = {
-    moveTo: function(x, y) {
-      this._context.moveTo(y, x);
-    },
-    closePath: function() {
-      this._context.closePath();
-    },
-    lineTo: function(x, y) {
-      this._context.lineTo(y, x);
-    },
-    bezierCurveTo: function(x1, y1, x2, y2, x, y) {
-      this._context.bezierCurveTo(y1, x1, y2, x2, y, x);
-    }
-  };
-  function monotoneX(context) {
-    return new MonotoneX(context);
-  }
-  function monotoneY(context) {
-    return new MonotoneY(context);
-  }
-
-  // node_modules/d3-shape/src/curve/natural.js
-  function Natural(context) {
-    this._context = context;
-  }
-  Natural.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x = [];
-      this._y = [];
-    },
-    lineEnd: function() {
-      var x = this._x, y = this._y, n = x.length;
-      if (n) {
-        this._line ? this._context.lineTo(x[0], y[0]) : this._context.moveTo(x[0], y[0]);
-        if (n === 2) {
-          this._context.lineTo(x[1], y[1]);
-        } else {
-          var px = controlPoints(x), py = controlPoints(y);
-          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
-            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x[i1], y[i1]);
-          }
-        }
-      }
-      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
-      this._line = 1 - this._line;
-      this._x = this._y = null;
-    },
-    point: function(x, y) {
-      this._x.push(+x);
-      this._y.push(+y);
-    }
-  };
-  function controlPoints(x) {
-    var i, n = x.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
-    a[0] = 0, b[0] = 2, r[0] = x[0] + 2 * x[1];
-    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x[i] + 2 * x[i + 1];
-    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x[n - 1] + x[n];
-    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
-    a[n - 1] = r[n - 1] / b[n - 1];
-    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
-    b[n - 1] = (x[n] + a[n - 1]) / 2;
-    for (i = 0; i < n - 1; ++i) b[i] = 2 * x[i + 1] - a[i + 1];
-    return [a, b];
-  }
-  function natural_default(context) {
-    return new Natural(context);
-  }
-
-  // node_modules/d3-shape/src/curve/step.js
-  function Step(context, t) {
-    this._context = context;
-    this._t = t;
-  }
-  Step.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x = this._y = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
-    },
-    point: function(x, y) {
-      x = +x, y = +y;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x, y) : this._context.moveTo(x, y);
-          break;
-        case 1:
-          this._point = 2;
-        // falls through
-        default: {
-          if (this._t <= 0) {
-            this._context.lineTo(this._x, y);
-            this._context.lineTo(x, y);
-          } else {
-            var x1 = this._x * (1 - this._t) + x * this._t;
-            this._context.lineTo(x1, this._y);
-            this._context.lineTo(x1, y);
-          }
-          break;
-        }
-      }
-      this._x = x, this._y = y;
-    }
-  };
-  function step_default(context) {
-    return new Step(context, 0.5);
-  }
-  function stepAfter(context) {
-    return new Step(context, 1);
-  }
-
-  // src/core/shapes.js
-  var CURVAS = {
-    linear: linear_default,
-    monotone: monotoneX,
-    monotoneY,
-    basis: basis_default2,
-    catmull: catmullRom_default.alpha(0.5),
-    cardinal: cardinal_default,
-    natural: natural_default,
-    step: step_default,
-    stepAfter
-  };
-  function tracejadoPorEstilo(estilo, espessura = 1) {
-    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
-    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
-    return null;
   }
 
   // src/core/cores.js
@@ -4608,7 +4991,7 @@
   }
 
   // src/core/scales.js
-  function escalaDeCores({ chaves = [], valores = [], config = {}, tema }) {
+  function escalaDeCores({ chaves = [], valores: valores2 = [], config = {}, tema }) {
     const modo = config.modoDeCor || "categoria";
     if (modo === "unica") {
       const cor = config.corUnica || tema && tema.destaque || "#4276BE";
@@ -4620,7 +5003,7 @@
       };
     }
     if (modo === "valor") {
-      const numeros = valores.filter((v) => Number.isFinite(v));
+      const numeros = valores2.filter((v) => Number.isFinite(v));
       let d0 = config.limiteDeCorAutomatico === false ? numeroOuIndefinido(config.limiteDeCorMinimo) : void 0;
       let d1 = config.limiteDeCorAutomatico === false ? numeroOuIndefinido(config.limiteDeCorMaximo) : void 0;
       if (d0 === void 0) d0 = numeros.length ? min(numeros) : 0;
@@ -5053,25 +5436,25 @@
         nomes.push(conjunto);
       }
       if (!porItem.has(item)) porItem.set(item, { mascaraPorNome: /* @__PURE__ */ new Set(), valor: 0 });
-      const registro2 = porItem.get(item);
-      registro2.mascaraPorNome.add(conjunto);
+      const registro3 = porItem.get(item);
+      registro3.mascaraPorNome.add(conjunto);
       if (medida) {
         const v = modelo.valorNumerico(linha, medida.nome);
-        if (v !== null) registro2.valor += v;
+        if (v !== null) registro3.valor += v;
       }
     }
     const { conjuntos, mantidos, aviso } = limitarConjuntos(nomes, indicePorNome, config, maximoAbsoluto);
     if (aviso) avisos.push(aviso);
     const contarItens = !medida || config.medirPor === "itens";
     const regioes = /* @__PURE__ */ new Map();
-    for (const registro2 of porItem.values()) {
+    for (const registro3 of porItem.values()) {
       let mascara = 0;
-      for (const nome of registro2.mascaraPorNome) {
+      for (const nome of registro3.mascaraPorNome) {
         const indice = mantidos.get(nome);
         if (indice !== void 0) mascara |= 1 << indice;
       }
       if (!mascara) continue;
-      const valor = contarItens ? 1 : registro2.valor;
+      const valor = contarItens ? 1 : registro3.valor;
       regioes.set(mascara, (regioes.get(mascara) || 0) + valor);
     }
     return {
@@ -5159,8 +5542,426 @@
     return nomes.join(" \u2229 ");
   }
 
+  // src/charts/diagrama_venn/moderno.js
+  var TAMANHO_MINIMO = 9;
+  var TAMANHO_MAXIMO = 28;
+  var ALTURA_DA_LINHA = 1.18;
+  var CSS2 = `
+.vm-area{position:relative;width:100%;height:100%;}
+.vm-svg{cursor:pointer;display:block;}
+.vm-forma{pointer-events:none;}
+.vm-claro{opacity:.35;}
+.vm-texto{pointer-events:none;paint-order:stroke;stroke-linejoin:round;}
+.vm-guia{pointer-events:none;}
+.vm-destaque{pointer-events:none;}
+`;
+  var CURVAS_CSS2 = {
+    linear: "linear",
+    saida: "cubic-bezier(.2,.7,.3,1)",
+    entrada: "cubic-bezier(.6,0,.9,.4)",
+    ambos: "ease-in-out",
+    elastica: "cubic-bezier(.5,1.6,.4,.8)",
+    quique: "cubic-bezier(.3,1.4,.5,1)"
+  };
+  function meiaCaixa(e) {
+    const t = e.rotacao * Math.PI / 180;
+    const c = Math.cos(t);
+    const s = Math.sin(t);
+    return { hx: Math.sqrt(e.rx * e.rx * c * c + e.ry * e.ry * s * s), hy: Math.sqrt(e.rx * e.rx * s * s + e.ry * e.ry * c * c) };
+  }
+  function layoutQuePreenche(quantidade, { x0, y0, x1, y1 }) {
+    const base = layoutDeConjuntos(quantidade, { largura: 2, altura: 2, margem: 0 }).map((e) => ({ ...e, cx: e.cx - 1, cy: e.cy - 1 }));
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const e of base) {
+      const { hx, hy } = meiaCaixa(e);
+      minX = Math.min(minX, e.cx - hx);
+      maxX = Math.max(maxX, e.cx + hx);
+      minY = Math.min(minY, e.cy - hy);
+      maxY = Math.max(maxY, e.cy + hy);
+    }
+    const escala = Math.max(1, Math.min((x1 - x0) / (maxX - minX), (y1 - y0) / (maxY - minY)));
+    const cx = (x0 + x1) / 2 - (minX + maxX) / 2 * escala;
+    const cy = (y0 + y1) / 2 - (minY + maxY) / 2 * escala;
+    return base.map((e) => ({ cx: cx + e.cx * escala, cy: cy + e.cy * escala, rx: e.rx * escala, ry: e.ry * escala, rotacao: e.rotacao }));
+  }
+  function nomeExibido(nome, config) {
+    var _a;
+    const apelidos = new Map(
+      String(config.apelidosDosConjuntos || "").split(";").map((p) => p.split("=")).filter((p) => p.length === 2 && p[0].trim()).map(([a, b]) => [a.trim().toLowerCase(), b.trim()])
+    );
+    const apelido = apelidos.get(String(nome).trim().toLowerCase());
+    if (apelido) return apelido;
+    const sufixo = String((_a = config.removerDoNome) != null ? _a : "").trim();
+    let t = String(nome);
+    if (sufixo && t.toLowerCase().endsWith(sufixo.toLowerCase())) t = t.slice(0, t.length - sufixo.length).trim();
+    return t || String(nome);
+  }
+  function quebrar(texto, largura, tamanho, max2 = 2, negrito = false) {
+    const palavras = String(texto).split(/\s+/).filter(Boolean);
+    const linhas = [];
+    let atual = "";
+    for (const p of palavras) {
+      const tentativa = atual ? `${atual} ${p}` : p;
+      if (!atual || larguraDoTexto(tentativa, tamanho, { negrito }) <= largura) atual = tentativa;
+      else {
+        linhas.push(atual);
+        atual = p;
+      }
+    }
+    if (atual) linhas.push(atual);
+    if (linhas.length <= max2) return linhas;
+    const cortadas = linhas.slice(0, max2);
+    cortadas[max2 - 1] = `${cortadas[max2 - 1]}\u2026`;
+    return cortadas;
+  }
+  function caixaDoBloco(x, y, linhas, tamanho, ancora = "middle") {
+    const w = Math.max(0, ...linhas.map((l) => larguraDoTexto(l.texto, l.tamanho || tamanho, { negrito: !!l.negrito })));
+    const h = linhas.reduce((a, l) => a + (l.tamanho || tamanho) * ALTURA_DA_LINHA, 0);
+    const x0 = ancora === "middle" ? x - w / 2 : ancora === "end" ? x - w : x;
+    return { x0, x1: x0 + w, y0: y - h / 2, y1: y + h / 2 };
+  }
+  var cruzam = (a, b, folga = 1) => a.x0 < b.x1 + folga && a.x1 + folga > b.x0 && a.y0 < b.y1 + folga && a.y1 + folga > b.y0;
+  function desenharModerno(ctx, d) {
+    const { modelo, config, tema, raiz, largura, altura } = ctx;
+    const { conjuntos, regioes, totalPorConjunto, unidade, medida, linhasPorRegiao, aux } = d;
+    ctx.limparRaiz();
+    injetarEstilo(raiz, CSS2, "vm");
+    const ondeFicamOsNomes = ["dentro", "fora", "legenda"].includes(config.nomesDosConjuntos) ? config.nomesDosConjuntos : "dentro";
+    const legenda = config.legendaDoVenn === "mostrar" || config.legendaDoVenn !== "ocultar" && ondeFicamOsNomes === "legenda";
+    const { areaGrafico, areaLegenda } = criarLayoutComLegenda(raiz, { ...config, mostrarLegenda: legenda });
+    const W = Math.max(80, areaGrafico.clientWidth || largura);
+    const H = Math.max(80, areaGrafico.clientHeight || altura);
+    const totais = conjuntos.map((_, i) => totalPorConjunto.get(i) || 0);
+    const cores = aux.resolverCores(conjuntos, totais, config, tema);
+    const opacidade = aux.opacidadeDoVenn(config);
+    const totalGeral = Array.from(regioes.values()).reduce((a, b) => a + b, 0);
+    const formatarValor = formatadorDeValueFormat(medida ? medida.valueFormat : void 0, { casas: medida ? 2 : 0 });
+    const rot = lerRotulos(config, tema);
+    const tamanhoFixo = config.tamanhoDoTextoDoVenn === "fixo";
+    const comPercentual = config.mostrarPercentual === true || /percentual/i.test(rot.conteudo);
+    const margem = Math.max(0, Number.isFinite(Number(config.margemDoVenn)) ? Number(config.margemDoVenn) : 12);
+    const nomeDe = (i) => config.mostrarTotalDoConjunto !== false ? `${nomeExibido(conjuntos[i].nome, config)} (${formatarValor(totalPorConjunto.get(i) || 0)})` : nomeExibido(conjuntos[i].nome, config);
+    function textoDoLooker(mascara) {
+      const linhas = linhasPorRegiao.get(mascara);
+      if (medida && linhas && linhas.length === 1) {
+        const t = modelo.texto(linhas[0], medida.nome, void 0, "");
+        if (t !== "") return t;
+      }
+      return null;
+    }
+    const textoDoValor = (mascara) => {
+      const l = textoDoLooker(mascara);
+      return l !== null ? l : formatarValor(regioes.get(mascara) || 0);
+    };
+    const textoDoNumero = (mascara) => {
+      var _a;
+      return textoDoRotulo({ ...rot, conteudo: rot.conteudo === "nome" ? "valor" : rot.conteudo.replace(/Percentual$/, "") || "valor" }, {
+        valor: regioes.get(mascara) || 0,
+        nome: rotuloDaRegiao(mascara, conjuntos),
+        total: totalGeral,
+        valueFormat: medida ? medida.valueFormat : void 0,
+        textoDoValor: (_a = textoDoLooker(mascara)) != null ? _a : void 0
+      }) || textoDoValor(mascara);
+    };
+    const textoDoPct = (mascara) => totalGeral ? formatarPercentual((regioes.get(mascara) || 0) / totalGeral, rot.casas) : "";
+    function planejar(elipses2) {
+      const posicoes = posicoesDasRegioes(elipses2, { largura: W, altura: H, passos: 140 });
+      const blocos = [];
+      const fora = [];
+      const ordem = Array.from(regioes.keys()).sort((a, b) => (regioes.get(b) || 0) - (regioes.get(a) || 0));
+      for (const mascara of ordem) {
+        const p = posicoes.get(mascara);
+        const unico = conjuntos.findIndex((_, i) => mascara === 1 << i);
+        const linhasBase = [];
+        if (rot.mostrar) {
+          linhasBase.push({ texto: textoDoNumero(mascara), negrito: true });
+          if (comPercentual) linhasBase.push({ texto: textoDoPct(mascara), fator: 0.72 });
+        }
+        const comNome = rot.mostrar && ondeFicamOsNomes === "dentro" && unico >= 0;
+        if (!linhasBase.length && !comNome) continue;
+        const espaco = p ? { w: p.folgaX * 2 * 0.92, h: p.folgaY * 2 * 0.92 } : { w: 0, h: 0 };
+        let colocado = null;
+        const maximo = tamanhoFixo ? rot.tamanho : TAMANHO_MAXIMO;
+        const minimo = tamanhoFixo ? rot.tamanho : TAMANHO_MINIMO;
+        for (let t = maximo; t >= minimo && p; t -= 1) {
+          const linhas = [];
+          if (comNome) {
+            for (const l of quebrar(nomeDe(unico), espaco.w, Math.max(minimo, t * 0.62), 2, true)) {
+              linhas.push({ texto: l, tamanho: Math.max(minimo, Math.round(t * 0.62)), negrito: true, nome: true, cor: cores[unico] });
+            }
+          }
+          for (const l of linhasBase) linhas.push({ ...l, tamanho: Math.max(minimo, Math.round(t * (l.fator || 1))) });
+          const caixa = caixaDoBloco(p.x, p.y, linhas, t);
+          if (caixa.x1 - caixa.x0 <= espaco.w && caixa.y1 - caixa.y0 <= espaco.h) {
+            colocado = { mascara, x: p.x, y: p.y, linhas, caixa, tamanho: t };
+            break;
+          }
+        }
+        if (colocado) blocos.push(colocado);
+        else if (p) fora.push({ mascara, p, linhasBase, unico, comNome });
+      }
+      return { blocos, fora, posicoes };
+    }
+    const tamanhoDeFora = Math.max(TAMANHO_MINIMO, tamanhoFixo ? rot.tamanho : 11);
+    const nomesFora = rot.mostrar && ondeFicamOsNomes === "fora" ? conjuntos.map((_, i) => nomeDe(i)) : [];
+    let elipses = layoutQuePreenche(conjuntos.length, { x0: margem, y0: margem, x1: W - margem, y1: H - margem });
+    let plano = planejar(elipses);
+    if (plano.fora.length || nomesFora.length) {
+      const meio = elipses.reduce((a, e) => a + e.cx, 0) / elipses.length;
+      const ladoDe = (x) => x < meio ? "esq" : "dir";
+      const pedido = { esq: 0, dir: 0 };
+      const larguraDoItem = (f) => Math.max(...[...f.linhasBase, ...f.comNome ? [{ texto: nomeDe(f.unico) }] : []].map((l) => larguraDoTexto(l.texto, tamanhoDeFora, { negrito: true })));
+      for (const f of plano.fora) pedido[ladoDe(f.p.x)] = Math.max(pedido[ladoDe(f.p.x)], larguraDoItem(f));
+      if (nomesFora.length) {
+        elipses.forEach((e, i) => {
+          pedido[ladoDe(e.cx)] = Math.max(pedido[ladoDe(e.cx)], Math.min(larguraDoTexto(nomesFora[i], tamanhoDeFora, { negrito: true }), W * 0.22));
+        });
+      }
+      const reservaEsq = pedido.esq ? Math.min(W * 0.24, pedido.esq + 20) : 0;
+      const reservaDir = pedido.dir ? Math.min(W * 0.24, pedido.dir + 20) : 0;
+      elipses = layoutQuePreenche(conjuntos.length, { x0: margem + reservaEsq, y0: margem + 8, x1: W - margem - reservaDir, y1: H - margem - 8 });
+      plano = planejar(elipses);
+    }
+    const svg = criarSvgEl("svg", {
+      pai: areaGrafico,
+      classe: "vm-svg venn-svg",
+      atributos: { width: W, height: H, viewBox: `0 0 ${W} ${H}` }
+    });
+    criarSvgEl("rect", { pai: svg, atributos: { x: 0, y: 0, width: W, height: H, fill: "transparent" } });
+    const reduzir = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const animar = config.animacaoAtiva !== false && !reduzir;
+    const duracao = Math.max(0, Math.min(1500, Number(config.duracaoDaTransicaoDoVenn) || 180));
+    const curva = CURVAS_CSS2[config.suavizacaoDaAnimacao] || CURVAS_CSS2.saida;
+    const transicao = animar ? `opacity ${duracao}ms ${curva}, transform ${duracao}ms ${curva}, stroke-width ${duracao}ms ${curva}` : "none";
+    const formas = elipses.map((e, i) => {
+      const f = criarSvgEl("path", {
+        pai: svg,
+        classe: "vm-forma venn-forma",
+        atributos: { d: caminhoDaElipse(e), transform: aux.transformacao(e), fill: cores[i], "fill-opacity": opacidade, "data-conjunto": i }
+      });
+      aplicarContorno(f, aux.contornoDoConjunto(config, tema, cores[i]));
+      f.style.transition = transicao;
+      return f;
+    });
+    const uid = `vm${Math.random().toString(36).slice(2, 8)}`;
+    const defs = criarSvgEl("defs", { pai: svg });
+    elipses.forEach((e, i) => {
+      const c = criarSvgEl("clipPath", { pai: defs, atributos: { id: `${uid}-c${i}` } });
+      criarSvgEl("path", { pai: c, atributos: { d: caminhoDaElipse(e), transform: aux.transformacao(e) } });
+    });
+    const camadaDoDestaque = criarSvgEl("g", { pai: svg, classe: "vm-destaque" });
+    const camadaDosTextos = criarSvgEl("g", { pai: svg });
+    const halo = tema.fundo || "#FFFFFF";
+    const textosPorRegiao = /* @__PURE__ */ new Map();
+    const ocupadas = [];
+    function desenharBloco(b, ancora = "middle") {
+      const g = criarSvgEl("g", { pai: camadaDosTextos, atributos: { "data-mascara": b.mascara } });
+      const el = criarSvgEl("text", {
+        pai: g,
+        classe: "vm-texto venn-valor bl-rotulo",
+        atributos: {
+          x: b.x,
+          y: b.y,
+          "text-anchor": ancora,
+          "font-family": tema.fonte,
+          stroke: halo,
+          "stroke-width": 3,
+          "data-mascara": b.mascara
+        }
+      });
+      const total = b.linhas.reduce((a, l) => a + (l.tamanho || b.tamanho) * ALTURA_DA_LINHA, 0);
+      let yAtual = b.y - total / 2;
+      for (const l of b.linhas) {
+        const t = l.tamanho || b.tamanho;
+        const span = criarSvgEl("tspan", {
+          pai: el,
+          atributos: {
+            x: b.x,
+            y: yAtual + t * ALTURA_DA_LINHA / 2,
+            "dominant-baseline": "central",
+            "font-size": t,
+            "font-weight": l.negrito ? 700 : 400,
+            fill: l.cor || rot.cor || aux.corDoTextoDaRegiao(b.mascara, cores, opacidade, tema)
+          }
+        });
+        definirTexto(span, l.texto);
+        yAtual += t * ALTURA_DA_LINHA;
+      }
+      el.style.transition = transicao;
+      textosPorRegiao.set(b.mascara, g);
+      ocupadas.push(b.caixa);
+      return g;
+    }
+    const dentro = [];
+    for (const b of plano.blocos) {
+      if (dentro.some((o) => cruzam(o.caixa, b.caixa, 2))) plano.fora.push({ mascara: b.mascara, p: { x: b.x, y: b.y }, linhasBase: b.linhas.filter((l) => !l.nome), unico: conjuntos.findIndex((_, i) => b.mascara === 1 << i), comNome: b.linhas.some((l) => l.nome) });
+      else dentro.push(b);
+    }
+    for (const b of dentro) desenharBloco(b);
+    const centroX = elipses.reduce((a, e) => a + e.cx, 0) / elipses.length || W / 2;
+    const limiteEsq = Math.min(...elipses.map((e) => e.cx - meiaCaixa(e).hx));
+    const limiteDir = Math.max(...elipses.map((e) => e.cx + meiaCaixa(e).hx));
+    const pilhas = { esquerda: [], direita: [] };
+    const colocarFora = (mascara, ponto, linhas, cor) => {
+      const lado = ponto.x < centroX ? "esquerda" : "direita";
+      const x = lado === "esquerda" ? Math.max(4, limiteEsq - 10) : Math.min(W - 4, limiteDir + 10);
+      const ancora = lado === "esquerda" ? "end" : "start";
+      let y = Math.max(8, Math.min(H - 8, ponto.y));
+      let caixa = caixaDoBloco(x, y, linhas, tamanhoDeFora, ancora);
+      let tentativas = 0;
+      while ((ocupadas.some((o) => cruzam(o, caixa, 2)) || caixa.y1 > H) && tentativas < 200) {
+        y += caixa.y1 > H ? -H : 4;
+        if (y > H) y = 8;
+        caixa = caixaDoBloco(x, y, linhas, tamanhoDeFora, ancora);
+        tentativas += 1;
+      }
+      if (tentativas >= 200 || caixa.x0 < 0 || caixa.x1 > W || caixa.y0 < 0 || caixa.y1 > H) return null;
+      const g = desenharBloco({ mascara, x, y, linhas: linhas.map((l) => ({ ...l, tamanho: tamanhoDeFora, cor: cor || l.cor })), caixa, tamanho: tamanhoDeFora }, ancora);
+      criarSvgEl("line", {
+        pai: g,
+        classe: "vm-guia",
+        atributos: { x1: ponto.x, y1: ponto.y, x2: lado === "esquerda" ? caixa.x1 + 2 : caixa.x0 - 2, y2: y, stroke: tema.textoSuave || "#94A3B8", "stroke-width": 1 }
+      });
+      pilhas[lado].push(g);
+      return g;
+    };
+    for (const f of plano.fora) {
+      const linhas = [];
+      if (f.comNome) linhas.push({ texto: nomeDe(f.unico), negrito: true, cor: cores[f.unico], nome: true });
+      for (const l of f.linhasBase) linhas.push({ texto: l.texto, negrito: !!l.negrito });
+      if (linhas.length) colocarFora(f.mascara, f.p, linhas);
+    }
+    if (rot.mostrar && ondeFicamOsNomes === "fora") {
+      conjuntos.forEach((_, i) => {
+        const e = elipses[i];
+        const dx = e.cx - centroX;
+        const ponto = { x: e.cx + Math.sign(dx || (i % 2 ? 1 : -1)) * meiaCaixa(e).hx * 0.7, y: e.cy - meiaCaixa(e).hy * 0.6 };
+        colocarFora(1 << i + 8, ponto, [{ texto: nomeDe(i), negrito: true, cor: cores[i] }], cores[i]);
+      });
+    }
+    if (legenda) {
+      desenharLegenda({
+        hospedeiro: areaLegenda,
+        tema,
+        config,
+        itens: conjuntos.map((c, i) => ({ chave: c.nome, rotulo: nomeDe(i), cor: cores[i] })),
+        eventos: ctx.eventos
+      });
+    }
+    const tooltip = ctx.tooltip();
+    const mascaras = /* @__PURE__ */ new Map();
+    let ativa = 0;
+    const estado = ctx.estado;
+    if (estado.regiaoFixaDoVenn && !regioes.has(estado.regiaoFixaDoVenn)) estado.regiaoFixaDoVenn = 0;
+    function mascaraDeExclusao(mascara) {
+      const fora = elipses.map((_, i) => i).filter((i) => !(mascara & 1 << i));
+      if (!fora.length) return null;
+      if (!mascaras.has(mascara)) {
+        const id = `${uid}-m${mascara}`;
+        const m = criarSvgEl("mask", { pai: defs, atributos: { id, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: W, height: H } });
+        criarSvgEl("rect", { pai: m, atributos: { x: 0, y: 0, width: W, height: H, fill: "#FFFFFF" } });
+        for (const i of fora) criarSvgEl("path", { pai: m, atributos: { d: caminhoDaElipse(elipses[i]), transform: aux.transformacao(elipses[i]), fill: "#000000" } });
+        mascaras.set(mascara, id);
+      }
+      return mascaras.get(mascara);
+    }
+    function destacar(mascara) {
+      if (config.destacarAoPassarMouse === false && !estado.regiaoFixaDoVenn) mascara = 0;
+      if (mascara === ativa) return;
+      ativa = mascara;
+      while (camadaDoDestaque.firstChild) camadaDoDestaque.removeChild(camadaDoDestaque.firstChild);
+      formas.forEach((f, i) => f.classList.toggle("vm-claro", mascara !== 0 && !(mascara & 1 << i)));
+      for (const [m, g] of textosPorRegiao) g.classList.toggle("vm-claro", mascara !== 0 && m !== mascara && m < 256);
+      if (!mascara) return;
+      const p = plano.posicoes.get(mascara) || { x: W / 2, y: H / 2 };
+      const grupo = criarSvgEl("g", {
+        pai: camadaDoDestaque,
+        atributos: { "data-mascara": mascara, transform: `translate(${p.x} ${p.y}) scale(1.04) translate(${-p.x} ${-p.y})` }
+      });
+      let pai = grupo;
+      elipses.forEach((_, i) => {
+        if (mascara & 1 << i) pai = criarSvgEl("g", { pai, atributos: { "clip-path": `url(#${uid}-c${i})` } });
+      });
+      const exclusao = mascaraDeExclusao(mascara);
+      criarSvgEl("rect", {
+        pai,
+        atributos: {
+          x: 0,
+          y: 0,
+          width: W,
+          height: H,
+          fill: aux.corDaRegiao(mascara, cores),
+          "fill-opacity": Math.min(1, opacidade + 0.4),
+          stroke: tema.texto,
+          "stroke-width": 2.5,
+          mask: exclusao ? `url(#${exclusao})` : null
+        }
+      });
+      grupo.style.transition = transicao;
+    }
+    function conteudo(mascara) {
+      const rotulo = rotuloDaRegiao(mascara, conjuntos.map((c) => ({ ...c, nome: nomeExibido(c.nome, config) })));
+      const texto = textoDoValor(mascara);
+      const pct = textoDoPct(mascara);
+      const linhas = [{ rotulo: unidade || "Valor", valor: texto, cor: aux.corDaRegiao(mascara, cores) }];
+      if (pct) linhas.push({ rotulo: "Do total", valor: pct });
+      return { titulo: rotulo, linhas, variaveis: { categoria: rotulo, valor: texto, serie: rotulo, percentual: pct } };
+    }
+    function celula(mascara) {
+      const linhas = linhasPorRegiao.get(mascara);
+      if (!linhas || linhas.length !== 1) return null;
+      const candidatas = [];
+      if (medida) candidatas.push(modelo.celula(linhas[0], medida.nome));
+      if (modelo.dimensoes[0]) candidatas.push(modelo.celula(linhas[0], modelo.dimensoes[0].nome));
+      return candidatas.find((c) => c && Array.isArray(c.links) && c.links.length) || candidatas[0] || null;
+    }
+    function regiaoNoPonto(ev) {
+      const caixa = typeof svg.getBoundingClientRect === "function" ? svg.getBoundingClientRect() : null;
+      const ex = caixa && caixa.width ? W / caixa.width : 1;
+      const ey = caixa && caixa.height ? H / caixa.height : 1;
+      return mascaraDoPonto((ev.clientX - (caixa ? caixa.left : 0)) * ex, (ev.clientY - (caixa ? caixa.top : 0)) * ey, elipses);
+    }
+    const soltar = () => {
+      estado.regiaoFixaDoVenn = 0;
+      destacar(0);
+    };
+    ctx.eventos.on(svg, "pointermove", (ev) => {
+      const m = regiaoNoPonto(ev);
+      if (!estado.regiaoFixaDoVenn) destacar(m);
+      if (!tooltip) return;
+      if (!m) tooltip.esconder();
+      else tooltip.mostrar(conteudo(m), ev.clientX, ev.clientY);
+    });
+    ctx.eventos.on(svg, "pointerleave", () => {
+      if (!estado.regiaoFixaDoVenn) destacar(0);
+      if (tooltip) tooltip.esconder();
+    });
+    ctx.eventos.on(svg, "click", (ev) => {
+      const m = regiaoNoPonto(ev);
+      if (!m) {
+        soltar();
+        return;
+      }
+      estado.regiaoFixaDoVenn = m;
+      ativa = -1;
+      destacar(m);
+      ctx.cliqueNoItem(ev, celula(m), conteudo(m));
+    });
+    ctx.eventos.on(document, "keydown", (ev) => {
+      if (ev.key === "Escape") soltar();
+    });
+    ctx.eventos.on(document, "pointerdown", (ev) => {
+      if (estado.regiaoFixaDoVenn && ev.target && !svg.contains(ev.target)) soltar();
+    });
+    if (estado.regiaoFixaDoVenn) destacar(estado.regiaoFixaDoVenn);
+    return { svg, elipses, W, H };
+  }
+
   // src/charts/diagrama_venn/index.js
-  var CSS = `
+  var CSS3 = `
 .venn-area{position:relative;width:100%;height:100%;}
 .venn-svg{cursor:pointer;}
 .venn-forma{transition:opacity .15s ease, stroke-width .15s ease;pointer-events:none;}
@@ -5178,8 +5979,8 @@
   function tamanhoQueCabe(posicao, texto, tamanhoPreferido) {
     if (!posicao) return 0;
     for (let tamanho = tamanhoPreferido; tamanho >= 7; tamanho -= 1) {
-      const larguraDoTexto2 = texto.length * tamanho * 0.58;
-      if (posicao.folgaX * 2 >= larguraDoTexto2 && posicao.folgaY * 2 >= tamanho) return tamanho;
+      const larguraDoTexto3 = texto.length * tamanho * 0.58;
+      if (posicao.folgaX * 2 >= larguraDoTexto3 && posicao.folgaY * 2 >= tamanho) return tamanho;
     }
     return 0;
   }
@@ -5252,6 +6053,74 @@
           section: "R\xF3tulos",
           default: true
         },
+        // ---- Melhorias v3 (5.7): layout "Moderno" (padrão) ----
+        layoutDoVenn: {
+          type: "string",
+          label: "Layout",
+          section: "Formato",
+          display: "select",
+          default: "moderno",
+          values: listaDeValores([
+            { rotulo: "Moderno", valor: "moderno" },
+            { rotulo: "Cl\xE1ssico (o anterior)", valor: "classico" }
+          ])
+        },
+        margemDoVenn: { type: "number", label: "Margem (px)", section: "Formato", default: 12 },
+        tamanhoDoTextoDoVenn: {
+          type: "string",
+          label: "Tamanho dos textos",
+          section: "R\xF3tulos",
+          display: "select",
+          default: "auto",
+          values: listaDeValores([
+            { rotulo: "Autom\xE1tico pelo espa\xE7o", valor: "auto" },
+            { rotulo: "Fixo (Tamanho do r\xF3tulo)", valor: "fixo" }
+          ])
+        },
+        nomesDosConjuntos: {
+          type: "string",
+          label: "Nomes dos conjuntos",
+          section: "R\xF3tulos",
+          display: "select",
+          default: "dentro",
+          values: listaDeValores([
+            { rotulo: "Dentro do c\xEDrculo", valor: "dentro" },
+            { rotulo: "Fora, com linha-guia", valor: "fora" },
+            { rotulo: "S\xF3 na legenda", valor: "legenda" }
+          ])
+        },
+        removerDoNome: {
+          type: "string",
+          label: "Remover do fim do nome",
+          section: "R\xF3tulos",
+          default: "(Yes / No)",
+          placeholder: "(Yes / No)"
+        },
+        apelidosDosConjuntos: {
+          type: "string",
+          label: "Apelidos (Nome=Apelido; \u2026)",
+          section: "R\xF3tulos",
+          default: "",
+          placeholder: "Comprou caf\xE9 (Yes / No)=Caf\xE9"
+        },
+        legendaDoVenn: {
+          type: "string",
+          label: "Legenda do Venn",
+          section: "Legenda",
+          display: "select",
+          default: "auto",
+          values: listaDeValores([
+            { rotulo: "S\xF3 se os nomes n\xE3o estiverem no diagrama", valor: "auto" },
+            { rotulo: "Mostrar", valor: "mostrar" },
+            { rotulo: "Ocultar", valor: "ocultar" }
+          ])
+        },
+        duracaoDaTransicaoDoVenn: {
+          type: "number",
+          label: "Dura\xE7\xE3o do destaque (ms)",
+          section: "Anima\xE7\xE3o",
+          default: 180
+        },
         opacidadeDoPreenchimento: {
           type: "number",
           label: "Opacidade do preenchimento",
@@ -5298,8 +6167,21 @@
         );
         return;
       }
+      if (config.layoutDoVenn !== "classico") {
+        desenharModerno(ctx, {
+          conjuntos,
+          regioes,
+          totalPorConjunto,
+          unidade,
+          medida,
+          linhasPorRegiao,
+          aux: { resolverCores, opacidadeDoVenn, contornoDoConjunto, corDaRegiao, corDoTextoDaRegiao, transformacao }
+        });
+        if (config.modoDebug) ctx.avisar(`formato detectado: ${formato}; ${regioes.size} regi\xE3o(\xF5es).`);
+        return;
+      }
       ctx.limparRaiz();
-      injetarEstilo(raiz, CSS, "venn");
+      injetarEstilo(raiz, CSS3, "venn");
       const { areaGrafico, areaLegenda } = criarLayoutComLegenda(raiz, config);
       const larguraUtil = Math.max(80, areaGrafico.clientWidth || largura);
       const alturaUtil = Math.max(80, areaGrafico.clientHeight || altura);
@@ -5397,7 +6279,7 @@
           definirTexto(numero, texto);
           estilizarRotulo(numero, { ...rot, tamanho }, { corAutomatica: corDoTextoDaRegiao(mascara, cores, opacidade, tema) });
           numeros.set(mascara, numero);
-          caixas.push({ el: numero, x: posicao.x, y: posicao.y, largura: larguraDoTexto(texto, tamanho), altura: tamanho });
+          caixas.push({ el: numero, x: posicao.x, y: posicao.y, largura: larguraDoTexto2(texto, tamanho), altura: tamanho });
         }
         esconderColisoes(caixas, rot);
       }

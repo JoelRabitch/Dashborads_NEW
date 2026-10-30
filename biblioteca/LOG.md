@@ -2615,7 +2615,7 @@ nenhum arquivo servido.
 
 1. As 54 URLs do `MANIFEST.md` passaram a trazer o hash completo de 40
    caracteres, no formato exato que o Looker aceitou:
-   `https://cdn.jsdelivr.net/gh/JoelRabitch/Dashborads_NEW@<hash>/biblioteca/dist/<id>.js`
+   `https://cdn.jsdelivr.net/gh/<dono>/<repositório>@<hash>/biblioteca/dist/<id>.js`
    O parágrafo que mandava trocar `COMMIT` virou o aviso oposto: as URLs já
    estão fixadas, **não** troque por branch, `@main` nem `@latest`.
 2. `build/build.mjs` ganhou `hashDosBundles()`, que descobre esse hash
@@ -3105,3 +3105,441 @@ cabeçalho, só reescreve se mudou), `dist/URLS.md`/`URLS.csv`, MANIFEST sem
 TODAS AS FASES CONCLUÍDAS. PRÓXIMA AÇÃO: nenhuma pendente no agente; o
 usuário cadastra as URLs de `dist/URLS.md` e percorre
 `docs/TESTE_NO_LOOKER.md` no Looker real.
+
+# Melhorias v3 (PROMPT_AGENTE v3)
+
+## Sessão iniciada em 2026-10-30
+- Título do PROMPT conferido: "PROMPT_AGENTE (v3)". Cópia em
+  `biblioteca/PROMPT_AGENTE.md` já era idêntica à da raiz (o usuário
+  atualizou as duas).
+- `git fetch`: a `main` tinha um merge (PR #1) que não estava no branch;
+  merge da `main` no `agente/novas-viz` sem conflito e sem mudança de
+  conteúdo (commit 2bc1598).
+- Base: build 22/22, `npm test` 765/765.
+- Instrução do usuário nesta sessão: não pode responder perguntas; decidir
+  pelo caminho mais simples e registrar aqui.
+
+### Decisão: linha de base das opções (4.1)
+- Os `docs/opcoes/<id>.antes.json` da v2 guardavam o estado ANTERIOR à v2.
+  Para a v3 eles são regenerados do estado atual (`npm run build` +
+  `listar-opcoes --antes`), que é um superconjunto do anterior (o teste da
+  v2 já garantia isso). A versão v2 continua no histórico do Git.
+
+PRÓXIMA AÇÃO: regenerar `.antes.json`, commit; depois 5.1 (tooltip).
+- `listar-opcoes --antes` nunca sobrescreve; feito com cópia de
+  `.depois.json` (regenerado agora, idêntico ao commitado) para
+  `.antes.json`. `test/opcoes.test.mjs` passa.
+
+### 5.1 Tooltip preso (concluído em código; conferir no Looker real)
+- Lido `src/core/tooltip.js`: no modo "drill", clique sem link FIXAVA o
+  tooltip; antes do drill só chamava `soltar()`, que não esconde um
+  tooltip apenas visível (não fixo) — ele ficava na tela quando o mouse ia
+  para o menu do Looker (fora do iframe, sem `pointerleave`). Não havia
+  `blur`/`focus` da janela.
+- Testes primeiro (`test/tooltip_v3.test.mjs`, 7 de 8 falharam antes):
+  clique sem/com link, drill com tooltip visível, blur, focus (menu fecha),
+  mouse saindo do documento, Esc, "×", clique fora.
+- Correção: `executarAcaoDoClique` — drill sem link = nada (só "fixar" ou
+  Shift fixam; vale para qualquer valor salvo, e muda o comportamento da
+  v2: documentar no relatório); `soltarEEsconder()` antes do drill;
+  listeners `blur`, `focus`, `visibilitychange`, `mouseleave` do
+  `<html>`, `mouseout` com relatedTarget nulo; botão "×" no tooltip fixo
+  (o fixo passa a ter `pointer-events:auto`; clique dentro dele não solta).
+- `define-viz`: `ponte.abrirDrill` embrulhado para esconder o tooltip
+  antes de QUALQUER drill (a tabela chama o drill direto).
+- Testes das famílias que diziam "sem link fixa" atualizados para o novo
+  comportamento + verificação do modo "fixar" (series, listas,
+  quadrantes, conjuntos, núcleo).
+- Decisão: `cartao_multivalor` ainda não existe; quando existir, usará
+  `ctx.cliqueNoItem` e herda tudo (teste na 5.14).
+- `npm test` 773/773; `npm run seguranca` sem violação.
+
+PRÓXIMA AÇÃO: 5.2 (tabela: rolagem e animação ao rolar).
+
+### 5.2 Tabela: rolagem (concluído em código; conferir no Looker real)
+- Causa confirmada lendo `render.js`: cada evento `scroll` chamava
+  `desenharJanela`, que (1) esvaziava o `<tbody>` e SÓ DEPOIS lia
+  `scrollTop`/`clientHeight` — no navegador isso força layout com o corpo
+  vazio e o scrollTop é cortado (tabela em branco, volta ao início);
+  (2) recriava todas as linhas com `tc-entrando` (animação a cada rolagem);
+  (3) usava o pintor da primeira pintura, que compara com os valores
+  anteriores (destaque verde/vermelho também na rolagem).
+- Teste primeiro: `test/tabela_rolagem_v3.test.mjs` com fixture sintética
+  `tabelaLarga` (500×50) e um `scrollTop` simulado que corta pelo
+  conteúdo como o navegador. 5 de 6 falham no bundle anterior (o 6º —
+  preservar posição em atualização de dados — já passava; ficou como
+  regressão).
+- Correção: mede antes, monta as linhas num fragmento e troca de uma vez
+  (`replaceChildren`); só redesenha se a janela (início/fim) mudou;
+  animação só no primeiro desenho após carregar/ordenar/agrupar/buscar/
+  filtrar (`animarEntrada`); seleção e redimensionamento não animam;
+  comparação de valores desligada depois da primeira pintura; posição
+  restaurada usada já no primeiro desenho (`topoDesejado`).
+- Decisão: não existe navegação de página na UI (só `linhasPorPagina`);
+  nada a fazer para "trocar de página".
+- `npm test` 779/779; segurança sem violação.
+
+PRÓXIMA AÇÃO: 5.1b (4 abas e rótulos curtos).
+
+### 5.1b Painel: 4 abas e rótulos curtos (concluído em código; conferir no Looker real)
+- Hipótese do print aceita: o Looker ordena as abas pelo NOME. Abas novas
+  (lista única `ABAS` em `options-kit.js`): Dados, Estilo, Texto, Mais —
+  na barra ficarão "Dados, Estilo, Mais, Texto". Mapeamento das seções
+  antigas: Visual→Estilo, Eixos/Texto→Texto, Interação/Avançado→Mais.
+- Rótulos: 352 de 1766 passavam do limite (30 liga/desliga, 40 demais).
+  Novo `src/core/rotulos-do-painel.js`: dicionário id→corpo curto (85 ids),
+  corpos fixos para as opções por coluna da tabela ("R1: ação"...),
+  quadrantes viram "Cor: <nome>", prefixo de coluna vira "Col. <nome>"
+  quando necessário. Corte com "…" só sobra para nomes vindos dos dados
+  muito longos (nenhum caso nas fixtures).
+- API de ajuda por opção: não conheço campo documentado (não inventei).
+  Decisão: o rótulo completo vai para `docs/opcoes/ABAS.md` (coluna
+  "explicação"), gerado por `npm run opcoes`; o README aponta para lá.
+- Teste: `test/painel_v3.test.mjs` (todas as opções de todos os gráficos:
+  ≤4 abas, nome ≤7, rótulo no limite). Falharia antes (5 abas, "Interação"
+  e "Avançado" com mais de 7 letras).
+- `npm test` 802/802.
+
+PRÓXIMA AÇÃO: 5.1c (componente de título, subtítulo e nota).
+
+### 5.1c Título, subtítulo e nota (concluído em código; conferir no Looker real)
+- Confirmado no código: a nota era um elemento de cada gráfico (classes
+  `bp-nota`, `bc-nota`, `st-nota`, `lv-nota`...), quase sempre
+  `position:absolute; bottom:4px` POR CIMA da área; `mostrarAvisos` não a
+  tocava (o aviso é outro elemento, `bl-aviso`).
+- Novo `src/core/cabecalho.js` + `src/core/medida-texto.js` (função única
+  de largura estimada de texto, documentada). Faixas `.bl-cabecalho` (topo)
+  e `.bl-rodape` (base) no fluxo do flex, com a altura do plano
+  `planejarCabecalho`; a área do gráfico é o que sobra. Tile pequeno:
+  some a nota, depois subtítulo, depois título.
+- Opções novas (aba Texto, 35 ids): `mostrarTitulo`, `posicaoDoTitulo`,
+  `alinhamentoDoTitulo`, `deslocamentoXDoTitulo`, `deslocamentoYDoTitulo`,
+  `tamanhoDoTitulo`, `fonteDoTitulo`, `pesoDoTitulo`, `corDoTitulo`,
+  `margemDoTitulo`, `quebrarTitulo`, `linhasDoTitulo` (e o mesmo com
+  `Subtitulo`); `mostrarNota`, `posicaoDaNota` (abaixo|acima|icone),
+  `alinhamentoDaNota`, `tamanhoDaNota`, `fonteDaNota`, `corDaNota`,
+  `quebrarNota`, `linhasDaNota`, `textoDaNota` (auto|auto_mais|meu|nenhum),
+  `meuTextoDaNota`. Padrões = visual anterior.
+- Cada gráfico informa o texto automático num único lugar: `ctx.nota`
+  (elemento fora do documento); o núcleo lê depois do render. Se a nota
+  mudar a altura da área, redesenha uma vez no espaço certo.
+- kpi_vivo (cabeçalho próprio): o título continua dentro do cartão, mas
+  segue mostrar/cor/tamanho/fonte/peso/alinhamento. Decisão: "Esquerda"
+  (padrão) mantém o alinhamento do cartão; posição acima/abaixo não se
+  aplica a ele. A nota do KPI passa ao componente único.
+- `cartao_multivalor` ainda não existe: usará o mesmo componente (5.14).
+- Aviso no rodapé passa a ficar logo depois da área (antes da faixa de
+  baixo). Testes antigos passam a ler a nota por `.bl-nota`.
+- Testes: `test/cabecalho_v3.test.mjs` (geometria do plano em 4 tamanhos
+  de tile × todas as posições; modos do texto; em todos os 22 gráficos a
+  nota/título ficam fora da área). `npm test` 829/829; segurança ok.
+
+PRÓXIMA AÇÃO: FASE 2 — 5.3 (busca "contém" na tabela).
+
+### 5.3 Busca "contém" (concluído; conferir no Looker real)
+- O sintoma ("MTC" acha `MTCBLACKBR`, "BLACK"/"BR" não) NÃO se reproduz
+  em simulação: a busca antiga já usava `includes` normalizado (teste com
+  `ABCBLACKXX` passa no bundle anterior). Causa no Looker real não
+  confirmada; hipóteses: campo com `html:` no LookML (o texto exibido não
+  é o `rendered`), ou o tile ainda com uma URL antiga. Passo manual pede o
+  código exato se continuar.
+- Novo `src/charts/tabela_completa/busca.js` (analisador próprio):
+  várias palavras (todas | qualquer), "frase exata", -exclusão, por
+  coluna (uma frase não atravessa colunas), realce com <mark> por nós de
+  texto (sem innerHTML).
+- Opções novas (aba Mais, prefixo "Busca"): `modoDaBusca` (todas),
+  `colunasDaBusca` (''), `buscarEm` (formatado|bruto), `realcarBusca`
+  (true). Debounce 200 → 150 ms. Resumo: "N resultado(s) para …".
+- Fixture sintética `codigosSinteticos`. `test/tabela_busca_v3.test.mjs`
+  (5 de 7 falham no bundle anterior). `npm test` 836/836.
+
+PRÓXIMA AÇÃO: 5.4 (colunas calculadas com fórmulas).
+
+### 5.4 Colunas calculadas com fórmulas (concluído; conferir no Looker real)
+- `src/core/formulas.js`: interpretador próprio (tokenizador + descida
+  recursiva + avaliador de árvore), sem eval/new Function. Funções em
+  inglês (IF, IFS, CASE, COALESCE, ISBLANK, ROUND, ABS, MIN, MAX, SUM, AVG,
+  CONTAINS, LEFT, RIGHT, MID, UPPER, LOWER, LEN, CONCAT, TEXT), operadores
+  + - * / %, = <> < <= > >=, AND OR NOT. Limites: 2000 caracteres,
+  profundidade 40, 500 nós. Fica no núcleo para o cartao_multivalor (5.14).
+- Decisões (ambíguas no pedido, escolhi o mais simples):
+  - CASE(valor, caso1, res1, ..., padrão) — estilo "switch"; IFS cobre o
+    caso de condições.
+  - CONTAINS diferencia maiúsculas (como no Looker); a BUSCA da tabela não.
+  - Nulo: conta com nulo = nulo; comparação com nulo = falso; divisão por
+    zero = erro "#ERRO: divisão por zero" na célula.
+  - TEXT(x, casas) ou TEXT(x, "0.00") (conta as casas do padrão).
+  - Moeda das colunas calculadas usa "$" (o formato do campo não se aplica
+    a um valor calculado).
+  - Validação "no painel": não dá sem re-registrar o painel a cada tecla
+    (proibido pela regra do registerOptions). Erro vai para a célula e para
+    o aviso amarelo ("Fórmula N ("nome"): motivo").
+- Tabela: 8 espaços fixos (`calc1Nome` … `calc8Alvo`, 11 opções cada, aba
+  Dados, prefixo "Fórmula N"). Uso: coluna | colorir a linha | colorir
+  células (alvo por nome). Pivô: as duas formas entregues (por valor do
+  pivô, lendo as medidas da mesma coluna; e só sem pivô, lendo o total da
+  linha). Totais: recalcular sobre os totais (do Looker ou o mesmo total
+  calculado pela tabela) ou vazio; dimensão usada → vazio.
+- Chaves nativas do Looker: a tabela NÃO lê `conditional_formatting`,
+  `series_cell_visualizations`, `series_text_format`, `series_labels` nem
+  `series_colors` (grep sem ocorrência); só `hidden_fields` (data-model).
+  Não implementado agora, como pedido.
+- Testes: `test/formulas_v3.test.mjs` (9, unidade) e
+  `test/tabela_formulas_v3.test.mjs` (6). `npm test` 851/851.
+
+PRÓXIMA AÇÃO: 5.5 (layouts da tabela).
+
+### 5.5 Layouts da tabela (concluído; conferir no Looker real)
+- Opção nova `layoutDaTabela` (padrão "tabela" = atual) + `camposDoCartao`,
+  `colunasDosCartoes` (0 = automático), `colunasDeCamposDoCartao` (2),
+  `secoesDoLayout`. A `densidade` existente vale em todos.
+- Tabela, Planilha, Relatório financeiro e Ranking usam o render da tabela
+  (mesma virtualização/rolagem da 5.2). Planilha: linha de letras (A…Z,
+  AA…) e números de linha forçados; Financeiro: só CSS (faixas, negrito,
+  tabular-nums, linha dupla no total; o recuo por nível já existia nos
+  grupos); Ranking: barra em gradiente ao fundo das células numéricas
+  (maior |valor| da coluna nas linhas atuais).
+- Cartões, Lista de app, Transposta, Mestre e detalhe e Seções: novo
+  `layouts.js`, virtualizado por faixas (transposta: virtualização
+  horizontal com a coluna de nomes acompanhando a rolagem), usando o MESMO
+  pintor de células (tipos e regras), busca/realce, ordenação ("Ordenar
+  por" + inverter), filtros já aplicados e seleção. Sem animação.
+- Decisões: "quantas colunas" nos cartões = cartões por linha (e a grade
+  interna tem opção própria); Seções padrão = Identificação (dimensões) /
+  Valores (medidas) / Calculadas; Lista usa as 2 primeiras dimensões
+  (título/subtítulo) e até 3 medidas à direita.
+- Teste `test/tabela_layouts_v3.test.mjs` (500×50, 9 layouts). 862/862.
+
+PRÓXIMA AÇÃO: FASE 3 — 5.6 (bump_chart: alinhamento).
+
+### 5.6 bump_chart: alinhamento (concluído em código; conferir no Looker real)
+- Causas lidas no código: (1) o valor do último ponto ia ACIMA do ponto
+  (dy = −(raio + tamanho/2 + 3)) por `desenharRotulosDosPontos`, com
+  âncora "end" perto da borda — por isso ficava "solto"; (2) margens só
+  consideravam os nomes, nunca o rótulo de valor; nomes de séries que
+  terminam antes caíam sobre os círculos da coluna seguinte (reproduzido
+  num tile de 560 px); (3) `curveCatmullRom.alpha(.5)` do d3 faz overshoot;
+  (4) a nota era absoluta sobre a área (resolvido pela 5.1c).
+- Testes primeiro: `test/bump_v3.test.mjs` com fixture sintética
+  `bumpLongo` (11×7, 5 séries nos 2 últimos, valores grandes, valor+%):
+  (a) rótulo na altura do centro, deslocamento fixo, acima das linhas, com
+  halo; (b) tudo dentro do SVG e nenhum texto sobre círculo/outro texto
+  (900×560 e 560×380, 4 configurações); (c) rank mais baixo × nota;
+  (d) nenhuma curva fora da faixa entre os círculos (catmull, bump,
+  monotone). (a), (b) e (d) falhavam antes.
+- Correção: bloco de margens/camadas/rótulos reescrito no bump_chart;
+  opção nova `posicaoDoValor` (padrão "auto"); `shapes.js`: "catmull"
+  limitado (pontos de controle presos à faixa do trecho, mesmo nome do
+  valor) e valor novo "bump" (`d3.curveBumpX`, existe no d3-shape 3.2.0),
+  também listado em "Suavização da linha" dos outros gráficos de série.
+- A correção do catmull vale para TODOS os gráficos que oferecem o valor
+  (é defeito de código, 4.1).
+- Opcional "Nomes também à direita": já coberto por "Nomes nas pontas".
+- 867/867; segurança ok.
+
+PRÓXIMA AÇÃO: 5.7 (diagrama_venn: layout e hover).
+
+### 5.7 diagrama_venn: layout e hover (concluído; conferir no Looker real)
+- Causas no código: escala = min(L, A)/2 sobre coordenadas ±1, mas as
+  formas ocupam só o meio desse quadrado (diagrama pequeno); nomes FORA em
+  `posicaoDoRotuloDoConjunto` sem anti-colisão (o nome de um caía sobre o
+  outro); números em negrito na cor do texto, tamanho só para "caber";
+  nomes repetidos na legenda (`mostrarLegenda` padrão ligado).
+- Novo `moderno.js` (padrão, `layoutDoVenn: moderno`); o anterior fica
+  como "Clássico". Detalhes no cabeçalho do index.js. Código próprio; a
+  referência visual do Venn nativo foi só estética.
+- Decisões: áreas proporcionais aos valores NÃO foram implementadas (é
+  referência do pedido, não requisito; com 4–5 conjuntos não há solução
+  exata e o layout fixo é o que garante todas as regiões). Percentual em
+  linha própria quando `mostrarPercentual` (salvo) ou conteúdo com %.
+  `mostrarTotalDoConjunto` (salvo, padrão ligado) continua pondo o total no
+  nome. `removerDoNome` nasce com "(Yes / No)".
+- Testes antigos do Venn rodam no "Clássico" (são da estrutura antiga).
+  Novos: `test/venn_v3.test.mjs` (2–5 conjuntos, 900×560 e 320×240:
+  nada se sobrepõe nem sai da área; ocupa ≥80% do lado limitante com 2–3
+  conjuntos e ≥55–60% com 4–5, que levam números para fora; nomes longos;
+  halo/linhas; fora/legenda; hover cresce + clareia; clique fixa; Esc).
+- 876/876; segurança ok.
+
+PRÓXIMA AÇÃO: FASE 4 — 5.8 (base `_arvore`), 5.9, 5.10, 5.11 juntos.
+
+### FASE 4 — em andamento (commit intermediário)
+- Feito: `src/core/texto-longo.js` (genérico: 7 modos, opções com os mesmos
+  ids em todos), `src/charts/_arvore/comum.js` (opções comuns, barra
+  Expandir/Colapsar/Centralizar, animação FLIP de abrir/fechar,
+  centralização), `_arvore/index.js` (um <g> por nó, rótulo pelo Texto
+  longo com várias linhas, `medirRotulosDaArvore`), `arvores_multiplas`
+  reescrito no desenho (grade com espaços, largura/altura por árvore,
+  linhas-guia, cada árvore centralizada na célula, rolagem horizontal da
+  célula no modo "Mostrar inteiro").
+- Decisão (5.12): arrastar a borda da célula NÃO foi feito. O adaptador
+  usa `trigger('updateConfig')` só como "melhor esforço" (não confirmado
+  na API) — entregues só os campos numéricos `largura_<árvore>` e
+  `altura_<árvore>`.
+- Testes antigos: `truncarRotulo` agora testado no modo "Cortar com
+  reticências" (regra 4.1); os "fantasmas" da animação de fechar perdem a
+  classe de nó.
+- Falta: org_chart (5.13), testes novos de 5.9/5.10/5.11/5.12, 5.13b.
+
+PRÓXIMA AÇÃO: org_chart (botões, estética, contador, rolagem, animação,
+centralizar, Texto longo).
+
+### 5.8–5.13 concluídos (conferir no Looker real)
+- org_chart reescrito no desenho (arquivo passou de CRLF para LF).
+  Causa do defeito dos botões: `mostrarBotoesDeExpandir` nunca existiu no
+  org_chart (só no arvores_multiplas); agora é opção comum das árvores.
+- Contador "+N": círculo com raio pelo texto (ou pílula/oculto).
+- Barras de rolagem desnecessárias: o <svg> era inline (sobra de linha) e
+  sempre `max(área, desenho)`; agora display:block e, quando cabe, o
+  tamanho exato da área (conteúdo deslocado para centralizar).
+- Opções novas do org_chart: `corDoCartaoPor`, `sombraDoCartao`,
+  `cartaoAjustavel` (padrão ligado: o cartão cresce com o texto),
+  `fonteDoCartao`, `alinhamentoDoTextoDoCartao` (auto = como antes),
+  `contrasteAutomatico`, `mostrarNomeNoCartao`, `mostrarPercentualNoCartao`,
+  `estiloDoContador`, `corDaLigacaoDoOrg`, `espessuraDaLigacaoDoOrg`,
+  `formaDaLigacaoDoOrg`. Comuns (os dois gráficos, mesmos ids/rótulos):
+  `animarExpandir`, `duracaoDeExpandir`, `movimentoDeExpandir`,
+  `cascataDeExpandir`, `respeitarMenosMovimento`,
+  `alinhamentoHorizontalDaArvore`, `alinhamentoVerticalDaArvore`,
+  `deslocamentoXDaArvore`, `deslocamentoYDaArvore`, `oQueCentralizar`,
+  `quandoCentralizar`, `mostrarBotaoCentralizar`, `mostrarBotoesDeExpandir`
+  (novo no org_chart), `modoDoTextoLongo`, `larguraMaximaDoRotulo`,
+  `linhasMaximasDoRotulo`, `fonteMinimaDoRotulo`, `tooltipComTextoCompleto`,
+  `margemExtraDoRotulo`, `permitirSelecionarTexto`, `partesDoRotulo`,
+  `separadorDoRotulo`, `simboloDaMoedaDoRotulo`, `moedaPersonalizadaDoRotulo`;
+  arvores_multiplas: `centralizarCadaArvore`, `espacoHorizontalDaGrade`,
+  `espacoVerticalDaGrade`, `linhasGuiaDaGrade`, `largura_<árvore>`,
+  `altura_<árvore>` (dinâmicas).
+- Decisões: as opções de animação existentes (`animacaoAtiva` etc.) valem
+  como interruptor geral; as de abrir/fechar são próprias (duração padrão
+  350). Ligações não "deslizam" (só os nós); elas reaparecem com
+  esmaecimento. Cartão uniforme (a maior largura) para o layout do d3.
+  `cluster` mantido como estava.
+- Teste novo `test/arvores_v3.test.mjs` (8). Testes antigos ajustados:
+  cartão fixo para o teste de "esconder sobrepostos". 884/884.
+
+PRÓXIMA AÇÃO: 5.13b (dot_plot_denso: rótulos nas margens + auditoria).
+
+### 5.13b dot_plot_denso + auditoria da família (concluído; conferir no Looker real)
+- Causas (lidas no código): (1) rótulo "fora" do maior valor posicionado
+  à direita do ponto em `left: p%`, sem reserva de margem — o trilho
+  (overflow hidden na rolagem) cortava o texto; (2) nomes cortados por
+  caracteres (`larguraDoNome / 7`); (3) "Puerto R…" sob o eixo: a régua já
+  estava FORA da área rolável — é o corte normal da rolagem, mas faltava
+  separação visual; (4) eixo negativo: a folga visual de 4% era subtraída
+  do mínimo e cruzava o zero (não era por design) — corrigido em
+  `montarEscala` (vale também para o dumbbell).
+- Novos: `src/core/rotulo-na-borda.js` (cálculo de margem compartilhado;
+  opção `rotuloNaBorda`: inverter (padrão) | folga | reduzir) e Texto
+  longo na coluna de nomes (mesmos ids das árvores, sem partes/moeda) +
+  `larguraMaximaDosNomes` (35%). `larguraDoNome` salva vale só nos modos
+  de corte.
+- Auditoria (`test/auditoria_borda_v3.test.mjs`): pareto ✔, drawdown ✔,
+  bar_race ✔ (sem defeito); heatmap_denso ✖ → corrigido (margem direita
+  da régua de cores era fixa em 62 px; agora pela largura do maior
+  rótulo); barras_ranking_denso ✖ com posição "fora" → o rótulo da maior
+  barra vai para dentro quando não cabe; dumbbell ✖ → inverte para a
+  esquerda do ponto. Todos com o mesmo módulo.
+- Teste antigo ajustado (barras "fora": confere um rótulo que cabe).
+- `test/dot_plot_v3.test.mjs` (3; os 3 falhavam antes). 894/894.
+
+PRÓXIMA AÇÃO: FASE 5 — 5.14 cartao_multivalor.
+
+### 5.14 cartao_multivalor (concluído; conferir no Looker real)
+- Novo gráfico (`src/charts/cartao_multivalor/`), registrado em
+  `config/charts.json` (o build gera `dist/cartao_multivalor.js` e a linha
+  no MANIFEST; as URLs saem no fechamento, 5.15). Fixtures sintéticas
+  `cartaoUnico` e `cartaoGrade`. README com "como montar o Explore".
+- Novo `src/core/icones.js`: registro ÚNICO de ícones (contorno e
+  preenchido), base genérica de 15 ícones — é onde os pacotes (5.14b)
+  registram os seus. O kpi_vivo não foi mexido nesta etapa.
+- Decisões: nomes de faixa genéricos (Ouro/Prata/Bronze/Sem nível) nos
+  exemplos e testes — os do pedido podem ser níveis reais (5.14c). Opções
+  por campo `mv_<campo>_<opção>` (17 por campo, seção "Campo: <nome>",
+  aba Estilo). Mini gráfico = série da medida em todas as linhas (no modo
+  grade usa a mesma série). Semáforo: verde ≥ meta, amarelo ≥ 80%, vermelho
+  abaixo (sem meta: pelo sinal). Copiar: duplo clique (clipboard ou
+  execCommand).
+- Herdado do núcleo: título/subtítulo/nota (5.1c), tooltip e clique
+  (5.1), painel em 4 abas (5.1b).
+- `test/cartao_multivalor.test.mjs` (10). 920/920.
+
+PRÓXIMA AÇÃO: FASE 5b — 5.14b (infraestrutura de pacotes).
+
+## Sessão retomada em 2026-10-30
+- Encontrado sem commit: a FASE 5b inteira (núcleo, pacote, testes) da
+  sessão anterior, faltando só generalizar o "progresso" de pacote no
+  cartão e na tabela (script pronto). Aplicado, testado e commitado.
+
+### 5.14b–5.14h Pacotes temáticos e pacote Café (concluído; conferir no Looker real)
+- `src/core/pacotes.js` (registro; `PACOTE_PADRAO = 'cafe'`), registros
+  centrais estendidos: `icones.js`, `shapes.js` (`registrarForma`,
+  `listaDeFormas`), `theme.js` (`registrarPaletaCategorica`,
+  `registrarEscalaContinua`), progressos (no próprio pacotes.js).
+- `src/packs/cafe/index.js`: 15 ícones desenhados do zero (contorno +
+  preenchido), formas cafe_xicara/cafe_grao/cafe_copo, 5 paletas (8+
+  cores distintas), escalas Torra e Torra divergente, "Progresso em
+  xícara". Tudo genérico (5.14c): sem marcas, sem nomes de níveis.
+- Build: `src/packs/index.js` é trocado pela lista das PASTAS em
+  src/packs/ (pacote novo = pasta nova); `BL_SEM_PACOTES=1` gera sem
+  pacotes; `BL_SAIDA` gera em outra pasta. `npm run testar-sem-pacotes`:
+  build sem pacotes em tmp/ + suíte inteira — 921 ok, 6 pulados (os do
+  Café); com pacote: 926 ok.
+- Opção "Pacote temático" (`pacoteTematico`, aba Estilo) só nos gráficos
+  com listas que contêm itens de pacote. DECISÃO: trocar o pacote
+  registra o painel de novo UMA vez (só nessa troca; assinatura do
+  `registrarOpcoes` ganhou um "extra") — é a única forma de as listas
+  esconderem os itens. Valor salvo de pacote desligado continua desenhado.
+- "Estilo do ícone" (`estiloDoIcone`) injetado nos gráficos com lista de
+  ícones (kpi_vivo) e declarado no cartão. kpi_vivo: os 9 ícones e o
+  valor salvo permanecem; ícones do registro entram na lista; nova opção
+  `progressoEmXicara`. Ícone por valor (`core/icone-por-valor.js`:
+  `mapaDeIconesPorValor`, `iconePadraoPorValor`, `coresPorValor`,
+  `campoDoIconePorValor`) no cartão, na tabela (tipo de célula "Ícone por
+  valor"), nas árvores e no organograma (valor = nome do nó). Progresso
+  de pacote como tipo no cartão e na tabela (sem animar na tabela).
+- 5.14i (opcional) NÃO feito: fica `[ ]`.
+
+PRÓXIMA AÇÃO: FASE 6 — 5.15b portabilidade (config/repo.json, varredura,
+MIGRACAO.md) e depois 5.15 (build duplo, tag v3.N, URLs, relatório).
+
+### 5.15b Portabilidade (concluído)
+- `config/repo.json`: único lugar com dono, repositório e hospedagem
+  (`jsdelivr` | `base-url` + `prefixoBaseUrl`). `build/urls.mjs` lê dele
+  (ou do `git remote origin`), exige a tag (`npm run urls -- v3.N`),
+  confere a tag no remoto e os arquivos com `git ls-tree`, e gera DUAS
+  URLs por gráfico (tag e hash do commit da tag).
+- O LOG antigo citava a URL com o dono: trocado por `<dono>/<repositório>`.
+- `test/portabilidade_v3.test.mjs`: varre os arquivos versionados de
+  biblioteca/ (dono, repositório, "Nome Sobrenome" derivado do dono,
+  caminhos locais). Exceções: config/repo.json, dist/URLS.*, e
+  PROMPT_AGENTE.md (decisão: é a cópia literal das instruções do usuário,
+  que a seção 0 manda gravar sem alterar; ela cita a URL do repositório).
+- `docs/MIGRACAO.md` (espelho com branches e tags, o que atualizar, URLs,
+  aviso de que as URLs antigas morrem se o repositório antigo sumir).
+  README: aviso do jsDelivr só público, fluxo com tag, pacotes.
+
+PRÓXIMA AÇÃO: 5.15 — build duplo, testes, commit, tag v3.N, URLs,
+relatório.
+
+### 5.15 Fechamento
+- Build duplo: `git status` limpo. `npm test` 927 ok (1 pulado),
+  `testar-sem-pacotes` 921 ok (6 pulados), segurança sem violação.
+- Docs: ARQUITETURA e COMPAT (módulos e suposições da v3),
+  `docs/RELATORIO_MELHORIAS.md` (feito × testado × conferir no Looker,
+  tabela de opções salvas, ids novos, o que não foi possível).
+- Tag: nenhuma `v3.*` existia → `v3.1` no último commit que alterou
+  `biblioteca/dist` (4a715c1); URLs geradas depois, em commit separado.
+- `git push origin v3.1` feito; `git ls-remote --tags origin` mostra
+  `refs/tags/v3.1` → 4a715c13b49b6cbf15040218efa1e30e0f200988; `git ls-tree
+  v3.1 biblioteca/dist/` tem os 23 bundles. `npm run urls -- v3.1` gerou
+  URLS.md/URLS.csv (principal @v3.1, alternativa @hash), em commit separado.
+- Pendência fora do repositório: na sessão anterior foi criado por engano
+  um arquivo `placeholder.txt` (conteúdo "x") numa pasta `JOELRA~1` na
+  raiz do disco C:. A remoção foi bloqueada pela proteção do ambiente;
+  o usuário pode apagá-lo.
+
+TODAS AS TAREFAS DA V3 CONCLUÍDAS, exceto 5.14i (opcional, não feito).
+PRÓXIMA AÇÃO: nenhuma no agente. O usuário confere
+`docs/TESTE_NO_LOOKER.md` (seção Melhorias v3) e lê
+`docs/RELATORIO_MELHORIAS.md`.

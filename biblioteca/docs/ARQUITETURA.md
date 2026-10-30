@@ -113,7 +113,8 @@ Declara as opções (compondo blocos do `options-kit`) e desenha. Nada mais.
 ### O que o define-viz faz por TODOS os gráficos (correções v2)
 
 1. **Config normalizado** (`normalizarConfig`): defaults nas chaves ausentes, tipos corrigidos; relido a cada `updateAsync`.
-2. **Abas padronizadas** (`organizarAbas`): Dados · Visual · Texto · Interação · Avançado; só `section`/`order`/`label` mudam, nunca id/tipo/default. Relatório em `docs/opcoes/ABAS.md`.
+- **Título, subtítulo e nota (v3, 5.1c)**: `src/core/cabecalho.js` (faixas `.bl-cabecalho`/`.bl-rodape` no fluxo, plano com `medida-texto.js`); cada gráfico escreve o texto automático da nota em `ctx.nota`.
+2. **Abas padronizadas** (`organizarAbas`, lista única `ABAS` em `options-kit.js`): Dados · Estilo · Texto · Mais (v3, 5.1b; o Looker mostra em ordem alfabética: Dados · Estilo · Mais · Texto). Rótulos no limite de 30/40 caracteres por `src/core/rotulos-do-painel.js`; só `section`/`order`/`label` mudam, nunca id/tipo/default. Relatório (com o rótulo completo de cada opção) em `docs/opcoes/ABAS.md`.
 3. **Tooltip único** por gráfico (`ctx.tooltip()`), escondido em todo redesenho e removido no destroy; `ctx.cliqueNoItem(ev, celula, conteudo)` aplica a "Ação do clique".
 4. **Aviso** no fluxo (topo/rodapé/oculto), com ×, sempre também no console.
 5. **Hover** (`data-item` ou `.bl-marcador`) depois de todo desenho.
@@ -143,3 +144,23 @@ canvas ou virtualização são obrigatórios para o arraste continuar suave.
 vezes na mesma instância. Rolagem, ordenação, filtros, seleção e página
 precisam sobreviver entre atualizações — e o `define-viz` preserva esse
 objeto, limpando só o que é descartável (listeners, timers, quadros).
+
+## Melhorias v3 — módulos novos
+
+| Módulo | Para quê |
+|---|---|
+| `src/core/cabecalho.js` + `medida-texto.js` | Título, subtítulo e nota em faixas próprias; largura estimada de texto (função única, usada também pelos testes de geometria) |
+| `src/core/rotulos-do-painel.js` | Rótulos curtos do painel (30/40 caracteres); 4 abas em `ABAS` (`options-kit.js`) |
+| `src/core/formulas.js` | Interpretador próprio de fórmulas (sem eval) — tabela e cartão |
+| `src/core/texto-longo.js` | "Texto longo" (7 modos) — árvores, organograma, dot plot |
+| `src/core/rotulo-na-borda.js` | Margem/inversão do rótulo do valor extremo |
+| `src/core/icones.js`, `icone-por-valor.js` | Registro único de ícones; ícone por valor |
+| `src/core/pacotes.js` + `src/packs/<nome>/` | Pacotes temáticos (registram ícones, formas, paletas, progressos com prefixo); o build descobre as pastas; `BL_SEM_PACOTES=1` |
+| `src/charts/_arvore/comum.js` | Botões, abrir/fechar animado, centralizar — árvores e organograma |
+| `src/charts/tabela_completa/{busca,calculadas,layouts}.js` | Busca "contém", colunas calculadas, 9 layouts |
+| `src/charts/diagrama_venn/moderno.js` | Layout Moderno do Venn |
+| `config/repo.json` | Único lugar com dono/repositório/hospedagem (URLs) |
+
+O `define-viz` passou a: injetar as opções do cabeçalho/nota, "Pacote
+temático" e "Estilo do ícone" quando cabem; esconder o tooltip antes de
+qualquer drill; registrar o painel de novo só quando o pacote temático muda.

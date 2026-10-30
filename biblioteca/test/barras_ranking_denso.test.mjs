@@ -66,7 +66,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     })),
     conteudo: palco.querySelector('.br-conteudo'),
     contagem: palco.querySelector('.br-contagem')?.textContent || '',
-    nota: palco.querySelector('.br-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     busca: palco.querySelector('.br-busca'),
   });
 

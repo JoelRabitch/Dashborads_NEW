@@ -50,6 +50,7 @@ import {
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
 import { lerRotulos, textoDoRotulo, estilizarRotulo, larguraDoTexto } from '../../core/rotulos.js';
 import { limparEOrdenar, quantil } from '../../core/estatistica.js';
+import { folgaParaRotulos } from '../../core/rotulo-na-borda.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -229,6 +230,10 @@ export default defineViz({
     const fonte = Math.max(8, tema.tamanhoBase - 1);
     const comLegenda = config.mostrarLegendaDeCor !== false;
 
+    // Escala de cor antes das margens: a régua da direita precisa da largura
+    // dos seus rótulos (5.13b, v3).
+    const escala = montarEscalaDeCor({ valores, config });
+
     const margens = calcularMargens({
       rotulosY: linhas.map((l) => truncar(l.rotulo, 22)),
       rotulosX: colunas.map((c) => truncar(c.rotulo, 14)),
@@ -236,6 +241,12 @@ export default defineViz({
       tema,
     });
     margens.direita = Math.max(margens.direita, comLegenda ? 62 : 10);
+    // 5.13b (v3): o rótulo extremo da régua ("$141,364") passava da borda —
+    // a margem era fixa em 62 px. Agora: régua (14 + 15 px) + maior rótulo.
+    if (comLegenda) {
+      const textos = escala.marcas.map((m) => formatar(m.valor)).concat(['sem dado']);
+      margens.direita = Math.max(margens.direita, 14 + 15 + folgaParaRotulos(textos, Math.max(8, fonte - 2), { afastamento: 2 }));
+    }
     // O eixo X fica em CIMA: num heatmap a primeira linha é a mais olhada,
     // e rótulo embaixo obriga a percorrer o mapa inteiro para identificá-la.
     const alturaDoCabecalho = Math.min(
@@ -253,7 +264,7 @@ export default defineViz({
     const alturaDaCelula = retangulo.altura / linhas.length;
 
     // ---------- Cor ----------
-    const escala = montarEscalaDeCor({ valores, config });
+    // (a escala é montada antes das margens; ver acima)
 
     const corDaAusencia = config.corDaAusencia || comOpacidade(tema.borda, 0.45);
 
@@ -411,7 +422,7 @@ export default defineViz({
     }
 
     // ---------- Nota ----------
-    const nota = criarEl('div', { classe: 'hd-nota', pai: area });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     const partes = [
       `${linhas.length} × ${colunas.length} = ${totalDeCelulas.toLocaleString('pt-BR')} células`,

@@ -22,9 +22,13 @@ var FIXTURES_BL = (() => {
   __export(index_exports, {
     FIXTURES: () => FIXTURES,
     FIXTURES_BASICAS: () => FIXTURES_BASICAS,
+    bumpLongo: () => bumpLongo,
     campoDimensao: () => campoDimensao,
     campoMedida: () => campoMedida,
+    cartaoGrade: () => cartaoGrade,
+    cartaoUnico: () => cartaoUnico,
     celula: () => celula,
+    codigosSinteticos: () => codigosSinteticos,
     comPivo: () => comPivo,
     conjuntosBooleanos: () => conjuntosBooleanos,
     conjuntosPorItem: () => conjuntosPorItem,
@@ -32,12 +36,14 @@ var FIXTURES_BL = (() => {
     criarRng: () => criarRng,
     duasDimensoes: () => duasDimensoes,
     hierarquia: () => hierarquia,
+    montarQueryResponse: () => montarQueryResponse,
     ohlc: () => ohlc,
     paiFilho: () => paiFilho,
     rotulosLongos: () => rotulosLongos,
     semCampos: () => semCampos,
     semPivo: () => semPivo,
     somenteNulos: () => somenteNulos,
+    tabelaLarga: () => tabelaLarga,
     temporal: () => temporal,
     vazio: () => vazio,
     volumeGrande: () => volumeGrande
@@ -452,6 +458,109 @@ var FIXTURES_BL = (() => {
     }
     return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
   }
+  function tabelaLarga({ linhas = 500, medidas: quantasMedidas = 48, semente = 11 } = {}) {
+    const rng = criarRng(semente);
+    const dimensoes = [campoDimensao("codigo", "C\xF3digo"), campoDimensao("grupo", "Grupo")];
+    const medidas = [];
+    for (let m = 0; m < quantasMedidas; m++) medidas.push(campoMedida(`m${m}`, `Medida ${m + 1}`));
+    const data = new Array(linhas);
+    for (let i = 0; i < linhas; i++) {
+      const linha = {
+        codigo: celula(`ABC${String(i).padStart(4, "0")}XX`),
+        grupo: celula(`Grupo ${String.fromCharCode(65 + i % 6)}`)
+      };
+      for (let m = 0; m < quantasMedidas; m++) linha[`m${m}`] = celula(Math.round(rng() * 1e4) / 10);
+      data[i] = linha;
+    }
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
+  function codigosSinteticos() {
+    const dimensoes = [campoDimensao("codigo", "C\xF3digo"), campoDimensao("descricao", "Descri\xE7\xE3o")];
+    const medidas = [campoMedida("qty", "Quantidade"), campoMedida("preco", "Pre\xE7o")];
+    const linhas = [
+      ["ABCBLACKXX", "Caneca preta", 5, 10.5],
+      ["ABCWHITEBR", "Caneca branca", 12, 11],
+      ["XYZBLACKBR", "Copo preto t\xE9rmico", 31, 25],
+      ["QRSKRAFTXX", "Pacote kraft", 55, 3.2],
+      ["BLACKQRS01", "Coador de papel", 70, 8],
+      ["MNOGREENBR", "A\xE7\xFAcar org\xE2nico", 0, 4.75]
+    ];
+    const data = linhas.map(([codigo, descricao, qty, preco]) => ({
+      codigo: celula(codigo),
+      descricao: celula(descricao),
+      qty: celula(qty),
+      preco: celula(preco, `$${preco.toFixed(2)}`)
+    }));
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
+  function bumpLongo() {
+    const rng = criarRng(53);
+    const dimensoes = [campoDimensao("periodo", "Per\xEDodo"), campoDimensao("serie", "S\xE9rie")];
+    const medidas = [campoMedida("valor", "Valor", { valueFormat: "#,##0.00" })];
+    const nomes = [
+      "Alfa Norte",
+      "Beta Sul",
+      "Gama Centro",
+      "Delta Leste",
+      "\xC9psilon Oeste",
+      "Zeta Litoral",
+      "Eta Serra",
+      "Teta Vale",
+      "Iota Planalto",
+      "Capa Interior",
+      "Lambda Capital"
+    ];
+    const data = [];
+    for (let p = 0; p < 7; p++) {
+      nomes.forEach((nome, s) => {
+        if (p >= 5 && s >= 5) return;
+        const v = Math.round((15e4 + rng() * 9e5) * 100) / 100;
+        data.push({ periodo: celula(`Semana ${p + 1}`), serie: celula(nome), valor: celula(v, v.toLocaleString("en-US", { minimumFractionDigits: 2 })) });
+      });
+    }
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
+  function cartaoUnico() {
+    const dimensoes = [campoDimensao("cliente", "Cliente"), campoDimensao("nivel", "N\xEDvel")];
+    const medidas = [
+      campoMedida("visitas", "Visitas"),
+      campoMedida("compras", "Compras"),
+      campoMedida("trocas", "Trocas"),
+      campoMedida("nota", "Nota", { valueFormat: "0.0" }),
+      campoMedida("estornos", "Estornos"),
+      campoMedida("pendentes", "Pendentes")
+    ];
+    const data = [
+      {
+        cliente: celula("Cliente Exemplo 01"),
+        nivel: celula("N\xEDvel 2", "N\xEDvel 2", [{ label: "Detalhar", url: "/explore/x", type: "drill" }]),
+        visitas: celula(6),
+        compras: celula(3),
+        trocas: celula(1),
+        nota: celula(8.7, "8.7"),
+        estornos: celula(0, "0.0"),
+        pendentes: celula(null)
+      },
+      { cliente: celula("Cliente Exemplo 02"), nivel: celula("N\xEDvel 1"), visitas: celula(4), compras: celula(2), trocas: celula(0), nota: celula(6.2, "6.2"), estornos: celula(1), pendentes: celula(2) }
+    ];
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
+  function cartaoGrade({ linhas = 8 } = {}) {
+    const rng = criarRng(71);
+    const dimensoes = [campoDimensao("cliente", "Cliente")];
+    const medidas = [campoMedida("visitas", "Visitas"), campoMedida("compras", "Compras"), campoMedida("nota", "Nota", { valueFormat: "0.0" })];
+    const data = [];
+    for (let i = 0; i < linhas; i++) {
+      const n = Math.round(rng() * 100) / 10;
+      data.push({
+        cliente: celula(`Cliente Exemplo ${String(i + 1).padStart(2, "0")}`),
+        visitas: celula(Math.round(rng() * 20)),
+        compras: celula(Math.round(rng() * 10)),
+        nota: celula(n, n.toFixed(1))
+      });
+    }
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
   var FIXTURES = {
     semPivo: () => semPivo(),
     semPivoSemNulos: () => semPivo({ comNulos: false }),
@@ -473,6 +582,11 @@ var FIXTURES_BL = (() => {
     somenteNulos: () => somenteNulos(),
     rotulosLongos: () => rotulosLongos(),
     grande5k: () => volumeGrande({ linhas: 5e3 }),
+    tabelaLarga: () => tabelaLarga(),
+    codigosSinteticos: () => codigosSinteticos(),
+    bumpLongo: () => bumpLongo(),
+    cartaoUnico: () => cartaoUnico(),
+    cartaoGrade: () => cartaoGrade(),
     grande50k: () => volumeGrande({ linhas: 5e4 })
   };
   var FIXTURES_BASICAS = [

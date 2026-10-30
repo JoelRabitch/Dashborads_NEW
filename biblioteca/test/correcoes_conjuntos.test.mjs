@@ -47,7 +47,10 @@ function carregar(id) {
       const { data, queryResponse } = typeof dados === 'string' ? FIXTURES[dados]() : dados;
       // Primeiro desenho registra as opções dinâmicas; o config do usuário
       // é montado com os defaults do painel inteiro, como o Looker faz.
-      const config = Object.assign(configPadrao(definicao), ajustes);
+      // v3 (5.7): estes testes conferem o layout ANTERIOR do Venn, que
+      // continua disponível como "Clássico"; o Moderno tem test/venn_v3.
+      const base = id === 'diagrama_venn' ? { layoutDoVenn: 'classico' } : {};
+      const config = Object.assign(configPadrao(definicao), base, ajustes);
       let ok = false;
       inst.updateAsync(data, palco, config, queryResponse, {}, () => { ok = true; });
       assert.ok(ok, 'done() precisa ser chamado');
@@ -249,7 +252,7 @@ test('venn — clique: drill quando a região tem links; fixa o tooltip quando n
     const svg2 = r.palco.querySelector('svg.venn-svg');
     passarMouse(r, svg2, p.x, p.y);
     evento(r, 'click', svg2, p.x, p.y);
-    assert.ok(r.doc.querySelector('.bl-tooltip.bl-fixo'), 'sem links, o clique fixa o tooltip');
+    assert.equal(r.doc.querySelector('.bl-tooltip.bl-fixo'), null, 'sem links, no modo drill (padrão), o clique NÃO fixa (v3, 5.1)');
     assert.equal(r.doc.querySelectorAll('.bl-tooltip').length, 1, 'um único tooltip');
   } finally {
     r.fim();
@@ -321,7 +324,7 @@ test('upset — tooltip com o formato do campo e clique drill/fixar', () => {
     const b2 = r.palco.querySelector('.up-barra');
     passarMouse(r, b2, 50, 50);
     evento(r, 'click', b2, 50, 50);
-    assert.ok(r.doc.querySelector('.bl-tooltip.bl-fixo'), 'sem links, fixa');
+    assert.equal(r.doc.querySelector('.bl-tooltip.bl-fixo'), null, 'sem links, no modo drill (padrão), o clique NÃO fixa (v3, 5.1)');
   } finally {
     r.fim();
   }
@@ -384,7 +387,7 @@ test('treemap — tooltip usa o texto do Looker e o clique sem link fixa', () =>
     assert.match(tip.textContent, /MG /, 'a medida de cor vem do rendered do Looker');
     assert.ok(!temNumeroCru(tip.textContent));
     evento(r, 'click', bloco, 40, 40);
-    assert.ok(r.doc.querySelector('.bl-tooltip.bl-fixo'), 'sem links, fixa');
+    assert.equal(r.doc.querySelector('.bl-tooltip.bl-fixo'), null, 'sem links, no modo drill (padrão), o clique NÃO fixa (v3, 5.1)');
 
     const g = FIXTURES.duasDimensoes();
     for (const linha of g.data) linha.receita.links = [{ label: 'x', url: '/x', type: 'drill' }];
@@ -439,7 +442,7 @@ test('marimekko — aba Cores: inverter paleta, opacidade e contorno', () => {
   }
 });
 
-test('marimekko — clique: drill com links, fixa sem links; tooltip formatado', () => {
+test('marimekko — clique: drill com links, sem links não fixa (v3); tooltip formatado', () => {
   const r = carregar('marimekko');
   try {
     r.atualizar('duasDimensoes');
@@ -450,7 +453,7 @@ test('marimekko — clique: drill com links, fixa sem links; tooltip formatado',
     assert.match(tip.textContent, /\$\d/, 'receita no formato do campo');
     assert.ok(!temNumeroCru(tip.textContent));
     evento(r, 'click', bloco, 40, 40);
-    assert.ok(r.doc.querySelector('.bl-tooltip.bl-fixo'), 'sem links, fixa');
+    assert.equal(r.doc.querySelector('.bl-tooltip.bl-fixo'), null, 'sem links, no modo drill (padrão), o clique NÃO fixa (v3, 5.1)');
 
     const g = FIXTURES.duasDimensoes();
     // O Looker manda links também nas dimensões; bloco de várias linhas usa a da coluna.

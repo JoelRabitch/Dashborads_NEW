@@ -95,7 +95,7 @@
        * @param {object} opcoesDinamicas opções novas (serão mescladas às estáticas)
        * @returns {boolean} true se chegou a registrar agora
        */
-      registrarOpcoes(opcoesDinamicas) {
+      registrarOpcoes(opcoesDinamicas, extra = "") {
         if (!instancia || typeof instancia.trigger !== "function") {
           avisarUmaVez(
             "sem-trigger",
@@ -104,7 +104,7 @@
           return false;
         }
         const dinamicas = opcoesDinamicas || {};
-        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
+        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas) + "|" + extra;
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
         const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
@@ -928,31 +928,6 @@
     return null;
   }
 
-  // node_modules/d3-scale-chromatic/src/colors.js
-  function colors_default(specifier) {
-    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
-    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
-    return colors;
-  }
-
-  // node_modules/d3-scale-chromatic/src/categorical/category10.js
-  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
-  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
-
-  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
-  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
-  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
-  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
-  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
-
   // node_modules/d3-color/src/define.js
   function define_default(constructor, factory, prototype) {
     constructor.prototype = factory.prototype = prototype;
@@ -1387,6 +1362,31 @@
   var rgbBasis = rgbSpline(basis_default);
   var rgbBasisClosed = rgbSpline(basisClosed_default);
 
+  // node_modules/d3-scale-chromatic/src/colors.js
+  function colors_default(specifier) {
+    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
+    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
+    return colors;
+  }
+
+  // node_modules/d3-scale-chromatic/src/categorical/category10.js
+  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
+  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
+
+  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
+  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
+  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
+  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
+  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
+
   // node_modules/d3-scale-chromatic/src/ramp.js
   var ramp_default = (scheme8) => rgbBasis(scheme8[scheme8.length - 1]);
 
@@ -1650,6 +1650,18 @@
     tema.metricas = METRICAS;
     return tema;
   }
+  function registrarPaletaCategorica(id, { rotulo, cores, pacote = null }) {
+    PALETAS_CATEGORICAS[id] = { rotulo, cores: cores.slice(), pacote };
+  }
+  function registrarEscalaContinua(id, { rotulo, cores, tipo = "sequencial", pacote = null }) {
+    const paradas = cores.slice();
+    const interpolador = (t) => {
+      const x2 = Math.max(0, Math.min(1, Number(t) || 0)) * (paradas.length - 1);
+      const i = Math.min(paradas.length - 2, Math.floor(x2));
+      return rgb_default(paradas[i], paradas[i + 1])(x2 - i);
+    };
+    ESCALAS_CONTINUAS[id] = { rotulo, interpolador, tipo, pacote };
+  }
   function coresDaPaleta(nomeDaPaleta) {
     const p = PALETAS_CATEGORICAS[nomeDaPaleta] || PALETAS_CATEGORICAS.looker;
     return p.cores;
@@ -1686,6 +1698,913 @@
     m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(t);
     if (m) return [Number(m[1]), Number(m[2]), Number(m[3])];
     return null;
+  }
+
+  // node_modules/d3-shape/src/constant.js
+  function constant_default2(x2) {
+    return function constant() {
+      return x2;
+    };
+  }
+
+  // node_modules/d3-path/src/path.js
+  var pi = Math.PI;
+  var tau = 2 * pi;
+  var epsilon = 1e-6;
+  var tauEpsilon = tau - epsilon;
+  function append(strings) {
+    this._ += strings[0];
+    for (let i = 1, n = strings.length; i < n; ++i) {
+      this._ += arguments[i] + strings[i];
+    }
+  }
+  function appendRound(digits) {
+    let d = Math.floor(digits);
+    if (!(d >= 0)) throw new Error(`invalid digits: ${digits}`);
+    if (d > 15) return append;
+    const k = 10 ** d;
+    return function(strings) {
+      this._ += strings[0];
+      for (let i = 1, n = strings.length; i < n; ++i) {
+        this._ += Math.round(arguments[i] * k) / k + strings[i];
+      }
+    };
+  }
+  var Path = class {
+    constructor(digits) {
+      this._x0 = this._y0 = // start of current subpath
+      this._x1 = this._y1 = null;
+      this._ = "";
+      this._append = digits == null ? append : appendRound(digits);
+    }
+    moveTo(x2, y2) {
+      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}`;
+    }
+    closePath() {
+      if (this._x1 !== null) {
+        this._x1 = this._x0, this._y1 = this._y0;
+        this._append`Z`;
+      }
+    }
+    lineTo(x2, y2) {
+      this._append`L${this._x1 = +x2},${this._y1 = +y2}`;
+    }
+    quadraticCurveTo(x1, y1, x2, y2) {
+      this._append`Q${+x1},${+y1},${this._x1 = +x2},${this._y1 = +y2}`;
+    }
+    bezierCurveTo(x1, y1, x2, y2, x3, y3) {
+      this._append`C${+x1},${+y1},${+x2},${+y2},${this._x1 = +x3},${this._y1 = +y3}`;
+    }
+    arcTo(x1, y1, x2, y2, r) {
+      x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
+      if (r < 0) throw new Error(`negative radius: ${r}`);
+      let x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
+      if (this._x1 === null) {
+        this._append`M${this._x1 = x1},${this._y1 = y1}`;
+      } else if (!(l01_2 > epsilon)) ;
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+        this._append`L${this._x1 = x1},${this._y1 = y1}`;
+      } else {
+        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
+        if (Math.abs(t01 - 1) > epsilon) {
+          this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
+        }
+        this._append`A${r},${r},0,0,${+(y01 * x20 > x01 * y20)},${this._x1 = x1 + t21 * x21},${this._y1 = y1 + t21 * y21}`;
+      }
+    }
+    arc(x2, y2, r, a0, a1, ccw) {
+      x2 = +x2, y2 = +y2, r = +r, ccw = !!ccw;
+      if (r < 0) throw new Error(`negative radius: ${r}`);
+      let dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x2 + dx, y0 = y2 + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
+      if (this._x1 === null) {
+        this._append`M${x0},${y0}`;
+      } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+        this._append`L${x0},${y0}`;
+      }
+      if (!r) return;
+      if (da < 0) da = da % tau + tau;
+      if (da > tauEpsilon) {
+        this._append`A${r},${r},0,1,${cw},${x2 - dx},${y2 - dy}A${r},${r},0,1,${cw},${this._x1 = x0},${this._y1 = y0}`;
+      } else if (da > epsilon) {
+        this._append`A${r},${r},0,${+(da >= pi)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
+      }
+    }
+    rect(x2, y2, w, h) {
+      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}h${w = +w}v${+h}h${-w}Z`;
+    }
+    toString() {
+      return this._;
+    }
+  };
+  function path() {
+    return new Path();
+  }
+  path.prototype = Path.prototype;
+
+  // node_modules/d3-shape/src/path.js
+  function withPath(shape) {
+    let digits = 3;
+    shape.digits = function(_) {
+      if (!arguments.length) return digits;
+      if (_ == null) {
+        digits = null;
+      } else {
+        const d = Math.floor(_);
+        if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
+        digits = d;
+      }
+      return shape;
+    };
+    return () => new Path(digits);
+  }
+
+  // node_modules/d3-shape/src/array.js
+  var slice = Array.prototype.slice;
+  function array_default(x2) {
+    return typeof x2 === "object" && "length" in x2 ? x2 : Array.from(x2);
+  }
+
+  // node_modules/d3-shape/src/curve/linear.js
+  function Linear(context) {
+    this._context = context;
+  }
+  Linear.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default:
+          this._context.lineTo(x2, y2);
+          break;
+      }
+    }
+  };
+  function linear_default(context) {
+    return new Linear(context);
+  }
+
+  // node_modules/d3-shape/src/point.js
+  function x(p) {
+    return p[0];
+  }
+  function y(p) {
+    return p[1];
+  }
+
+  // node_modules/d3-shape/src/line.js
+  function line_default(x2, y2) {
+    var defined = constant_default2(true), context = null, curve = linear_default, output = null, path2 = withPath(line);
+    x2 = typeof x2 === "function" ? x2 : x2 === void 0 ? x : constant_default2(x2);
+    y2 = typeof y2 === "function" ? y2 : y2 === void 0 ? y : constant_default2(y2);
+    function line(data) {
+      var i, n = (data = array_default(data)).length, d, defined0 = false, buffer;
+      if (context == null) output = curve(buffer = path2());
+      for (i = 0; i <= n; ++i) {
+        if (!(i < n && defined(d = data[i], i, data)) === defined0) {
+          if (defined0 = !defined0) output.lineStart();
+          else output.lineEnd();
+        }
+        if (defined0) output.point(+x2(d, i, data), +y2(d, i, data));
+      }
+      if (buffer) return output = null, buffer + "" || null;
+    }
+    line.x = function(_) {
+      return arguments.length ? (x2 = typeof _ === "function" ? _ : constant_default2(+_), line) : x2;
+    };
+    line.y = function(_) {
+      return arguments.length ? (y2 = typeof _ === "function" ? _ : constant_default2(+_), line) : y2;
+    };
+    line.defined = function(_) {
+      return arguments.length ? (defined = typeof _ === "function" ? _ : constant_default2(!!_), line) : defined;
+    };
+    line.curve = function(_) {
+      return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
+    };
+    line.context = function(_) {
+      return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
+    };
+    return line;
+  }
+
+  // node_modules/d3-shape/src/curve/bump.js
+  var Bump = class {
+    constructor(context, x2) {
+      this._context = context;
+      this._x = x2;
+    }
+    areaStart() {
+      this._line = 0;
+    }
+    areaEnd() {
+      this._line = NaN;
+    }
+    lineStart() {
+      this._point = 0;
+    }
+    lineEnd() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    }
+    point(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0: {
+          this._point = 1;
+          if (this._line) this._context.lineTo(x2, y2);
+          else this._context.moveTo(x2, y2);
+          break;
+        }
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._x) this._context.bezierCurveTo(this._x0 = (this._x0 + x2) / 2, this._y0, this._x0, y2, x2, y2);
+          else this._context.bezierCurveTo(this._x0, this._y0 = (this._y0 + y2) / 2, x2, this._y0, x2, y2);
+          break;
+        }
+      }
+      this._x0 = x2, this._y0 = y2;
+    }
+  };
+  function bumpX(context) {
+    return new Bump(context, true);
+  }
+
+  // node_modules/d3-shape/src/curve/basis.js
+  function point(that, x2, y2) {
+    that._context.bezierCurveTo(
+      (2 * that._x0 + that._x1) / 3,
+      (2 * that._y0 + that._y1) / 3,
+      (that._x0 + 2 * that._x1) / 3,
+      (that._y0 + 2 * that._y1) / 3,
+      (that._x0 + 4 * that._x1 + x2) / 6,
+      (that._y0 + 4 * that._y1 + y2) / 6
+    );
+  }
+  function Basis(context) {
+    this._context = context;
+  }
+  Basis.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 3:
+          point(this, this._x1, this._y1);
+        // falls through
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
+        // falls through
+        default:
+          point(this, x2, y2);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x2;
+      this._y0 = this._y1, this._y1 = y2;
+    }
+  };
+  function basis_default2(context) {
+    return new Basis(context);
+  }
+
+  // node_modules/d3-shape/src/curve/cardinal.js
+  function point2(that, x2, y2) {
+    that._context.bezierCurveTo(
+      that._x1 + that._k * (that._x2 - that._x0),
+      that._y1 + that._k * (that._y2 - that._y0),
+      that._x2 + that._k * (that._x1 - x2),
+      that._y2 + that._k * (that._y1 - y2),
+      that._x2,
+      that._y2
+    );
+  }
+  function Cardinal(context, tension) {
+    this._context = context;
+    this._k = (1 - tension) / 6;
+  }
+  Cardinal.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          point2(this, this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+          this._x1 = x2, this._y1 = y2;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point2(this, x2, y2);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x2;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y2;
+    }
+  };
+  var cardinal_default = (function custom(tension) {
+    function cardinal(context) {
+      return new Cardinal(context, tension);
+    }
+    cardinal.tension = function(tension2) {
+      return custom(+tension2);
+    };
+    return cardinal;
+  })(0);
+
+  // node_modules/d3-shape/src/curve/monotone.js
+  function sign(x2) {
+    return x2 < 0 ? -1 : 1;
+  }
+  function slope3(that, x2, y2) {
+    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
+    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
+  }
+  function slope2(that, t) {
+    var h = that._x1 - that._x0;
+    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
+  }
+  function point3(that, t0, t1) {
+    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
+    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
+  }
+  function MonotoneX(context) {
+    this._context = context;
+  }
+  MonotoneX.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+        case 3:
+          point3(this, this._t0, slope2(this, this._t0));
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      var t1 = NaN;
+      x2 = +x2, y2 = +y2;
+      if (x2 === this._x1 && y2 === this._y1) return;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          point3(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
+          break;
+        default:
+          point3(this, this._t0, t1 = slope3(this, x2, y2));
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x2;
+      this._y0 = this._y1, this._y1 = y2;
+      this._t0 = t1;
+    }
+  };
+  function MonotoneY(context) {
+    this._context = new ReflectContext(context);
+  }
+  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x2, y2) {
+    MonotoneX.prototype.point.call(this, y2, x2);
+  };
+  function ReflectContext(context) {
+    this._context = context;
+  }
+  ReflectContext.prototype = {
+    moveTo: function(x2, y2) {
+      this._context.moveTo(y2, x2);
+    },
+    closePath: function() {
+      this._context.closePath();
+    },
+    lineTo: function(x2, y2) {
+      this._context.lineTo(y2, x2);
+    },
+    bezierCurveTo: function(x1, y1, x2, y2, x3, y3) {
+      this._context.bezierCurveTo(y1, x1, y2, x2, y3, x3);
+    }
+  };
+  function monotoneX(context) {
+    return new MonotoneX(context);
+  }
+  function monotoneY(context) {
+    return new MonotoneY(context);
+  }
+
+  // node_modules/d3-shape/src/curve/natural.js
+  function Natural(context) {
+    this._context = context;
+  }
+  Natural.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = [];
+      this._y = [];
+    },
+    lineEnd: function() {
+      var x2 = this._x, y2 = this._y, n = x2.length;
+      if (n) {
+        this._line ? this._context.lineTo(x2[0], y2[0]) : this._context.moveTo(x2[0], y2[0]);
+        if (n === 2) {
+          this._context.lineTo(x2[1], y2[1]);
+        } else {
+          var px = controlPoints(x2), py = controlPoints(y2);
+          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
+            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x2[i1], y2[i1]);
+          }
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
+      this._line = 1 - this._line;
+      this._x = this._y = null;
+    },
+    point: function(x2, y2) {
+      this._x.push(+x2);
+      this._y.push(+y2);
+    }
+  };
+  function controlPoints(x2) {
+    var i, n = x2.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
+    a[0] = 0, b[0] = 2, r[0] = x2[0] + 2 * x2[1];
+    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x2[i] + 2 * x2[i + 1];
+    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x2[n - 1] + x2[n];
+    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
+    a[n - 1] = r[n - 1] / b[n - 1];
+    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
+    b[n - 1] = (x2[n] + a[n - 1]) / 2;
+    for (i = 0; i < n - 1; ++i) b[i] = 2 * x2[i + 1] - a[i + 1];
+    return [a, b];
+  }
+  function natural_default(context) {
+    return new Natural(context);
+  }
+
+  // node_modules/d3-shape/src/curve/step.js
+  function Step(context, t) {
+    this._context = context;
+    this._t = t;
+  }
+  Step.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = this._y = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._t <= 0) {
+            this._context.lineTo(this._x, y2);
+            this._context.lineTo(x2, y2);
+          } else {
+            var x1 = this._x * (1 - this._t) + x2 * this._t;
+            this._context.lineTo(x1, this._y);
+            this._context.lineTo(x1, y2);
+          }
+          break;
+        }
+      }
+      this._x = x2, this._y = y2;
+    }
+  };
+  function step_default(context) {
+    return new Step(context, 0.5);
+  }
+  function stepAfter(context) {
+    return new Step(context, 1);
+  }
+
+  // src/core/shapes.js
+  function CatmullLimitada(contexto) {
+    this._context = contexto;
+  }
+  CatmullLimitada.prototype = {
+    areaStart() {
+      this._line = 0;
+    },
+    areaEnd() {
+      this._line = NaN;
+    },
+    lineStart() {
+      this._pontos = [];
+    },
+    point(x2, y2) {
+      this._pontos.push([+x2, +y2]);
+    },
+    lineEnd() {
+      const p = this._pontos;
+      const n = p.length;
+      const c = this._context;
+      if (n) {
+        if (this._line) c.lineTo(p[0][0], p[0][1]);
+        else c.moveTo(p[0][0], p[0][1]);
+        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = p[i - 1] || p[i];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = p[i + 2] || p2;
+          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
+          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
+          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
+          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
+          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) c.closePath();
+      this._line = 1 - this._line;
+    }
+  };
+  function curvaCatmullLimitada(contexto) {
+    return new CatmullLimitada(contexto);
+  }
+  var CURVAS = {
+    linear: linear_default,
+    monotone: monotoneX,
+    monotoneY,
+    basis: basis_default2,
+    catmull: curvaCatmullLimitada,
+    // "bump" (v3, 5.6): tangente horizontal nas duas pontas, sem overshoot.
+    bump: bumpX,
+    cardinal: cardinal_default,
+    natural: natural_default,
+    step: step_default,
+    stepAfter
+  };
+  function curvaPorNome(nome) {
+    return CURVAS[nome] || monotoneX;
+  }
+  function geradorDeLinha({ x: x2, y: y2, curva = "monotone", definido = null }) {
+    const g = line_default().x(x2).y(y2).curve(curvaPorNome(curva));
+    if (definido) g.defined(definido);
+    return g;
+  }
+  function caminhoDoSimbolo(forma, tamanho) {
+    const r = Math.max(0.5, tamanho / 2);
+    switch (forma) {
+      case "quadrado":
+        return `M${-r},${-r}h${r * 2}v${r * 2}h${-r * 2}Z`;
+      case "triangulo": {
+        const h = r * 1.6;
+        return `M0,${-h}L${r * 1.4},${h * 0.7}L${-r * 1.4},${h * 0.7}Z`;
+      }
+      case "losango":
+        return `M0,${-r * 1.3}L${r * 1},0L0,${r * 1.3}L${-r * 1},0Z`;
+      case "cruz": {
+        const b = r * 0.42;
+        return `M${-b},${-r}h${b * 2}v${r - b}h${r - b}v${b * 2}h${-(r - b)}v${r - b}h${-b * 2}v${-(r - b)}h${-(r - b)}v${-b * 2}h${r - b}Z`;
+      }
+      case "estrela": {
+        const pontas = 5;
+        const rExterno = r * 1.25;
+        const rInterno = r * 0.5;
+        let d = "";
+        for (let i = 0; i < pontas * 2; i++) {
+          const raio = i % 2 === 0 ? rExterno : rInterno;
+          const ang = Math.PI / pontas * i - Math.PI / 2;
+          const x2 = Math.cos(ang) * raio;
+          const y2 = Math.sin(ang) * raio;
+          d += `${i === 0 ? "M" : "L"}${x2.toFixed(2)},${y2.toFixed(2)}`;
+        }
+        return `${d}Z`;
+      }
+      case "wye":
+        return pontosDoWye(r).map(([x2, y2], i) => `${i ? "L" : "M"}${x2.toFixed(2)},${y2.toFixed(2)}`).join("") + "Z";
+      case "circulo":
+      default:
+        if (FORMAS_EXTRAS[forma]) return FORMAS_EXTRAS[forma].caminho(tamanho);
+        return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
+    }
+  }
+  function pontosDoWye(r) {
+    const b = r * 0.38;
+    const pontos = [];
+    for (let k = 0; k < 3; k++) {
+      const ang = -Math.PI / 2 + k * 2 * Math.PI / 3;
+      const cx = Math.cos(ang);
+      const cy = Math.sin(ang);
+      const px = -cy;
+      const py = cx;
+      const centro = b / Math.sqrt(3);
+      pontos.push([cx * r * 1.15 - px * b, cy * r * 1.15 - py * b]);
+      pontos.push([cx * r * 1.15 + px * b, cy * r * 1.15 + py * b]);
+      const prox = ang + Math.PI / 3;
+      pontos.push([Math.cos(prox) * centro * 2, Math.sin(prox) * centro * 2]);
+    }
+    return pontos;
+  }
+  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
+  var ROTULOS_DAS_FORMAS = {
+    circulo: "C\xEDrculo",
+    quadrado: "Quadrado",
+    triangulo: "Tri\xE2ngulo",
+    losango: "Losango",
+    cruz: "Cruz",
+    estrela: "Estrela",
+    wye: "Wye (Y)"
+  };
+  var FORMAS_EXTRAS = {};
+  function registrarForma(id, { rotulo, caminho, pacote = null }) {
+    FORMAS_EXTRAS[id] = { rotulo: rotulo || id, caminho, pacote };
+    if (!FORMAS_DE_MARCADOR.includes(id)) FORMAS_DE_MARCADOR.push(id);
+    ROTULOS_DAS_FORMAS[id] = rotulo || id;
+  }
+  function formaDoMarcador(nome) {
+    const mapa = { circle: "circulo", square: "quadrado", triangle: "triangulo", diamond: "losango", cross: "cruz", star: "estrela", y: "wye" };
+    const n = String(nome || "").trim().toLowerCase();
+    if (FORMAS_DE_MARCADOR.includes(n)) return n;
+    return mapa[n] || "circulo";
+  }
+  function criarMarcadorSvg(pai, forma, x2, y2, diametro, atributos = {}) {
+    const f = formaDoMarcador(forma);
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    el.setAttribute("d", caminhoDoSimbolo(f, Math.max(1, Number(diametro) || 1)));
+    el.setAttribute("transform", `translate(${Number(x2) || 0},${Number(y2) || 0})`);
+    el.setAttribute("class", "bl-marcador");
+    el.setAttribute("data-forma", f);
+    for (const [k, v] of Object.entries(atributos)) {
+      if (v === void 0 || v === null) continue;
+      if (k === "classe") el.setAttribute("class", `bl-marcador ${v}`);
+      else el.setAttribute(k, String(v));
+    }
+    if (pai) pai.appendChild(el);
+    return el;
+  }
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
+    return null;
+  }
+
+  // src/core/rotulos-do-painel.js
+  function limiteDoRotulo(opcao) {
+    return opcao && opcao.type === "boolean" ? 30 : 40;
+  }
+  var CORPO_CURTO = {
+    // Árvores e organograma
+    espessuraPorValor: "Liga\xE7\xE3o proporcional",
+    escalaPorArvore: "Escala por \xE1rvore",
+    tamanhoPorValor: "N\xF3 pelo valor",
+    comecarRecolhidoAPartirDe: "Recolher a partir do n\xEDvel",
+    preencherCartao: "Cart\xE3o na cor do ramo",
+    espacoEntreIrmaos: "Espa\xE7o entre vizinhos",
+    mostrarValorNoCartao: "Valor no cart\xE3o",
+    mostrarContagemDeEquipe: "Total de descendentes",
+    permitirRecolher: "Recolher ao clicar",
+    campoDoCargo: "Campo da 2\xAA linha",
+    mostrarBotoesDeExpandir: "Bot\xF5es de expandir",
+    // Rótulos
+    evitarColisaoDeRotulos: "Ocultar sobrepostos",
+    truncarRotulo: "Cortar ap\xF3s N caracteres",
+    mostrarRotulosDeFolha: "Nome das folhas",
+    mostrarRotulosInternos: "Nome dos n\xF3s internos",
+    mostrarValorNoRotulo: "Incluir o valor",
+    mostrarPercentual: "Mostrar percentual",
+    mostrarTotalDoConjunto: "Total do conjunto",
+    listarRegioesPequenas: "Listar as pequenas",
+    escreverLimites: "Valores dos limites",
+    escreverPercentuais: "Percentual no bloco",
+    escreverLarguras: "Peso de cada coluna",
+    escreverValores: "Valor junto do nome",
+    mostrarValorNoBloco: "Valor no ret\xE2ngulo",
+    mostrarValorNaBarra: "Valor acima da barra",
+    // Tooltip e clique
+    tooltipPersonalizado: "Personalizado",
+    modeloDeTooltip: "Modelo",
+    tooltipComNomeCompleto: "Nome completo",
+    tooltipComValorBruto: "Valor sem formato",
+    permitirHtmlDoLooker: "HTML do Looker",
+    destacarAoPassarMouse: "Destacar sob o mouse",
+    destacarNoHover: "Destacar sob o mouse",
+    permitirOrdenar: "Ordenar no cabe\xE7alho",
+    mostrarFiltrosPorColuna: "Filtro por coluna",
+    permitirSelecionarLinhas: "Selecionar e somar",
+    destacarLinhaEColuna: "Real\xE7ar linha/coluna",
+    permitirRedimensionarColunas: "Redimensionar colunas",
+    permitirDrill: "Drill na c\xE9lula",
+    mostrarBusca: "Campo de busca",
+    // Animação
+    contadorAnimado: "N\xFAmeros contando",
+    animarEntradaDasLinhas: "Entrada das linhas",
+    animarMudancaDeValor: "Piscar ao mudar",
+    repetir: "Repetir ao terminar",
+    // Avançado
+    aplicarConfiguracaoJson: "Aplicar o JSON acima",
+    // Dados e séries
+    agruparRestoEmOutros: "Agrupar o resto em Outros",
+    mostrarRank: "N\xFAmero do rank",
+    mostrarPontos: "Ponto em cada per\xEDodo",
+    mostrarPosicao: "Posi\xE7\xE3o no ponto",
+    normalizarParticipacao: "X como participa\xE7\xE3o",
+    mostrarTotalDeLinha: "Coluna de total por linha",
+    estiloDeData: "Formato das c\xE9lulas de data",
+    cabecalhoVertical: "Cabe\xE7alho na vertical",
+    esconderIntersecoesVazias: "Ocultar interse\xE7\xF5es vazias",
+    mostrarTotaisDosConjuntos: "Totais dos conjuntos",
+    // Cores e escalas
+    escalaDeCorPersonalizada: "Escala pr\xF3pria",
+    limiteDeCorAutomatico: "Limites autom\xE1ticos",
+    corPorDirecao: "Cor por dire\xE7\xE3o",
+    corDoSinal: "Cor fora de controle",
+    // Legenda e eixos
+    legendaInterativa: "Clique liga/desliga",
+    mostrarValoresNaLegenda: "Mostrar valores",
+    comecarEmZero: "Eixo come\xE7a em zero",
+    gradeEixoX: "Linhas de grade",
+    gradeEixoY: "Linhas de grade",
+    eixoXSimetricoEmTorno1: "Eixo X centrado em 1",
+    // Gráficos específicos
+    ligarPontos: "Ligar os pontos",
+    mostrarGuias: "Guias verticais",
+    destacarPiorQueda: "Destacar pior queda",
+    mostrarRecuperacao: "Dura\xE7\xE3o da queda",
+    periodoBase: "Base: N primeiros per\xEDodos",
+    mostrarZonas: "Zonas de 1\u03C3 e 2\u03C3",
+    colorirVariacao: "Cor pela dire\xE7\xE3o",
+    mostrarVariacaoAbsoluta: "Diferen\xE7a absoluta",
+    mostrarProgressoDaMeta: "Progresso at\xE9 a meta",
+    usarLimites: "Cor por limites",
+    pintarQuadrantes: "Pintar o fundo",
+    mostrarContagemPorQuadrante: "Pontos por quadrante",
+    mostrarCorte: "Marcar o corte",
+    destacarAteOCorte: "Destacar at\xE9 o corte",
+    mostrarPontosDoAcumulado: "Pontos no acumulado",
+    mostrarRetaDeSharpe: "Reta do melhor Sharpe",
+    destacarMelhorSharpe: "Destacar o melhor",
+    mostrarTitulosDeGrupo: "Nome de cada grupo"
+  };
+  var CORPO_POR_SUFIXO_DE_COLUNA = [
+    [/^visivel$/, () => "Mostrar"],
+    [/^rotulo$/, () => "Renomear"],
+    [/^largura$/, () => "Largura (px)"],
+    [/^alinhamento$/, () => "Alinhamento"],
+    [/^tipoDeCelula$/, () => "Tipo de c\xE9lula"],
+    [/^corDoTexto$/, () => "Cor do texto"],
+    [/^corDeFundo$/, () => "Cor de fundo"],
+    [/^prefixo$/, () => "Prefixo"],
+    [/^sufixo$/, () => "Sufixo"],
+    [/^formato$/, () => "Formato"],
+    [/^casasDecimais$/, () => "Casas decimais"],
+    [/^corDaBarra$/, () => "Cor da barra"],
+    [/^escalaDeCor$/, () => "Escala de cor"],
+    [/^escalaCorMin$/, () => "Cor do menor"],
+    [/^escalaCorMax$/, () => "Cor do maior"],
+    [/^regra(\d+)$/, (n) => `R${n}: condi\xE7\xE3o`],
+    [/^regra(\d+)Valor$/, (n) => `R${n}: valor`],
+    [/^regra(\d+)Valor2$/, (n) => `R${n}: valor 2`],
+    [/^regra(\d+)Acao$/, (n) => `R${n}: a\xE7\xE3o`],
+    [/^regra(\d+)Cor$/, (n) => `R${n}: cor`],
+    [/^regra(\d+)Icone$/, (n) => `R${n}: \xEDcone`],
+    [/^regra(\d+)LinhaInteira$/, (n) => `R${n}: linha toda`],
+    [/^regra(\d+)Coluna$/, (n) => `R${n}: comparar com`]
+  ];
+  function corpoDinamico(id) {
+    const m = /^col_(?:dim|med|tab|calc)_.+?_([a-zA-Z0-9]+)$/.exec(id);
+    if (!m) return null;
+    for (const [re2, fn] of CORPO_POR_SUFIXO_DE_COLUNA) {
+      const r = re2.exec(m[1]);
+      if (r) return fn(r[1]);
+    }
+    return null;
+  }
+  function semExplicacao(texto) {
+    return String(texto).replace(/\s*\([^)]*\)/g, "").replace(/\s+[—–]\s+.*$/, "").replace(/\s+-\s+.*$/, "").replace(/\s+/g, " ").trim();
+  }
+  function cortar(texto, limite) {
+    return texto.length <= limite ? texto : `${texto.slice(0, Math.max(1, limite - 1)).trimEnd()}\u2026`;
+  }
+  function montarRotulo({ id, prefixo, rotulo, opcao }) {
+    const limite = limiteDoRotulo(opcao);
+    const sep = " \xB7 ";
+    let corpo = String(rotulo != null ? rotulo : "");
+    if (prefixo && corpo.startsWith(`${prefixo}${sep}`)) corpo = corpo.slice(prefixo.length + sep.length);
+    const junto = (p, c) => p ? `${p}${sep}${c}` : c;
+    const daColuna = corpoDinamico(id);
+    if (daColuna) corpo = daColuna;
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    const curto = CORPO_CURTO[id];
+    if (curto) corpo = curto;
+    else if (corpo.length > limite || junto(prefixo, corpo).length > limite) corpo = semExplicacao(corpo) || corpo;
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    corpo = corpo.replace(/^Cor do quadrante /, "Cor: ").replace(/^Nome do quadrante /, "Nome: ");
+    if (junto(prefixo, corpo).length <= limite) return junto(prefixo, corpo);
+    if (prefixo && /^(Coluna|Campo) /.test(prefixo)) {
+      const sobra = limite - corpo.length - sep.length;
+      const curtoPrefixo = prefixo.replace(/^Coluna /, "Col. ");
+      if (sobra >= 6) return junto(cortar(curtoPrefixo, sobra), corpo);
+    }
+    return cortar(corpo, limite);
   }
 
   // src/core/options-kit.js
@@ -2313,9 +3232,25 @@
       }
     };
   }
-  var JUNTAR_EIXOS_E_TEXTO = true;
-  var ABAS = JUNTAR_EIXOS_E_TEXTO ? ["Dados", "Visual", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"] : ["Dados", "Visual", "Eixos", "Texto", "Intera\xE7\xE3o", "Avan\xE7ado"];
+  var ABAS = ["Dados", "Estilo", "Texto", "Mais"];
+  var ABA_FINAL = {
+    Dados: "Dados",
+    Visual: "Estilo",
+    Eixos: "Texto",
+    Texto: "Texto",
+    Intera\u00E7\u00E3o: "Mais",
+    Avan\u00E7ado: "Mais"
+  };
   var ABA_POR_SECAO = {
+    // cartao_multivalor (5.14, v3)
+    Cart\u00E3o: "Visual",
+    Apar\u00EAncia: "Visual",
+    Faixas: "Visual",
+    Cabe\u00E7alho: "Dados",
+    Busca: "Intera\xE7\xE3o",
+    T\u00EDtulo: "Texto",
+    Subt\u00EDtulo: "Texto",
+    Nota: "Texto",
     Dados: "Dados",
     Medidas: "Dados",
     Formato: "Visual",
@@ -2331,6 +3266,14 @@
     Avan\u00E7ado: "Avan\xE7ado"
   };
   var PREFIXO_POR_SECAO = {
+    Cart\u00E3o: "Cart\xE3o",
+    Apar\u00EAncia: "Cart\xE3o",
+    Faixas: "Faixas",
+    Cabe\u00E7alho: "Topo",
+    Busca: "Busca",
+    T\u00EDtulo: "T\xEDtulo",
+    Subt\u00EDtulo: "Subt\xEDtulo",
+    Nota: "Nota",
     Cores: "Cor",
     Cor: "Cor",
     R\u00F3tulos: "R\xF3tulo",
@@ -2388,6 +3331,12 @@
       let prefixo;
       if (DESTINO_POR_ID[id]) {
         [aba, prefixo] = DESTINO_POR_ID[id];
+      } else if (/^Fórmula \d+$/.test(secaoAntiga)) {
+        aba = "Dados";
+        prefixo = secaoAntiga;
+      } else if (/^Campo: /.test(secaoAntiga)) {
+        aba = "Visual";
+        prefixo = secaoAntiga.replace(/^Campo: /, "Campo ");
       } else if (/^Coluna: /.test(secaoAntiga)) {
         aba = "Visual";
         prefixo = secaoAntiga.replace(/^Coluna: /, "Coluna ");
@@ -2401,9 +3350,11 @@
         aba = abaPeloId(id, opcao);
         prefixo = secaoAntiga;
       }
-      if (aba === "Eixos" && JUNTAR_EIXOS_E_TEXTO) aba = "Texto";
-      if (prefixo && typeof opcao.label === "string" && !opcao.label.startsWith(`${prefixo} \xB7 `)) {
-        opcao.label = `${prefixo} \xB7 ${opcao.label}`;
+      aba = ABA_FINAL[aba] || "Mais";
+      if (typeof opcao.label === "string") {
+        const completo = prefixo && !opcao.label.startsWith(`${prefixo} \xB7 `) ? `${prefixo} \xB7 ${opcao.label}` : opcao.label;
+        Object.defineProperty(opcao, "_rotuloCompleto", { value: completo, enumerable: false });
+        opcao.label = montarRotulo({ id, prefixo, rotulo: opcao.label, opcao });
       }
       opcao.section = aba;
       const ordemAntiga = Number.isFinite(opcao.order) ? opcao.order : 5e3 + i;
@@ -2667,6 +3618,514 @@
     return marcas.length;
   }
 
+  // src/core/icones.js
+  var registro = /* @__PURE__ */ new Map();
+  function registrarIcone(id, def) {
+    registro.set(id, { rotulo: def.rotulo || id, pacote: def.pacote || null, contorno: def.contorno, preenchido: def.preenchido || null });
+  }
+  function existeIcone(id) {
+    return registro.has(id);
+  }
+  var BASE = {
+    seta: ["Seta", "M5 12h14M13 6l6 6-6 6"],
+    estrela: ["Estrela", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"],
+    carrinho: ["Carrinho", "M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2M9 20h.01M17 20h.01"],
+    pessoa: ["Pessoa", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7"],
+    moeda: ["Moeda", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"],
+    grafico: ["Gr\xE1fico", "M4 20V10M10 20V4M16 20v-7M22 20H2"],
+    relogio: ["Rel\xF3gio", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2"],
+    alerta: ["Alerta", "M12 3l10 18H2zM12 10v5M12 18v.01", "M12 2.5L22.5 21h-21zM11 10h2v5h-2zM11 17h2v2h-2z"],
+    alvo: ["Alvo", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"],
+    check: ["Confirmado", "M4 12l5 5L20 6"],
+    xis: ["Recusado", "M6 6l12 12M18 6L6 18"],
+    coracao: ["Cora\xE7\xE3o", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"],
+    casa: ["Casa", "M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"],
+    sobe: ["Sobe", "M12 19V5M6 11l6-6 6 6"],
+    desce: ["Desce", "M12 5v14M6 13l6 6 6-6"]
+  };
+  for (const [id, [rotulo, contorno, preenchido]] of Object.entries(BASE)) registrarIcone(id, { rotulo, contorno, preenchido });
+
+  // src/core/pacotes.js
+  var PACOTE_PADRAO = "cafe";
+  var pacotes = /* @__PURE__ */ new Map();
+  var progressos = /* @__PURE__ */ new Map();
+  var presets = /* @__PURE__ */ new Map();
+  function registrarPacote({ id, nome, icones = {}, formas = {}, paletas = {}, escalas = {}, progressos: prog = {}, presets: pre = {} }) {
+    const prefixo = `${id}_`;
+    const conferir = (chave) => {
+      if (!chave.startsWith(prefixo)) throw new Error(`pacote ${id}: o id "${chave}" precisa come\xE7ar com "${prefixo}"`);
+    };
+    pacotes.set(id, { id, nome });
+    for (const [k, def] of Object.entries(icones)) {
+      conferir(k);
+      registrarIcone(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(formas)) {
+      conferir(k);
+      registrarForma(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(paletas)) {
+      conferir(k);
+      registrarPaletaCategorica(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(escalas)) {
+      conferir(k);
+      registrarEscalaContinua(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(prog)) {
+      conferir(k);
+      progressos.set(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(pre)) {
+      conferir(k);
+      presets.set(k, { ...def, pacote: id });
+    }
+  }
+  function listarPacotes() {
+    return Array.from(pacotes.values());
+  }
+  function pacotesLigados(config = {}) {
+    const escolhido = config.pacoteTematico;
+    if (escolhido === "nenhum") return [];
+    if (escolhido && pacotes.has(escolhido)) return [escolhido];
+    return pacotes.has(PACOTE_PADRAO) ? [PACOTE_PADRAO] : [];
+  }
+  function prefixosDesligados(config = {}) {
+    const ligados = pacotesLigados(config);
+    return listarPacotes().map((p) => p.id).filter((id) => !ligados.includes(id)).map((id) => `${id}_`);
+  }
+  function usaItensDePacote(opcoes) {
+    const prefixos = listarPacotes().map((p) => `${p.id}_`);
+    if (!prefixos.length) return false;
+    return Object.values(opcoes || {}).some(
+      (o) => o && Array.isArray(o.values) && o.values.some((v) => prefixos.some((p) => String(Object.values(v)[0]).startsWith(p)))
+    );
+  }
+  function filtrarOpcoesPorPacote(opcoes, config) {
+    const prefixos = prefixosDesligados(config);
+    if (!prefixos.length) return opcoes;
+    const saida = {};
+    for (const [id, o] of Object.entries(opcoes || {})) {
+      if (o && Array.isArray(o.values)) {
+        const copia = { ...o, values: o.values.filter((v) => !prefixos.some((p) => String(Object.values(v)[0]).startsWith(p))) };
+        if (o._organizada) Object.defineProperty(copia, "_organizada", { value: true, enumerable: false });
+        saida[id] = copia;
+      } else saida[id] = o;
+    }
+    return saida;
+  }
+  function opcaoDePacoteTematico() {
+    const lista = [{ "Nenhum": "nenhum" }].concat(listarPacotes().map((p) => ({ [p.nome]: p.id })));
+    return {
+      pacoteTematico: {
+        type: "string",
+        label: "Pacote tem\xE1tico",
+        section: "Tema",
+        display: "select",
+        default: pacotes.has(PACOTE_PADRAO) ? PACOTE_PADRAO : "nenhum",
+        values: lista
+      }
+    };
+  }
+
+  // src/packs/cafe/index.js
+  var ICONES = {
+    cafe_xicara: ["X\xEDcara", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M7 3.5v3M10 3.5v3M13 3.5v3M3 21h15", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h1.5a3 3 0 0 1 0 6H16v-1.5h1.5a1.5 1.5 0 0 0 0-3H16zM3 20h15v1.5H3z"],
+    cafe_copo: ["Copo de viagem", "M7 6h10l-1.3 14.5H8.3zM6 6h12M8.5 2.5h7L16 6H8zM7.6 11h8.8", "M6 5.2h12V7H6zM8.4 2.2h7.2L16.4 5H7.6zM7.1 7.6h9.8l-1.2 13H8.3z"],
+    cafe_grao: ["Gr\xE3o", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9zM12.5 3.2c-2.2 3-2.2 6 0 8.8s2.2 5.8 0 8.8", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9z"],
+    cafe_prensa: ["Prensa francesa", "M7 7h9v13H7zM5.5 20.5h12M11.5 2.5v9M9 2.5h5M7 11.5h9M16 9.5h2.5v8H16", "M7 7h9v13H7zM5.5 19.8h12v1.5h-12zM10.8 2h1.4v5h-1.4zM16 9h3v9h-3v-1.5h1.5v-6H16z"],
+    cafe_moedor: ["Moedor", "M6 10h12l-1.2 11H7.2zM8 10V7h8v3M12 7V4.5M12 4.5h4.5M10 15h4", "M6 10h12l-1.2 11H7.2zM8 6.5h8V10H8zM11.3 4h1.4v2.5h-1.4zM11.3 3.8h5.4v1.4h-5.4z"],
+    cafe_espresso: ["M\xE1quina de espresso", "M5 3h14v6H5zM7 9v4h10V9M9.5 13v2M14.5 13v2M8.5 17h7v4h-7zM4 21h16M8 6h3", "M5 3h14v6H5zM7 9h10v4H7zM8.5 16.5h7V21h-7zM4 20.2h16v1.5H4z"],
+    cafe_croissant: ["Croissant", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1zM12 5.5V11M7.5 8l1.5 5M16.5 8L15 13", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1z"],
+    cafe_bolo: ["Bolo", "M4 12h16v8H4zM4 15c2 1.2 4-1 6 0s4 1.2 6 0 3-1 4 0M12 4.5v4M10.5 6.5h3M8 12V9.5h8V12", "M4 12h16v8H4zM8 9h8v3H8zM11.3 4h1.4v5h-1.4z"],
+    cafe_loja: ["Loja", "M3.5 9L5.5 4h13l2 5M3.5 9h17M5 9v11h14V9M10 20v-5.5h4V20M3.5 9a2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0", "M5.5 4h13l2 5h-17zM5 10.5h14V20h-5v-5.5h-4V20H5z"],
+    cafe_quiosque: ["Quiosque", "M4 10h16M6 10v10M18 10v10M4 20h16M4 10l2-6h12l2 6M9 14h6v6H9z", "M6 4h12l2 6H4zM6 11h12v9H6z"],
+    cafe_caminhao: ["Caminh\xE3o de entrega", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7M6 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7zM6 20a2.3 2.3 0 1 0 0-4.6A2.3 2.3 0 0 0 6 20zM17 20a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6z"],
+    cafe_cupom: ["Cupom", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM9 7v10M13 10.5h.01M17 13.5h.01M17.5 10l-5 4", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"],
+    cafe_fidelidade: ["Estrela de fidelidade", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19zM12 6.5l1.7 3.5 3.8.6-2.7 2.6.6 3.8L12 15.2 8.6 17l.6-3.8-2.7-2.6 3.8-.6z", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19z"],
+    cafe_coroa: ["Coroa", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 21h14", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 20.2h14v1.5H5z"],
+    cafe_cartao: ["Cart\xE3o", "M3 6h18v12H3zM3 10h18M6 14.5h4", "M3 6h18v3.2H3zM3 10.8h18V18H3z"]
+  };
+  var FORMAS = {
+    cafe_xicara: {
+      rotulo: "X\xEDcara",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.85)},${f(-0.55)}h${f(1.35)}v${f(0.6)}a${f(0.675)},${f(0.6)} 0 0 1 ${f(-1.35)},0zM${f(0.5)},${f(-0.4)}h${f(0.25)}a${f(0.3)},${f(0.3)} 0 0 1 0,${f(0.6)}h${f(-0.25)}z`;
+      }
+    },
+    cafe_grao: {
+      rotulo: "Gr\xE3o",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        return `M${(-0.72 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(1.44 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(-1.44 * r).toFixed(2)},0z`;
+      }
+    },
+    cafe_copo: {
+      rotulo: "Copo",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.65)},${f(-1)}h${f(1.3)}l${f(-0.22)},${f(2)}h${f(-0.86)}z`;
+      }
+    }
+  };
+  var PALETAS = {
+    cafe_espresso: { rotulo: "Caf\xE9 \xB7 Espresso", cores: ["#3B2416", "#6F4E37", "#A0522D", "#C8A27A", "#E6CCB2", "#7F5539", "#B08968", "#DDB892", "#4A3728"] },
+    cafe_latte: { rotulo: "Caf\xE9 \xB7 Latte", cores: ["#C8A27A", "#E3C9A8", "#8B5E3C", "#F2E6D8", "#A47551", "#D6B48C", "#6B4F3A", "#BFA58A"] },
+    cafe_caramelo: { rotulo: "Caf\xE9 \xB7 Caramelo", cores: ["#AF6E4D", "#D4A373", "#E9C46A", "#F4A261", "#8D5524", "#C68B59", "#FFD8A9", "#7B3F00"] },
+    cafe_crema: { rotulo: "Caf\xE9 \xB7 Crema", cores: ["#FFF1D6", "#F3D9B1", "#E8C39E", "#D9A86C", "#C08552", "#A0673D", "#7A4E2D", "#5C3A21"] },
+    cafe_mocha: { rotulo: "Caf\xE9 \xB7 Mocha", cores: ["#4B3832", "#854442", "#BE9B7B", "#FFF4E6", "#3C2F2F", "#A47148", "#D4A574", "#6E4C3A"] }
+  };
+  var ESCALAS = {
+    cafe_torra: { rotulo: "Caf\xE9 \xB7 Torra (clara \u2192 escura)", cores: ["#F5E6D3", "#D9B48F", "#A9744F", "#6F4E37", "#3B2416"], tipo: "sequencial" },
+    cafe_torra_divergente: { rotulo: "Caf\xE9 \xB7 Torra divergente", cores: ["#3B2416", "#A9744F", "#F5F0E8", "#7FA7A0", "#2F5D57"], tipo: "divergente" }
+  };
+  var contador = 0;
+  function desenharXicara(pai, fracao, { lado = 40, cor = "#6F4E37", contornoCor = "currentColor", animar = false, duracao = 600, curva = "ease-out", agendarQuadro = null } = {}) {
+    const id = `cafe-xic-${contador += 1}`;
+    const svg = criarSvgEl("svg", {
+      pai,
+      classe: "cafe-xicara",
+      atributos: { width: lado, height: lado, viewBox: "0 0 24 24", "data-fracao": fracao.toFixed(3), role: "img", "aria-label": `${Math.round(fracao * 100)}%` }
+    });
+    const defs = criarSvgEl("defs", { pai: svg });
+    const clip = criarSvgEl("clipPath", { pai: defs, atributos: { id } });
+    criarSvgEl("path", { pai: clip, atributos: { d: "M4.6 9.6h10.8v4.4a4.4 4.4 0 0 1-4.4 4.4H9a4.4 4.4 0 0 1-4.4-4.4z" } });
+    const g = criarSvgEl("g", { pai: svg, atributos: { "clip-path": `url(#${id})` } });
+    const liquido = criarSvgEl("rect", { pai: g, classe: "cafe-liquido", atributos: { x: 4, y: 9.6, width: 12, height: 8.8, fill: cor } });
+    liquido.style.transformBox = "fill-box";
+    liquido.style.transformOrigin = "50% 100%";
+    const final = `scaleY(${fracao})`;
+    if (animar && agendarQuadro) {
+      liquido.style.transform = "scaleY(0)";
+      liquido.style.transition = `transform ${duracao}ms ${curva}`;
+      agendarQuadro(() => {
+        liquido.style.transform = final;
+      });
+    } else liquido.style.transform = final;
+    criarSvgEl("path", {
+      pai: svg,
+      atributos: { d: ICONES.cafe_xicara[1], fill: "none", stroke: contornoCor, "stroke-width": 1.6, "stroke-linecap": "round", "stroke-linejoin": "round" }
+    });
+    return svg;
+  }
+  registrarPacote({
+    id: "cafe",
+    nome: "Caf\xE9",
+    icones: Object.fromEntries(Object.entries(ICONES).map(([k, [rotulo, contorno, preenchido]]) => [k, { rotulo: `Caf\xE9 \xB7 ${rotulo}`, contorno, preenchido }])),
+    formas: FORMAS,
+    paletas: PALETAS,
+    escalas: ESCALAS,
+    progressos: { cafe_xicara: { rotulo: "Progresso em x\xEDcara", desenhar: desenharXicara } }
+  });
+
+  // src/core/medida-texto.js
+  var ESTREITOS = /* @__PURE__ */ new Set([...`iljtf.,:;|!'"()[]{} `]);
+  var LARGOS = /* @__PURE__ */ new Set([..."mwMWQGOD@%"]);
+  function larguraDoTexto(texto, tamanho = 12, { negrito = false, mono = false } = {}) {
+    const s = String(texto != null ? texto : "");
+    if (!s) return 0;
+    if (mono) return s.length * 0.62 * tamanho;
+    let em = 0;
+    for (const ch of s) {
+      if (ESTREITOS.has(ch)) em += 0.32;
+      else if (LARGOS.has(ch)) em += 0.86;
+      else if (ch >= "A" && ch <= "Z") em += 0.68;
+      else if (ch >= "0" && ch <= "9") em += 0.56;
+      else em += 0.53;
+    }
+    return em * tamanho * (negrito ? 1.09 : 1);
+  }
+  function linhasDoTexto(texto, larguraDisponivel, tamanho = 12, opcoes = {}) {
+    const s = String(texto != null ? texto : "").trim();
+    if (!s) return 0;
+    if (!(larguraDisponivel > 0)) return 1;
+    const espaco = larguraDoTexto(" ", tamanho, opcoes);
+    let linhas = 1;
+    let atual = 0;
+    for (const palavra of s.split(/\s+/)) {
+      const w = larguraDoTexto(palavra, tamanho, opcoes);
+      if (atual === 0) {
+        atual = w;
+        if (w > larguraDisponivel) {
+          linhas += Math.ceil(w / larguraDisponivel) - 1;
+          atual = w % larguraDisponivel;
+        }
+      } else if (atual + espaco + w <= larguraDisponivel) {
+        atual += espaco + w;
+      } else {
+        linhas += 1;
+        atual = Math.min(w, larguraDisponivel);
+        if (w > larguraDisponivel) linhas += Math.ceil(w / larguraDisponivel) - 1;
+      }
+    }
+    return linhas;
+  }
+
+  // src/core/cabecalho.js
+  var valores = (pares) => pares.map(([rotulo, valor]) => ({ [rotulo]: valor }));
+  var ALINHAMENTOS = valores([["Esquerda", "esquerda"], ["Centro", "centro"], ["Direita", "direita"]]);
+  var FONTES = valores([["Do tema", "tema"], ["Sistema", "sistema"], ["Monoespa\xE7ada", "mono"], ["Serifada", "serifada"]]);
+  var PESOS = valores([["Negrito", "negrito"], ["Normal", "normal"]]);
+  function blocoDeTexto(sufixo, secao, { peso, tamanho }) {
+    const o = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: secao, default: def, ...extra });
+    return {
+      [`mostrar${sufixo}`]: o("boolean", "Mostrar", true),
+      [`posicaoDo${sufixo}`]: o("string", "Posi\xE7\xE3o", "acima", {
+        display: "select",
+        values: valores([["Acima do gr\xE1fico", "acima"], ["Abaixo do gr\xE1fico", "abaixo"]])
+      }),
+      [`alinhamentoDo${sufixo}`]: o("string", "Alinhamento", "esquerda", { display: "select", values: ALINHAMENTOS }),
+      [`deslocamentoXDo${sufixo}`]: o("number", "Deslocamento X (px)", 0),
+      [`deslocamentoYDo${sufixo}`]: o("number", "Deslocamento Y (px)", 0),
+      [`tamanhoDo${sufixo}`]: o("number", "Tamanho (px, 0 = auto)", tamanho),
+      [`fonteDo${sufixo}`]: o("string", "Fonte", "tema", { display: "select", values: FONTES }),
+      [`pesoDo${sufixo}`]: o("string", "Peso", peso, { display: "select", values: PESOS }),
+      [`corDo${sufixo}`]: o("string", "Cor (vazio = tema)", "", { display: "color" }),
+      [`margemDo${sufixo}`]: o("number", "Margem (px)", 0),
+      [`quebrar${sufixo}`]: o("boolean", "Quebrar linha", true),
+      [`linhasDo${sufixo}`]: o("number", "M\xE1ximo de linhas (0 = sem)", 0)
+    };
+  }
+  function opcoesDoCabecalho() {
+    const n = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: "Nota", default: def, ...extra });
+    return {
+      ...blocoDeTexto("Titulo", "T\xEDtulo", { peso: "negrito", tamanho: 0 }),
+      ...blocoDeTexto("Subtitulo", "Subt\xEDtulo", { peso: "normal", tamanho: 0 }),
+      mostrarNota: n("boolean", "Mostrar", true),
+      posicaoDaNota: n("string", "Posi\xE7\xE3o", "abaixo", {
+        display: "select",
+        values: valores([
+          ["Abaixo do gr\xE1fico", "abaixo"],
+          ["Acima do gr\xE1fico", "acima"],
+          ["S\xF3 no \xEDcone \u24D8", "icone"]
+        ])
+      }),
+      alinhamentoDaNota: n("string", "Alinhamento", "esquerda", { display: "select", values: ALINHAMENTOS }),
+      tamanhoDaNota: n("number", "Tamanho (px)", 10),
+      fonteDaNota: n("string", "Fonte", "tema", { display: "select", values: FONTES }),
+      corDaNota: n("string", "Cor (vazio = tema)", "", { display: "color" }),
+      quebrarNota: n("boolean", "Quebrar linha", true),
+      linhasDaNota: n("number", "M\xE1ximo de linhas (0 = sem)", 0),
+      textoDaNota: n("string", "Texto", "auto", {
+        display: "select",
+        values: valores([
+          ["Autom\xE1tico", "auto"],
+          ["Autom\xE1tico + meu texto", "auto_mais"],
+          ["S\xF3 meu texto", "meu"],
+          ["Nenhum", "nenhum"]
+        ])
+      }),
+      meuTextoDaNota: n("string", "Meu texto", "")
+    };
+  }
+  function textoFinalDaNota(config = {}, automatico = "") {
+    const auto = String(automatico || "").trim();
+    const meu = String(config.meuTextoDaNota || "").trim();
+    switch (config.textoDaNota) {
+      case "nenhum":
+        return "";
+      case "meu":
+        return meu;
+      case "auto_mais":
+        return [auto, meu].filter(Boolean).join(" \xB7 ");
+      default:
+        return auto;
+    }
+  }
+  var num = (v, padrao) => Number.isFinite(Number(v)) && v !== "" && v !== null ? Number(v) : padrao;
+  function familia(fonte, tema) {
+    if (fonte === "sistema") return 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    if (fonte === "mono") return 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
+    if (fonte === "serifada") return 'Georgia, "Times New Roman", serif';
+    return tema && tema.fonte || "";
+  }
+  function estiloDoTexto(tipo, config = {}, tema = {}) {
+    const base = num(tema.tamanhoBase, 12);
+    if (tipo === "nota") {
+      return {
+        mostrar: config.mostrarNota !== false,
+        posicao: ["acima", "icone"].includes(config.posicaoDaNota) ? config.posicaoDaNota : "abaixo",
+        alinhamento: config.alinhamentoDaNota || "esquerda",
+        dx: 0,
+        dy: 0,
+        tamanho: Math.max(6, num(config.tamanhoDaNota, 10) || 10),
+        fonte: familia(config.fonteDaNota, tema),
+        mono: config.fonteDaNota === "mono",
+        negrito: false,
+        cor: (config.corDaNota || "").trim() || tema.textoSuave || "",
+        opacidade: (config.corDaNota || "").trim() ? 1 : 0.75,
+        margem: 0,
+        quebrar: config.quebrarNota !== false,
+        linhas: Math.max(0, Math.floor(num(config.linhasDaNota, 0))),
+        alturaDaLinha: 1.35
+      };
+    }
+    const S = tipo === "titulo" ? "Titulo" : "Subtitulo";
+    const automatico = tipo === "titulo" ? Math.round(base * 1.25) : Math.round(base * 0.95);
+    const tamanho = num(config[`tamanhoDo${S}`], 0);
+    const peso = config[`pesoDo${S}`] || (tipo === "titulo" ? "negrito" : "normal");
+    const cor = (config[`corDo${S}`] || "").trim();
+    return {
+      mostrar: config[`mostrar${S}`] !== false,
+      posicao: config[`posicaoDo${S}`] === "abaixo" ? "abaixo" : "acima",
+      alinhamento: config[`alinhamentoDo${S}`] || "esquerda",
+      dx: num(config[`deslocamentoXDo${S}`], 0),
+      dy: num(config[`deslocamentoYDo${S}`], 0),
+      tamanho: tamanho > 0 ? tamanho : automatico,
+      fonte: familia(config[`fonteDo${S}`], tema),
+      mono: config[`fonteDo${S}`] === "mono",
+      negrito: peso === "negrito",
+      cor: cor || "",
+      opacidade: tipo === "subtitulo" && !cor ? 0.7 : 1,
+      margem: Math.max(0, num(config[`margemDo${S}`], 0)),
+      quebrar: config[`quebrar${S}`] !== false,
+      linhas: Math.max(0, Math.floor(num(config[`linhasDo${S}`], 0))),
+      alturaDaLinha: 1.2
+    };
+  }
+  var FOLGA = { lateral: 10, topo: 6, base: 4, entreItens: 2, icone: 18 };
+  function planejarCabecalho({ largura, altura, config = {}, tema = {}, textos = {}, areaMinima }) {
+    const minimo = areaMinima != null ? areaMinima : Math.max(40, Math.round(altura * 0.25));
+    const ocultos = [];
+    const pedidos = [];
+    for (const tipo of ["titulo", "subtitulo", "nota"]) {
+      const texto = String(textos[tipo] || "").trim();
+      const estilo = estiloDoTexto(tipo, config, tema);
+      if (!texto || !estilo.mostrar) continue;
+      pedidos.push({ tipo, texto, estilo });
+    }
+    const calcular = (itens) => {
+      const icone = itens.find((i) => i.tipo === "nota" && i.estilo.posicao === "icone");
+      const noFluxo = itens.filter((i) => i !== icone);
+      const larguraUtil = Math.max(20, largura - 2 * FOLGA.lateral);
+      const medir2 = (i) => {
+        const reservaDoIcone = icone && i.estilo.posicao === "acima" ? FOLGA.icone + 4 : 0;
+        const larguraDoItem = Math.max(20, larguraUtil - Math.abs(i.estilo.dx) - reservaDoIcone);
+        const opts = { negrito: i.estilo.negrito, mono: i.estilo.mono };
+        let linhas = i.estilo.quebrar ? linhasDoTexto(i.texto, larguraDoItem, i.estilo.tamanho, opts) : 1;
+        if (i.estilo.linhas > 0) linhas = Math.min(linhas, i.estilo.linhas);
+        const alturaDoTexto = Math.ceil(linhas * i.estilo.tamanho * i.estilo.alturaDaLinha);
+        return { ...i, linhas, largura: larguraDoItem, alturaDoTexto, altura: alturaDoTexto + 2 * i.estilo.margem };
+      };
+      const topo = noFluxo.filter((i) => i.estilo.posicao === "acima").map(medir2);
+      const base = noFluxo.filter((i) => i.estilo.posicao === "abaixo").map(medir2);
+      const somar = (lista) => lista.reduce((s, i) => s + i.altura, 0) + Math.max(0, lista.length - 1) * FOLGA.entreItens;
+      let alturaTopo = topo.length ? FOLGA.topo + somar(topo) : 0;
+      if (icone) alturaTopo = Math.max(alturaTopo, FOLGA.topo + FOLGA.icone);
+      const alturaBase = base.length ? somar(base) + FOLGA.base : 0;
+      let y2 = FOLGA.topo;
+      for (const i of topo) {
+        i.x = FOLGA.lateral + i.estilo.dx;
+        i.y = y2 + i.estilo.margem + i.estilo.dy;
+        y2 += i.altura + FOLGA.entreItens;
+      }
+      y2 = altura - alturaBase;
+      for (const i of base) {
+        i.x = FOLGA.lateral + i.estilo.dx;
+        i.y = y2 + i.estilo.margem + i.estilo.dy;
+        y2 += i.altura + FOLGA.entreItens;
+      }
+      return {
+        topo,
+        base,
+        icone: icone ? icone.texto : "",
+        estiloDoIcone: icone ? icone.estilo : null,
+        alturaTopo,
+        alturaBase,
+        area: { y: alturaTopo, altura: altura - alturaTopo - alturaBase }
+      };
+    };
+    let plano = calcular(pedidos);
+    for (const tipo of ["nota", "subtitulo", "titulo"]) {
+      if (plano.area.altura >= minimo) break;
+      const idx = pedidos.findIndex((p) => p.tipo === tipo);
+      if (idx < 0) continue;
+      pedidos.splice(idx, 1);
+      ocultos.push(tipo);
+      plano = calcular(pedidos);
+    }
+    return { ...plano, ocultos };
+  }
+  var CSS = `
+.bl-cabecalho,.bl-rodape{position:relative;flex:0 0 auto;overflow:hidden;padding:0 ${FOLGA.lateral}px;}
+.bl-cabecalho{padding-top:${FOLGA.topo}px;}
+.bl-rodape{padding-bottom:${FOLGA.base}px;}
+.bl-cabecalho>.bl-texto+.bl-texto,.bl-rodape>.bl-texto+.bl-texto{margin-top:${FOLGA.entreItens}px;}
+.bl-texto{position:relative;overflow:hidden;}
+.bl-texto.bl-sem-quebra{white-space:nowrap;text-overflow:ellipsis;}
+.bl-texto.bl-limitado{display:-webkit-box;-webkit-box-orient:vertical;}
+.bl-nota-icone{position:absolute;top:${FOLGA.topo - 2}px;right:${FOLGA.lateral - 4}px;width:${FOLGA.icone}px;height:${FOLGA.icone}px;
+  border:0;padding:0;background:transparent;color:inherit;font:inherit;font-size:14px;line-height:${FOLGA.icone}px;cursor:help;opacity:.7;}
+.bl-nota-icone:hover,.bl-nota-icone:focus{opacity:1;}
+.bl-nota-balao{position:absolute;z-index:5;right:${FOLGA.lateral}px;top:${FOLGA.topo + FOLGA.icone + 2}px;max-width:calc(100% - ${2 * FOLGA.lateral}px);
+  padding:6px 8px;border-radius:6px;box-shadow:0 4px 14px rgba(15,23,42,.22);display:none;line-height:1.35;}
+.bl-nota-balao.bl-visivel{display:block;}
+`;
+  function cssDoCabecalho() {
+    return CSS;
+  }
+  function aplicarEstilo(el, item, tema) {
+    const e = item.estilo;
+    el.className = `bl-texto bl-${item.tipo}`;
+    el.style.fontSize = `${e.tamanho}px`;
+    el.style.lineHeight = String(e.alturaDaLinha);
+    el.style.fontWeight = e.negrito ? "600" : "400";
+    el.style.fontFamily = e.fonte || "";
+    el.style.color = e.cor || "";
+    el.style.opacity = String(e.opacidade);
+    el.style.textAlign = e.alinhamento === "centro" ? "center" : e.alinhamento === "direita" ? "right" : "left";
+    el.style.left = `${e.dx}px`;
+    el.style.top = `${e.dy}px`;
+    el.style.margin = `${e.margem}px 0`;
+    el.style.height = `${item.alturaDoTexto}px`;
+    if (!e.quebrar) el.classList.add("bl-sem-quebra");
+    if (e.linhas > 0 && e.quebrar) {
+      el.classList.add("bl-limitado");
+      el.style.webkitLineClamp = String(e.linhas);
+    }
+    definirTexto(el, item.texto);
+    if (item.tipo === "nota" && !e.cor) el.style.color = tema.textoSuave || "";
+  }
+  function desenharCabecalho(bl, plano, tema = {}) {
+    for (const [faixa, itens, altura] of [
+      [bl.cabecalho, plano.topo, plano.alturaTopo],
+      [bl.rodape, plano.base, plano.alturaBase]
+    ]) {
+      if (!faixa) continue;
+      limpar(faixa);
+      faixa.style.display = altura > 0 ? "block" : "none";
+      faixa.style.height = `${altura}px`;
+      for (const item of itens) aplicarEstilo(criarEl("div", { pai: faixa }), item, tema);
+    }
+    if (plano.icone && bl.cabecalho) {
+      const botao = criarEl("button", { classe: "bl-nota-icone", texto: "\u24D8", pai: bl.cabecalho });
+      botao.type = "button";
+      botao.setAttribute("aria-label", "Nota explicativa");
+      const balao = criarEl("div", { classe: "bl-nota-balao bl-texto bl-nota", pai: bl.raiz });
+      definirTexto(balao, plano.icone);
+      const e = plano.estiloDoIcone || {};
+      balao.style.fontSize = `${e.tamanho || 10}px`;
+      balao.style.fontFamily = e.fonte || "";
+      balao.style.background = tema.tooltipFundo || "rgba(15,23,42,.94)";
+      balao.style.color = tema.tooltipTexto || "#F8FAFC";
+      balao.style.textAlign = e.alinhamento === "centro" ? "center" : e.alinhamento === "direita" ? "right" : "left";
+      const mostrar = () => balao.classList.add("bl-visivel");
+      const esconder = () => balao.classList.remove("bl-visivel");
+      botao.addEventListener("pointerenter", mostrar);
+      botao.addEventListener("focus", mostrar);
+      botao.addEventListener("pointerleave", esconder);
+      botao.addEventListener("blur", esconder);
+      bl.balaoDaNota = balao;
+    }
+  }
+  function limparBalaoDaNota(bl) {
+    if (bl.balaoDaNota && bl.balaoDaNota.parentNode) bl.balaoDaNota.parentNode.removeChild(bl.balaoDaNota);
+    bl.balaoDaNota = null;
+  }
+
   // src/core/interaction.js
   var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
   var CSS_DESTAQUE = `
@@ -2711,7 +4170,10 @@
   padding:6px 9px;border-radius:6px;font-size:11px;line-height:1.5;border:1px solid transparent;
   box-shadow:0 6px 18px rgba(15,23,42,.25);opacity:0;transition:opacity .12s ease;}
 .bl-tooltip.bl-visivel{opacity:1;}
-.bl-tooltip.bl-fixo{box-shadow:0 0 0 2px rgba(66,118,190,.55),0 6px 18px rgba(15,23,42,.25);}
+.bl-tooltip.bl-fixo{pointer-events:auto;padding-right:24px;box-shadow:0 0 0 2px rgba(66,118,190,.55),0 6px 18px rgba(15,23,42,.25);}
+.bl-tooltip-fechar{position:absolute;top:2px;right:3px;width:18px;height:18px;padding:0;border:0;border-radius:4px;
+  background:transparent;color:inherit;font:inherit;font-size:14px;line-height:18px;cursor:pointer;opacity:.8;}
+.bl-tooltip-fechar:hover{opacity:1;background:rgba(127,127,127,.25);}
 .bl-tooltip-linha{display:flex;gap:8px;justify-content:space-between;white-space:nowrap;}
 .bl-tooltip-rotulo{opacity:.75;}
 .bl-tooltip-valor{font-weight:600;}
@@ -2719,7 +4181,7 @@
 .bl-tooltip-chip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
 .bl-tooltip-dica{opacity:.6;font-size:.9em;margin-top:3px;}
 `;
-  var registro = /* @__PURE__ */ new WeakMap();
+  var registro2 = /* @__PURE__ */ new WeakMap();
   var contextos = /* @__PURE__ */ new WeakMap();
   var TAGS_DO_MODELO = /* @__PURE__ */ new Set(["b", "i", "br", "span"]);
   var TAGS_DO_HTML_DO_LOOKER = /* @__PURE__ */ new Set(["b", "i", "br", "span", "strong", "em", "p", "div", "u", "small"]);
@@ -2732,31 +4194,28 @@
     const r = raizDe(raiz);
     if (!r) return;
     contextos.set(r, { config: config || {}, ponte: ponte || null });
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.aplicarEstilo();
   }
   function esconderTooltipsDe(raiz) {
-    const t = registro.get(raizDe(raiz));
-    if (t) {
-      t.soltar();
-      t.esconder();
-    }
+    const t = registro2.get(raizDe(raiz));
+    if (t) t.soltarEEsconder();
   }
   function destruirTooltipsDe(raiz) {
     const r = raizDe(raiz);
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.destruir();
     contextos.delete(r);
   }
   function criarTooltip(hospedeiro, tema) {
     const raiz = raizDe(hospedeiro);
-    const existente = registro.get(raiz);
+    const existente = registro2.get(raiz);
     if (existente && existente.elemento.isConnected) {
       existente.definirTema(tema);
       return existente;
     }
     const t = construirTooltip(raiz, tema);
-    registro.set(raiz, t);
+    registro2.set(raiz, t);
     return t;
   }
   function construirTooltip(raiz, temaInicial) {
@@ -2784,7 +4243,7 @@
       const c = contextos.get(raiz);
       return c && c.config || {};
     }
-    function aplicarEstilo() {
+    function aplicarEstilo2() {
       const c = config();
       const cor = (v) => typeof v === "string" && v.trim() ? v.trim() : "";
       el.style.background = cor(c.corDeFundoDoTooltip) || tema.tooltipFundo || "rgba(15,23,42,.94)";
@@ -2832,6 +4291,20 @@
         criarEl("span", { classe: "bl-tooltip-valor", texto: (_b = linha.valor) != null ? _b : "", pai: l });
       }
     }
+    function colocarBotaoFechar() {
+      removerBotaoFechar();
+      const botao = criarEl("button", { classe: "bl-tooltip-fechar", texto: "\xD7", pai: el });
+      botao.setAttribute("type", "button");
+      botao.setAttribute("aria-label", "Fechar");
+      botao.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        api.soltar();
+      });
+    }
+    function removerBotaoFechar() {
+      const b = el.querySelector(".bl-tooltip-fechar");
+      if (b && b.parentNode) b.parentNode.removeChild(b);
+    }
     const api = {
       elemento: el,
       get visivel() {
@@ -2843,9 +4316,9 @@
       ultimoConteudo: null,
       definirTema(novo) {
         tema = novo || tema;
-        aplicarEstilo();
+        aplicarEstilo2();
       },
-      aplicarEstilo,
+      aplicarEstilo: aplicarEstilo2,
       /**
        * Mostra o tooltip.
        * @param {{titulo?:string, linhas?:Array<{rotulo:string,valor:string,cor?:string}>,
@@ -2882,14 +4355,21 @@
         fixo = true;
         fixadoEm = Date.now();
         el.classList.add("bl-fixo");
+        colocarBotaoFechar();
         return true;
       },
       soltar() {
         if (!fixo) return;
         fixo = false;
         el.classList.remove("bl-fixo");
+        removerBotaoFechar();
         el.classList.remove("bl-visivel");
         visivel = false;
+      },
+      /** Solta (se fixo) e esconde (se visível): nada fica na tela. */
+      soltarEEsconder() {
+        api.soltar();
+        api.esconder();
       },
       destruir() {
         for (const r of removedores.splice(0)) r();
@@ -2897,7 +4377,7 @@
           if (el.parentNode) el.parentNode.removeChild(el);
         } catch (_) {
         }
-        if (registro.get(raiz) === api) registro.delete(raiz);
+        if (registro2.get(raiz) === api) registro2.delete(raiz);
         visivel = false;
         fixo = false;
       }
@@ -2911,12 +4391,26 @@
       }, true);
     }
     ouvir(document, "keydown", (ev) => {
-      if (ev && ev.key === "Escape") api.soltar();
+      if (ev && ev.key === "Escape") api.soltarEEsconder();
     });
-    ouvir(document, "pointerdown", () => {
+    ouvir(document, "pointerdown", (ev) => {
+      if (ev && ev.target && el.contains(ev.target)) return;
       if (fixo && Date.now() - fixadoEm > 50) api.soltar();
     }, true);
-    aplicarEstilo();
+    if (typeof window !== "undefined") {
+      ouvir(window, "blur", () => api.soltarEEsconder());
+      ouvir(window, "focus", () => api.soltarEEsconder());
+    }
+    if (document.documentElement) {
+      ouvir(document.documentElement, "mouseleave", () => api.soltarEEsconder());
+    }
+    ouvir(document, "mouseout", (ev) => {
+      if (ev && !ev.relatedTarget && (!ev.target || !el.contains(ev.target))) api.esconder();
+    });
+    ouvir(document, "visibilitychange", () => {
+      if (document.hidden) api.soltarEEsconder();
+    });
+    aplicarEstilo2();
     return api;
   }
   function variaveisDoConteudo(conteudo = {}) {
@@ -3028,11 +4522,12 @@
       return tooltip && tooltip.fixar(conteudo, x2, y2) ? "fixou" : "nada";
     }
     if (acao === "nenhuma") return "nada";
-    if (acao === "drill" && config.permitirDrill !== false && ponte && ponte.temDrill(celula)) {
-      if (tooltip) tooltip.soltar();
+    if (acao === "fixar") return tooltip && tooltip.fixar(conteudo, x2, y2) ? "fixou" : "nada";
+    if (config.permitirDrill !== false && ponte && ponte.temDrill(celula)) {
+      if (tooltip) tooltip.soltarEEsconder();
       return ponte.abrirDrill(celula, evento) ? "drill" : "nada";
     }
-    return tooltip && tooltip.fixar(conteudo, x2, y2) ? "fixou" : "nada";
+    return "nada";
   }
 
   // src/core/define-viz.js
@@ -3040,9 +4535,6 @@
 .bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
   display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
-.bl-titulo{font-weight:600;line-height:1.2;}
-.bl-subtitulo{opacity:.7;line-height:1.2;}
 .bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
 .bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
   border-radius:4px;font-size:11px;line-height:1.35;}
@@ -3072,28 +4564,27 @@
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
-    const opcoes = organizarAbas(
-      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
-    );
+    const juntas = Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho());
+    if (usaItensDePacote(juntas)) Object.assign(juntas, opcaoDePacoteTematico());
+    if (!juntas.estiloDoIcone && temListaDeIcones(juntas)) Object.assign(juntas, OPCAO_ESTILO_DO_ICONE);
+    const opcoes = organizarAbas(juntas);
     const definicao = {
       id,
       label,
       options: opcoes,
       create(element, _config) {
         limpar(element);
-        injetarEstilo(element, CSS_BASE, "bl-base");
+        injetarEstilo(element, CSS_BASE + cssDoCabecalho(), "bl-base");
         const raiz = criarEl("div", { classe: "bl-raiz", pai: element });
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
-        const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
-        const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
         const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
+        const rodape = criarEl("div", { classe: "bl-rodape", pai: raiz });
         this._bl = {
           element,
           raiz,
           cabecalho,
-          tituloEl,
-          subtituloEl,
+          rodape,
           area,
           avisoEl,
           eventos: criarGerenciadorDeEventos(),
@@ -3162,22 +4653,35 @@
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
     const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
-    const ponte = criarPonte(this, opcoes);
+    const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
     ponte.limparErros();
     if (!this._bl) {
       definicaoCreateManual.call(this, element);
     }
     const bl = this._bl;
+    const abrirDrillDoLooker = ponte.abrirDrill;
+    ponte.abrirDrill = (celula, evento) => {
+      esconderTooltipsDe(bl.raiz);
+      return abrirDrillDoLooker(celula, evento);
+    };
     limparPendencias(bl);
     esconderTooltipsDe(bl.raiz);
     limparAviso(bl);
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
+    const pacoteAgora = pacotesLigados(configFinal).join(",") || "nenhum";
+    const pacoteAntes = bl.pacoteRegistrado === void 0 ? PACOTE_PADRAO : bl.pacoteRegistrado;
+    const trocouPacote = "pacoteTematico" in opcoes && pacoteAgora !== pacoteAntes;
+    bl.pacoteRegistrado = pacoteAgora;
+    if (trocouPacote && typeof opcoesDinamicas !== "function") {
+      ponte.registrarOpcoes({}, pacoteAgora);
+    }
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
+        const extra = trocouPacote || bl.pacoteRegistrado !== PACOTE_PADRAO ? pacoteAgora : "";
+        if (dinamicas && (Object.keys(dinamicas).length || trocouPacote) && ponte.registrarOpcoes(filtrarOpcoesPorPacote(organizarAbas(dinamicas), configFinal), extra)) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -3196,7 +4700,13 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
+    const textosDoCabecalho = () => ({
+      titulo: cabecalhoProprio ? "" : configFinal.titulo,
+      subtitulo: cabecalhoProprio ? "" : configFinal.subtitulo,
+      nota: textoFinalDaNota(configFinal, bl.notaAutomatica || "")
+    });
+    const aplicarCabecalhoV3 = () => aplicarCabecalho(bl, configFinal, tema, textosDoCabecalho());
+    aplicarCabecalhoV3();
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
@@ -3220,6 +4730,11 @@
       detalhes: details,
       primeiraRenderizacao: bl.primeiraRenderizacao,
       recursosDoLooker: recursosDoLooker(),
+      /**
+       * Texto AUTOMÁTICO da nota (5.1c): o gráfico escreve aqui (é um
+       * elemento fora do documento); o núcleo decide onde e se mostra.
+       */
+      nota: null,
       limparRaiz() {
         limpar(bl.area);
       },
@@ -3268,19 +4783,38 @@
         esconderTooltipsDe(bl.raiz);
         limparAviso(bl);
         try {
-          render(ctx);
+          renderizar();
           ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
       }
     };
+    function renderizar({ repetir = true } = {}) {
+      ctx.nota = criarEl("div");
+      render(ctx);
+      const nova = (ctx.nota.textContent || "").trim();
+      if (nova !== (bl.notaAutomatica || "")) {
+        bl.notaAutomatica = nova;
+        aplicarCabecalhoV3();
+        const tamanho = medir(bl.area);
+        if (repetir && (tamanho.largura !== ctx.largura || tamanho.altura !== ctx.altura)) {
+          ctx.largura = tamanho.largura;
+          ctx.altura = tamanho.altura;
+          bl.eventos.limpar();
+          limparPendencias(bl);
+          esconderTooltipsDe(bl.raiz);
+          renderizar({ repetir: false });
+        }
+      }
+    }
     bl.raiz.style.background = tema.fundo;
     bl.raiz.style.color = tema.texto;
     bl.raiz.style.fontFamily = tema.fonte;
     bl.raiz.style.fontSize = `${tema.tamanhoBase}px`;
     bl.ultimoDesenho = () => {
       if (!this._bl) return;
+      aplicarCabecalhoV3();
       const tamanho = medir(bl.area);
       if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
       ctx.largura = tamanho.largura;
@@ -3289,13 +4823,13 @@
       esconderTooltipsDe(bl.raiz);
       limparAviso(bl);
       try {
-        render(ctx);
+        renderizar();
         ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
-    render(ctx);
+    renderizar();
     ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     if (!animacaoPropria) {
       animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
@@ -3310,19 +4844,17 @@
   }
   function definicaoCreateManual(element) {
     limpar(element);
-    injetarEstilo(element, CSS_BASE, "bl-base");
+    injetarEstilo(element, CSS_BASE + cssDoCabecalho(), "bl-base");
     const raiz = criarEl("div", { classe: "bl-raiz", pai: element });
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
-    const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
-    const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
     const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
+    const rodape = criarEl("div", { classe: "bl-rodape", pai: raiz });
     this._bl = {
       element,
       raiz,
       cabecalho,
-      tituloEl,
-      subtituloEl,
+      rodape,
       area,
       avisoEl,
       eventos: criarGerenciadorDeEventos(),
@@ -3334,16 +4866,13 @@
       cancelarObservador: null
     };
   }
-  function aplicarCabecalho(bl, config, tema) {
-    const titulo = (config.titulo || "").trim();
-    const subtitulo = (config.subtitulo || "").trim();
-    definirTexto(bl.tituloEl, titulo);
-    definirTexto(bl.subtituloEl, subtitulo);
-    bl.tituloEl.style.display = titulo ? "block" : "none";
-    bl.subtituloEl.style.display = subtitulo ? "block" : "none";
-    bl.tituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 1.25)}px`;
-    bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
-    bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
+  function aplicarCabecalho(bl, config, tema, textos) {
+    const { largura, altura } = medir(bl.raiz);
+    limparBalaoDaNota(bl);
+    const plano = planejarCabecalho({ largura, altura, config, tema, textos });
+    desenharCabecalho(bl, plano, tema);
+    bl.planoDoCabecalho = plano;
+    return plano;
   }
   function criarAviso(raiz) {
     const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
@@ -3377,7 +4906,7 @@
     const ligado = config.mostrarAvisos !== false;
     bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
     if (bl.posicaoDoAviso === "rodape") {
-      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+      if (bl.area.nextSibling !== bl.avisoEl) bl.raiz.insertBefore(bl.avisoEl, bl.area.nextSibling);
     } else if (bl.avisoEl.nextSibling !== bl.area) {
       bl.raiz.insertBefore(bl.avisoEl, bl.area);
     }
@@ -3396,6 +4925,21 @@
     bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
+  }
+  var OPCAO_ESTILO_DO_ICONE = {
+    estiloDoIcone: {
+      type: "string",
+      label: "Estilo do \xEDcone",
+      section: "Tema",
+      display: "select",
+      default: "contorno",
+      values: [{ Contorno: "contorno" }, { Preenchido: "preenchido" }]
+    }
+  };
+  function temListaDeIcones(opcoes) {
+    return Object.values(opcoes || {}).some(
+      (o) => o && Array.isArray(o.values) && /[íi]cone/i.test(o.label || "") && o.values.some((v) => existeIcone(String(Object.values(v)[0])))
+    );
   }
   var OPCOES_DE_AVISO = {
     mostrarAvisos: {
@@ -3598,740 +5142,13 @@
     };
     return scale;
   }
-  function point() {
+  function point4() {
     return pointish(band.apply(null, arguments).paddingInner(1));
   }
 
   // src/core/scales.js
   function escalaDePonto({ dominio, intervalo, preenchimento = 0.5 }) {
-    return point().domain(dominio).range(intervalo).padding(preenchimento);
-  }
-
-  // node_modules/d3-shape/src/constant.js
-  function constant_default2(x2) {
-    return function constant() {
-      return x2;
-    };
-  }
-
-  // node_modules/d3-shape/src/math.js
-  var epsilon = 1e-12;
-  var pi = Math.PI;
-  var halfPi = pi / 2;
-  var tau = 2 * pi;
-
-  // node_modules/d3-path/src/path.js
-  var pi2 = Math.PI;
-  var tau2 = 2 * pi2;
-  var epsilon2 = 1e-6;
-  var tauEpsilon = tau2 - epsilon2;
-  function append(strings) {
-    this._ += strings[0];
-    for (let i = 1, n = strings.length; i < n; ++i) {
-      this._ += arguments[i] + strings[i];
-    }
-  }
-  function appendRound(digits) {
-    let d = Math.floor(digits);
-    if (!(d >= 0)) throw new Error(`invalid digits: ${digits}`);
-    if (d > 15) return append;
-    const k = 10 ** d;
-    return function(strings) {
-      this._ += strings[0];
-      for (let i = 1, n = strings.length; i < n; ++i) {
-        this._ += Math.round(arguments[i] * k) / k + strings[i];
-      }
-    };
-  }
-  var Path = class {
-    constructor(digits) {
-      this._x0 = this._y0 = // start of current subpath
-      this._x1 = this._y1 = null;
-      this._ = "";
-      this._append = digits == null ? append : appendRound(digits);
-    }
-    moveTo(x2, y2) {
-      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}`;
-    }
-    closePath() {
-      if (this._x1 !== null) {
-        this._x1 = this._x0, this._y1 = this._y0;
-        this._append`Z`;
-      }
-    }
-    lineTo(x2, y2) {
-      this._append`L${this._x1 = +x2},${this._y1 = +y2}`;
-    }
-    quadraticCurveTo(x1, y1, x2, y2) {
-      this._append`Q${+x1},${+y1},${this._x1 = +x2},${this._y1 = +y2}`;
-    }
-    bezierCurveTo(x1, y1, x2, y2, x3, y3) {
-      this._append`C${+x1},${+y1},${+x2},${+y2},${this._x1 = +x3},${this._y1 = +y3}`;
-    }
-    arcTo(x1, y1, x2, y2, r) {
-      x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
-      if (r < 0) throw new Error(`negative radius: ${r}`);
-      let x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
-      if (this._x1 === null) {
-        this._append`M${this._x1 = x1},${this._y1 = y1}`;
-      } else if (!(l01_2 > epsilon2)) ;
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon2) || !r) {
-        this._append`L${this._x1 = x1},${this._y1 = y1}`;
-      } else {
-        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi2 - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
-        if (Math.abs(t01 - 1) > epsilon2) {
-          this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
-        }
-        this._append`A${r},${r},0,0,${+(y01 * x20 > x01 * y20)},${this._x1 = x1 + t21 * x21},${this._y1 = y1 + t21 * y21}`;
-      }
-    }
-    arc(x2, y2, r, a0, a1, ccw) {
-      x2 = +x2, y2 = +y2, r = +r, ccw = !!ccw;
-      if (r < 0) throw new Error(`negative radius: ${r}`);
-      let dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x2 + dx, y0 = y2 + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
-      if (this._x1 === null) {
-        this._append`M${x0},${y0}`;
-      } else if (Math.abs(this._x1 - x0) > epsilon2 || Math.abs(this._y1 - y0) > epsilon2) {
-        this._append`L${x0},${y0}`;
-      }
-      if (!r) return;
-      if (da < 0) da = da % tau2 + tau2;
-      if (da > tauEpsilon) {
-        this._append`A${r},${r},0,1,${cw},${x2 - dx},${y2 - dy}A${r},${r},0,1,${cw},${this._x1 = x0},${this._y1 = y0}`;
-      } else if (da > epsilon2) {
-        this._append`A${r},${r},0,${+(da >= pi2)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
-      }
-    }
-    rect(x2, y2, w, h) {
-      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}h${w = +w}v${+h}h${-w}Z`;
-    }
-    toString() {
-      return this._;
-    }
-  };
-  function path() {
-    return new Path();
-  }
-  path.prototype = Path.prototype;
-
-  // node_modules/d3-shape/src/path.js
-  function withPath(shape) {
-    let digits = 3;
-    shape.digits = function(_) {
-      if (!arguments.length) return digits;
-      if (_ == null) {
-        digits = null;
-      } else {
-        const d = Math.floor(_);
-        if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
-        digits = d;
-      }
-      return shape;
-    };
-    return () => new Path(digits);
-  }
-
-  // node_modules/d3-shape/src/array.js
-  var slice = Array.prototype.slice;
-  function array_default(x2) {
-    return typeof x2 === "object" && "length" in x2 ? x2 : Array.from(x2);
-  }
-
-  // node_modules/d3-shape/src/curve/linear.js
-  function Linear(context) {
-    this._context = context;
-  }
-  Linear.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-        // falls through
-        default:
-          this._context.lineTo(x2, y2);
-          break;
-      }
-    }
-  };
-  function linear_default(context) {
-    return new Linear(context);
-  }
-
-  // node_modules/d3-shape/src/point.js
-  function x(p) {
-    return p[0];
-  }
-  function y(p) {
-    return p[1];
-  }
-
-  // node_modules/d3-shape/src/line.js
-  function line_default(x2, y2) {
-    var defined = constant_default2(true), context = null, curve = linear_default, output = null, path2 = withPath(line);
-    x2 = typeof x2 === "function" ? x2 : x2 === void 0 ? x : constant_default2(x2);
-    y2 = typeof y2 === "function" ? y2 : y2 === void 0 ? y : constant_default2(y2);
-    function line(data) {
-      var i, n = (data = array_default(data)).length, d, defined0 = false, buffer;
-      if (context == null) output = curve(buffer = path2());
-      for (i = 0; i <= n; ++i) {
-        if (!(i < n && defined(d = data[i], i, data)) === defined0) {
-          if (defined0 = !defined0) output.lineStart();
-          else output.lineEnd();
-        }
-        if (defined0) output.point(+x2(d, i, data), +y2(d, i, data));
-      }
-      if (buffer) return output = null, buffer + "" || null;
-    }
-    line.x = function(_) {
-      return arguments.length ? (x2 = typeof _ === "function" ? _ : constant_default2(+_), line) : x2;
-    };
-    line.y = function(_) {
-      return arguments.length ? (y2 = typeof _ === "function" ? _ : constant_default2(+_), line) : y2;
-    };
-    line.defined = function(_) {
-      return arguments.length ? (defined = typeof _ === "function" ? _ : constant_default2(!!_), line) : defined;
-    };
-    line.curve = function(_) {
-      return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
-    };
-    line.context = function(_) {
-      return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
-    };
-    return line;
-  }
-
-  // node_modules/d3-shape/src/curve/basis.js
-  function point2(that, x2, y2) {
-    that._context.bezierCurveTo(
-      (2 * that._x0 + that._x1) / 3,
-      (2 * that._y0 + that._y1) / 3,
-      (that._x0 + 2 * that._x1) / 3,
-      (that._y0 + 2 * that._y1) / 3,
-      (that._x0 + 4 * that._x1 + x2) / 6,
-      (that._y0 + 4 * that._y1 + y2) / 6
-    );
-  }
-  function Basis(context) {
-    this._context = context;
-  }
-  Basis.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 3:
-          point2(this, this._x1, this._y1);
-        // falls through
-        case 2:
-          this._context.lineTo(this._x1, this._y1);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
-        // falls through
-        default:
-          point2(this, x2, y2);
-          break;
-      }
-      this._x0 = this._x1, this._x1 = x2;
-      this._y0 = this._y1, this._y1 = y2;
-    }
-  };
-  function basis_default2(context) {
-    return new Basis(context);
-  }
-
-  // node_modules/d3-shape/src/curve/cardinal.js
-  function point3(that, x2, y2) {
-    that._context.bezierCurveTo(
-      that._x1 + that._k * (that._x2 - that._x0),
-      that._y1 + that._k * (that._y2 - that._y0),
-      that._x2 + that._k * (that._x1 - x2),
-      that._y2 + that._k * (that._y1 - y2),
-      that._x2,
-      that._y2
-    );
-  }
-  function Cardinal(context, tension) {
-    this._context = context;
-    this._k = (1 - tension) / 6;
-  }
-  Cardinal.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x2, this._y2);
-          break;
-        case 3:
-          point3(this, this._x1, this._y1);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          this._x1 = x2, this._y1 = y2;
-          break;
-        case 2:
-          this._point = 3;
-        // falls through
-        default:
-          point3(this, x2, y2);
-          break;
-      }
-      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x2;
-      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y2;
-    }
-  };
-  var cardinal_default = (function custom(tension) {
-    function cardinal(context) {
-      return new Cardinal(context, tension);
-    }
-    cardinal.tension = function(tension2) {
-      return custom(+tension2);
-    };
-    return cardinal;
-  })(0);
-
-  // node_modules/d3-shape/src/curve/catmullRom.js
-  function point4(that, x2, y2) {
-    var x1 = that._x1, y1 = that._y1, x22 = that._x2, y22 = that._y2;
-    if (that._l01_a > epsilon) {
-      var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a, n = 3 * that._l01_a * (that._l01_a + that._l12_a);
-      x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
-      y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
-    }
-    if (that._l23_a > epsilon) {
-      var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a, m = 3 * that._l23_a * (that._l23_a + that._l12_a);
-      x22 = (x22 * b + that._x1 * that._l23_2a - x2 * that._l12_2a) / m;
-      y22 = (y22 * b + that._y1 * that._l23_2a - y2 * that._l12_2a) / m;
-    }
-    that._context.bezierCurveTo(x1, y1, x22, y22, that._x2, that._y2);
-  }
-  function CatmullRom(context, alpha) {
-    this._context = context;
-    this._alpha = alpha;
-  }
-  CatmullRom.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-      this._l01_a = this._l12_a = this._l23_a = this._l01_2a = this._l12_2a = this._l23_2a = this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x2, this._y2);
-          break;
-        case 3:
-          this.point(this._x2, this._y2);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      if (this._point) {
-        var x23 = this._x2 - x2, y23 = this._y2 - y2;
-        this._l23_a = Math.sqrt(this._l23_2a = Math.pow(x23 * x23 + y23 * y23, this._alpha));
-      }
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-        // falls through
-        default:
-          point4(this, x2, y2);
-          break;
-      }
-      this._l01_a = this._l12_a, this._l12_a = this._l23_a;
-      this._l01_2a = this._l12_2a, this._l12_2a = this._l23_2a;
-      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x2;
-      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y2;
-    }
-  };
-  var catmullRom_default = (function custom2(alpha) {
-    function catmullRom(context) {
-      return alpha ? new CatmullRom(context, alpha) : new Cardinal(context, 0);
-    }
-    catmullRom.alpha = function(alpha2) {
-      return custom2(+alpha2);
-    };
-    return catmullRom;
-  })(0.5);
-
-  // node_modules/d3-shape/src/curve/monotone.js
-  function sign(x2) {
-    return x2 < 0 ? -1 : 1;
-  }
-  function slope3(that, x2, y2) {
-    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
-    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
-  }
-  function slope2(that, t) {
-    var h = that._x1 - that._x0;
-    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
-  }
-  function point5(that, t0, t1) {
-    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
-    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
-  }
-  function MonotoneX(context) {
-    this._context = context;
-  }
-  MonotoneX.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x1, this._y1);
-          break;
-        case 3:
-          point5(this, this._t0, slope2(this, this._t0));
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      var t1 = NaN;
-      x2 = +x2, y2 = +y2;
-      if (x2 === this._x1 && y2 === this._y1) return;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-          point5(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
-          break;
-        default:
-          point5(this, this._t0, t1 = slope3(this, x2, y2));
-          break;
-      }
-      this._x0 = this._x1, this._x1 = x2;
-      this._y0 = this._y1, this._y1 = y2;
-      this._t0 = t1;
-    }
-  };
-  function MonotoneY(context) {
-    this._context = new ReflectContext(context);
-  }
-  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x2, y2) {
-    MonotoneX.prototype.point.call(this, y2, x2);
-  };
-  function ReflectContext(context) {
-    this._context = context;
-  }
-  ReflectContext.prototype = {
-    moveTo: function(x2, y2) {
-      this._context.moveTo(y2, x2);
-    },
-    closePath: function() {
-      this._context.closePath();
-    },
-    lineTo: function(x2, y2) {
-      this._context.lineTo(y2, x2);
-    },
-    bezierCurveTo: function(x1, y1, x2, y2, x3, y3) {
-      this._context.bezierCurveTo(y1, x1, y2, x2, y3, x3);
-    }
-  };
-  function monotoneX(context) {
-    return new MonotoneX(context);
-  }
-  function monotoneY(context) {
-    return new MonotoneY(context);
-  }
-
-  // node_modules/d3-shape/src/curve/natural.js
-  function Natural(context) {
-    this._context = context;
-  }
-  Natural.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x = [];
-      this._y = [];
-    },
-    lineEnd: function() {
-      var x2 = this._x, y2 = this._y, n = x2.length;
-      if (n) {
-        this._line ? this._context.lineTo(x2[0], y2[0]) : this._context.moveTo(x2[0], y2[0]);
-        if (n === 2) {
-          this._context.lineTo(x2[1], y2[1]);
-        } else {
-          var px = controlPoints(x2), py = controlPoints(y2);
-          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
-            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x2[i1], y2[i1]);
-          }
-        }
-      }
-      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
-      this._line = 1 - this._line;
-      this._x = this._y = null;
-    },
-    point: function(x2, y2) {
-      this._x.push(+x2);
-      this._y.push(+y2);
-    }
-  };
-  function controlPoints(x2) {
-    var i, n = x2.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
-    a[0] = 0, b[0] = 2, r[0] = x2[0] + 2 * x2[1];
-    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x2[i] + 2 * x2[i + 1];
-    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x2[n - 1] + x2[n];
-    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
-    a[n - 1] = r[n - 1] / b[n - 1];
-    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
-    b[n - 1] = (x2[n] + a[n - 1]) / 2;
-    for (i = 0; i < n - 1; ++i) b[i] = 2 * x2[i + 1] - a[i + 1];
-    return [a, b];
-  }
-  function natural_default(context) {
-    return new Natural(context);
-  }
-
-  // node_modules/d3-shape/src/curve/step.js
-  function Step(context, t) {
-    this._context = context;
-    this._t = t;
-  }
-  Step.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x = this._y = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-        // falls through
-        default: {
-          if (this._t <= 0) {
-            this._context.lineTo(this._x, y2);
-            this._context.lineTo(x2, y2);
-          } else {
-            var x1 = this._x * (1 - this._t) + x2 * this._t;
-            this._context.lineTo(x1, this._y);
-            this._context.lineTo(x1, y2);
-          }
-          break;
-        }
-      }
-      this._x = x2, this._y = y2;
-    }
-  };
-  function step_default(context) {
-    return new Step(context, 0.5);
-  }
-  function stepAfter(context) {
-    return new Step(context, 1);
-  }
-
-  // src/core/shapes.js
-  var CURVAS = {
-    linear: linear_default,
-    monotone: monotoneX,
-    monotoneY,
-    basis: basis_default2,
-    catmull: catmullRom_default.alpha(0.5),
-    cardinal: cardinal_default,
-    natural: natural_default,
-    step: step_default,
-    stepAfter
-  };
-  function curvaPorNome(nome) {
-    return CURVAS[nome] || monotoneX;
-  }
-  function geradorDeLinha({ x: x2, y: y2, curva = "monotone", definido = null }) {
-    const g = line_default().x(x2).y(y2).curve(curvaPorNome(curva));
-    if (definido) g.defined(definido);
-    return g;
-  }
-  function caminhoDoSimbolo(forma, tamanho) {
-    const r = Math.max(0.5, tamanho / 2);
-    switch (forma) {
-      case "quadrado":
-        return `M${-r},${-r}h${r * 2}v${r * 2}h${-r * 2}Z`;
-      case "triangulo": {
-        const h = r * 1.6;
-        return `M0,${-h}L${r * 1.4},${h * 0.7}L${-r * 1.4},${h * 0.7}Z`;
-      }
-      case "losango":
-        return `M0,${-r * 1.3}L${r * 1},0L0,${r * 1.3}L${-r * 1},0Z`;
-      case "cruz": {
-        const b = r * 0.42;
-        return `M${-b},${-r}h${b * 2}v${r - b}h${r - b}v${b * 2}h${-(r - b)}v${r - b}h${-b * 2}v${-(r - b)}h${-(r - b)}v${-b * 2}h${r - b}Z`;
-      }
-      case "estrela": {
-        const pontas = 5;
-        const rExterno = r * 1.25;
-        const rInterno = r * 0.5;
-        let d = "";
-        for (let i = 0; i < pontas * 2; i++) {
-          const raio = i % 2 === 0 ? rExterno : rInterno;
-          const ang = Math.PI / pontas * i - Math.PI / 2;
-          const x2 = Math.cos(ang) * raio;
-          const y2 = Math.sin(ang) * raio;
-          d += `${i === 0 ? "M" : "L"}${x2.toFixed(2)},${y2.toFixed(2)}`;
-        }
-        return `${d}Z`;
-      }
-      case "wye":
-        return pontosDoWye(r).map(([x2, y2], i) => `${i ? "L" : "M"}${x2.toFixed(2)},${y2.toFixed(2)}`).join("") + "Z";
-      case "circulo":
-      default:
-        return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
-    }
-  }
-  function pontosDoWye(r) {
-    const b = r * 0.38;
-    const pontos = [];
-    for (let k = 0; k < 3; k++) {
-      const ang = -Math.PI / 2 + k * 2 * Math.PI / 3;
-      const cx = Math.cos(ang);
-      const cy = Math.sin(ang);
-      const px = -cy;
-      const py = cx;
-      const centro = b / Math.sqrt(3);
-      pontos.push([cx * r * 1.15 - px * b, cy * r * 1.15 - py * b]);
-      pontos.push([cx * r * 1.15 + px * b, cy * r * 1.15 + py * b]);
-      const prox = ang + Math.PI / 3;
-      pontos.push([Math.cos(prox) * centro * 2, Math.sin(prox) * centro * 2]);
-    }
-    return pontos;
-  }
-  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
-  function formaDoMarcador(nome) {
-    const mapa = { circle: "circulo", square: "quadrado", triangle: "triangulo", diamond: "losango", cross: "cruz", star: "estrela", y: "wye" };
-    const n = String(nome || "").trim().toLowerCase();
-    if (FORMAS_DE_MARCADOR.includes(n)) return n;
-    return mapa[n] || "circulo";
-  }
-  function criarMarcadorSvg(pai, forma, x2, y2, diametro, atributos = {}) {
-    const f = formaDoMarcador(forma);
-    const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    el.setAttribute("d", caminhoDoSimbolo(f, Math.max(1, Number(diametro) || 1)));
-    el.setAttribute("transform", `translate(${Number(x2) || 0},${Number(y2) || 0})`);
-    el.setAttribute("class", "bl-marcador");
-    el.setAttribute("data-forma", f);
-    for (const [k, v] of Object.entries(atributos)) {
-      if (v === void 0 || v === null) continue;
-      if (k === "classe") el.setAttribute("class", `bl-marcador ${v}`);
-      else el.setAttribute(k, String(v));
-    }
-    if (pai) pai.appendChild(el);
-    return el;
-  }
-  function tracejadoPorEstilo(estilo, espessura = 1) {
-    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
-    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
-    return null;
+    return point4().domain(dominio).range(intervalo).padding(preenchimento);
   }
 
   // src/core/eixos.js
@@ -4450,28 +5267,6 @@
     estilizarRotulo(el, rot, { corAutomatica, x: x2, y: y2 });
     pai.appendChild(el);
     return el;
-  }
-  function larguraDoTexto(texto, tamanho) {
-    return String(texto || "").length * tamanho * 0.58;
-  }
-  function esconderColisoes(caixas, rot) {
-    if (!rot || !rot.evitarColisao) return 0;
-    const mantidas = [];
-    let escondidos = 0;
-    for (const c of caixas) {
-      if (!c || !c.el) continue;
-      const colide = mantidas.some(
-        (m) => Math.abs(m.x - c.x) * 2 < m.largura + c.largura && Math.abs(m.y - c.y) * 2 < m.altura + c.altura
-      );
-      if (colide) {
-        c.el.setAttribute("display", "none");
-        if (c.el.style) c.el.style.display = "none";
-        escondidos += 1;
-      } else {
-        mantidas.push(c);
-      }
-    }
-    return escondidos;
   }
 
   // src/core/cores.js
@@ -4619,9 +5414,9 @@
   function serieVazia(quantidade) {
     return new Array(quantidade).fill(null);
   }
-  function acumular(valores, posicao, valor) {
+  function acumular(valores2, posicao, valor) {
     if (valor === null) return;
-    valores[posicao] = (valores[posicao] === null ? 0 : valores[posicao]) + valor;
+    valores2[posicao] = (valores2[posicao] === null ? 0 : valores2[posicao]) + valor;
   }
   function deSeriesDoPivo(modelo, config, escolhas, { categorias, indicePorChave, campoDaCategoria }) {
     const medida = acharCampo(modelo.medidas, escolhas.medida) || modelo.medidas[0] || null;
@@ -4726,18 +5521,18 @@
       })
     }));
   }
-  function interpolar(valores, i) {
+  function interpolar(valores2, i) {
     let antes = null;
     let depois = null;
     for (let j = i - 1; j >= 0; j--) {
-      if (valores[j] !== null) {
-        antes = valores[j];
+      if (valores2[j] !== null) {
+        antes = valores2[j];
         break;
       }
     }
-    for (let j = i + 1; j < valores.length; j++) {
-      if (valores[j] !== null) {
-        depois = valores[j];
+    for (let j = i + 1; j < valores2.length; j++) {
+      if (valores2[j] !== null) {
+        depois = valores2[j];
         break;
       }
     }
@@ -4761,7 +5556,8 @@
           { rotulo: "Suave sem ultrapassar (monotone)", valor: "monotone" },
           { rotulo: "Reta", valor: "linear" },
           { rotulo: "Degraus", valor: "stepAfter" },
-          { rotulo: "Catmull-Rom", valor: "catmull" }
+          { rotulo: "Catmull-Rom", valor: "catmull" },
+          { rotulo: "Bump (horizontal nas pontas)", valor: "bump" }
         ])
       },
       espessuraDaLinha: {
@@ -4897,60 +5693,11 @@
     }
     return formatar(valor);
   }
-  function desenharRotulosDosPontos({ plano, rot, grupos, quantidadeDePeriodos, posicaoAuto = "acima", raio = 3, pai, quais = "auto", classe }) {
-    if (!rot || !rot.mostrar) return [];
-    const destino = pai || plano.svg;
-    const validos = grupos.map((g) => ({ ...g, pontos: g.pontos.filter((p) => p && p.texto !== "" && Number.isFinite(p.y)) }));
-    const maior = validos.reduce(
-      (a, g) => g.pontos.reduce((b, p) => Math.max(b, larguraDoTexto(p.texto, rot.tamanho)), a),
-      0
-    );
-    const passo = plano.retangulo.largura / Math.max(1, (quantidadeDePeriodos || 2) - 1);
-    const todos = quais !== "ultimo" && passo >= maior + 4;
-    const lado = rot.posicao === "centro" ? "centro" : rot.posicao === "dentro" ? "abaixo" : rot.posicao === "fora" || rot.posicao === "foraComLinha" ? "acima" : posicaoAuto;
-    const deslocamento = lado === "centro" ? 0 : raio + rot.tamanho / 2 + 3;
-    const dy = lado === "abaixo" ? deslocamento : -deslocamento;
-    const esquerda = Math.min(plano.retangulo.esquerda, plano.retangulo.esquerda + plano.retangulo.largura);
-    const direita = esquerda + plano.retangulo.largura;
-    const prioritarios = [];
-    const demais = [];
-    for (const g of validos) {
-      if (!g.pontos.length) continue;
-      const ultimo = g.pontos.reduce((a, p) => p.indice > a.indice ? p : a, g.pontos[0]);
-      for (const p of todos ? g.pontos : [ultimo]) {
-        const largura = larguraDoTexto(p.texto, rot.tamanho);
-        let ancora = "middle";
-        let cx = p.x;
-        if (p.x + largura / 2 > direita + 4) {
-          ancora = "end";
-          cx = p.x - largura / 2;
-        } else if (p.x - largura / 2 < esquerda - 4) {
-          ancora = "start";
-          cx = p.x + largura / 2;
-        }
-        const el = criarRotuloSvg(destino, rot, {
-          x: p.x,
-          y: p.y + dy,
-          texto: p.texto,
-          ancora,
-          corAutomatica: p.cor || g.cor
-        });
-        if (!el) continue;
-        if (classe) el.setAttribute("class", `bl-rotulo ${classe}`);
-        if (g.aoCriar) g.aoCriar(el);
-        const caixa = { el, x: cx, y: p.y + dy, largura, altura: rot.tamanho };
-        (p === ultimo ? prioritarios : demais).push(caixa);
-      }
-    }
-    const caixas = prioritarios.concat(demais);
-    esconderColisoes(caixas, rot);
-    return caixas.map((c) => c.el);
-  }
   function destruirSerieTemporal() {
   }
 
   // src/charts/bump_chart/index.js
-  var CSS = `
+  var CSS2 = `
 .bp-area{position:relative;width:100%;height:100%;overflow:hidden;}
 .bp-svg{position:absolute;left:0;top:0;}
 .bp-linha{fill:none;pointer-events:none;}
@@ -4961,6 +5708,7 @@
 .bp-nota{position:absolute;left:8px;bottom:4px;font-size:10px;opacity:.75;pointer-events:none;}
 `;
   var MAXIMO_DE_SERIES = 30;
+  var POSICOES_DO_VALOR = ["auto", "lado", "acima", "abaixo", "tooltip"];
   var index_default = defineViz({
     id: "bump_chart",
     label: "Bump Chart",
@@ -4990,6 +5738,21 @@
             label: "N\xFAmero da posi\xE7\xE3o dentro do ponto",
             section: "Ranking",
             default: true
+          },
+          // 5.6 (v3): onde o valor do último ponto aparece.
+          posicaoDoValor: {
+            type: "string",
+            label: "Posi\xE7\xE3o do valor",
+            section: "R\xF3tulos",
+            display: "select",
+            default: "auto",
+            values: listaDeValores([
+              { rotulo: "Autom\xE1tica", valor: "auto" },
+              { rotulo: "Ao lado do c\xEDrculo", valor: "lado" },
+              { rotulo: "Acima", valor: "acima" },
+              { rotulo: "Abaixo", valor: "abaixo" },
+              { rotulo: "S\xF3 no tooltip", valor: "tooltip" }
+            ])
           },
           rotulosNasPontas: {
             type: "string",
@@ -5054,7 +5817,7 @@
         maiorEhMelhor: (config.melhorPosicao || "maior") === "maior"
       });
       ctx.limparRaiz();
-      injetarEstilo(raiz, CSS, "bp");
+      injetarEstilo(raiz, CSS2, "bp");
       const area = criarEl("div", { classe: "bp-area", pai: raiz });
       const rot = lerRotulos(config, tema);
       const opacidade = opacidadeDoConfig(config);
@@ -5063,11 +5826,60 @@
       const modoDosRotulos = rot.mostrar ? config.rotulosNasPontas || "ambas" : "nenhum";
       const limiteDoNome = rot.truncar > 0 ? rot.truncar : 20;
       const nomeCurto = (s) => truncar(s.rotulo, limiteDoNome);
-      const maiorNome = series.reduce((a, s) => Math.max(a, larguraAproximada(nomeCurto(s), rot.tamanho)), 0);
-      const margemEsquerda = modoDosRotulos === "ambas" || modoDosRotulos === "esquerda" ? maiorNome + 14 : 18;
-      const margemDireita = modoDosRotulos === "ambas" || modoDosRotulos === "direita" ? maiorNome + 14 : 18;
-      const margemDeCima = fonte + 14 + (rot.mostrar ? rot.tamanho + 2 : 0);
-      const margemDeBaixo = fonte + 14;
+      const nomesEsquerda = modoDosRotulos === "ambas" || modoDosRotulos === "esquerda";
+      const nomesDireita = modoDosRotulos === "ambas" || modoDosRotulos === "direita";
+      const posicaoDoValor = POSICOES_DO_VALOR.includes(config.posicaoDoValor) ? config.posicaoDoValor : "auto";
+      const comValor = rot.mostrar && posicaoDoValor !== "tooltip";
+      const valorAoLado = posicaoDoValor === "auto" || posicaoDoValor === "lado";
+      const ultimoPeriodo = serie.categorias.length - 1;
+      const totalNoPeriodo = (i) => series.reduce((a, s) => a + (Number.isFinite(s.valores[i]) ? s.valores[i] : 0), 0);
+      const raioDoPonto = (Number(config.tamanhoDoPonto) || 12) / 2;
+      const comNumero = config.mostrarPosicao !== false;
+      const desenharPontos = comNumero || config.mostrarPontos === true;
+      const raio = desenharPontos ? raioDoPonto : 2;
+      const FOLGA2 = 5;
+      const compacto = criarFormatadorNumerico({ estilo: "compacto", casas: 1 });
+      series.forEach((s, indice) => {
+        s.cor = corDoItem(config, indice, s.chave);
+        s.posicoes = posicoes[indice];
+        s.formatar = formatadorDaSerie(serie, s, config);
+        s.primeira = s.posicoes.findIndex((p) => p !== null);
+        s.ultima = s.primeira < 0 ? -1 : s.posicoes.length - 1 - [...s.posicoes].reverse().findIndex((p) => p !== null);
+        s.textoDoValor = (abreviar2) => {
+          if (s.ultima < 0) return "";
+          const v = s.valores[s.ultima];
+          return textoDoRotulo(rot, {
+            valor: v,
+            nome: s.rotulo,
+            total: s.ultima === ultimoPeriodo ? totalNoPeriodo(s.ultima) : void 0,
+            valueFormat: valueFormatDaSerie(serie, s),
+            // Abreviado (K, M): o valor completo continua no tooltip.
+            textoDoValor: abreviar2 && Number.isFinite(v) ? compacto(v) : textoDoPonto(ctx, serie.matriz, s.ultima, s, v, s.formatar)
+          });
+        };
+      });
+      const peso = { negrito: !!rot.negrito };
+      const direitaNecessaria = (t, abreviar2) => raio + FOLGA2 + Math.max(
+        0,
+        ...series.map((s) => {
+          if (s.ultima !== ultimoPeriodo) return 0;
+          const v = comValor ? larguraDoTexto(s.textoDoValor(abreviar2), t, peso) : 0;
+          const n = nomesDireita ? larguraDoTexto(nomeCurto(s), t, peso) : 0;
+          if (valorAoLado) return v + (v && n ? 2 * FOLGA2 : 0) + n;
+          return Math.max(n, v / 2 - raio - FOLGA2);
+        })
+      ) + 4;
+      const esquerdaNecessaria = (t) => raio + FOLGA2 + (nomesEsquerda ? Math.max(0, ...series.map((s) => larguraDoTexto(nomeCurto(s), t, peso))) : 0) + 4;
+      let tamanho = rot.tamanho;
+      let abreviar = false;
+      const limite = largura * 0.62;
+      while (direitaNecessaria(tamanho, false) + esquerdaNecessaria(tamanho) > limite && tamanho > 8) tamanho -= 1;
+      if (direitaNecessaria(tamanho, false) + esquerdaNecessaria(tamanho) > limite) abreviar = true;
+      const rotV = Object.assign({}, rot, { tamanho });
+      const margemEsquerda = Math.max(raio + 4, esquerdaNecessaria(tamanho));
+      const margemDireita = Math.max(raio + 4, direitaNecessaria(tamanho, abreviar));
+      const margemDeCima = fonte + 8 + raio + 4 + (comValor && posicaoDoValor === "acima" ? tamanho + 2 : 0);
+      const margemDeBaixo = raio + 4 + (comValor && posicaoDoValor === "abaixo" ? tamanho + 2 : 0);
       const escalaX = escalaDePonto({
         dominio: serie.categorias.map((c) => c.chave),
         intervalo: [margemEsquerda, Math.max(margemEsquerda + 20, largura - margemDireita)],
@@ -5076,6 +5888,7 @@
       const alturaUtil = Math.max(20, altura - margemDeCima - margemDeBaixo);
       const passoY = maiorPosicao > 1 ? alturaUtil / (maiorPosicao - 1) : 0;
       const y2 = (posicao) => margemDeCima + (posicao - 1) * passoY;
+      const xDe = (i) => escalaX(serie.categorias[i].chave);
       const svg = criarSvgEl("svg", {
         pai: area,
         classe: "bp-svg",
@@ -5100,19 +5913,13 @@
       });
       const curva = config.curvaDaLinha || "monotone";
       const espessura = Number(config.espessuraDaLinha) || 2.5;
-      const raioDoPonto = (Number(config.tamanhoDoPonto) || 12) / 2;
-      const comNumero = config.mostrarPosicao !== false;
-      const desenharPontos = comNumero || config.mostrarPontos === true;
       const grupoDasLinhas = criarSvgEl("g", { pai: svg, classe: "bp-linhas" });
-      const gruposDeValor = [];
-      const ultimoPeriodo = serie.categorias.length - 1;
-      const totalNoPeriodo = (i) => series.reduce((a, s) => a + (Number.isFinite(s.valores[i]) ? s.valores[i] : 0), 0);
-      series.forEach((s, indice) => {
-        s.cor = corDoItem(config, indice, s.chave);
-        s.posicoes = posicoes[indice];
-        s.formatar = formatadorDaSerie(serie, s, config);
+      const grupoDosPontos = criarSvgEl("g", { pai: svg, classe: "bp-pontos" });
+      const grupoDosTextos = criarSvgEl("g", { pai: svg, classe: "bp-textos" });
+      const circulos = [];
+      series.forEach((s) => {
         const gerador = geradorDeLinha({
-          x: (_, i) => escalaX(serie.categorias[i].chave),
+          x: (_, i) => xDe(i),
           y: (_, i) => y2(s.posicoes[i]),
           curva,
           definido: (_, i) => s.posicoes[i] !== null
@@ -5130,10 +5937,12 @@
         });
         s.marcas = [];
         serie.categorias.forEach((_, i) => {
-          if (s.posicoes[i] === null || !desenharPontos) return;
-          const px = escalaX(serie.categorias[i].chave);
+          if (s.posicoes[i] === null) return;
+          const px = xDe(i);
           const py = y2(s.posicoes[i]);
-          const ponto = criarMarcadorSvg(grupoDasLinhas, "circulo", px, py, raioDoPonto * 2, {
+          circulos.push({ x: px, y: py });
+          if (!desenharPontos) return;
+          const ponto = criarMarcadorSvg(grupoDosPontos, "circulo", px, py, raioDoPonto * 2, {
             classe: "bp-ponto",
             fill: s.cor,
             "fill-opacity": opacidade,
@@ -5144,8 +5953,8 @@
           s.marcas.push(ponto);
           if (comNumero && raioDoPonto >= 7) {
             const numero = criarSvgEl("text", {
-              pai: grupoDasLinhas,
-              classe: "bp-ponto",
+              pai: grupoDosPontos,
+              classe: "bp-ponto bp-numero",
               atributos: {
                 x: px,
                 y: py,
@@ -5161,63 +5970,63 @@
             s.marcas.push(numero);
           }
         });
-        const primeira = s.posicoes.findIndex((p) => p !== null);
-        const ultima = s.posicoes.length - 1 - [...s.posicoes].reverse().findIndex((p) => p !== null);
-        const folga = (desenharPontos ? raioDoPonto : 0) + 5;
-        const nome = (indiceDoPeriodo2, ancora, dx) => {
-          const texto = criarRotuloSvg(svg, rot, {
-            x: escalaX(serie.categorias[indiceDoPeriodo2].chave) + dx,
-            y: y2(s.posicoes[indiceDoPeriodo2]),
-            texto: nomeCurto(s),
-            ancora,
-            corAutomatica: tema.texto
-          });
-          if (texto) {
-            texto.setAttribute("class", "bl-rotulo bp-rotulo");
-            s.marcas.push(texto);
-          }
-        };
-        if ((modoDosRotulos === "ambas" || modoDosRotulos === "esquerda") && primeira >= 0) {
-          nome(primeira, "end", -folga);
-        }
-        if ((modoDosRotulos === "ambas" || modoDosRotulos === "direita") && primeira >= 0) {
-          nome(ultima, "start", folga);
-        }
-        if (primeira >= 0) {
-          const v = s.valores[ultima];
-          gruposDeValor.push({
-            cor: s.cor,
-            aoCriar: (el) => s.marcas.push(el),
-            pontos: [
-              {
-                indice: ultima,
-                x: escalaX(serie.categorias[ultima].chave),
-                y: y2(s.posicoes[ultima]),
-                texto: textoDoRotulo(rot, {
-                  valor: v,
-                  nome: s.rotulo,
-                  total: ultima === ultimoPeriodo ? totalNoPeriodo(ultima) : void 0,
-                  valueFormat: valueFormatDaSerie(serie, s),
-                  textoDoValor: textoDoPonto(ctx, serie.matriz, ultima, s, v, s.formatar)
-                })
-              }
-            ]
-          });
-        }
       });
-      desenharRotulosDosPontos({
-        plano: {
-          svg,
-          retangulo: { esquerda: margemEsquerda, largura: Math.max(20, largura - margemDireita - margemEsquerda) }
-        },
-        rot,
-        grupos: gruposDeValor,
-        quantidadeDePeriodos: serie.categorias.length,
-        raio: desenharPontos ? raioDoPonto : 2,
-        quais: "ultimo",
-        classe: "bp-valor"
-      });
-      const nota = criarEl("div", { classe: "bp-nota", pai: area });
+      const caixas = [];
+      const cabe = (c) => c.x0 >= 0 && c.x1 <= largura && c.y0 >= 0 && c.y1 <= altura;
+      const cruza = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+      const sobreCirculo = (c) => circulos.some((p) => c.x0 < p.x + raio && c.x1 > p.x - raio && c.y0 < p.y + raio && c.y1 > p.y - raio);
+      const caixaDe = (x2, yc, w, ancora) => {
+        const x0 = ancora === "middle" ? x2 - w / 2 : ancora === "end" ? x2 - w : x2;
+        return { x0, x1: x0 + w, y0: yc - tamanho / 2, y1: yc + tamanho / 2 };
+      };
+      const colocar = (s, { x: x2, yc, texto, ancora, classe, extra = {} }) => {
+        if (!texto) return null;
+        const c = caixaDe(x2, yc, larguraDoTexto(texto, tamanho, peso), ancora);
+        if (!cabe(c) || sobreCirculo(c) || caixas.some((o) => cruza(o, c))) return null;
+        const el = criarRotuloSvg(grupoDosTextos, rotV, { x: x2, y: yc, texto, ancora, corAutomatica: classe === "bp-valor" ? s.cor : tema.texto });
+        if (!el) return null;
+        el.setAttribute("class", `bl-rotulo ${classe}`);
+        el.setAttribute("stroke", tema.fundo || "#FFFFFF");
+        el.setAttribute("stroke-width", "3");
+        el.setAttribute("stroke-linejoin", "round");
+        el.setAttribute("paint-order", "stroke");
+        for (const [k, v] of Object.entries(extra)) el.setAttribute(k, String(v));
+        caixas.push(c);
+        s.marcas.push(el);
+        return el;
+      };
+      const larguraDoValor = (s) => larguraDoTexto(s.textoDoValor(abreviar), tamanho, peso);
+      if (comValor) {
+        for (const s of [...series].sort((a, b) => (a.posicoes[a.ultima] || 0) - (b.posicoes[b.ultima] || 0))) {
+          if (s.ultima < 0) continue;
+          const cx = xDe(s.ultima);
+          const cy = y2(s.posicoes[s.ultima]);
+          const texto = s.textoDoValor(abreviar);
+          const origem = { "data-cx": cx, "data-cy": cy };
+          const tentar = (pos) => pos === "lado" ? colocar(s, { x: cx + raio + FOLGA2, yc: cy, texto, ancora: "start", classe: "bp-valor", extra: { ...origem, "data-posicao": "lado" } }) : colocar(s, {
+            x: cx,
+            yc: pos === "acima" ? cy - raio - tamanho / 2 - 2 : cy + raio + tamanho / 2 + 2,
+            texto,
+            ancora: "middle",
+            classe: "bp-valor",
+            extra: { ...origem, "data-posicao": pos }
+          });
+          if (posicaoDoValor === "auto") tentar("lado") || tentar("acima") || tentar("abaixo");
+          else tentar(posicaoDoValor);
+        }
+      }
+      for (const s of series) {
+        if (s.primeira < 0) continue;
+        if (nomesEsquerda) {
+          colocar(s, { x: xDe(s.primeira) - raio - FOLGA2, yc: y2(s.posicoes[s.primeira]), texto: nomeCurto(s), ancora: "end", classe: "bp-rotulo" });
+        }
+        if (nomesDireita) {
+          const valorDoLado = comValor && valorAoLado ? larguraDoValor(s) + 2 * FOLGA2 : 0;
+          const x2 = xDe(s.ultima) + raio + FOLGA2;
+          colocar(s, { x: x2 + valorDoLado, yc: y2(s.posicoes[s.ultima]), texto: nomeCurto(s), ancora: "start", classe: "bp-rotulo" }) || colocar(s, { x: x2, yc: y2(s.posicoes[s.ultima]), texto: nomeCurto(s), ancora: "start", classe: "bp-rotulo" });
+        }
+      }
+      const nota = ctx.nota;
       nota.style.color = tema.textoSuave;
       const comLacunas = series.some((s) => s.posicoes.some((p) => p === null));
       definirTexto(

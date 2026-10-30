@@ -1,7 +1,8 @@
 [
   {
     "id": "formatoDoNumero",
-    "label": "Formato do número (Automático = o do rótulo / do campo)",
+    "label": "Formato do número",
+    "rotuloCompleto": "Formato do número (Automático = o do rótulo / do campo)",
     "section": "Dados",
     "type": "string",
     "default": "auto",
@@ -10,6 +11,7 @@
   {
     "id": "casasDoNumero",
     "label": "Casas decimais do número",
+    "rotuloCompleto": "Casas decimais do número",
     "section": "Dados",
     "type": "number",
     "default": 1,
@@ -18,6 +20,7 @@
   {
     "id": "simboloDaMoeda",
     "label": "Símbolo da moeda",
+    "rotuloCompleto": "Símbolo da moeda",
     "section": "Dados",
     "type": "string",
     "default": "R$ ",
@@ -26,6 +29,7 @@
   {
     "id": "baseDaComparacao",
     "label": "KPI · Comparar com",
+    "rotuloCompleto": "KPI · Comparar com",
     "section": "Dados",
     "type": "string",
     "default": "anterior",
@@ -34,6 +38,7 @@
   {
     "id": "periodosAtras",
     "label": "KPI · Quantos períodos atrás",
+    "rotuloCompleto": "KPI · Quantos períodos atrás",
     "section": "Dados",
     "type": "number",
     "default": 12,
@@ -42,6 +47,7 @@
   {
     "id": "meta",
     "label": "KPI · Valor da meta",
+    "rotuloCompleto": "KPI · Valor da meta",
     "section": "Dados",
     "type": "number",
     "default": 0,
@@ -49,7 +55,8 @@
   },
   {
     "id": "menorEhMelhor",
-    "label": "KPI · Menor é melhor (custo, churn, tempo de resposta…)",
+    "label": "KPI · Menor é melhor",
+    "rotuloCompleto": "KPI · Menor é melhor (custo, churn, tempo de resposta…)",
     "section": "Dados",
     "type": "boolean",
     "default": false,
@@ -57,7 +64,8 @@
   },
   {
     "id": "colorirVariacao",
-    "label": "KPI · Colorir a variação por direção",
+    "label": "KPI · Cor pela direção",
+    "rotuloCompleto": "KPI · Colorir a variação por direção",
     "section": "Dados",
     "type": "boolean",
     "default": true,
@@ -65,7 +73,8 @@
   },
   {
     "id": "mostrarVariacaoAbsoluta",
-    "label": "KPI · Mostrar também a diferença absoluta",
+    "label": "KPI · Diferença absoluta",
+    "rotuloCompleto": "KPI · Mostrar também a diferença absoluta",
     "section": "Dados",
     "type": "boolean",
     "default": true,
@@ -73,7 +82,8 @@
   },
   {
     "id": "mostrarProgressoDaMeta",
-    "label": "KPI · Barra de progresso até a meta (usa \"Valor da meta\")",
+    "label": "KPI · Progresso até a meta",
+    "rotuloCompleto": "KPI · Barra de progresso até a meta (usa \"Valor da meta\")",
     "section": "Dados",
     "type": "boolean",
     "default": false,
@@ -81,7 +91,8 @@
   },
   {
     "id": "usarLimites",
-    "label": "KPI · Colorir o número por limites (verde / amarelo / vermelho)",
+    "label": "KPI · Cor por limites",
+    "rotuloCompleto": "KPI · Colorir o número por limites (verde / amarelo / vermelho)",
     "section": "Dados",
     "type": "boolean",
     "default": false,
@@ -89,7 +100,8 @@
   },
   {
     "id": "limiteVerde",
-    "label": "KPI · Limite do verde (a partir de; com \"menor é melhor\": até)",
+    "label": "KPI · Limite do verde",
+    "rotuloCompleto": "KPI · Limite do verde (a partir de; com \"menor é melhor\": até)",
     "section": "Dados",
     "type": "number",
     "default": null,
@@ -97,15 +109,26 @@
   },
   {
     "id": "limiteAmarelo",
-    "label": "KPI · Limite do amarelo (a partir de; com \"menor é melhor\": até)",
+    "label": "KPI · Limite do amarelo",
+    "rotuloCompleto": "KPI · Limite do amarelo (a partir de; com \"menor é melhor\": até)",
     "section": "Dados",
     "type": "number",
     "default": null,
     "dinamica": false
   },
   {
+    "id": "progressoEmXicara",
+    "label": "KPI · Meta em xícara",
+    "rotuloCompleto": "KPI · Meta em xícara (pacote Café)",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
     "id": "colunasDoKpi",
     "label": "KPI · Colunas da grade (0 = automático)",
+    "rotuloCompleto": "KPI · Colunas da grade (0 = automático)",
     "section": "Dados",
     "type": "number",
     "default": 0,
@@ -114,6 +137,7 @@
   {
     "id": "linhasDoKpi",
     "label": "KPI · Linhas da grade (0 = automático)",
+    "rotuloCompleto": "KPI · Linhas da grade (0 = automático)",
     "section": "Dados",
     "type": "number",
     "default": 0,
@@ -122,7 +146,8 @@
   {
     "id": "tema",
     "label": "Tema · Tema",
-    "section": "Visual",
+    "rotuloCompleto": "Tema · Tema",
+    "section": "Estilo",
     "type": "string",
     "default": "claro",
     "dinamica": false
@@ -130,7 +155,8 @@
   {
     "id": "corDeFundo",
     "label": "Cor · Cor de fundo (vazio = do tema)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor de fundo (vazio = do tema)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
@@ -138,23 +164,26 @@
   {
     "id": "corDoTexto",
     "label": "Cor · Cor do texto (tema personalizado)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor do texto (tema personalizado)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "corDaBorda",
-    "label": "Cor · Cor das bordas (tema personalizado)",
-    "section": "Visual",
+    "label": "Cor · Cor das bordas",
+    "rotuloCompleto": "Cor · Cor das bordas (tema personalizado)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "corDaGrade",
-    "label": "Cor · Cor das linhas de grade (tema personalizado)",
-    "section": "Visual",
+    "label": "Cor · Cor das linhas de grade",
+    "rotuloCompleto": "Cor · Cor das linhas de grade (tema personalizado)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
@@ -162,7 +191,8 @@
   {
     "id": "familiaDaFonte",
     "label": "Tema · Fonte",
-    "section": "Visual",
+    "rotuloCompleto": "Tema · Fonte",
+    "section": "Estilo",
     "type": "string",
     "default": "sistema",
     "dinamica": false
@@ -170,7 +200,8 @@
   {
     "id": "tamanhoDaFonte",
     "label": "Tema · Tamanho base da fonte (px)",
-    "section": "Visual",
+    "rotuloCompleto": "Tema · Tamanho base da fonte (px)",
+    "section": "Estilo",
     "type": "number",
     "default": 12,
     "dinamica": false
@@ -178,7 +209,8 @@
   {
     "id": "mostrarSparkline",
     "label": "KPI · Sparkline de contexto",
-    "section": "Visual",
+    "rotuloCompleto": "KPI · Sparkline de contexto",
+    "section": "Estilo",
     "type": "boolean",
     "default": true,
     "dinamica": false
@@ -186,7 +218,8 @@
   {
     "id": "layoutDoCartao",
     "label": "KPI · Layout do cartão",
-    "section": "Visual",
+    "rotuloCompleto": "KPI · Layout do cartão",
+    "section": "Estilo",
     "type": "string",
     "default": "grande",
     "dinamica": false
@@ -194,7 +227,8 @@
   {
     "id": "tipoDeSparkline",
     "label": "KPI · Minigráfico",
-    "section": "Visual",
+    "rotuloCompleto": "KPI · Minigráfico",
+    "section": "Estilo",
     "type": "string",
     "default": "area",
     "dinamica": false
@@ -202,7 +236,8 @@
   {
     "id": "corPositiva",
     "label": "KPI · Cor do positivo (vazio = do tema)",
-    "section": "Visual",
+    "rotuloCompleto": "KPI · Cor do positivo (vazio = do tema)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
@@ -210,7 +245,8 @@
   {
     "id": "corNegativa",
     "label": "KPI · Cor do negativo (vazio = do tema)",
-    "section": "Visual",
+    "rotuloCompleto": "KPI · Cor do negativo (vazio = do tema)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
@@ -218,30 +254,52 @@
   {
     "id": "iconeDoKpi",
     "label": "KPI · Ícone",
-    "section": "Visual",
+    "rotuloCompleto": "KPI · Ícone",
+    "section": "Estilo",
     "type": "string",
     "default": "nenhum",
     "dinamica": false
   },
   {
     "id": "corDoIcone",
-    "label": "KPI · Cor do ícone (vazio = destaque do tema)",
-    "section": "Visual",
+    "label": "KPI · Cor do ícone",
+    "rotuloCompleto": "KPI · Cor do ícone (vazio = destaque do tema)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "kpisEmGrade",
-    "label": "KPI · Vários KPIs em grade (um cartão por medida)",
-    "section": "Visual",
+    "label": "KPI · Vários KPIs em grade",
+    "rotuloCompleto": "KPI · Vários KPIs em grade (um cartão por medida)",
+    "section": "Estilo",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
+    "dinamica": false
+  },
+  {
+    "id": "estiloDoIcone",
+    "label": "Tema · Estilo do ícone",
+    "rotuloCompleto": "Tema · Estilo do ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "contorno",
+    "dinamica": false
+  },
+  {
     "id": "mostrarRotulos",
     "label": "Rótulo · Mostrar rótulos",
+    "rotuloCompleto": "Rótulo · Mostrar rótulos",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -250,6 +308,7 @@
   {
     "id": "tamanhoDoRotulo",
     "label": "Rótulo · Tamanho do rótulo (px)",
+    "rotuloCompleto": "Rótulo · Tamanho do rótulo (px)",
     "section": "Texto",
     "type": "number",
     "default": 11,
@@ -257,7 +316,8 @@
   },
   {
     "id": "corDoRotulo",
-    "label": "Rótulo · Cor do rótulo (vazio = automática)",
+    "label": "Rótulo · Cor do rótulo",
+    "rotuloCompleto": "Rótulo · Cor do rótulo (vazio = automática)",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -266,6 +326,7 @@
   {
     "id": "negritoNoRotulo",
     "label": "Rótulo · Rótulo em negrito",
+    "rotuloCompleto": "Rótulo · Rótulo em negrito",
     "section": "Texto",
     "type": "boolean",
     "default": false,
@@ -274,6 +335,7 @@
   {
     "id": "rotacaoDoRotulo",
     "label": "Rótulo · Rotação do rótulo (graus)",
+    "rotuloCompleto": "Rótulo · Rotação do rótulo (graus)",
     "section": "Texto",
     "type": "number",
     "default": 0,
@@ -281,7 +343,8 @@
   },
   {
     "id": "evitarColisaoDeRotulos",
-    "label": "Rótulo · Esconder rótulos que se sobrepõem",
+    "label": "Rótulo · Ocultar sobrepostos",
+    "rotuloCompleto": "Rótulo · Esconder rótulos que se sobrepõem",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -289,7 +352,8 @@
   },
   {
     "id": "truncarRotulo",
-    "label": "Rótulo · Truncar rótulo com mais de N caracteres (0 = não truncar)",
+    "label": "Rótulo · Cortar após N caracteres",
+    "rotuloCompleto": "Rótulo · Truncar rótulo com mais de N caracteres (0 = não truncar)",
     "section": "Texto",
     "type": "number",
     "default": 0,
@@ -298,6 +362,7 @@
   {
     "id": "posicaoDoRotulo",
     "label": "Rótulo · Posição do rótulo",
+    "rotuloCompleto": "Rótulo · Posição do rótulo",
     "section": "Texto",
     "type": "string",
     "default": "auto",
@@ -306,6 +371,7 @@
   {
     "id": "conteudoDoRotulo",
     "label": "Rótulo · O que mostrar no rótulo",
+    "rotuloCompleto": "Rótulo · O que mostrar no rótulo",
     "section": "Texto",
     "type": "string",
     "default": "valor",
@@ -314,6 +380,7 @@
   {
     "id": "formatoDoRotulo",
     "label": "Rótulo · Formato do número no rótulo",
+    "rotuloCompleto": "Rótulo · Formato do número no rótulo",
     "section": "Texto",
     "type": "string",
     "default": "auto",
@@ -322,6 +389,7 @@
   {
     "id": "casasDecimaisDoRotulo",
     "label": "Rótulo · Casas decimais no rótulo",
+    "rotuloCompleto": "Rótulo · Casas decimais no rótulo",
     "section": "Texto",
     "type": "number",
     "default": 1,
@@ -330,6 +398,7 @@
   {
     "id": "titulo",
     "label": "Título · Título (vazio = nome da medida)",
+    "rotuloCompleto": "Título · Título (vazio = nome da medida)",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -338,6 +407,7 @@
   {
     "id": "subtitulo",
     "label": "Título · Subtítulo do cartão",
+    "rotuloCompleto": "Título · Subtítulo do cartão",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -346,6 +416,7 @@
   {
     "id": "textoSemDados",
     "label": "Aviso · Mensagem quando não há dados",
+    "rotuloCompleto": "Aviso · Mensagem quando não há dados",
     "section": "Texto",
     "type": "string",
     "default": "Sem dados para exibir",
@@ -353,7 +424,8 @@
   },
   {
     "id": "mostrarAvisos",
-    "label": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
+    "label": "Aviso · Mostrar avisos",
+    "rotuloCompleto": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -362,23 +434,359 @@
   {
     "id": "posicaoDosAvisos",
     "label": "Aviso · Posição dos avisos",
+    "rotuloCompleto": "Aviso · Posição dos avisos",
     "section": "Texto",
     "type": "string",
     "default": "topo",
     "dinamica": false
   },
   {
-    "id": "contadorAnimado",
-    "label": "Animação · Animação de contagem do número",
-    "section": "Interação",
+    "id": "mostrarTitulo",
+    "label": "Título · Mostrar",
+    "rotuloCompleto": "Título · Mostrar",
+    "section": "Texto",
     "type": "boolean",
     "default": true,
     "dinamica": false
   },
   {
+    "id": "posicaoDoTitulo",
+    "label": "Título · Posição",
+    "rotuloCompleto": "Título · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoTitulo",
+    "label": "Título · Alinhamento",
+    "rotuloCompleto": "Título · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoTitulo",
+    "label": "Título · Deslocamento X (px)",
+    "rotuloCompleto": "Título · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoTitulo",
+    "label": "Título · Deslocamento Y (px)",
+    "rotuloCompleto": "Título · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoTitulo",
+    "label": "Título · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Título · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoTitulo",
+    "label": "Título · Fonte",
+    "rotuloCompleto": "Título · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoTitulo",
+    "label": "Título · Peso",
+    "rotuloCompleto": "Título · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "negrito",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTitulo",
+    "label": "Título · Cor (vazio = tema)",
+    "rotuloCompleto": "Título · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoTitulo",
+    "label": "Título · Margem (px)",
+    "rotuloCompleto": "Título · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarTitulo",
+    "label": "Título · Quebrar linha",
+    "rotuloCompleto": "Título · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoTitulo",
+    "label": "Título · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Título · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSubtitulo",
+    "label": "Subtítulo · Mostrar",
+    "rotuloCompleto": "Subtítulo · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoSubtitulo",
+    "label": "Subtítulo · Posição",
+    "rotuloCompleto": "Subtítulo · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoSubtitulo",
+    "label": "Subtítulo · Alinhamento",
+    "rotuloCompleto": "Subtítulo · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoSubtitulo",
+    "label": "Subtítulo · Deslocamento X (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoSubtitulo",
+    "label": "Subtítulo · Deslocamento Y (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoSubtitulo",
+    "label": "Subtítulo · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Subtítulo · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoSubtitulo",
+    "label": "Subtítulo · Fonte",
+    "rotuloCompleto": "Subtítulo · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoSubtitulo",
+    "label": "Subtítulo · Peso",
+    "rotuloCompleto": "Subtítulo · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "normal",
+    "dinamica": false
+  },
+  {
+    "id": "corDoSubtitulo",
+    "label": "Subtítulo · Cor (vazio = tema)",
+    "rotuloCompleto": "Subtítulo · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoSubtitulo",
+    "label": "Subtítulo · Margem (px)",
+    "rotuloCompleto": "Subtítulo · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarSubtitulo",
+    "label": "Subtítulo · Quebrar linha",
+    "rotuloCompleto": "Subtítulo · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoSubtitulo",
+    "label": "Subtítulo · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Subtítulo · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarNota",
+    "label": "Nota · Mostrar",
+    "rotuloCompleto": "Nota · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDaNota",
+    "label": "Nota · Posição",
+    "rotuloCompleto": "Nota · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "abaixo",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDaNota",
+    "label": "Nota · Alinhamento",
+    "rotuloCompleto": "Nota · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaNota",
+    "label": "Nota · Tamanho (px)",
+    "rotuloCompleto": "Nota · Tamanho (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 10,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDaNota",
+    "label": "Nota · Fonte",
+    "rotuloCompleto": "Nota · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "corDaNota",
+    "label": "Nota · Cor (vazio = tema)",
+    "rotuloCompleto": "Nota · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "quebrarNota",
+    "label": "Nota · Quebrar linha",
+    "rotuloCompleto": "Nota · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDaNota",
+    "label": "Nota · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Nota · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "textoDaNota",
+    "label": "Nota · Texto",
+    "rotuloCompleto": "Nota · Texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "meuTextoDaNota",
+    "label": "Nota · Meu texto",
+    "rotuloCompleto": "Nota · Meu texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "contadorAnimado",
+    "label": "Animação · Números contando",
+    "rotuloCompleto": "Animação · Animação de contagem do número",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "modoDebug",
+    "label": "Modo debug",
+    "rotuloCompleto": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON",
+    "rotuloCompleto": "Configuração em JSON (cole aqui para importar)",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima",
+    "rotuloCompleto": "Aplicar o JSON acima por cima das opções",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
     "id": "animacaoAtiva",
     "label": "Animação · Ativar animações",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Ativar animações",
+    "section": "Mais",
     "type": "boolean",
     "default": true,
     "dinamica": false
@@ -386,7 +794,8 @@
   {
     "id": "duracaoDaAnimacao",
     "label": "Animação · Duração (ms)",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Duração (ms)",
+    "section": "Mais",
     "type": "number",
     "default": 600,
     "dinamica": false
@@ -394,7 +803,8 @@
   {
     "id": "atrasoDaAnimacao",
     "label": "Animação · Atraso inicial (ms)",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Atraso inicial (ms)",
+    "section": "Mais",
     "type": "number",
     "default": 0,
     "dinamica": false
@@ -402,7 +812,8 @@
   {
     "id": "cascataDaAnimacao",
     "label": "Animação · Cascata entre itens (ms)",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Cascata entre itens (ms)",
+    "section": "Mais",
     "type": "number",
     "default": 20,
     "dinamica": false
@@ -410,7 +821,8 @@
   {
     "id": "suavizacaoDaAnimacao",
     "label": "Animação · Curva da animação",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Curva da animação",
+    "section": "Mais",
     "type": "string",
     "default": "saida",
     "dinamica": false
@@ -418,46 +830,25 @@
   {
     "id": "quandoAnimar",
     "label": "Animação · Quando animar",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Quando animar",
+    "section": "Mais",
     "type": "string",
     "default": "sempre",
     "dinamica": false
   },
   {
     "id": "destacarAoPassarMouse",
-    "label": "Clique · Destacar ao passar o mouse",
-    "section": "Interação",
+    "label": "Clique · Destacar sob o mouse",
+    "rotuloCompleto": "Clique · Destacar ao passar o mouse",
+    "section": "Mais",
     "type": "boolean",
     "default": true,
     "dinamica": false
   },
   {
-    "id": "modoDebug",
-    "label": "Modo debug (escreve no console a estrutura dos dados)",
-    "section": "Avançado",
-    "type": "boolean",
-    "default": false,
-    "dinamica": false
-  },
-  {
-    "id": "configuracaoJson",
-    "label": "Configuração em JSON (cole aqui para importar)",
-    "section": "Avançado",
-    "type": "string",
-    "default": "",
-    "dinamica": false
-  },
-  {
-    "id": "aplicarConfiguracaoJson",
-    "label": "Aplicar o JSON acima por cima das opções",
-    "section": "Avançado",
-    "type": "boolean",
-    "default": false,
-    "dinamica": false
-  },
-  {
     "id": "campoDoPeriodo",
     "label": "Dimensão do tempo",
+    "rotuloCompleto": "Dimensão do tempo",
     "section": "Dados",
     "type": "string",
     "default": "mes",

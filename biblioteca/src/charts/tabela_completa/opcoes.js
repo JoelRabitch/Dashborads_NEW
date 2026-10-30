@@ -15,6 +15,10 @@ import {
   blocoDeTema,
   blocoAvancado,
 } from '../../core/options-kit.js';
+import { opcoesDasCalculadas } from './calculadas.js';
+import { LAYOUTS } from './layouts.js';
+import { listarProgressos } from '../../core/pacotes.js';
+import { opcoesDeIconePorValor } from '../../core/icone-por-valor.js';
 
 /** Quantas regras de formatação condicional cada coluna oferece. */
 export const REGRAS_POR_COLUNA = 3;
@@ -46,7 +50,18 @@ export const TIPOS_DE_CELULA = [
   { rotulo: 'Imagem (URL)', valor: 'imagem' },
   { rotulo: 'Link', valor: 'link' },
   { rotulo: 'Data', valor: 'data' },
+  // 5.14f (v3)
+  { rotulo: 'Ícone por valor', valor: 'icone' },
 ];
+
+/**
+ * Tipos de célula + exibições de pacotes temáticos (5.14g, ex.: xícara).
+ * Função (e não constante) porque os pacotes se registram depois que este
+ * módulo é carregado.
+ */
+export function tiposDeCelula() {
+  return TIPOS_DE_CELULA.concat(listarProgressos().map((p) => ({ rotulo: p.rotulo, valor: p.id })));
+}
 
 export const CONDICOES = [
   { rotulo: '— sem regra —', valor: 'nenhuma' },
@@ -96,6 +111,10 @@ export function opcoesEstaticas() {
   return montarOpcoes(
     blocoDeTema(),
     blocoAvancado(),
+    // Colunas calculadas por fórmula (5.4, v3): 8 espaços fixos.
+    opcoesDasCalculadas(),
+    // Ícone por valor (5.14f, v3): mapa usado pelas células do tipo "Ícone por valor".
+    opcoesDeIconePorValor({ secao: 'Formato', comCampo: false }),
     {
       // ---------- Estrutura ----------
       agruparPor: {
@@ -178,6 +197,31 @@ export function opcoesEstaticas() {
       },
 
       // ---------- Formato / layout ----------
+      // Layout (5.5, v3): estrutura, separada das cores/tema.
+      layoutDaTabela: {
+        type: 'string',
+        label: 'Layout',
+        section: 'Formato',
+        display: 'select',
+        values: listaDeValores(LAYOUTS),
+        default: 'tabela',
+      },
+      camposDoCartao: {
+        type: 'string',
+        label: 'Campos do cartão/lista (vazio = todos)',
+        section: 'Formato',
+        placeholder: 'Código, Descrição, Valor',
+        default: '',
+      },
+      colunasDosCartoes: { type: 'number', label: 'Cartões por linha (0 = auto)', section: 'Formato', default: 0 },
+      colunasDeCamposDoCartao: { type: 'number', label: 'Colunas de campos no cartão', section: 'Formato', default: 2 },
+      secoesDoLayout: {
+        type: 'string',
+        label: 'Seções (Título: col1, col2; …)',
+        section: 'Formato',
+        placeholder: 'Produto: Código, Descrição; Valores: Qtd, Preço',
+        default: '',
+      },
       densidade: {
         type: 'string',
         label: 'Densidade',
@@ -325,6 +369,31 @@ export function opcoesEstaticas() {
       // ---------- Interação ----------
       permitirOrdenar: { type: 'boolean', label: 'Ordenar clicando no cabeçalho', section: 'Interação', default: true },
       mostrarBusca: { type: 'boolean', label: 'Mostrar caixa de busca', section: 'Interação', default: true },
+      // Busca "contém" (5.3, v3). Opções novas, padrão novo.
+      modoDaBusca: {
+        type: 'string',
+        label: 'Várias palavras',
+        section: 'Busca',
+        display: 'select',
+        values: [{ 'Todas precisam aparecer': 'todas' }, { 'Qualquer uma basta': 'qualquer' }],
+        default: 'todas',
+      },
+      colunasDaBusca: {
+        type: 'string',
+        label: 'Colunas (vazio = visíveis)',
+        section: 'Busca',
+        placeholder: 'Código, Descrição',
+        default: '',
+      },
+      buscarEm: {
+        type: 'string',
+        label: 'Procurar no',
+        section: 'Busca',
+        display: 'select',
+        values: [{ 'Texto formatado': 'formatado' }, { 'Valor bruto': 'bruto' }],
+        default: 'formatado',
+      },
+      realcarBusca: { type: 'boolean', label: 'Realçar o trecho', section: 'Busca', default: true },
       mostrarFiltrosPorColuna: {
         type: 'boolean',
         label: 'Mostrar filtro em cada coluna',
@@ -440,7 +509,7 @@ export function opcoesPorColuna(colunas, colunasNumericas = []) {
       section: secao,
       display: 'select',
       default: 'auto',
-      values: listaDeValores(TIPOS_DE_CELULA),
+      values: listaDeValores(tiposDeCelula()),
     };
     saida[`col_${chave}_corDoTexto`] = {
       type: 'string',

@@ -46,7 +46,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     palco,
     areas: Array.from(palco.querySelectorAll('.st-area-preenchida')),
     linhas: Array.from(palco.querySelectorAll('.st-linha')),
-    nota: palco.querySelector('.st-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     fim: () => amb.restaurar(),
   };

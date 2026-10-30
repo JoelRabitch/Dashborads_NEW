@@ -24,14 +24,43 @@
  */
 
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RAIZ = resolve(__dirname, '..');
-const DIR_DIST = join(RAIZ, 'dist');
+// BL_SAIDA (5.14b): gera os bundles em outra pasta (ex.: o teste "sem
+// pacotes"), sem tocar em dist/, no MANIFEST nem em test/gerado.
+const DIR_DIST = process.env.BL_SAIDA ? resolve(process.env.BL_SAIDA) : join(RAIZ, 'dist');
+const SAIDA_ALTERNATIVA = !!process.env.BL_SAIDA;
 const DIR_CHARTS = join(RAIZ, 'src', 'charts');
+const DIR_PACKS = join(RAIZ, 'src', 'packs');
+
+/**
+ * Pacotes temáticos (5.14b): `src/packs/index.js` é trocado pela lista das
+ * PASTAS que existem em src/packs/ (cada uma com index.js). Adicionar um
+ * pacote = adicionar uma pasta; apagar a pasta = o pacote some do build.
+ * `BL_SEM_PACOTES=1` gera tudo sem nenhum pacote.
+ */
+function pacotesDoBuild() {
+  if (process.env.BL_SEM_PACOTES === '1' || !existsSync(DIR_PACKS)) return [];
+  return readdirSync(DIR_PACKS)
+    .filter((n) => !n.startsWith('_') && !n.startsWith('.'))
+    .filter((n) => statSync(join(DIR_PACKS, n)).isDirectory() && existsSync(join(DIR_PACKS, n, 'index.js')))
+    .sort();
+}
+const pluginDePacotes = {
+  name: 'pacotes-tematicos',
+  setup(b) {
+    b.onResolve({ filter: /packs[\\/]index\.js$/ }, () => ({ path: 'pacotes-tematicos', namespace: 'pacotes' }));
+    b.onLoad({ filter: /.*/, namespace: 'pacotes' }, () => ({
+      contents: pacotesDoBuild().map((n) => `import ${JSON.stringify(join(DIR_PACKS, n, 'index.js').replace(/\\/g, '/'))};`).join('\n') || '/* sem pacotes */',
+      resolveDir: DIR_PACKS,
+      loader: 'js',
+    }));
+  },
+};
 
 const minificar = process.argv.includes('--minificar');
 const somente = obterArgumento('--somente'); // build de um gráfico só
@@ -99,6 +128,7 @@ async function construirGrafico(grafico, meta) {
     legalComments: 'inline',
     banner: { js: cabecalho({ id: grafico.id, label: grafico.label, ...meta }) },
     logLevel: 'warning',
+    plugins: [pluginDePacotes],
   });
 
   const conteudo = resultado.outputFiles[0].text;
@@ -208,8 +238,8 @@ async function principal() {
     resultados.push(await construirGrafico(g, meta));
   }
 
-  gerarManifest(lerRegistro(), resultados);
-  await gerarApoioDoHarness(lerRegistro());
+  if (!SAIDA_ALTERNATIVA) gerarManifest(lerRegistro(), resultados);
+  if (!SAIDA_ALTERNATIVA) await gerarApoioDoHarness(lerRegistro());
 
   const construidos = resultados.filter((r) => r.construido).length;
   console.log(`Pronto: ${construidos}/${graficos.length} construído(s).`);

@@ -38,6 +38,25 @@ import {
   blocoDeInteracao,
 } from './options-kit.js';
 import { animarEntradaGenerica } from './animate.js';
+// Pacotes temáticos (5.14b): o build troca este módulo pela lista das pastas
+// de src/packs/ (ou por nada, com BL_SEM_PACOTES=1).
+import '../packs/index.js';
+import { existeIcone } from './icones.js';
+import {
+  usaItensDePacote,
+  opcaoDePacoteTematico,
+  filtrarOpcoesPorPacote,
+  pacotesLigados,
+  PACOTE_PADRAO,
+} from './pacotes.js';
+import {
+  opcoesDoCabecalho,
+  planejarCabecalho,
+  desenharCabecalho,
+  limparBalaoDaNota,
+  textoFinalDaNota,
+  cssDoCabecalho,
+} from './cabecalho.js';
 import { ligarDestaqueAoPassar } from './interaction.js';
 import {
   esconderTooltipsDe,
@@ -61,9 +80,6 @@ const CSS_BASE = `
 .bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
   display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
-.bl-titulo{font-weight:600;line-height:1.2;}
-.bl-subtitulo{opacity:.7;line-height:1.2;}
 .bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
 .bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
   border-radius:4px;font-size:11px;line-height:1.35;}
@@ -103,9 +119,13 @@ export function defineViz(declaracao) {
   // Abas padronizadas (módulo 2.8): só section/order/label mudam aqui.
   // Entram em TODO gráfico: as opções de aviso (2.5) e as de animação (2.7)
   // que ele ainda não declara (as declaradas mantêm os próprios defaults).
-  const opcoes = organizarAbas(
-    Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
-  );
+  const juntas = Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho());
+  // "Pacote temático" (5.14b): só nos gráficos com listas de ícones,
+  // formas ou paletas que contêm itens de pacote.
+  if (usaItensDePacote(juntas)) Object.assign(juntas, opcaoDePacoteTematico());
+  // "Estilo do ícone" (5.14d): em todo gráfico com lista de ícones.
+  if (!juntas.estiloDoIcone && temListaDeIcones(juntas)) Object.assign(juntas, OPCAO_ESTILO_DO_ICONE);
+  const opcoes = organizarAbas(juntas);
 
   const definicao = {
     id,
@@ -115,21 +135,19 @@ export function defineViz(declaracao) {
     create(element, _config) {
       // Estrutura base, criada UMA vez por instância.
       limpar(element);
-      injetarEstilo(element, CSS_BASE, 'bl-base');
+      injetarEstilo(element, CSS_BASE + cssDoCabecalho(), 'bl-base');
 
       const raiz = criarEl('div', { classe: 'bl-raiz', pai: element });
       const cabecalho = criarEl('div', { classe: 'bl-cabecalho', pai: raiz });
-      const tituloEl = criarEl('div', { classe: 'bl-titulo', pai: cabecalho });
-      const subtituloEl = criarEl('div', { classe: 'bl-subtitulo', pai: cabecalho });
       const avisoEl = criarAviso(raiz);
       const area = criarEl('div', { classe: 'bl-area', pai: raiz });
+      const rodape = criarEl('div', { classe: 'bl-rodape', pai: raiz });
 
       this._bl = {
         element,
         raiz,
         cabecalho,
-        tituloEl,
-        subtituloEl,
+        rodape,
         area,
         avisoEl,
         eventos: criarGerenciadorDeEventos(),
@@ -206,7 +224,8 @@ function limparPendencias(bl) {
 
 function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
   const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
-  const ponte = criarPonte(this, opcoes);
+  // Listas do painel sem os itens de pacotes desligados (5.14b).
+  const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
   ponte.limparErros();
 
   // `create` pode não ter rodado em ambientes de teste; garante a estrutura.
@@ -214,6 +233,15 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
     definicaoCreateManual.call(this, element);
   }
   const bl = this._bl;
+
+  // 5.1 (v3): qualquer abertura do menu de drill (inclusive as que os
+  // gráficos fazem direto, como a tabela) esconde ANTES o tooltip deste
+  // gráfico — fixo ou não —, para nada ficar preso atrás do menu.
+  const abrirDrillDoLooker = ponte.abrirDrill;
+  ponte.abrirDrill = (celula, evento) => {
+    esconderTooltipsDe(bl.raiz);
+    return abrirDrillDoLooker(celula, evento);
+  };
 
   // Limpa o que ficou da renderização anterior (inclusive tooltip aberto).
   limparPendencias(bl);
@@ -228,11 +256,26 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   // Modelo de dados.
   const modelo = construirModelo(data, queryResponse, configFinal, ponte);
 
+  // Pacote temático trocado: registra o painel de novo (só nessa troca),
+  // para as listas mostrarem/esconderem os itens do pacote (5.14b).
+  const pacoteAgora = pacotesLigados(configFinal).join(',') || 'nenhum';
+  const pacoteAntes = bl.pacoteRegistrado === undefined ? PACOTE_PADRAO : bl.pacoteRegistrado;
+  const trocouPacote = 'pacoteTematico' in opcoes && pacoteAgora !== pacoteAntes;
+  bl.pacoteRegistrado = pacoteAgora;
+
   // Opções dinâmicas (uma por campo/série), se o gráfico quiser.
+  if (trocouPacote && typeof opcoesDinamicas !== 'function') {
+    ponte.registrarOpcoes({}, pacoteAgora);
+  }
   if (typeof opcoesDinamicas === 'function') {
     try {
       const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-      if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
+      const extra = trocouPacote || bl.pacoteRegistrado !== PACOTE_PADRAO ? pacoteAgora : '';
+      if (
+        dinamicas &&
+        (Object.keys(dinamicas).length || trocouPacote) &&
+        ponte.registrarOpcoes(filtrarOpcoesPorPacote(organizarAbas(dinamicas), configFinal), extra)
+      ) {
         // Opções novas no painel: os defaults delas valem já neste desenho.
         configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
       }
@@ -256,8 +299,15 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   // O tooltip único do gráfico passa a usar o config desta atualização.
   configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
 
-  // Cabeçalho (título/subtítulo).
-  aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
+  // Título, subtítulo e nota (5.1c): faixas próprias acima/abaixo da área.
+  // A nota usa o texto do desenho anterior até o render informar o novo.
+  const textosDoCabecalho = () => ({
+    titulo: cabecalhoProprio ? '' : configFinal.titulo,
+    subtitulo: cabecalhoProprio ? '' : configFinal.subtitulo,
+    nota: textoFinalDaNota(configFinal, bl.notaAutomatica || ''),
+  });
+  const aplicarCabecalhoV3 = () => aplicarCabecalho(bl, configFinal, tema, textosDoCabecalho());
+  aplicarCabecalhoV3();
 
   // Validação do formato de dados.
   const problema = validarModelo(modelo, exigencia);
@@ -289,6 +339,11 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
     detalhes: details,
     primeiraRenderizacao: bl.primeiraRenderizacao,
     recursosDoLooker: recursosDoLooker(),
+    /**
+     * Texto AUTOMÁTICO da nota (5.1c): o gráfico escreve aqui (é um
+     * elemento fora do documento); o núcleo decide onde e se mostra.
+     */
+    nota: null,
 
     limparRaiz() {
       limpar(bl.area);
@@ -340,13 +395,37 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
       esconderTooltipsDe(bl.raiz);
       limparAviso(bl);
       try {
-        render(ctx);
+        renderizar();
         ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== 'undefined' && console.error) console.error(`[${id}]`, e);
       }
     },
   };
+
+  /**
+   * Render com a nota: zera o texto automático, desenha e, se a nota mudou,
+   * refaz as faixas. Se a área do gráfico mudou de altura por causa disso,
+   * redesenha uma vez no espaço certo (no navegador a medida é real).
+   */
+  function renderizar({ repetir = true } = {}) {
+    ctx.nota = criarEl('div');
+    render(ctx);
+    const nova = (ctx.nota.textContent || '').trim();
+    if (nova !== (bl.notaAutomatica || '')) {
+      bl.notaAutomatica = nova;
+      aplicarCabecalhoV3();
+      const tamanho = medir(bl.area);
+      if (repetir && (tamanho.largura !== ctx.largura || tamanho.altura !== ctx.altura)) {
+        ctx.largura = tamanho.largura;
+        ctx.altura = tamanho.altura;
+        bl.eventos.limpar();
+        limparPendencias(bl);
+        esconderTooltipsDe(bl.raiz);
+        renderizar({ repetir: false });
+      }
+    }
+  }
 
   // Fundo do tile conforme o tema.
   bl.raiz.style.background = tema.fundo;
@@ -357,6 +436,7 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   // Guarda um redesenho leve para o ResizeObserver chamar.
   bl.ultimoDesenho = () => {
     if (!this._bl) return;
+    aplicarCabecalhoV3(); // a largura do tile muda a quebra de linha dos textos
     const tamanho = medir(bl.area);
     if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
     ctx.largura = tamanho.largura;
@@ -365,14 +445,14 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
     esconderTooltipsDe(bl.raiz);
     limparAviso(bl); // senão o mesmo aviso se repete a cada redimensionamento
     try {
-      render(ctx);
+      renderizar();
       ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     } catch (e) {
       if (typeof console !== 'undefined' && console.error) console.error(`[${id}]`, e);
     }
   };
 
-  render(ctx);
+  renderizar();
   // Destaque ao passar o mouse (módulo 2.6), igual em todos os gráficos.
   ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
   // Entrada/atualização animada (módulo 2.7): depois do desenho, em todos
@@ -397,19 +477,17 @@ function opcoesDeAnimacaoPadrao() {
 /** Cria a estrutura base quando `create` não rodou (ambiente de teste). */
 function definicaoCreateManual(element) {
   limpar(element);
-  injetarEstilo(element, CSS_BASE, 'bl-base');
+  injetarEstilo(element, CSS_BASE + cssDoCabecalho(), 'bl-base');
   const raiz = criarEl('div', { classe: 'bl-raiz', pai: element });
   const cabecalho = criarEl('div', { classe: 'bl-cabecalho', pai: raiz });
-  const tituloEl = criarEl('div', { classe: 'bl-titulo', pai: cabecalho });
-  const subtituloEl = criarEl('div', { classe: 'bl-subtitulo', pai: cabecalho });
   const avisoEl = criarAviso(raiz);
   const area = criarEl('div', { classe: 'bl-area', pai: raiz });
+  const rodape = criarEl('div', { classe: 'bl-rodape', pai: raiz });
   this._bl = {
     element,
     raiz,
     cabecalho,
-    tituloEl,
-    subtituloEl,
+    rodape,
     area,
     avisoEl,
     eventos: criarGerenciadorDeEventos(),
@@ -422,16 +500,14 @@ function definicaoCreateManual(element) {
   };
 }
 
-function aplicarCabecalho(bl, config, tema) {
-  const titulo = (config.titulo || '').trim();
-  const subtitulo = (config.subtitulo || '').trim();
-  definirTexto(bl.tituloEl, titulo);
-  definirTexto(bl.subtituloEl, subtitulo);
-  bl.tituloEl.style.display = titulo ? 'block' : 'none';
-  bl.subtituloEl.style.display = subtitulo ? 'block' : 'none';
-  bl.tituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 1.25)}px`;
-  bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
-  bl.cabecalho.style.display = titulo || subtitulo ? 'block' : 'none';
+/** Planeja e desenha título, subtítulo e nota (componente único, 5.1c). */
+function aplicarCabecalho(bl, config, tema, textos) {
+  const { largura, altura } = medir(bl.raiz);
+  limparBalaoDaNota(bl);
+  const plano = planejarCabecalho({ largura, altura, config, tema, textos });
+  desenharCabecalho(bl, plano, tema);
+  bl.planoDoCabecalho = plano;
+  return plano;
 }
 
 /**
@@ -485,7 +561,8 @@ function posicionarAviso(bl, config, id) {
   const ligado = config.mostrarAvisos !== false;
   bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || 'topo' : 'oculto';
   if (bl.posicaoDoAviso === 'rodape') {
-    if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+    // Logo depois da área (antes da faixa de baixo do título/nota, 5.1c).
+    if (bl.area.nextSibling !== bl.avisoEl) bl.raiz.insertBefore(bl.avisoEl, bl.area.nextSibling);
   } else if (bl.avisoEl.nextSibling !== bl.area) {
     bl.raiz.insertBefore(bl.avisoEl, bl.area);
   }
@@ -508,6 +585,24 @@ function mostrarAviso(bl, tema, mensagem) {
 }
 
 /** Opções do aviso, presentes em TODOS os gráficos (aba Texto). */
+/** "Estilo do ícone" (5.14d, v3): vale para todos os ícones do gráfico. */
+export const OPCAO_ESTILO_DO_ICONE = {
+  estiloDoIcone: {
+    type: 'string',
+    label: 'Estilo do ícone',
+    section: 'Tema',
+    display: 'select',
+    default: 'contorno',
+    values: [{ Contorno: 'contorno' }, { Preenchido: 'preenchido' }],
+  },
+};
+
+function temListaDeIcones(opcoes) {
+  return Object.values(opcoes || {}).some(
+    (o) => o && Array.isArray(o.values) && /[íi]cone/i.test(o.label || '') && o.values.some((v) => existeIcone(String(Object.values(v)[0])))
+  );
+}
+
 const OPCOES_DE_AVISO = {
   mostrarAvisos: {
     type: 'boolean',

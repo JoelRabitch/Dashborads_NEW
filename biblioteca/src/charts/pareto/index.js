@@ -412,7 +412,7 @@ export default defineViz({
     }
 
     // ---------- Nota ----------
-    const nota = criarEl('div', { classe: 'pt-nota', pai: area });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     definirTexto(nota, textoDaConclusao(leitura, nivel, formatarValor));
 

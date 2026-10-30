@@ -6,7 +6,63 @@
  * geometria usados por vários gráficos.
  */
 
-import { line as d3Line, area as d3Area, arc as d3Arc, stack as d3Stack, stackOffsetNone, stackOffsetExpand, stackOffsetSilhouette, stackOffsetWiggle, stackOrderNone, stackOrderAscending, stackOrderDescending, stackOrderInsideOut, curveLinear, curveMonotoneX, curveMonotoneY, curveBasis, curveCatmullRom, curveStep, curveStepAfter, curveNatural, curveCardinal } from 'd3-shape';
+import { line as d3Line, area as d3Area, arc as d3Arc, stack as d3Stack, stackOffsetNone, stackOffsetExpand, stackOffsetSilhouette, stackOffsetWiggle, stackOrderNone, stackOrderAscending, stackOrderDescending, stackOrderInsideOut, curveLinear, curveMonotoneX, curveMonotoneY, curveBasis, curveStep, curveStepAfter, curveNatural, curveCardinal, curveBumpX } from 'd3-shape';
+
+/**
+ * Catmull-Rom SEM ultrapassar (melhorias v3, 5.6).
+ *
+ * O `curveCatmullRom` do d3 faz "ondas": entre dois pontos a curva sobe
+ * acima do maior e desce abaixo do menor (overshoot), o que num bump chart
+ * parece uma troca de posição que não houve. Aqui os pontos de controle de
+ * cada trecho (os mesmos de um Catmull-Rom uniforme, tangente = (p2−p0)/6)
+ * são LIMITADOS à faixa vertical e horizontal entre os dois pontos do
+ * trecho. Como uma Bézier cúbica fica dentro do casco dos seus pontos de
+ * controle, a curva nunca sai da faixa entre os dois pontos que liga.
+ * O nome do valor ("catmull") continua o mesmo para os tiles salvos.
+ */
+function CatmullLimitada(contexto) {
+  this._context = contexto;
+}
+CatmullLimitada.prototype = {
+  areaStart() {
+    this._line = 0;
+  },
+  areaEnd() {
+    this._line = NaN;
+  },
+  lineStart() {
+    this._pontos = [];
+  },
+  point(x, y) {
+    this._pontos.push([+x, +y]);
+  },
+  lineEnd() {
+    const p = this._pontos;
+    const n = p.length;
+    const c = this._context;
+    if (n) {
+      if (this._line) c.lineTo(p[0][0], p[0][1]);
+      else c.moveTo(p[0][0], p[0][1]);
+      const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
+      for (let i = 0; i < n - 1; i++) {
+        const p0 = p[i - 1] || p[i];
+        const p1 = p[i];
+        const p2 = p[i + 1];
+        const p3 = p[i + 2] || p2;
+        const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
+        const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
+        const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
+        const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
+        c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
+      }
+    }
+    if (this._line || (this._line !== 0 && n === 1)) c.closePath();
+    this._line = 1 - this._line;
+  },
+};
+export function curvaCatmullLimitada(contexto) {
+  return new CatmullLimitada(contexto);
+}
 
 /** Mapa de nomes de curva (opção do painel) para geradores do d3-shape. */
 export const CURVAS = {
@@ -14,7 +70,9 @@ export const CURVAS = {
   monotone: curveMonotoneX,
   monotoneY: curveMonotoneY,
   basis: curveBasis,
-  catmull: curveCatmullRom.alpha(0.5),
+  catmull: curvaCatmullLimitada,
+  // "bump" (v3, 5.6): tangente horizontal nas duas pontas, sem overshoot.
+  bump: curveBumpX,
   cardinal: curveCardinal,
   natural: curveNatural,
   step: curveStep,
@@ -115,6 +173,8 @@ export function caminhoDoSimbolo(forma, tamanho) {
       return pontosDoWye(r).map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join('') + 'Z';
     case 'circulo':
     default:
+      // Formas registradas por pacotes (5.14b): caminho centrado em (0,0).
+      if (FORMAS_EXTRAS[forma]) return FORMAS_EXTRAS[forma].caminho(tamanho);
       return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
   }
 }
@@ -142,6 +202,31 @@ function pontosDoWye(r) {
 
 /** Formas aceitas pela opção "Forma do ponto". */
 export const FORMAS_DE_MARCADOR = ['circulo', 'quadrado', 'triangulo', 'losango', 'cruz', 'estrela', 'wye'];
+
+/** Rótulos das formas base (para a lista do painel). */
+export const ROTULOS_DAS_FORMAS = {
+  circulo: 'Círculo',
+  quadrado: 'Quadrado',
+  triangulo: 'Triângulo',
+  losango: 'Losango',
+  cruz: 'Cruz',
+  estrela: 'Estrela',
+  wye: 'Wye (Y)',
+};
+
+/** Formas registradas por pacotes (5.14b, v3): id → {rotulo, caminho(tamanho), pacote}. */
+const FORMAS_EXTRAS = {};
+
+export function registrarForma(id, { rotulo, caminho, pacote = null }) {
+  FORMAS_EXTRAS[id] = { rotulo: rotulo || id, caminho, pacote };
+  if (!FORMAS_DE_MARCADOR.includes(id)) FORMAS_DE_MARCADOR.push(id);
+  ROTULOS_DAS_FORMAS[id] = rotulo || id;
+}
+
+/** Lista de formas para o painel (base + pacotes). */
+export function listaDeFormas() {
+  return FORMAS_DE_MARCADOR.map((id) => ({ rotulo: ROTULOS_DAS_FORMAS[id] || id, valor: id }));
+}
 
 /**
  * Normaliza o nome da forma vindo do config (aceita também os nomes do

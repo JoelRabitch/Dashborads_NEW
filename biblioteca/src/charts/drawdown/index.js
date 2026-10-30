@@ -322,7 +322,7 @@ export default defineViz({
 
     // ---------- Nota de recuperação ----------
     if (config.mostrarRecuperacao !== false && pior && pior.pior.indice >= 0) {
-      const nota = criarEl('div', { classe: 'st-nota', pai: plano.area });
+      const nota = ctx.nota; // 5.1c: texto automático da nota
       nota.style.color = tema.textoSuave;
       definirTexto(nota, textoDaRecuperacao(pior, serie, variasSeries));
     }

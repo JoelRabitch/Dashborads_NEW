@@ -95,7 +95,8 @@ export function criarListaVirtual({
 
   const rolagem = criarEl('div', { classe: 'lv-rolagem', pai: caixa });
   const conteudo = criarEl('div', { classe: 'lv-conteudo', pai: rolagem });
-  const nota = criarEl('div', { classe: 'lv-nota', pai: caixa });
+  // 5.1c: a nota é do componente único do núcleo; a lista só escreve o texto.
+  const nota = ctx.nota || criarEl('div');
   nota.style.color = tema.textoSuave;
 
   const estado = { visiveis: itens };
@@ -336,8 +337,15 @@ export function montarEscala({ valores, comecarEmZero = false, folga = 0.04 }) {
     maximo += passo / 2;
   } else if (!comecarEmZero) {
     const margem = (maximo - minimo) * folga;
+    const minimoDosDados = minimo;
+    const maximoDosDados = maximo;
     minimo -= margem;
     maximo += margem;
+    // 5.13b (v3): a folga visual NÃO cruza o zero. Com todos os valores
+    // positivos, o eixo começava em um negativo (ex.: −3 milhões) e a nota
+    // dizia "o eixo inclui o zero" por causa dessa folga, não dos dados.
+    if (minimoDosDados >= 0 && minimo < 0) minimo = 0;
+    if (maximoDosDados <= 0 && maximo > 0) maximo = 0;
   }
 
   const extensao = maximo - minimo || 1;

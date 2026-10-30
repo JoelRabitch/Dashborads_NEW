@@ -33,8 +33,8 @@
 
 import { defineViz } from '../../core/define-viz.js';
 import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom.js';
-import { formatadorDeValueFormat, truncar } from '../../core/format.js';
-import { opcoesDeAnimacao } from '../../core/animate.js';
+import { formatadorDeValueFormat } from '../../core/format.js';
+import { lerTextoLongo } from '../../core/texto-longo.js';
 import { hierarchy as d3Hierarchy } from 'd3-hierarchy';
 import {
   construirHierarquia,
@@ -50,6 +50,7 @@ import {
   blocoDeAnimacao,
   blocoDeTema,
   blocoAvancado,
+  sanitizarChave,
 } from '../../core/options-kit.js';
 import {
   CSS_ARVORE,
@@ -58,7 +59,18 @@ import {
   desenharArvore,
   criarCoresDaArvore,
   montarLinhas,
+  medirRotulosDaArvore,
 } from '../_arvore/index.js';
+import {
+  opcoesComunsDasArvores,
+  criarBarraDaArvore,
+  animacaoDeExpandir,
+  animarAbrirFechar,
+  planoDeCentralizacao,
+  deveCentralizar,
+  CSS_BARRA,
+  CSS_ANIMACAO_ARVORE,
+} from '../_arvore/comum.js';
 
 /** Acima disso cada árvore fica pequena demais para dizer alguma coisa. */
 const MAXIMO_DE_ARVORES = 24;
@@ -124,13 +136,13 @@ export default defineViz({
           step: 1,
           default: 0,
         },
-        mostrarBotoesDeExpandir: {
-          type: 'boolean',
-          label: 'Mostrar botões "Expandir tudo" e "Colapsar tudo"',
-          section: 'Interação',
-          default: true,
-        },
-      }
+        // Grade (5.12, v3). Largura/altura por árvore são dinâmicas.
+        espacoHorizontalDaGrade: { type: 'number', label: 'Espaço entre colunas (px)', section: 'Grade', default: 0 },
+        espacoVerticalDaGrade: { type: 'number', label: 'Espaço entre linhas (px)', section: 'Grade', default: 0 },
+        linhasGuiaDaGrade: { type: 'boolean', label: 'Linhas-guia da grade', section: 'Grade', default: false },
+      },
+      // 5.8–5.11 (v3): opções comuns às árvores e ao organograma.
+      opcoesComunsDasArvores({ comCadaArvore: true })
     ),
     {
       // Em árvore pequena só cabe o nome da folha.
@@ -140,8 +152,20 @@ export default defineViz({
   ),
   exigencia: { dimensoesMin: 1, aceitaPivo: false, exigeLinhas: true },
 
-  opcoesDinamicas({ modelo }) {
-    return opcoesDinamicasDeHierarquia(modelo);
+  opcoesDinamicas({ modelo, config }) {
+    const saida = opcoesDinamicasDeHierarquia(modelo);
+    // 5.12 (v3): largura e altura por árvore (0 = a padrão), como cor_<série>.
+    try {
+      const { raiz } = construirHierarquia(modelo, config);
+      for (const ramo of ((raiz && raiz.children) || []).slice(0, MAXIMO_DE_ARVORES)) {
+        const k = sanitizarChave(ramo.data.rotulo);
+        saida[`largura_${k}`] = { type: 'number', label: `Largura — ${ramo.data.rotulo}`, section: 'Grade', default: 0 };
+        saida[`altura_${k}`] = { type: 'number', label: `Altura — ${ramo.data.rotulo}`, section: 'Grade', default: 0 };
+      }
+    } catch (_) {
+      /* sem hierarquia: sem opções por árvore */
+    }
+    return saida;
   },
 
   render(ctx) {
@@ -172,7 +196,10 @@ export default defineViz({
     }
 
     ctx.limparRaiz();
-    injetarEstilo(elementoRaiz, CSS_ARVORE + CSS_EXPANDIR, 'av');
+    injetarEstilo(elementoRaiz, CSS_ARVORE + CSS_EXPANDIR + CSS_BARRA + CSS_ANIMACAO_ARVORE, 'av');
+    const tl = lerTextoLongo(config);
+    if (!tl.selecionavel) elementoRaiz.classList.add('am-sem-selecao');
+    else elementoRaiz.classList.remove('am-sem-selecao');
 
     // ---------- Estado de expandir/colapsar ----------
     const nivelInicial = Math.max(0, Number(config.nivelInicialExpandido) || 0);
@@ -183,44 +210,65 @@ export default defineViz({
     const recolhidos = estado.recolhidos;
     const alternado = estado.ultimoAlternado || null;
     estado.ultimoAlternado = null;
-    const animacao = opcoesDeAnimacao(config, { primeiraRenderizacao: false });
+    const animacao = animacaoDeExpandir(config);
+    const centralizarAgora = deveCentralizar(config, {
+      primeiro: !estado.jaCentralizou,
+      alternou: !!alternado,
+      botao: !!estado.centralizarAgora,
+    });
+    estado.centralizarAgora = false;
+    if (!estado.posicoesPorArvore) estado.posicoesPorArvore = new Map();
+    if (!estado.rolagemDasCelulas) estado.rolagemDasCelulas = new Map();
 
-    if (config.mostrarBotoesDeExpandir !== false) {
-      const barra = criarEl('div', { classe: 'am-barra', pai: elementoRaiz });
-      const botao = (texto, acao) => {
-        const b = criarEl('button', { pai: barra, texto });
-        b.type = 'button';
-        b.style.color = tema.texto;
-        b.style.borderColor = tema.borda;
-        ctx.eventos.on(b, 'click', () => {
-          acao();
-          ctx.redesenhar();
-        });
-        return b;
-      };
-      botao('Expandir tudo', () => recolhidos.clear());
-      botao('Colapsar tudo', () => {
+    criarBarraDaArvore({
+      ctx,
+      pai: elementoRaiz,
+      config,
+      tema,
+      aoExpandir: () => {
+        recolhidos.clear();
+        estado.ultimoAlternado = '*';
+        ctx.redesenhar();
+      },
+      aoColapsar: () => {
         recolhidos.clear();
         for (const ramo of ramos) for (const n of ramo.descendants()) if (n !== ramo && temFilhos(n.data)) recolhidos.add(chaveDoNo(n));
-      });
-    }
+        estado.ultimoAlternado = '*';
+        ctx.redesenhar();
+      },
+      aoCentralizar: () => {
+        estado.centralizarAgora = true;
+        ctx.redesenhar();
+      },
+    });
 
+    // ---------- Grade (5.12) ----------
+    const espacoH = Math.max(0, Number(config.espacoHorizontalDaGrade) || 0);
+    const espacoV = Math.max(0, Number(config.espacoVerticalDaGrade) || 0);
     const grade = criarEl('div', { classe: 'md-grade', pai: elementoRaiz });
     grade.style.display = 'flex';
     grade.style.flexWrap = 'wrap';
     grade.style.alignContent = 'flex-start';
+    grade.style.columnGap = `${espacoH}px`;
+    grade.style.rowGap = `${espacoV}px`;
+    // Centralizar o conjunto (5.10): a grade se alinha na horizontal.
+    const alinhH = config.alinhamentoHorizontalDaArvore || 'centro';
+    grade.style.justifyContent = alinhH === 'esquerda' ? 'flex-start' : alinhH === 'direita' ? 'flex-end' : 'center';
     grade.style.width = '100%';
-    grade.style.height = '100%';
+    grade.style.flex = '1 1 auto';
+    grade.style.minHeight = '0';
     grade.style.overflow = 'auto';
+    elementoRaiz.style.display = 'flex';
+    elementoRaiz.style.flexDirection = 'column';
 
     const larguraMinima = Number(config.larguraMinimaDaArvore) || 260;
     const colunasPedidas = Number(config.colunasDaGrade) || 0;
     const colunas =
       colunasPedidas > 0
         ? colunasPedidas
-        : Math.max(1, Math.min(ramos.length, Math.floor(largura / larguraMinima) || 1));
-    const larguraDaCelula = Math.max(120, Math.floor(largura / colunas));
-    const alturaDaCelula = Number(config.alturaDaArvore) || 200;
+        : Math.max(1, Math.min(ramos.length, Math.floor((largura + espacoH) / (larguraMinima + espacoH)) || 1));
+    const larguraPadrao = Math.max(120, Math.floor((largura - espacoH * (colunas - 1)) / colunas));
+    const alturaPadrao = Number(config.alturaDaArvore) || 200;
 
     // A cor sai da árvore INTEIRA, não de cada ramo: assim um ramo tem a
     // mesma cor aqui e na árvore radial do mesmo dado.
@@ -238,36 +286,21 @@ export default defineViz({
     // ramo fica do mesmo tamanho e a comparação entre ramos some.
     const maiorGlobal = raiz.value || 1;
     const espacoDoTitulo = 18;
+    const semRotulos = config.mostrarRotulos === false || config.mostrarRotulosDeFolha === false;
 
     for (const ramo of ramos) {
-      const celula = criarEl('div', { pai: grade });
+      const chaveDoRamo = chaveDoNo(ramo);
+      // Largura e altura por árvore (opções dinâmicas; 0 = a padrão).
+      const larguraDaCelula = Number(config[`largura_${sanitizarChave(ramo.data.rotulo)}`]) || larguraPadrao;
+      const alturaDaCelula = Number(config[`altura_${sanitizarChave(ramo.data.rotulo)}`]) || alturaPadrao;
+
+      const celula = criarEl('div', { pai: grade, classe: 'am-celula' });
       celula.style.width = `${larguraDaCelula}px`;
       celula.style.height = `${alturaDaCelula}px`;
-      celula.style.boxSizing = 'border-box';
-
-      const svg = criarSvgEl('svg', {
-        pai: celula,
-        atributos: {
-          width: larguraDaCelula,
-          height: alturaDaCelula,
-          viewBox: `0 0 ${larguraDaCelula} ${alturaDaCelula}`,
-        },
-      });
-
-      const titulo = criarSvgEl('text', {
-        pai: svg,
-        classe: 'av-titulo-arvore',
-        atributos: {
-          x: 8,
-          y: 12,
-          'font-size': Math.max(9, tema.tamanhoBase - 1),
-          fill: cores(ramo),
-        },
-      });
-      definirTexto(
-        titulo,
-        `${truncar(ramo.data.rotulo, 22)} (${formatar(ramo.value || 0)})`
-      );
+      celula.style.flex = '0 0 auto';
+      celula.style.display = 'flex';
+      celula.setAttribute('data-arvore', chaveDoRamo);
+      if (config.linhasGuiaDaGrade === true) celula.style.outline = `1px dashed ${tema.borda}`;
 
       // Cada ramo vira a raiz de uma árvore própria, senão o layout do d3
       // reserva espaço para os irmãos que não estão nesta célula.
@@ -291,18 +324,59 @@ export default defineViz({
         .sort((a, b) => (b.value || 0) - (a.value || 0));
       const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
 
-      const reservaDaDireita = config.mostrarRotulosDeFolha === false || config.mostrarRotulos === false ? 12 : larguraDaCelula * 0.38;
+      // ---------- Texto longo (5.11): espaço dos rótulos ----------
+      // "Mostrar inteiro": a árvore reserva a largura do MAIOR rótulo e a
+      // célula rola na horizontal se precisar. Nos outros modos, o rótulo
+      // cabe na faixa de 38% da célula (como antes) e é ajustado ao modo.
+      const limiteFixo = Math.max(40, larguraDaCelula * 0.38 - 10);
+      const limite = tl.modo === 'inteiro' ? Infinity : limiteFixo;
+      const medida = medirRotulosDaArvore(subRaiz, { config, tema, valueFormat, total: maiorGlobal, limite });
+      const reservaDireita = semRotulos ? 12 : (tl.modo === 'inteiro' ? medida.folhas : Math.min(medida.folhas, limiteFixo)) + 12 + tl.margemExtra;
+      const reservaEsquerda = 12 + (config.mostrarRotulosInternos === true && medida.internos ? medida.internos + 8 : 0);
+      const profundidade = Math.max(1, subRaiz.height);
+      const larguraDoLayout = Math.max(profundidade * 48, larguraDaCelula - reservaEsquerda - reservaDireita);
+      const larguraDoSvg = reservaEsquerda + larguraDoLayout + reservaDireita;
+      const alturaDoSvg = alturaDaCelula;
+
+      const svg = criarSvgEl('svg', {
+        pai: celula,
+        atributos: {
+          width: larguraDoSvg,
+          height: alturaDoSvg,
+          viewBox: `0 0 ${larguraDoSvg} ${alturaDoSvg}`,
+        },
+      });
+      svg.style.display = 'block';
+      svg.style.flex = '0 0 auto';
+      // Cada árvore centralizada na própria célula (5.10, opção).
+      if (config.centralizarCadaArvore !== false && larguraDoSvg < larguraDaCelula) {
+        svg.style.marginLeft = alinhH === 'esquerda' ? '0' : 'auto';
+        svg.style.marginRight = alinhH === 'direita' ? '0' : 'auto';
+      }
+
+      const titulo = criarSvgEl('text', {
+        pai: svg,
+        classe: 'av-titulo-arvore',
+        atributos: {
+          x: 8,
+          y: 12,
+          'font-size': Math.max(9, tema.tamanhoBase - 1),
+          fill: cores(ramo),
+        },
+      });
+      definirTexto(titulo, `${ramo.data.rotulo} (${formatar(ramo.value || 0)})`);
+
       layoutHorizontal(subRaiz, {
-        largura: Math.max(20, larguraDaCelula - 24 - reservaDaDireita),
-        altura: Math.max(20, alturaDaCelula - espacoDoTitulo - 12),
+        largura: Math.max(20, larguraDoLayout),
+        altura: Math.max(20, alturaDoSvg - espacoDoTitulo - 12),
         config,
       });
 
-      desenharArvore({
+      const desenho = desenharArvore({
         svg,
         raiz: subRaiz,
         modo: 'horizontal',
-        deslocamento: { x: 12, y: espacoDoTitulo },
+        deslocamento: { x: reservaEsquerda, y: espacoDoTitulo },
         config,
         valorDeReferencia: config.escalaPorArvore ? null : maiorGlobal,
         tema,
@@ -310,6 +384,8 @@ export default defineViz({
         totalGeral: maiorGlobal,
         cores: corDoNo,
         compacto: true,
+        chaveDe: (n) => chavePorDados.get(n.data),
+        limiteDoRotulo: limite,
         aoInteragir(elemento, no) {
           const conteudo = () => ({
             titulo: `${ramo.data.rotulo} › ${no.data.rotulo}`,
@@ -323,20 +399,17 @@ export default defineViz({
           const chave = chavePorDados.get(no.data);
           const comFilhos = temFilhos(no.data);
           elemento.setAttribute('data-item', chave);
+          if (estado.selecionado === chave) elemento.setAttribute('data-selecionado', '1');
           if (comFilhos) {
             elemento.setAttribute('data-recolhido', estaRecolhido(no.data) ? '1' : '0');
             elemento.style.cursor = 'pointer';
             desenharIndicador(elemento, estaRecolhido(no.data), tema);
           }
-          // Reaparecendo depois de expandir: anima a entrada (se a animação
-          // estiver ligada e o usuário não pediu menos movimento).
-          if (alternado && animacao.ligada && chave !== alternado && chave.startsWith(`${alternado}›`)) {
-            elemento.style.animation = `bl-surgir ${Math.max(150, animacao.duracao)}ms ease-out backwards`;
-          }
           // Nó com filhos: expande/colapsa. Nó sem filhos: "Ação do clique"
-          // (drill se a célula tem links, senão fixa o tooltip, ou nada).
-          // Shift+clique fixa o tooltip em qualquer nó.
+          // (drill se a célula tem links, ou nada). Shift+clique fixa o
+          // tooltip em qualquer nó.
           ctx.eventos.on(elemento, 'click', (ev) => {
+            estado.selecionado = chave;
             if (comFilhos && !ev.shiftKey) {
               if (recolhidos.has(chave)) recolhidos.delete(chave);
               else recolhidos.add(chave);
@@ -352,7 +425,50 @@ export default defineViz({
           });
         },
       });
+
+      // ---------- Abrir/fechar animado (5.9) ----------
+      const atuais = subRaiz.descendants().map((n) => ({
+        chave: chavePorDados.get(n.data),
+        el: n.__grupo,
+        x: n.__xy.x,
+        y: n.__xy.y,
+        pai: n.parent ? chavePorDados.get(n.parent.data) : null,
+      }));
+      const mudouAqui = alternado === '*' || (alternado && (alternado === chaveDoRamo || alternado.startsWith(`${chaveDoRamo}›`)));
+      estado.posicoesPorArvore.set(
+        chaveDoRamo,
+        animarAbrirFechar({
+          ctx,
+          anteriores: estado.posicoesPorArvore.get(chaveDoRamo),
+          atuais,
+          camadaDosFantasmas: desenho.grupo,
+          anim: animacao,
+          alternado: mudouAqui ? alternado : null,
+        })
+      );
+
+      // ---------- Centralizar na célula (5.10) ----------
+      const rolagemGuardada = estado.rolagemDasCelulas.get(chaveDoRamo);
+      if (centralizarAgora && larguraDoSvg > larguraDaCelula) {
+        const alvoNo =
+          config.oQueCentralizar === 'raiz'
+            ? subRaiz
+            : config.oQueCentralizar === 'selecionado'
+              ? subRaiz.descendants().find((n) => chavePorDados.get(n.data) === estado.selecionado) || null
+              : null;
+        const plano = planoDeCentralizacao({
+          area: { largura: larguraDaCelula, altura: alturaDaCelula },
+          desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
+          alvo: alvoNo ? alvoNo.__xy : null,
+          config,
+        });
+        celula.scrollLeft = plano.scrollLeft;
+      } else if (rolagemGuardada) {
+        celula.scrollLeft = rolagemGuardada;
+      }
+      ctx.eventos.on(celula, 'scroll', () => estado.rolagemDasCelulas.set(chaveDoRamo, celula.scrollLeft));
     }
+    if (centralizarAgora) estado.jaCentralizou = true;
   },
 });
 
@@ -361,9 +477,6 @@ export default defineViz({
 /* ------------------------------------------------------------------ */
 
 const CSS_EXPANDIR = `
-.am-barra{display:flex;gap:6px;padding:4px 8px 0;}
-.am-barra button{padding:2px 8px;border-radius:4px;border:1px solid;background:transparent;cursor:pointer;
-  font:inherit;font-size:11px;}
 .am-indicador{pointer-events:none;font-weight:700;}
 @keyframes bl-surgir{from{opacity:0}to{opacity:1}}
 `;

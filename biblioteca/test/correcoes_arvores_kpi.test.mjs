@@ -134,7 +134,8 @@ test('arvores_multiplas — posição do rótulo muda a âncora', () => {
 test('arvores_multiplas — "esconder rótulos que se sobrepõem" e truncar', () => {
   const comEvitar = AM({ tamanhoDoRotulo: 28, mostrarRotulosInternos: true, evitarColisaoDeRotulos: true });
   const semEvitar = AM({ tamanhoDoRotulo: 28, mostrarRotulosInternos: true, evitarColisaoDeRotulos: false });
-  const trunc = AM({ truncarRotulo: 4 });
+  // v3 (5.11): truncarRotulo só vale no modo "Cortar com reticências".
+  const trunc = AM({ truncarRotulo: 4, modoDoTextoLongo: 'reticencias' });
   try {
     const total = comEvitar.todos('.av-rotulo').length;
     assert.ok(visiveis(comEvitar.todos('.av-rotulo')).length < total, 'com a opção ligada, algum rótulo some');
@@ -283,9 +284,11 @@ test('org_chart — conteúdo, formato e posição do rótulo', () => {
 });
 
 test('org_chart — esconder sobrepostos e truncar', () => {
-  const com = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: true });
-  const sem = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: false });
-  const trunc = OC({ truncarRotulo: 3 });
+  // v3 (5.13): com o cartão fixo (o padrão novo faz o cartão crescer com o texto).
+  const com = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: true, cartaoAjustavel: false });
+  const sem = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: false, cartaoAjustavel: false });
+  // v3 (5.11): truncarRotulo só vale no modo "Cortar com reticências".
+  const trunc = OC({ truncarRotulo: 3, modoDoTextoLongo: 'reticencias' });
   try {
     const todosCom = com.rotulos();
     assert.ok(visiveis(todosCom).length < todosCom.length, 'com a opção, linhas que não cabem somem');

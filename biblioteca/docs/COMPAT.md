@@ -18,7 +18,7 @@ continuam iguais.
 
 ## 1. Se a versão do Looker mudar: checklist
 
-1. **Ligue o modo debug** na visualização (painel Edit → seção "Avançado" →
+1. **Ligue o modo debug** na visualização (painel Edit → aba "Mais" →
    "Modo debug").
 2. **Abra o console do navegador** (F12 → aba Console). O modo debug imprime:
    - o relatório de detecção de recursos (`recursosDoLooker`), dizendo quais
@@ -85,12 +85,16 @@ a URL é `http(s)` e dispara o clique. Mesmo efeito, sem a função proibida.
 
 ### Suposições sobre o painel de opções (CONFERIR NO LOOKER REAL)
 
-- **Ordem das abas:** não sabemos se o Looker ordena as abas pelo `order` ou
-  pela primeira aparição da `section`. A biblioteca atende às duas: o
-  `order` cresce por aba (Dados < Visual < Texto < Interação < Avançado) e as
-  chaves do objeto de opções saem já nessa ordem (estáticas e no
-  `registerOptions`). Se a ordem vier errada, ajuste `ABAS` em
+- **Ordem das abas (v3, 5.1b):** num print do editor as abas apareceram em
+  ordem ALFABÉTICA, ou seja, o Looker ordena pelo NOME da seção e não pelo
+  `order`. Por isso são só 4 abas de nome curto (Dados, Estilo, Texto,
+  Mais), que na barra ficam "Dados · Estilo · Mais · Texto". O `order` só
+  ordena as opções dentro de cada aba. Lista única: `ABAS` em
   `options-kit.js`.
+- **Rótulos:** o editor corta com "…" o que não cabe. Limite adotado: 30
+  caracteres (liga/desliga) e 40 (demais), contando o prefixo. A API de
+  opções não tem campo de ajuda conhecido; o rótulo completo fica em
+  `docs/opcoes/ABAS.md`.
 - **Chaves ausentes no config:** o Looker nem sempre manda no `config` a
   chave de uma opção que o usuário nunca tocou (ex.: dashboard salvo antes
   da opção existir). `normalizarConfig` preenche com o default declarado e
@@ -209,3 +213,11 @@ pelo caminho `/gh/`, as saídas são:
 | Drill não abre | `looker-adapter.js` | `abrirDrill` → `openDrillMenu` existe? |
 | Arraste/zoom travando | `interaction.js` | Pointer capture (ver 4.2) |
 | Campo oculto aparecendo | `data-model.js` | `descobrirCamposOcultos` |
+
+## Melhorias v3 — suposições novas (CONFERIR NO LOOKER REAL)
+
+- Abas ordenadas pelo NOME pelo Looker (por isso Dados · Estilo · Mais · Texto).
+- Sem campo de "ajuda" por opção na API de opções: explicações em `docs/opcoes/ABAS.md`.
+- Re-registrar o painel ao trocar o "Pacote temático" (uma vez por troca).
+- `trigger('updateConfig')` não confirmado: arrastar bordas da grade de árvores não foi feito.
+- Tooltip: o menu de drill do Looker fica fora do iframe; usamos `blur`/`focus` da janela e `mouseout` sem relatedTarget.

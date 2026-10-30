@@ -72,7 +72,7 @@ function renderizar(nomeDaFixture, ajustes = {}, { menosMovimento = false } = {}
     periodo: palco.querySelector('.bc-periodo')?.textContent || '',
     botao: palco.querySelector('.bc-botao'),
     tempo: palco.querySelector('.bc-tempo'),
-    nota: palco.querySelector('.bc-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
   });
 
   return {

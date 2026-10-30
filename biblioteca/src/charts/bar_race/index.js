@@ -197,7 +197,7 @@ export default defineViz({
       ehData ? formatarData(categoria.valorBruto, config.formatoDeData || 'auto') : categoria.rotulo;
 
     const pista = criarEl('div', { classe: 'bc-pista', pai: caixa });
-    const nota = criarEl('div', { classe: 'bc-nota', pai: caixa });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
 
     // Aba Cores: a cor própria da série (chave antiga, sem sanitizar, e a

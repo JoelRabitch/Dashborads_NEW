@@ -2,6 +2,7 @@
   {
     "id": "origemDasSeries",
     "label": "De onde vêm as séries",
+    "rotuloCompleto": "De onde vêm as séries",
     "section": "Dados",
     "type": "string",
     "default": "auto",
@@ -9,7 +10,8 @@
   },
   {
     "id": "limiteDeSeries",
-    "label": "Máximo de séries (as demais viram \"Outros\")",
+    "label": "Máximo de séries",
+    "rotuloCompleto": "Máximo de séries (as demais viram \"Outros\")",
     "section": "Dados",
     "type": "number",
     "default": 12,
@@ -17,7 +19,8 @@
   },
   {
     "id": "agruparRestoEmOutros",
-    "label": "Somar as séries que passaram do limite em \"Outros\"",
+    "label": "Agrupar o resto em Outros",
+    "rotuloCompleto": "Somar as séries que passaram do limite em \"Outros\"",
     "section": "Dados",
     "type": "boolean",
     "default": true,
@@ -26,6 +29,7 @@
   {
     "id": "tratamentoDeNulos",
     "label": "Valores faltando",
+    "rotuloCompleto": "Valores faltando",
     "section": "Dados",
     "type": "string",
     "default": "interpolar",
@@ -34,6 +38,7 @@
   {
     "id": "unidadeDoDrawdown",
     "label": "Drawdown · Medir a queda em",
+    "rotuloCompleto": "Drawdown · Medir a queda em",
     "section": "Dados",
     "type": "string",
     "default": "percentual",
@@ -41,7 +46,8 @@
   },
   {
     "id": "destacarPiorQueda",
-    "label": "Drawdown · Destacar a pior queda",
+    "label": "Drawdown · Destacar pior queda",
+    "rotuloCompleto": "Drawdown · Destacar a pior queda",
     "section": "Dados",
     "type": "boolean",
     "default": true,
@@ -49,7 +55,8 @@
   },
   {
     "id": "mostrarRecuperacao",
-    "label": "Drawdown · Mostrar quanto durou a pior queda",
+    "label": "Drawdown · Duração da queda",
+    "rotuloCompleto": "Drawdown · Mostrar quanto durou a pior queda",
     "section": "Dados",
     "type": "boolean",
     "default": true,
@@ -58,7 +65,8 @@
   {
     "id": "curvaDaLinha",
     "label": "Suavização da linha",
-    "section": "Visual",
+    "rotuloCompleto": "Suavização da linha",
+    "section": "Estilo",
     "type": "string",
     "default": "monotone",
     "dinamica": false
@@ -66,15 +74,17 @@
   {
     "id": "espessuraDaLinha",
     "label": "Espessura da linha",
-    "section": "Visual",
+    "rotuloCompleto": "Espessura da linha",
+    "section": "Estilo",
     "type": "number",
     "default": 1.5,
     "dinamica": false
   },
   {
     "id": "mostrarPontos",
-    "label": "Marcar cada período com um ponto",
-    "section": "Visual",
+    "label": "Ponto em cada período",
+    "rotuloCompleto": "Marcar cada período com um ponto",
+    "section": "Estilo",
     "type": "boolean",
     "default": false,
     "dinamica": false
@@ -82,7 +92,8 @@
   {
     "id": "paleta",
     "label": "Cor · Paleta de cores",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Paleta de cores",
+    "section": "Estilo",
     "type": "string",
     "default": "looker",
     "dinamica": false
@@ -90,7 +101,8 @@
   {
     "id": "inverterPaleta",
     "label": "Cor · Inverter ordem das cores",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Inverter ordem das cores",
+    "section": "Estilo",
     "type": "boolean",
     "default": false,
     "dinamica": false
@@ -98,7 +110,8 @@
   {
     "id": "opacidade",
     "label": "Cor · Opacidade do preenchimento",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Opacidade do preenchimento",
+    "section": "Estilo",
     "type": "number",
     "default": 1,
     "dinamica": false
@@ -106,7 +119,8 @@
   {
     "id": "mostrarContorno",
     "label": "Cor · Mostrar contorno",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Mostrar contorno",
+    "section": "Estilo",
     "type": "boolean",
     "default": true,
     "dinamica": false
@@ -114,7 +128,8 @@
   {
     "id": "corDoContorno",
     "label": "Cor · Cor do contorno",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor do contorno",
+    "section": "Estilo",
     "type": "string",
     "default": "#FFFFFF",
     "dinamica": false
@@ -122,7 +137,8 @@
   {
     "id": "espessuraDoContorno",
     "label": "Cor · Espessura do contorno (px)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Espessura do contorno (px)",
+    "section": "Estilo",
     "type": "number",
     "default": 1,
     "dinamica": false
@@ -130,7 +146,8 @@
   {
     "id": "tracejadoDoContorno",
     "label": "Cor · Estilo do contorno",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Estilo do contorno",
+    "section": "Estilo",
     "type": "string",
     "default": "solido",
     "dinamica": false
@@ -138,7 +155,8 @@
   {
     "id": "tema",
     "label": "Tema · Tema",
-    "section": "Visual",
+    "rotuloCompleto": "Tema · Tema",
+    "section": "Estilo",
     "type": "string",
     "default": "claro",
     "dinamica": false
@@ -146,7 +164,8 @@
   {
     "id": "corDeFundo",
     "label": "Cor · Cor de fundo (vazio = do tema)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor de fundo (vazio = do tema)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
@@ -154,23 +173,26 @@
   {
     "id": "corDoTexto",
     "label": "Cor · Cor do texto (tema personalizado)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor do texto (tema personalizado)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "corDaBorda",
-    "label": "Cor · Cor das bordas (tema personalizado)",
-    "section": "Visual",
+    "label": "Cor · Cor das bordas",
+    "rotuloCompleto": "Cor · Cor das bordas (tema personalizado)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "corDaGrade",
-    "label": "Cor · Cor das linhas de grade (tema personalizado)",
-    "section": "Visual",
+    "label": "Cor · Cor das linhas de grade",
+    "rotuloCompleto": "Cor · Cor das linhas de grade (tema personalizado)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": false
@@ -178,7 +200,8 @@
   {
     "id": "familiaDaFonte",
     "label": "Tema · Fonte",
-    "section": "Visual",
+    "rotuloCompleto": "Tema · Fonte",
+    "section": "Estilo",
     "type": "string",
     "default": "sistema",
     "dinamica": false
@@ -186,7 +209,8 @@
   {
     "id": "tamanhoDaFonte",
     "label": "Tema · Tamanho base da fonte (px)",
-    "section": "Visual",
+    "rotuloCompleto": "Tema · Tamanho base da fonte (px)",
+    "section": "Estilo",
     "type": "number",
     "default": 12,
     "dinamica": false
@@ -194,7 +218,8 @@
   {
     "id": "corDaQueda",
     "label": "Drawdown · Cor da área de queda",
-    "section": "Visual",
+    "rotuloCompleto": "Drawdown · Cor da área de queda",
+    "section": "Estilo",
     "type": "string",
     "default": "#DC2626",
     "dinamica": false
@@ -202,14 +227,25 @@
   {
     "id": "opacidadeDaArea",
     "label": "Drawdown · Opacidade da área",
-    "section": "Visual",
+    "rotuloCompleto": "Drawdown · Opacidade da área",
+    "section": "Estilo",
     "type": "number",
     "default": 0.25,
     "dinamica": false
   },
   {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
+    "dinamica": false
+  },
+  {
     "id": "mostrarEixoX",
-    "label": "Eixo X · Mostrar eixo X (horizontal)",
+    "label": "Eixo X · Mostrar eixo X",
+    "rotuloCompleto": "Eixo X · Mostrar eixo X (horizontal)",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -218,6 +254,7 @@
   {
     "id": "tituloEixoX",
     "label": "Eixo X · Título do eixo X",
+    "rotuloCompleto": "Eixo X · Título do eixo X",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -226,6 +263,7 @@
   {
     "id": "escalaEixoX",
     "label": "Eixo X · Escala do eixo X",
+    "rotuloCompleto": "Eixo X · Escala do eixo X",
     "section": "Texto",
     "type": "string",
     "default": "linear",
@@ -233,7 +271,8 @@
   },
   {
     "id": "minimoEixoX",
-    "label": "Eixo X · Mínimo do eixo X (vazio = automático)",
+    "label": "Eixo X · Mínimo do eixo X",
+    "rotuloCompleto": "Eixo X · Mínimo do eixo X (vazio = automático)",
     "section": "Texto",
     "type": "number",
     "default": null,
@@ -241,7 +280,8 @@
   },
   {
     "id": "maximoEixoX",
-    "label": "Eixo X · Máximo do eixo X (vazio = automático)",
+    "label": "Eixo X · Máximo do eixo X",
+    "rotuloCompleto": "Eixo X · Máximo do eixo X (vazio = automático)",
     "section": "Texto",
     "type": "number",
     "default": null,
@@ -250,6 +290,7 @@
   {
     "id": "inverterEixoX",
     "label": "Eixo X · Inverter eixo X",
+    "rotuloCompleto": "Eixo X · Inverter eixo X",
     "section": "Texto",
     "type": "boolean",
     "default": false,
@@ -257,7 +298,8 @@
   },
   {
     "id": "gradeEixoX",
-    "label": "Eixo X · Linhas de grade no eixo X",
+    "label": "Eixo X · Linhas de grade",
+    "rotuloCompleto": "Eixo X · Linhas de grade no eixo X",
     "section": "Texto",
     "type": "boolean",
     "default": false,
@@ -265,7 +307,8 @@
   },
   {
     "id": "rotacaoRotuloEixoX",
-    "label": "Eixo X · Rotação dos rótulos do eixo X (graus)",
+    "label": "Eixo X · Rotação dos rótulos do eixo X",
+    "rotuloCompleto": "Eixo X · Rotação dos rótulos do eixo X (graus)",
     "section": "Texto",
     "type": "number",
     "default": 0,
@@ -273,7 +316,8 @@
   },
   {
     "id": "mostrarEixoY",
-    "label": "Eixo Y · Mostrar eixo Y (vertical)",
+    "label": "Eixo Y · Mostrar eixo Y",
+    "rotuloCompleto": "Eixo Y · Mostrar eixo Y (vertical)",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -282,6 +326,7 @@
   {
     "id": "tituloEixoY",
     "label": "Eixo Y · Título do eixo Y",
+    "rotuloCompleto": "Eixo Y · Título do eixo Y",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -290,6 +335,7 @@
   {
     "id": "escalaEixoY",
     "label": "Eixo Y · Escala do eixo Y",
+    "rotuloCompleto": "Eixo Y · Escala do eixo Y",
     "section": "Texto",
     "type": "string",
     "default": "linear",
@@ -297,7 +343,8 @@
   },
   {
     "id": "minimoEixoY",
-    "label": "Eixo Y · Mínimo do eixo Y (vazio = automático)",
+    "label": "Eixo Y · Mínimo do eixo Y",
+    "rotuloCompleto": "Eixo Y · Mínimo do eixo Y (vazio = automático)",
     "section": "Texto",
     "type": "number",
     "default": null,
@@ -305,7 +352,8 @@
   },
   {
     "id": "maximoEixoY",
-    "label": "Eixo Y · Máximo do eixo Y (vazio = automático)",
+    "label": "Eixo Y · Máximo do eixo Y",
+    "rotuloCompleto": "Eixo Y · Máximo do eixo Y (vazio = automático)",
     "section": "Texto",
     "type": "number",
     "default": null,
@@ -314,6 +362,7 @@
   {
     "id": "inverterEixoY",
     "label": "Eixo Y · Inverter eixo Y",
+    "rotuloCompleto": "Eixo Y · Inverter eixo Y",
     "section": "Texto",
     "type": "boolean",
     "default": false,
@@ -321,7 +370,8 @@
   },
   {
     "id": "gradeEixoY",
-    "label": "Eixo Y · Linhas de grade no eixo Y",
+    "label": "Eixo Y · Linhas de grade",
+    "rotuloCompleto": "Eixo Y · Linhas de grade no eixo Y",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -329,7 +379,8 @@
   },
   {
     "id": "rotacaoRotuloEixoY",
-    "label": "Eixo Y · Rotação dos rótulos do eixo Y (graus)",
+    "label": "Eixo Y · Rotação dos rótulos do eixo Y",
+    "rotuloCompleto": "Eixo Y · Rotação dos rótulos do eixo Y (graus)",
     "section": "Texto",
     "type": "number",
     "default": 0,
@@ -338,6 +389,7 @@
   {
     "id": "formatoDoEixo",
     "label": "Eixo · Formato dos números nos eixos",
+    "rotuloCompleto": "Eixo · Formato dos números nos eixos",
     "section": "Texto",
     "type": "string",
     "default": "auto",
@@ -346,6 +398,7 @@
   {
     "id": "casasDecimaisDoEixo",
     "label": "Eixo · Casas decimais nos eixos",
+    "rotuloCompleto": "Eixo · Casas decimais nos eixos",
     "section": "Texto",
     "type": "number",
     "default": 1,
@@ -354,6 +407,7 @@
   {
     "id": "mostrarRotulos",
     "label": "Rótulo · Mostrar rótulos",
+    "rotuloCompleto": "Rótulo · Mostrar rótulos",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -362,6 +416,7 @@
   {
     "id": "tamanhoDoRotulo",
     "label": "Rótulo · Tamanho do rótulo (px)",
+    "rotuloCompleto": "Rótulo · Tamanho do rótulo (px)",
     "section": "Texto",
     "type": "number",
     "default": 11,
@@ -369,7 +424,8 @@
   },
   {
     "id": "corDoRotulo",
-    "label": "Rótulo · Cor do rótulo (vazio = automática)",
+    "label": "Rótulo · Cor do rótulo",
+    "rotuloCompleto": "Rótulo · Cor do rótulo (vazio = automática)",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -378,6 +434,7 @@
   {
     "id": "negritoNoRotulo",
     "label": "Rótulo · Rótulo em negrito",
+    "rotuloCompleto": "Rótulo · Rótulo em negrito",
     "section": "Texto",
     "type": "boolean",
     "default": false,
@@ -386,6 +443,7 @@
   {
     "id": "rotacaoDoRotulo",
     "label": "Rótulo · Rotação do rótulo (graus)",
+    "rotuloCompleto": "Rótulo · Rotação do rótulo (graus)",
     "section": "Texto",
     "type": "number",
     "default": 0,
@@ -393,7 +451,8 @@
   },
   {
     "id": "evitarColisaoDeRotulos",
-    "label": "Rótulo · Esconder rótulos que se sobrepõem",
+    "label": "Rótulo · Ocultar sobrepostos",
+    "rotuloCompleto": "Rótulo · Esconder rótulos que se sobrepõem",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -401,7 +460,8 @@
   },
   {
     "id": "truncarRotulo",
-    "label": "Rótulo · Truncar rótulo com mais de N caracteres (0 = não truncar)",
+    "label": "Rótulo · Cortar após N caracteres",
+    "rotuloCompleto": "Rótulo · Truncar rótulo com mais de N caracteres (0 = não truncar)",
     "section": "Texto",
     "type": "number",
     "default": 0,
@@ -410,6 +470,7 @@
   {
     "id": "posicaoDoRotulo",
     "label": "Rótulo · Posição do rótulo",
+    "rotuloCompleto": "Rótulo · Posição do rótulo",
     "section": "Texto",
     "type": "string",
     "default": "auto",
@@ -418,6 +479,7 @@
   {
     "id": "conteudoDoRotulo",
     "label": "Rótulo · O que mostrar no rótulo",
+    "rotuloCompleto": "Rótulo · O que mostrar no rótulo",
     "section": "Texto",
     "type": "string",
     "default": "valor",
@@ -426,6 +488,7 @@
   {
     "id": "formatoDoRotulo",
     "label": "Rótulo · Formato do número no rótulo",
+    "rotuloCompleto": "Rótulo · Formato do número no rótulo",
     "section": "Texto",
     "type": "string",
     "default": "auto",
@@ -434,6 +497,7 @@
   {
     "id": "casasDecimaisDoRotulo",
     "label": "Rótulo · Casas decimais no rótulo",
+    "rotuloCompleto": "Rótulo · Casas decimais no rótulo",
     "section": "Texto",
     "type": "number",
     "default": 1,
@@ -442,6 +506,7 @@
   {
     "id": "mostrarLegenda",
     "label": "Legenda · Mostrar legenda",
+    "rotuloCompleto": "Legenda · Mostrar legenda",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -450,6 +515,7 @@
   {
     "id": "posicaoDaLegenda",
     "label": "Legenda · Posição da legenda",
+    "rotuloCompleto": "Legenda · Posição da legenda",
     "section": "Texto",
     "type": "string",
     "default": "direita",
@@ -457,7 +523,8 @@
   },
   {
     "id": "legendaInterativa",
-    "label": "Legenda · Clicar na legenda liga/desliga a série",
+    "label": "Legenda · Clique liga/desliga",
+    "rotuloCompleto": "Legenda · Clicar na legenda liga/desliga a série",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -465,7 +532,8 @@
   },
   {
     "id": "mostrarValoresNaLegenda",
-    "label": "Legenda · Mostrar valores na legenda",
+    "label": "Legenda · Mostrar valores",
+    "rotuloCompleto": "Legenda · Mostrar valores na legenda",
     "section": "Texto",
     "type": "boolean",
     "default": false,
@@ -473,7 +541,8 @@
   },
   {
     "id": "tamanhoDaLegenda",
-    "label": "Legenda · Tamanho do texto da legenda (px)",
+    "label": "Legenda · Tamanho do texto da legenda",
+    "rotuloCompleto": "Legenda · Tamanho do texto da legenda (px)",
     "section": "Texto",
     "type": "number",
     "default": 11,
@@ -482,6 +551,7 @@
   {
     "id": "titulo",
     "label": "Título · Título",
+    "rotuloCompleto": "Título · Título",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -490,6 +560,7 @@
   {
     "id": "subtitulo",
     "label": "Título · Subtítulo",
+    "rotuloCompleto": "Título · Subtítulo",
     "section": "Texto",
     "type": "string",
     "default": "",
@@ -498,6 +569,7 @@
   {
     "id": "textoSemDados",
     "label": "Aviso · Mensagem quando não há dados",
+    "rotuloCompleto": "Aviso · Mensagem quando não há dados",
     "section": "Texto",
     "type": "string",
     "default": "Sem dados para exibir",
@@ -505,7 +577,8 @@
   },
   {
     "id": "mostrarAvisos",
-    "label": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
+    "label": "Aviso · Mostrar avisos",
+    "rotuloCompleto": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
     "section": "Texto",
     "type": "boolean",
     "default": true,
@@ -514,71 +587,386 @@
   {
     "id": "posicaoDosAvisos",
     "label": "Aviso · Posição dos avisos",
+    "rotuloCompleto": "Aviso · Posição dos avisos",
     "section": "Texto",
     "type": "string",
     "default": "topo",
     "dinamica": false
   },
   {
+    "id": "mostrarTitulo",
+    "label": "Título · Mostrar",
+    "rotuloCompleto": "Título · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoTitulo",
+    "label": "Título · Posição",
+    "rotuloCompleto": "Título · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoTitulo",
+    "label": "Título · Alinhamento",
+    "rotuloCompleto": "Título · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoTitulo",
+    "label": "Título · Deslocamento X (px)",
+    "rotuloCompleto": "Título · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoTitulo",
+    "label": "Título · Deslocamento Y (px)",
+    "rotuloCompleto": "Título · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoTitulo",
+    "label": "Título · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Título · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoTitulo",
+    "label": "Título · Fonte",
+    "rotuloCompleto": "Título · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoTitulo",
+    "label": "Título · Peso",
+    "rotuloCompleto": "Título · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "negrito",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTitulo",
+    "label": "Título · Cor (vazio = tema)",
+    "rotuloCompleto": "Título · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoTitulo",
+    "label": "Título · Margem (px)",
+    "rotuloCompleto": "Título · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarTitulo",
+    "label": "Título · Quebrar linha",
+    "rotuloCompleto": "Título · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoTitulo",
+    "label": "Título · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Título · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSubtitulo",
+    "label": "Subtítulo · Mostrar",
+    "rotuloCompleto": "Subtítulo · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoSubtitulo",
+    "label": "Subtítulo · Posição",
+    "rotuloCompleto": "Subtítulo · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoSubtitulo",
+    "label": "Subtítulo · Alinhamento",
+    "rotuloCompleto": "Subtítulo · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoSubtitulo",
+    "label": "Subtítulo · Deslocamento X (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoSubtitulo",
+    "label": "Subtítulo · Deslocamento Y (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoSubtitulo",
+    "label": "Subtítulo · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Subtítulo · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoSubtitulo",
+    "label": "Subtítulo · Fonte",
+    "rotuloCompleto": "Subtítulo · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoSubtitulo",
+    "label": "Subtítulo · Peso",
+    "rotuloCompleto": "Subtítulo · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "normal",
+    "dinamica": false
+  },
+  {
+    "id": "corDoSubtitulo",
+    "label": "Subtítulo · Cor (vazio = tema)",
+    "rotuloCompleto": "Subtítulo · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoSubtitulo",
+    "label": "Subtítulo · Margem (px)",
+    "rotuloCompleto": "Subtítulo · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarSubtitulo",
+    "label": "Subtítulo · Quebrar linha",
+    "rotuloCompleto": "Subtítulo · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoSubtitulo",
+    "label": "Subtítulo · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Subtítulo · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarNota",
+    "label": "Nota · Mostrar",
+    "rotuloCompleto": "Nota · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDaNota",
+    "label": "Nota · Posição",
+    "rotuloCompleto": "Nota · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "abaixo",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDaNota",
+    "label": "Nota · Alinhamento",
+    "rotuloCompleto": "Nota · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaNota",
+    "label": "Nota · Tamanho (px)",
+    "rotuloCompleto": "Nota · Tamanho (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 10,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDaNota",
+    "label": "Nota · Fonte",
+    "rotuloCompleto": "Nota · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "corDaNota",
+    "label": "Nota · Cor (vazio = tema)",
+    "rotuloCompleto": "Nota · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "quebrarNota",
+    "label": "Nota · Quebrar linha",
+    "rotuloCompleto": "Nota · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDaNota",
+    "label": "Nota · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Nota · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "textoDaNota",
+    "label": "Nota · Texto",
+    "rotuloCompleto": "Nota · Texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "meuTextoDaNota",
+    "label": "Nota · Meu texto",
+    "rotuloCompleto": "Nota · Meu texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
     "id": "mostrarTooltip",
     "label": "Tooltip · Mostrar tooltip",
-    "section": "Interação",
+    "rotuloCompleto": "Tooltip · Mostrar tooltip",
+    "section": "Mais",
     "type": "boolean",
     "default": true,
     "dinamica": false
   },
   {
     "id": "tooltipPersonalizado",
-    "label": "Tooltip · Usar tooltip personalizado",
-    "section": "Interação",
+    "label": "Tooltip · Personalizado",
+    "rotuloCompleto": "Tooltip · Usar tooltip personalizado",
+    "section": "Mais",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
     "id": "modeloDeTooltip",
-    "label": "Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão",
-    "section": "Interação",
+    "label": "Tooltip · Modelo",
+    "rotuloCompleto": "Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão",
+    "section": "Mais",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "tooltipComNomeCompleto",
-    "label": "Tooltip · Mostrar nome completo do campo no tooltip",
-    "section": "Interação",
+    "label": "Tooltip · Nome completo",
+    "rotuloCompleto": "Tooltip · Mostrar nome completo do campo no tooltip",
+    "section": "Mais",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
     "id": "tooltipComValorBruto",
-    "label": "Tooltip · Mostrar também o valor sem formatação",
-    "section": "Interação",
+    "label": "Tooltip · Valor sem formato",
+    "rotuloCompleto": "Tooltip · Mostrar também o valor sem formatação",
+    "section": "Mais",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
     "id": "acaoDoClique",
-    "label": "Clique · Ação do clique (Shift+clique sempre fixa; Esc solta)",
-    "section": "Interação",
+    "label": "Clique · Ação do clique",
+    "rotuloCompleto": "Clique · Ação do clique (Shift+clique sempre fixa; Esc solta)",
+    "section": "Mais",
     "type": "string",
     "default": "drill",
     "dinamica": false
   },
   {
     "id": "permitirHtmlDoLooker",
-    "label": "Tooltip · Permitir HTML do Looker nas variáveis do tooltip",
-    "section": "Interação",
+    "label": "Tooltip · HTML do Looker",
+    "rotuloCompleto": "Tooltip · Permitir HTML do Looker nas variáveis do tooltip",
+    "section": "Mais",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
     "id": "corDeFundoDoTooltip",
-    "label": "Tooltip · Cor de fundo do tooltip (vazio = do tema)",
-    "section": "Interação",
+    "label": "Tooltip · Cor de fundo do tooltip",
+    "rotuloCompleto": "Tooltip · Cor de fundo do tooltip (vazio = do tema)",
+    "section": "Mais",
     "type": "string",
     "default": "",
     "dinamica": false
@@ -586,31 +974,62 @@
   {
     "id": "corDaBordaDoTooltip",
     "label": "Tooltip · Cor da borda do tooltip",
-    "section": "Interação",
+    "rotuloCompleto": "Tooltip · Cor da borda do tooltip",
+    "section": "Mais",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "corDoTextoDoTooltip",
-    "label": "Tooltip · Cor do texto do tooltip (vazio = do tema)",
-    "section": "Interação",
+    "label": "Tooltip · Cor do texto do tooltip",
+    "rotuloCompleto": "Tooltip · Cor do texto do tooltip (vazio = do tema)",
+    "section": "Mais",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "tamanhoDoTooltip",
-    "label": "Tooltip · Tamanho da fonte do tooltip (px)",
-    "section": "Interação",
+    "label": "Tooltip · Tamanho da fonte do tooltip",
+    "rotuloCompleto": "Tooltip · Tamanho da fonte do tooltip (px)",
+    "section": "Mais",
     "type": "number",
     "default": 11,
     "dinamica": false
   },
   {
+    "id": "modoDebug",
+    "label": "Modo debug",
+    "rotuloCompleto": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON",
+    "rotuloCompleto": "Configuração em JSON (cole aqui para importar)",
+    "section": "Mais",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima",
+    "rotuloCompleto": "Aplicar o JSON acima por cima das opções",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
     "id": "animacaoAtiva",
     "label": "Animação · Ativar animações",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Ativar animações",
+    "section": "Mais",
     "type": "boolean",
     "default": true,
     "dinamica": false
@@ -618,7 +1037,8 @@
   {
     "id": "duracaoDaAnimacao",
     "label": "Animação · Duração (ms)",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Duração (ms)",
+    "section": "Mais",
     "type": "number",
     "default": 600,
     "dinamica": false
@@ -626,7 +1046,8 @@
   {
     "id": "atrasoDaAnimacao",
     "label": "Animação · Atraso inicial (ms)",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Atraso inicial (ms)",
+    "section": "Mais",
     "type": "number",
     "default": 0,
     "dinamica": false
@@ -634,7 +1055,8 @@
   {
     "id": "cascataDaAnimacao",
     "label": "Animação · Cascata entre itens (ms)",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Cascata entre itens (ms)",
+    "section": "Mais",
     "type": "number",
     "default": 20,
     "dinamica": false
@@ -642,7 +1064,8 @@
   {
     "id": "suavizacaoDaAnimacao",
     "label": "Animação · Curva da animação",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Curva da animação",
+    "section": "Mais",
     "type": "string",
     "default": "saida",
     "dinamica": false
@@ -650,47 +1073,26 @@
   {
     "id": "quandoAnimar",
     "label": "Animação · Quando animar",
-    "section": "Interação",
+    "rotuloCompleto": "Animação · Quando animar",
+    "section": "Mais",
     "type": "string",
     "default": "sempre",
     "dinamica": false
   },
   {
     "id": "destacarAoPassarMouse",
-    "label": "Clique · Destacar ao passar o mouse",
-    "section": "Interação",
+    "label": "Clique · Destacar sob o mouse",
+    "rotuloCompleto": "Clique · Destacar ao passar o mouse",
+    "section": "Mais",
     "type": "boolean",
     "default": true,
     "dinamica": false
   },
   {
-    "id": "modoDebug",
-    "label": "Modo debug (escreve no console a estrutura dos dados)",
-    "section": "Avançado",
-    "type": "boolean",
-    "default": false,
-    "dinamica": false
-  },
-  {
-    "id": "configuracaoJson",
-    "label": "Configuração em JSON (cole aqui para importar)",
-    "section": "Avançado",
-    "type": "string",
-    "default": "",
-    "dinamica": false
-  },
-  {
-    "id": "aplicarConfiguracaoJson",
-    "label": "Aplicar o JSON acima por cima das opções",
-    "section": "Avançado",
-    "type": "boolean",
-    "default": false,
-    "dinamica": false
-  },
-  {
     "id": "cor_abertura",
     "label": "Cor · Cor — Abertura (vazio = da paleta)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor — Abertura (vazio = da paleta)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": true
@@ -698,7 +1100,8 @@
   {
     "id": "cor_maxima",
     "label": "Cor · Cor — Máxima (vazio = da paleta)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor — Máxima (vazio = da paleta)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": true
@@ -706,15 +1109,17 @@
   {
     "id": "cor_minima",
     "label": "Cor · Cor — Mínima (vazio = da paleta)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor — Mínima (vazio = da paleta)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": true
   },
   {
     "id": "cor_fechamento",
-    "label": "Cor · Cor — Fechamento (vazio = da paleta)",
-    "section": "Visual",
+    "label": "Cor · Cor",
+    "rotuloCompleto": "Cor · Cor — Fechamento (vazio = da paleta)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": true
@@ -722,7 +1127,8 @@
   {
     "id": "cor_volume",
     "label": "Cor · Cor — Volume (vazio = da paleta)",
-    "section": "Visual",
+    "rotuloCompleto": "Cor · Cor — Volume (vazio = da paleta)",
+    "section": "Estilo",
     "type": "string",
     "default": "",
     "dinamica": true

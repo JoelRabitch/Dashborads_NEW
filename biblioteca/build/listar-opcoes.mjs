@@ -30,7 +30,8 @@ export function opcoesDoGrafico(grafico) {
   const silencio = console.warn;
   console.warn = () => {};
   try {
-    amb.window.eval(readFileSync(join(RAIZ, 'dist', `${grafico.id}.js`), 'utf8'));
+    // BL_DIST: bundles de outra pasta (ex.: build sem pacotes, 5.14b).
+    amb.window.eval(readFileSync(join(process.env.BL_DIST || join(RAIZ, 'dist'), `${grafico.id}.js`), 'utf8'));
     const definicao = amb.registro[grafico.id];
     const estaticas = Object.assign({}, definicao.options);
     const nomeFixture = (grafico.fixtures || []).find((f) => FIXTURES[f]) || 'semPivo';
@@ -44,6 +45,8 @@ export function opcoesDoGrafico(grafico) {
     return Object.entries(todas).map(([id, o]) => ({
       id,
       label: o.label,
+      // Rótulo original completo (5.1b): o painel mostra a versão curta.
+      rotuloCompleto: o._rotuloCompleto || o.label,
       section: o.section,
       type: o.type,
       default: o.default === undefined ? null : o.default,

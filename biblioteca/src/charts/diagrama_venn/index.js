@@ -26,6 +26,16 @@
  * valor, cores por conjunto, opacidade) e contorno (mostrar, cor, espessura,
  * estilo). Opções próprias: percentual junto do número, total do conjunto
  * no nome, lista das regiões pequenas.
+ *
+ * Melhorias v3 (5.7): "Layout" (`layoutDoVenn`) = Moderno (padrão,
+ * `moderno.js`) | Clássico (o desenho acima, sem mudança). Opções novas do
+ * Moderno: `margemDoVenn`, `tamanhoDoTextoDoVenn` (auto | fixo — no fixo
+ * vale o `tamanhoDoRotulo` salvo), `nomesDosConjuntos` (dentro | fora |
+ * legenda), `removerDoNome` ("(Yes / No)"), `apelidosDosConjuntos`,
+ * `legendaDoVenn` (auto | mostrar | ocultar — tem precedência sobre o
+ * `mostrarLegenda` salvo, que só vale no Clássico), `duracaoDaTransicaoDoVenn`.
+ * Valem nos dois: rótulos (mostrar, conteúdo, formato, casas), cores,
+ * contorno, `mostrarPercentual`, `mostrarTotalDoConjunto`.
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -57,6 +67,7 @@ import {
   mascaraDoPonto,
 } from './geometria.js';
 import { lerConjuntos, rotuloDaRegiao } from './dados.js';
+import { desenharModerno } from './moderno.js';
 
 const CSS = `
 .venn-area{position:relative;width:100%;height:100%;}
@@ -165,6 +176,74 @@ function opcoes() {
         section: 'Rótulos',
         default: true,
       },
+      // ---- Melhorias v3 (5.7): layout "Moderno" (padrão) ----
+      layoutDoVenn: {
+        type: 'string',
+        label: 'Layout',
+        section: 'Formato',
+        display: 'select',
+        default: 'moderno',
+        values: listaDeValores([
+          { rotulo: 'Moderno', valor: 'moderno' },
+          { rotulo: 'Clássico (o anterior)', valor: 'classico' },
+        ]),
+      },
+      margemDoVenn: { type: 'number', label: 'Margem (px)', section: 'Formato', default: 12 },
+      tamanhoDoTextoDoVenn: {
+        type: 'string',
+        label: 'Tamanho dos textos',
+        section: 'Rótulos',
+        display: 'select',
+        default: 'auto',
+        values: listaDeValores([
+          { rotulo: 'Automático pelo espaço', valor: 'auto' },
+          { rotulo: 'Fixo (Tamanho do rótulo)', valor: 'fixo' },
+        ]),
+      },
+      nomesDosConjuntos: {
+        type: 'string',
+        label: 'Nomes dos conjuntos',
+        section: 'Rótulos',
+        display: 'select',
+        default: 'dentro',
+        values: listaDeValores([
+          { rotulo: 'Dentro do círculo', valor: 'dentro' },
+          { rotulo: 'Fora, com linha-guia', valor: 'fora' },
+          { rotulo: 'Só na legenda', valor: 'legenda' },
+        ]),
+      },
+      removerDoNome: {
+        type: 'string',
+        label: 'Remover do fim do nome',
+        section: 'Rótulos',
+        default: '(Yes / No)',
+        placeholder: '(Yes / No)',
+      },
+      apelidosDosConjuntos: {
+        type: 'string',
+        label: 'Apelidos (Nome=Apelido; …)',
+        section: 'Rótulos',
+        default: '',
+        placeholder: 'Comprou café (Yes / No)=Café',
+      },
+      legendaDoVenn: {
+        type: 'string',
+        label: 'Legenda do Venn',
+        section: 'Legenda',
+        display: 'select',
+        default: 'auto',
+        values: listaDeValores([
+          { rotulo: 'Só se os nomes não estiverem no diagrama', valor: 'auto' },
+          { rotulo: 'Mostrar', valor: 'mostrar' },
+          { rotulo: 'Ocultar', valor: 'ocultar' },
+        ]),
+      },
+      duracaoDaTransicaoDoVenn: {
+        type: 'number',
+        label: 'Duração do destaque (ms)',
+        section: 'Animação',
+        default: 180,
+      },
       opacidadeDoPreenchimento: {
         type: 'number',
         label: 'Opacidade do preenchimento',
@@ -216,6 +295,21 @@ export default defineViz({
         'O diagrama de Venn precisa de pelo menos 2 conjuntos. ' +
           'Confira a opção "Como os dados estão organizados" na seção Dados.'
       );
+      return;
+    }
+
+    // Melhorias v3 (5.7): layout "Moderno" (padrão). O anterior é o "Clássico".
+    if (config.layoutDoVenn !== 'classico') {
+      desenharModerno(ctx, {
+        conjuntos,
+        regioes,
+        totalPorConjunto,
+        unidade,
+        medida,
+        linhasPorRegiao,
+        aux: { resolverCores, opacidadeDoVenn, contornoDoConjunto, corDaRegiao, corDoTextoDaRegiao, transformacao },
+      });
+      if (config.modoDebug) ctx.avisar(`formato detectado: ${formato}; ${regioes.size} região(ões).`);
       return;
     }
 
