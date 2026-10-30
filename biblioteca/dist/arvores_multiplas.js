@@ -5562,10 +5562,153 @@
       }
     };
   }
-  function layoutHorizontal(raiz, { largura, altura, config }) {
-    const fabrica = (config.layoutDaArvore === "tree" ? tree_default : cluster_default)();
-    fabrica.size([altura, largura]);
-    return fabrica(raiz);
+  var FOLGA_DA_ARVORE = 8;
+  var LADO_MINIMO_DO_ICONE = 10;
+  var LARGURA_DO_INDICADOR = 12;
+  var EXTRA_MAXIMO_POR_NIVEL = 80;
+  function raioDoNoDaArvore(valor, config, maiorValor) {
+    const base = Number(config.tamanhoDoNo);
+    const b = Number.isFinite(base) ? base : 4;
+    return config.tamanhoPorValor ? Math.max(1.5, b * Math.sqrt((valor || 0) / (maiorValor || 1)) * 2.2) : b;
+  }
+  function ladoDoIconeDaArvore(config, raio, espacoVertical = Infinity) {
+    const pedido = Number(config.tamanhoDoIcone) > 0 ? Number(config.tamanhoDoIcone) : Math.max(12, raio * 2 + 6);
+    return Math.max(LADO_MINIMO_DO_ICONE, Math.min(pedido, espacoVertical - FOLGA_DA_ARVORE / 2));
+  }
+  function opcoesDeEspacamento({ secao = "\xC1rvore" } = {}) {
+    return {
+      tamanhoDoIcone: { type: "number", label: "Tamanho do \xEDcone (0 = auto)", section: secao, default: 0 },
+      ajusteDeEscala: {
+        type: "string",
+        label: "Ajuste de escala",
+        section: secao,
+        display: "select",
+        default: "real",
+        values: listaDeValores([
+          { rotulo: "Tamanho real com rolagem", valor: "real" },
+          { rotulo: "Ajustar \xE0 \xE1rea", valor: "ajustar" }
+        ])
+      }
+    };
+  }
+  function escalaDeAjuste(config, { area, desenho, fonte }) {
+    if (config.ajusteDeEscala !== "ajustar") return 1;
+    const tl = lerTextoLongo(config);
+    const minima = Math.min(1, tl.fonteMinima / Math.max(1, fonte));
+    const s = Math.min(1, area.largura / Math.max(1, desenho.largura), area.altura / Math.max(1, desenho.altura));
+    return Math.max(minima, s);
+  }
+  function layoutHorizontalEstavel({
+    visivel,
+    completa,
+    config,
+    tema,
+    valueFormat,
+    total,
+    maiorValor,
+    larguraUtil,
+    alturaUtil,
+    temFilhos: temFilhos2,
+    temIcone = () => false
+  }) {
+    const rot = lerRotulos(config, tema);
+    const tl = lerTextoLongo(config);
+    const folga = FOLGA_DA_ARVORE;
+    const posicao = rot.posicao;
+    const centro = posicao === "centro";
+    const mostrarFolha = config.mostrarRotulosDeFolha !== false;
+    const mostrarInterno = config.mostrarRotulosInternos === true;
+    const comValor = config.mostrarValorNoRotulo === true;
+    const nos = completa.descendants();
+    const base = completa.depth;
+    const profundidade = Math.max(0, ...nos.map((n) => n.depth - base));
+    const raioMax = Math.max(0, ...nos.map((n) => raioDoNoDaArvore(n.value, config, maiorValor)));
+    const algumIcone = nos.some(temIcone);
+    const ladoPedido = (raio) => algumIcone ? ladoDoIconeDaArvore(config, raio) : 0;
+    const larguraDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
+    const lados = (n) => {
+      if (!rot.mostrar || !n.data.rotulo) return [];
+      const comFilhos = temFilhos2(n);
+      const comoFolha = mostrarFolha;
+      const comoInterno = comFilhos && mostrarInterno;
+      if (!comoFolha && !comoInterno) return [];
+      if (centro) return ["centro"];
+      if (posicao === "fora" || posicao === "foraComLinha") return ["dir"];
+      if (posicao === "dentro") return ["esq"];
+      const s = [];
+      if (comoFolha) s.push("dir");
+      if (comoInterno) s.push("esq");
+      return s;
+    };
+    const medir2 = (limite2) => {
+      const dir = new Array(profundidade + 1).fill(0);
+      const esq = new Array(profundidade + 1).fill(0);
+      const linhas = new Array(profundidade + 1).fill(0);
+      const comIndicador = new Array(profundidade + 1).fill(false);
+      let tamanho = rot.tamanho;
+      for (const n of nos) {
+        const k = n.depth - base;
+        if (temFilhos2(n)) comIndicador[k] = true;
+        const ls = lados(n);
+        if (!ls.length) continue;
+        const pt = partesDoRotuloDoNo(rot, n, { valueFormat, total, mostrarValor: comValor, tl });
+        const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite2, tl, estilo: { negrito: rot.negrito } });
+        linhas[k] = Math.max(linhas[k], aj.linhas.length * aj.tamanho * 1.15);
+        tamanho = Math.max(tamanho, aj.tamanho);
+        for (const l of ls) {
+          if (l === "dir") dir[k] = Math.max(dir[k], aj.largura);
+          else if (l === "esq") esq[k] = Math.max(esq[k], aj.largura);
+          else {
+            dir[k] = Math.max(dir[k], aj.largura / 2);
+            esq[k] = Math.max(esq[k], aj.largura / 2);
+          }
+        }
+      }
+      const meia = larguraDoNo / 2;
+      const reservaEsq = esq.map((e, k) => meia + (comIndicador[k] ? LARGURA_DO_INDICADOR : 0) + (e ? centro ? e - meia : e + 4 : 0));
+      const reservaDir = dir.map((d) => meia + (d ? centro ? d - meia : d + 4 : 0));
+      const passos = [];
+      for (let k = 0; k < profundidade; k++) passos.push(Math.max(0, reservaDir[k]) + folga + Math.max(0, reservaEsq[k + 1]));
+      const largura2 = folga + Math.max(0, reservaEsq[0]) + passos.reduce((a, b) => a + b, 0) + Math.max(0, reservaDir[profundidade]) + folga;
+      const colunas = dir.filter(Boolean).length + esq.filter(Boolean).length;
+      return { reservaEsq, reservaDir, passos, largura: largura2, linhas, colunas, rotulos: dir.concat(esq).reduce((a, b) => a + b, 0) };
+    };
+    let limite = Infinity;
+    let m = medir2(limite);
+    if (tl.modo !== "inteiro" && m.largura > larguraUtil && m.colunas) {
+      const fixo = m.largura - m.rotulos;
+      limite = Math.max(40, (larguraUtil - fixo) / m.colunas);
+      m = medir2(limite);
+    }
+    const extra = m.largura < larguraUtil && profundidade > 0 ? Math.min(EXTRA_MAXIMO_POR_NIVEL, (larguraUtil - m.largura) / profundidade) : 0;
+    const xDoNivel = [folga + Math.max(0, m.reservaEsq[0])];
+    for (let k = 0; k < profundidade; k++) xDoNivel.push(xDoNivel[k] + m.passos[k] + extra);
+    const largura = m.largura + extra * profundidade;
+    const alturaDoTexto = Math.max(0, ...m.linhas);
+    const alturaDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
+    const minimo = (centro ? alturaDoNo + alturaDoTexto + 4 : Math.max(alturaDoNo, alturaDoTexto)) + folga;
+    const fabrica = (config.layoutDaArvore === "tree" ? tree_default : cluster_default)().nodeSize([1, 1]);
+    fabrica(visivel);
+    const visiveis = visivel.descendants();
+    const minU = Math.min(...visiveis.map((n) => n.x));
+    const maxU = Math.max(...visiveis.map((n) => n.x));
+    const unidades = maxU - minU + 1;
+    const espaco = Math.max(minimo, alturaUtil > 0 ? alturaUtil / unidades : 0);
+    const topo = centro ? alturaDoTexto + 4 : 0;
+    let maisFundo = 0;
+    for (const n of visiveis) {
+      n.x = topo + (n.x - minU + 0.5) * espaco;
+      n.y = xDoNivel[n.depth];
+      maisFundo = Math.max(maisFundo, n.depth);
+    }
+    const larguraVisivel = xDoNivel[maisFundo] + Math.max(0, m.reservaDir[maisFundo]) + folga;
+    return {
+      largura,
+      larguraVisivel,
+      altura: topo + unidades * espaco,
+      limiteDoRotulo: limite,
+      ladoDoIcone: (raio) => ladoDoIconeDaArvore(config, raio, espaco)
+    };
   }
   function paraCartesiano(angulo, raio) {
     return [raio * Math.cos(angulo - Math.PI / 2), raio * Math.sin(angulo - Math.PI / 2)];
@@ -5647,22 +5790,6 @@
         return mostrarValor ? { nome, extras: [v()], formatar: (n, e) => e.length ? `${n} (${e[0]})` : n } : { nome, extras: [], formatar: null };
     }
   }
-  function medirRotulosDaArvore(raiz, { config, tema, valueFormat, total, limite = Infinity }) {
-    const rot = lerRotulos(config, tema);
-    const tl = lerTextoLongo(config);
-    const saida = { folhas: 0, internos: 0 };
-    if (!rot.mostrar) return saida;
-    for (const no of raiz.descendants()) {
-      const ehFolha = !no.children || !no.children.length;
-      const quer = ehFolha ? config.mostrarRotulosDeFolha !== false : config.mostrarRotulosInternos === true;
-      if (!quer || !no.data.rotulo) continue;
-      const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
-      const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
-      const k = ehFolha ? "folhas" : "internos";
-      saida[k] = Math.max(saida[k], aj.largura);
-    }
-    return saida;
-  }
   function desenharArvore({
     svg,
     raiz,
@@ -5677,7 +5804,8 @@
     compacto = false,
     valorDeReferencia = null,
     chaveDe = null,
-    limiteDoRotulo: limiteDoRotulo2 = Infinity
+    limiteDoRotulo: limiteDoRotulo2 = Infinity,
+    geometria = null
   }) {
     const grupo = criarSvgEl("g", { pai: svg });
     if (deslocamento.x || deslocamento.y) {
@@ -5701,7 +5829,6 @@
       });
     }
     const grupoDeNos = criarSvgEl("g", { pai: grupo, classe: "av-nos" });
-    const tamanhoBase = Number(config.tamanhoDoNo);
     const formaDoNo = formaDoMarcador(config.formaDoPonto);
     const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
     const rot = lerRotulos(config, tema);
@@ -5714,7 +5841,8 @@
     let maiorRotulo = 0;
     for (const no of raiz.descendants()) {
       const [x, y] = modo === "radial" ? paraCartesiano(no.x, no.y) : [no.y, no.x];
-      const raioDoNo = config.tamanhoPorValor ? Math.max(1.5, (Number.isFinite(tamanhoBase) ? tamanhoBase : 4) * Math.sqrt((no.value || 0) / maiorValor) * 2.2) : Number.isFinite(tamanhoBase) ? tamanhoBase : 4;
+      const raioDoNo = raioDoNoDaArvore(no.value, config, maiorValor);
+      let meiaLargura = Math.max(0, raioDoNo);
       const grupoDoNo = criarSvgEl("g", { pai: grupoDeNos, classe: "av-no-grupo" });
       if (chaveDe) grupoDoNo.setAttribute("data-chave", chaveDe(no));
       no.__grupo = grupoDoNo;
@@ -5725,15 +5853,18 @@
           classe: "av-no",
           "data-diametro": diametro.toFixed(2)
         });
+        elemento.setAttribute("data-meia", meiaLargura.toFixed(2));
         aplicarPreenchimento(elemento, cores(no), config);
         aplicarContorno(elemento, contorno);
         if (iconePorValor && modo !== "radial") {
-          const ic = desenharIconePorValor(iconePorValor, { pai: grupoDoNo, valor: no.data.rotulo, lado: Math.max(12, raioDoNo * 2 + 6), corPadrao: cores(no), estilo: config.estiloDoIcone });
+          const lado = geometria ? geometria.ladoDoIcone(raioDoNo) : ladoDoIconeDaArvore(config, raioDoNo);
+          const ic = desenharIconePorValor(iconePorValor, { pai: grupoDoNo, valor: no.data.rotulo, lado, corPadrao: cores(no), estilo: config.estiloDoIcone });
           if (ic) {
-            const lado = Number(ic.getAttribute("width"));
             ic.setAttribute("x", String(x - lado / 2));
             ic.setAttribute("y", String(y - lado / 2));
             ic.style.pointerEvents = "none";
+            meiaLargura = Math.max(meiaLargura, lado / 2);
+            elemento.setAttribute("data-meia", meiaLargura.toFixed(2));
           }
         }
         saida.push({ no, elemento });
@@ -5743,7 +5874,7 @@
       const ehFolha = !no.children || !no.children.length;
       const querRotulo = ehFolha ? config.mostrarRotulosDeFolha !== false : config.mostrarRotulosInternos === true;
       if (!querRotulo || !no.data.rotulo) continue;
-      const afastamento = Math.max(0, raioDoNo) + 4;
+      const afastamento = meiaLargura + 4;
       if (modo === "radial") {
         const texto = textoDoRotuloDoNo(rot, no, {
           valueFormat,
@@ -5773,7 +5904,8 @@
       } else {
         const aDireita = rot.posicao === "fora" || rot.posicao === "foraComLinha" ? true : rot.posicao === "dentro" ? false : ehFolha;
         ancora = aDireita ? "start" : "end";
-        tx = aDireita ? x + afastamento : x - afastamento;
+        const recuo = !aDireita && geometria && geometria.comIndicador && geometria.comIndicador(no) ? LARGURA_DO_INDICADOR : 0;
+        tx = aDireita ? x + afastamento : x - afastamento - recuo;
       }
       const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
       const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limiteDoRotulo2, tl, estilo: { negrito: rot.negrito } });
@@ -5921,7 +6053,9 @@
       // 5.11 — texto longo
       ...opcoesDeTextoLongo({ secao: "Texto longo" }),
       // 5.14f — ícone por valor (o valor é o nome do nó)
-      ...opcoesDeIconePorValor({ secao: "\xCDcone por valor", comCampo: false })
+      ...opcoesDeIconePorValor({ secao: "\xCDcone por valor", comCampo: false }),
+      // v3.2 — tamanho do ícone e ajuste de escala
+      ...opcoesDeEspacamento({ secao: "\xC1rvore" })
     };
     if (comCadaArvore) saida.centralizarCadaArvore = cen("boolean", "Cada \xE1rvore na c\xE9lula", true);
     return saida;
@@ -6256,6 +6390,7 @@
       const maiorGlobal = raiz.value || 1;
       const espacoDoTitulo = 18;
       const semRotulos = config.mostrarRotulos === false || config.mostrarRotulosDeFolha === false;
+      const iconePorValor = criarIconePorValor(config);
       for (const ramo of ramos) {
         const chaveDoRamo = chaveDoNo(ramo);
         const larguraDaCelula = Number(config[`largura_${sanitizarChave(ramo.data.rotulo)}`]) || larguraPadrao;
@@ -6278,29 +6413,44 @@
           return no.filhos && no.filhos.length ? 0 : no.valor || 0;
         }).sort((a, b) => (b.value || 0) - (a.value || 0));
         const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
-        const limiteFixo = Math.max(40, larguraDaCelula * 0.38 - 10);
-        const limite = tl.modo === "inteiro" ? Infinity : limiteFixo;
-        const medida = medirRotulosDaArvore(subRaiz, { config, tema, valueFormat, total: maiorGlobal, limite });
-        const reservaDireita = semRotulos ? 12 : (tl.modo === "inteiro" ? medida.folhas : Math.min(medida.folhas, limiteFixo)) + 12 + tl.margemExtra;
-        const reservaEsquerda = 12 + (config.mostrarRotulosInternos === true && medida.internos ? medida.internos + 8 : 0);
-        const profundidade = Math.max(1, subRaiz.height);
-        const larguraDoLayout = Math.max(profundidade * 48, larguraDaCelula - reservaEsquerda - reservaDireita);
-        const larguraDoSvg = reservaEsquerda + larguraDoLayout + reservaDireita;
-        const alturaDoSvg = alturaDaCelula;
+        const margemDireita = semRotulos ? 0 : tl.margemExtra;
+        const plano = layoutHorizontalEstavel({
+          visivel: subRaiz,
+          completa: ramo,
+          config,
+          tema,
+          valueFormat,
+          total: maiorGlobal,
+          maiorValor: config.escalaPorArvore ? ramo.value || 1 : maiorGlobal,
+          larguraUtil: larguraDaCelula - margemDireita,
+          alturaUtil: alturaDaCelula - espacoDoTitulo - 12,
+          temFilhos: (n) => temFilhos(n.data),
+          temIcone: (n) => !!(iconePorValor && iconePorValor(n.data.rotulo))
+        });
+        const limite = plano.limiteDoRotulo;
+        const larguraCompleta = plano.largura + margemDireita;
+        const sobra = Math.max(0, larguraDaCelula - larguraCompleta);
+        const deslocX = config.centralizarCadaArvore === false || alinhH === "esquerda" ? 0 : alinhH === "direita" ? sobra : sobra / 2;
+        let larguraDoSvg = Math.max(larguraDaCelula, deslocX + plano.larguraVisivel + margemDireita);
+        let alturaDoSvg = Math.max(alturaDaCelula, espacoDoTitulo + plano.altura + 12);
+        const escala = escalaDeAjuste(config, {
+          area: { largura: larguraDaCelula, altura: alturaDaCelula },
+          desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
+          fonte: lerRotulos(config, tema).tamanho
+        });
+        const viewBox = `0 0 ${larguraDoSvg} ${alturaDoSvg}`;
+        larguraDoSvg *= escala;
+        alturaDoSvg *= escala;
         const svg = criarSvgEl("svg", {
           pai: celula,
           atributos: {
             width: larguraDoSvg,
             height: alturaDoSvg,
-            viewBox: `0 0 ${larguraDoSvg} ${alturaDoSvg}`
+            viewBox
           }
         });
         svg.style.display = "block";
         svg.style.flex = "0 0 auto";
-        if (config.centralizarCadaArvore !== false && larguraDoSvg < larguraDaCelula) {
-          svg.style.marginLeft = alinhH === "esquerda" ? "0" : "auto";
-          svg.style.marginRight = alinhH === "direita" ? "0" : "auto";
-        }
         const titulo = criarSvgEl("text", {
           pai: svg,
           classe: "av-titulo-arvore",
@@ -6312,16 +6462,11 @@
           }
         });
         definirTexto(titulo, `${ramo.data.rotulo} (${formatar(ramo.value || 0)})`);
-        layoutHorizontal(subRaiz, {
-          largura: Math.max(20, larguraDoLayout),
-          altura: Math.max(20, alturaDoSvg - espacoDoTitulo - 12),
-          config
-        });
         const desenho = desenharArvore({
           svg,
           raiz: subRaiz,
           modo: "horizontal",
-          deslocamento: { x: reservaEsquerda, y: espacoDoTitulo },
+          deslocamento: { x: deslocX, y: espacoDoTitulo },
           config,
           valorDeReferencia: config.escalaPorArvore ? null : maiorGlobal,
           tema,
@@ -6331,6 +6476,7 @@
           compacto: true,
           chaveDe: (n) => chavePorDados.get(n.data),
           limiteDoRotulo: limite,
+          geometria: { ladoDoIcone: plano.ladoDoIcone, comIndicador: (n) => temFilhos(n.data) },
           aoInteragir(elemento, no) {
             const conteudo = () => ({
               titulo: `${ramo.data.rotulo} \u203A ${no.data.rotulo}`,
@@ -6384,19 +6530,21 @@
           })
         );
         const rolagemGuardada = estado.rolagemDasCelulas.get(chaveDoRamo);
-        if (centralizarAgora && larguraDoSvg > larguraDaCelula) {
+        if (centralizarAgora && (larguraDoSvg > larguraDaCelula || alturaDoSvg > alturaDaCelula)) {
           const alvoNo = config.oQueCentralizar === "raiz" ? subRaiz : config.oQueCentralizar === "selecionado" ? subRaiz.descendants().find((n) => chavePorDados.get(n.data) === estado.selecionado) || null : null;
-          const plano = planoDeCentralizacao({
+          const centro = planoDeCentralizacao({
             area: { largura: larguraDaCelula, altura: alturaDaCelula },
             desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
-            alvo: alvoNo ? alvoNo.__xy : null,
+            alvo: alvoNo ? { x: alvoNo.__xy.x * escala, y: alvoNo.__xy.y * escala } : null,
             config
           });
-          celula.scrollLeft = plano.scrollLeft;
+          celula.scrollLeft = centro.scrollLeft;
+          celula.scrollTop = centro.scrollTop;
         } else if (rolagemGuardada) {
-          celula.scrollLeft = rolagemGuardada;
+          celula.scrollLeft = rolagemGuardada.x;
+          celula.scrollTop = rolagemGuardada.y;
         }
-        ctx.eventos.on(celula, "scroll", () => estado.rolagemDasCelulas.set(chaveDoRamo, celula.scrollLeft));
+        ctx.eventos.on(celula, "scroll", () => estado.rolagemDasCelulas.set(chaveDoRamo, { x: celula.scrollLeft, y: celula.scrollTop }));
       }
       if (centralizarAgora) estado.jaCentralizou = true;
     }
@@ -6429,7 +6577,7 @@
     if (!pai) return;
     const m = /translate\(([-\d.]+),([-\d.]+)\)/.exec(marcador.getAttribute("transform") || "");
     if (!m) return;
-    const raio = (Number(marcador.getAttribute("data-diametro")) || 6) / 2;
+    const raio = Number(marcador.getAttribute("data-meia")) || (Number(marcador.getAttribute("data-diametro")) || 6) / 2;
     const t = criarSvgEl("text", {
       pai,
       classe: "am-indicador",

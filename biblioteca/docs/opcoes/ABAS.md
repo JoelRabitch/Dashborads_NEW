@@ -977,6 +977,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoPorValor` | Visual | Estilo | Árvore · Nó pelo valor | Árvore · Nó maior para valores maiores |
 | `espacoVerticalDaGrade` ★ | — | Estilo | Grade · Espaço entre linhas (px) |  |
 | `linhasGuiaDaGrade` ★ | — | Estilo | Grade · Linhas-guia da grade |  |
+| `tamanhoDoIcone` ★ | — | Estilo | Árvore · Tamanho do ícone (0 = auto) |  |
+| `ajusteDeEscala` ★ | — | Estilo | Árvore · Ajuste de escala |  |
 | `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `estiloDoIcone` ★ | — | Estilo | Tema · Estilo do ícone |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
@@ -1125,8 +1127,10 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `orientacao` | Visual | Estilo | Organograma · Direção |  |
 | `mapaDeIconesPorValor` ★ | — | Estilo | Ícone por valor · Mapa (valor=ícone; …) |  |
+| `tamanhoDoIcone` ★ | — | Estilo | Árvore · Tamanho do ícone (0 = auto) |  |
 | `larguraDoCartao` | Visual | Estilo | Organograma · Largura do cartão (px) |  |
 | `iconePadraoPorValor` ★ | — | Estilo | Ícone por valor · Ícone padrão |  |
+| `ajusteDeEscala` ★ | — | Estilo | Árvore · Ajuste de escala |  |
 | `alturaDoCartao` | Visual | Estilo | Organograma · Altura do cartão (px) |  |
 | `coresPorValor` ★ | — | Estilo | Ícone por valor · Cores (valor=#cor; …) |  |
 | `espacoEntreNiveis` | Visual | Estilo | Organograma · Espaço entre níveis (px) |  |

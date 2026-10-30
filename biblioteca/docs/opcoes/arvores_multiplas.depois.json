@@ -378,6 +378,24 @@
     "dinamica": false
   },
   {
+    "id": "tamanhoDoIcone",
+    "label": "Árvore · Tamanho do ícone (0 = auto)",
+    "rotuloCompleto": "Árvore · Tamanho do ícone (0 = auto)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "ajusteDeEscala",
+    "label": "Árvore · Ajuste de escala",
+    "rotuloCompleto": "Árvore · Ajuste de escala",
+    "section": "Estilo",
+    "type": "string",
+    "default": "real",
+    "dinamica": false
+  },
+  {
     "id": "pacoteTematico",
     "label": "Tema · Pacote temático",
     "rotuloCompleto": "Tema · Pacote temático",

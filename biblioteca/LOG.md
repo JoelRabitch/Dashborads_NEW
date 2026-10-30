@@ -3543,3 +3543,60 @@ TODAS AS TAREFAS DA V3 CONCLUÍDAS, exceto 5.14i (opcional, não feito).
 PRÓXIMA AÇÃO: nenhuma no agente. O usuário confere
 `docs/TESTE_NO_LOOKER.md` (seção Melhorias v3) e lê
 `docs/RELATORIO_MELHORIAS.md`.
+
+## v3.2 — espaçamento dos níveis e tamanho do ícone nas árvores (2026-10-30)
+
+Tarefa avulsa (a v3 segue concluída; nenhuma fase retomada). Branch
+`agente/novas-viz`, `git pull` sem novidades no branch.
+
+### Reprodução (antes da correção)
+- `test/arvores_espacamento_v32.test.mjs`, fixture sintética de 4 níveis
+  com nomes e valores longos, ícone `estrela` (conjunto base, existe sem
+  pacotes). Falharam 6 de 8: com 3 níveis, distância 1→2 = 0,0 px (cluster:
+  o nó recolhido fica na coluna dos filhos do irmão aberto; precisava de
+  373 px); posição X dos níveis muda ao expandir; altura não cresce; opções
+  novas ausentes; org_chart: nome do cartão por cima do ícone; org_chart de
+  cima para baixo: nível 0 se move ao expandir (centralização pela altura
+  visível). O teste de sobreposição com tudo aberto em célula de 450 px já
+  passava antes (o defeito aparece ao expandir).
+
+### Decisões (sem poder perguntar; caminho mais simples)
+- Larguras dos níveis medidas no ramo COMPLETO (todos os nós do nível, com
+  o rótulo que teriam aberto ou fechado), e não só nos visíveis: só assim
+  abrir um IRMÃO (que troca de folha para nó interno) não move o nível
+  seguinte. Também o limite por rótulo dos modos de corte usa o ramo
+  completo.
+- Lados do rótulo mantidos ("auto": folha à direita, interno à esquerda);
+  a reserva soma o lado direito do nível j e o esquerdo do nível j+1, mais
+  12 px do "+/−", que agora fica depois do ícone (`data-meia`).
+- Quando sobra largura, cada nível ganha até 80 px extras (estável, pela
+  conta do ramo completo); a árvore é centralizada pela largura do ramo
+  completo (não pula ao abrir). Na vertical, as linhas se espalham pela
+  altura quando cabem (como antes) e crescem quando não cabem.
+- cluster × tree: só muda a posição vertical (o enunciado manda usar o d3
+  só para ordem e vertical).
+- "Tamanho do ícone": number, 0 = Automático (max(12, raio·2+6), como
+  antes; no org_chart 16 px, como antes). Teto: espaço vertical − folga;
+  mínimo 10 px. "Ajuste de escala": select real | ajustar, padrão "real"
+  (mudança de comportamento registrada no relatório). Ambas em
+  `opcoesComunsDasArvores` (seção "Árvore" → aba Estilo), rótulos
+  "Árvore · Tamanho do ícone (0 = auto)" (36) e "Árvore · Ajuste de
+  escala" (25).
+- "Ajustar à área": escala = min(1, área/desenho), nunca abaixo de
+  fonteMinima/tamanho do rótulo (o resto rola).
+- org_chart: mesmo defeito reproduzido → área de texto do cartão começa
+  depois do ícone; tamanho do cartão medido na árvore completa; extensão no
+  eixo dos níveis pela profundidade da árvore completa.
+- Teste antigo ajustado: `correcoes_arvores_kpi` "esconder rótulos que se
+  sobrepõem" esperava que algum rótulo sumisse com fonte 28; com o layout
+  novo nada se sobrepõe, então agora espera que nada suma.
+- `layoutHorizontal` (antigo) removido; `medirRotulosDaArvore` ficou
+  exportado sem uso. ARQUITETURA/COMPAT sem mudança (nada novo de
+  arquitetura: função nova na base `_arvore`).
+
+### Verificação
+- Build duplo determinístico; `npm test` 936 (935 ok, 1 pulado);
+  `npm run testar-sem-pacotes` 936 (930 ok, 6 pulados); `npm run seguranca`
+  sem violação (arvores_multiplas e org_chart incluídos); `npm run opcoes`:
+  4 abas, ids novos só `tamanhoDoIcone` e `ajusteDeEscala` (★ em ABAS.md).
+- Docs: RELATORIO_MELHORIAS §7, TESTE_NO_LOOKER seção v3.2.

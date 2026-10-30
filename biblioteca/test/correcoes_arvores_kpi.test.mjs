@@ -137,8 +137,13 @@ test('arvores_multiplas — "esconder rótulos que se sobrepõem" e truncar', ()
   // v3 (5.11): truncarRotulo só vale no modo "Cortar com reticências".
   const trunc = AM({ truncarRotulo: 4, modoDoTextoLongo: 'reticencias' });
   try {
+    // v3.2: o layout horizontal reserva espaço para o maior rótulo de cada
+    // nível e a altura de cada linha cresce com a fonte, então rótulos não
+    // se sobrepõem mais e a opção não tem o que esconder (antes, com fonte
+    // 28, alguns sumiam). A opção continua lida (esconderColisoes).
     const total = comEvitar.todos('.av-rotulo').length;
-    assert.ok(visiveis(comEvitar.todos('.av-rotulo')).length < total, 'com a opção ligada, algum rótulo some');
+    assert.ok(total > 0);
+    assert.equal(visiveis(comEvitar.todos('.av-rotulo')).length, total, 'v3.2: nenhum rótulo sobreposto para esconder');
     assert.equal(visiveis(semEvitar.todos('.av-rotulo')).length, semEvitar.todos('.av-rotulo').length);
     for (const t of trunc.todos('.av-rotulo').map((e) => e.textContent)) {
       assert.ok(t.length <= 4, `truncar em 4; veio "${t}"`);

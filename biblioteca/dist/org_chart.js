@@ -5315,6 +5315,32 @@
     return soma;
   }
 
+  // src/charts/_arvore/index.js
+  var LADO_MINIMO_DO_ICONE = 10;
+  function opcoesDeEspacamento({ secao = "\xC1rvore" } = {}) {
+    return {
+      tamanhoDoIcone: { type: "number", label: "Tamanho do \xEDcone (0 = auto)", section: secao, default: 0 },
+      ajusteDeEscala: {
+        type: "string",
+        label: "Ajuste de escala",
+        section: secao,
+        display: "select",
+        default: "real",
+        values: listaDeValores([
+          { rotulo: "Tamanho real com rolagem", valor: "real" },
+          { rotulo: "Ajustar \xE0 \xE1rea", valor: "ajustar" }
+        ])
+      }
+    };
+  }
+  function escalaDeAjuste(config, { area, desenho, fonte }) {
+    if (config.ajusteDeEscala !== "ajustar") return 1;
+    const tl = lerTextoLongo(config);
+    const minima = Math.min(1, tl.fonteMinima / Math.max(1, fonte));
+    const s = Math.min(1, area.largura / Math.max(1, desenho.largura), area.altura / Math.max(1, desenho.altura));
+    return Math.max(minima, s);
+  }
+
   // src/charts/_arvore/comum.js
   var CURVAS_CSS2 = {
     linear: "linear",
@@ -5386,7 +5412,9 @@
       // 5.11 — texto longo
       ...opcoesDeTextoLongo({ secao: "Texto longo" }),
       // 5.14f — ícone por valor (o valor é o nome do nó)
-      ...opcoesDeIconePorValor({ secao: "\xCDcone por valor", comCampo: false })
+      ...opcoesDeIconePorValor({ secao: "\xCDcone por valor", comCampo: false }),
+      // v3.2 — tamanho do ícone e ajuste de escala
+      ...opcoesDeEspacamento({ secao: "\xC1rvore" })
     };
     if (comCadaArvore) saida.centralizarCadaArvore = cen("boolean", "Cada \xE1rvore na c\xE9lula", true);
     return saida;
@@ -5838,30 +5866,30 @@
       const fonte = FONTES2[config.fonteDoCartao] || tema.fonte;
       const nos = visivel.descendants();
       const textos = /* @__PURE__ */ new Map();
-      let larguraNecessaria = 0;
-      let alturaNecessaria = 0;
-      for (const no of nos) {
+      const iconePorValor = criarIconePorValor(config);
+      const algumIcone = !!iconePorValor && raiz.descendants().some((n) => iconePorValor(n.data.rotulo));
+      const ladoPedido = Number(config.tamanhoDoIcone) > 0 ? Number(config.tamanhoDoIcone) : 16;
+      const recuoDoIcone = (lado) => algumIcone ? 4 + lado + 4 : margemInterna;
+      const textosDe = (no, larguraUtil) => {
         const caminho = caminhoPorDados.get(no.data) || caminhoDoNo(no);
         const completo = completosPorCaminho.get(caminho) || { valor: no.value || 0, descendentes: 0, filhos: 0 };
         const cargo = campoDoCargo && no.data.indiceDaLinha >= 0 ? modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, void 0, "") : "";
-        const linhas = rot.mostrar ? linhasDoCartao({
-          no,
-          rot,
-          tl,
-          completo,
-          valueFormat,
-          totalGeral,
-          cargo,
-          config,
-          temValor: !!campoDoValor,
-          larguraUtil: ajustavel && tl.modo === "inteiro" ? Infinity : larguraBase - margemInterna * 2
-        }) : [];
-        textos.set(no, { linhas, completo, caminho });
-        larguraNecessaria = Math.max(larguraNecessaria, ...linhas.map((l) => l.largura + margemInterna * 2 + tl.margemExtra));
+        const linhas = rot.mostrar ? linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor: !!campoDoValor, larguraUtil }) : [];
+        return { linhas, completo, caminho };
+      };
+      const larguraUtilDoTexto = ajustavel && tl.modo === "inteiro" ? Infinity : larguraBase - recuoDoIcone(ladoPedido) - margemInterna;
+      let larguraNecessaria = 0;
+      let alturaNecessaria = 0;
+      for (const no of raiz.descendants()) {
+        const { linhas } = textosDe(no, larguraUtilDoTexto);
+        larguraNecessaria = Math.max(larguraNecessaria, ...linhas.map((l) => l.largura + recuoDoIcone(ladoPedido) + margemInterna + tl.margemExtra));
         alturaNecessaria = Math.max(alturaNecessaria, linhas.reduce((a, l) => a + l.tamanho * 1.25, 0) + 12);
       }
+      for (const no of nos) textos.set(no, textosDe(no, larguraUtilDoTexto));
       const larguraDoCartao = ajustavel ? Math.max(larguraBase, Math.ceil(larguraNecessaria)) : larguraBase;
       const alturaDoCartao = ajustavel ? Math.max(alturaBase, Math.ceil(alturaNecessaria)) : alturaBase;
+      const ladoDoIcone = Math.max(LADO_MINIMO_DO_ICONE, Math.min(ladoPedido, alturaDoCartao - 8));
+      const recuoEsquerdo = recuoDoIcone(ladoDoIcone);
       const entreNiveis = Number(config.espacoEntreNiveis) || 60;
       const entreIrmaos = Number(config.espacoEntreIrmaos) || 16;
       const deCimaParaBaixo = (config.orientacao || "cima") === "cima";
@@ -5872,6 +5900,9 @@
       const xs = nos.map((n) => posicaoDe(n).x);
       const ys = nos.map((n) => posicaoDe(n).y);
       const margem = 24;
+      const ultimoNivel = raiz.height * ((deCimaParaBaixo ? alturaDoCartao : larguraDoCartao) + entreNiveis);
+      if (deCimaParaBaixo) ys.push(0, ultimoNivel);
+      else xs.push(0, ultimoNivel);
       const minX = Math.min(...xs) - larguraDoCartao / 2 - margem;
       const maxX = Math.max(...xs) + larguraDoCartao / 2 + margem;
       const minY = Math.min(...ys) - alturaDoCartao / 2 - margem;
@@ -5881,12 +5912,17 @@
         largura: Math.max(80, area.clientWidth || largura),
         altura: Math.max(80, (area.clientHeight || altura) - (area.clientHeight ? 0 : alturaDaBarra))
       };
-      const desenho = { largura: maxX - minX, altura: maxY - minY };
+      const escala = escalaDeAjuste(config, {
+        area: visivelNaArea,
+        desenho: { largura: maxX - minX, altura: maxY - minY },
+        fonte: rot.tamanho
+      });
+      const desenho = { largura: (maxX - minX) * escala, altura: (maxY - minY) * escala };
       const alvoNo = config.oQueCentralizar === "raiz" ? visivel : config.oQueCentralizar === "selecionado" ? nos.find((n) => caminhoPorDados.get(n.data) === estado.selecionado) || null : null;
       const plano = planoDeCentralizacao({
         area: visivelNaArea,
         desenho,
-        alvo: alvoNo ? { x: posicaoDe(alvoNo).x - minX, y: posicaoDe(alvoNo).y - minY } : null,
+        alvo: alvoNo ? { x: (posicaoDe(alvoNo).x - minX) * escala, y: (posicaoDe(alvoNo).y - minY) * escala } : null,
         config
       });
       const svg = criarSvgEl("svg", {
@@ -5895,7 +5931,9 @@
       });
       const conteudo = criarSvgEl("g", {
         pai: svg,
-        atributos: { transform: `translate(${(plano.offsetX - minX).toFixed(2)},${(plano.offsetY - minY).toFixed(2)})` }
+        atributos: {
+          transform: escala === 1 ? `translate(${(plano.offsetX - minX).toFixed(2)},${(plano.offsetY - minY).toFixed(2)})` : `translate(${plano.offsetX.toFixed(2)},${plano.offsetY.toFixed(2)}) scale(${escala.toFixed(4)}) translate(${(-minX).toFixed(2)},${(-minY).toFixed(2)})`
+        }
       });
       if (centralizarAgora) {
         area.scrollLeft = plano.scrollLeft;
@@ -5950,7 +5988,6 @@
         });
       }
       const tooltip = ctx.tooltip();
-      const iconePorValor = criarIconePorValor(config);
       const grupoDosCartoes = criarSvgEl("g", { pai: conteudo });
       const atuais = [];
       nos.forEach((no, indice) => {
@@ -5977,8 +6014,8 @@
         aplicarPreenchimento(caixa, preenchido ? cor : tema.fundoElevado, config);
         aplicarContorno(caixa, contornoAutomatico ? Object.assign({}, contornoDoPainel, { cor }) : contornoDoPainel);
         if (config.sombraDoCartao === true) caixa.setAttribute("filter", "url(#oc-sombra)");
-        desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna });
-        const ic = desenharIconePorValor(iconePorValor, { pai: grupo, valor: no.data.rotulo, lado: 16, corPadrao: cor, estilo: config.estiloDoIcone });
+        desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna, recuoEsquerdo });
+        const ic = desenharIconePorValor(iconePorValor, { pai: grupo, valor: no.data.rotulo, lado: ladoDoIcone, corPadrao: cor, estilo: config.estiloDoIcone });
         if (ic) {
           ic.setAttribute("x", String(x - larguraDoCartao / 2 + 4));
           ic.setAttribute("y", String(y - alturaDoCartao / 2 + 4));
@@ -6066,10 +6103,12 @@
     }
     return saida;
   }
-  function desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna }) {
+  function desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna, recuoEsquerdo = margemInterna }) {
     const alinh = config.alinhamentoDoTextoDoCartao || "auto";
     const ancora = alinh === "esquerda" ? "start" : alinh === "direita" ? "end" : alinh === "centro" ? "middle" : rot.posicao === "dentro" ? "start" : rot.posicao === "fora" || rot.posicao === "foraComLinha" ? "end" : "middle";
-    const tx = ancora === "start" ? x - larguraDoCartao / 2 + margemInterna : ancora === "end" ? x + larguraDoCartao / 2 - margemInterna : x;
+    const esq = x - larguraDoCartao / 2 + recuoEsquerdo;
+    const dir = x + larguraDoCartao / 2 - margemInterna;
+    const tx = ancora === "start" ? esq : ancora === "end" ? dir : (esq + dir) / 2;
     const contraste = config.contrasteAutomatico !== false;
     const corDoTexto = preenchido && contraste ? textoLegivelSobre(cor, tema) : tema.texto;
     const alturaTotal = linhas.reduce((a, l) => a + l.tamanho * 1.25, 0);

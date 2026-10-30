@@ -112,3 +112,59 @@ Os **23** — os 22 antigos (o núcleo mudou: tooltip, painel, cabeçalho,
 pacotes) e o novo `cartao_multivalor`. Nenhum ficou igual. As URLs antigas
 (v2) continuam funcionando, fixadas no hash antigo; para receber as
 melhorias, troque o Main de cada visualização pela URL principal da v3.1.
+
+## 7. v3.2 — espaçamento dos níveis e tamanho do ícone nas árvores
+
+**Defeito** (visto no Looker, árvore horizontal com "Ícone por valor"):
+expandir UMA linha fazia os ícones dos filhos caírem no texto do pai e tudo
+ficava apertado. Causa: `layoutHorizontal` (cluster/tree do d3 com
+`size([altura, largura])`) dividia uma largura FIXA pelos níveis visíveis;
+no modo cluster, um nó recolhido (folha) ficava na MESMA coluna dos filhos
+de um irmão aberto (distância 0 px no teste). O ícone tinha
+`max(12, raio*2+6)` e o rótulo começava depois do marcador, não do ícone.
+
+**O que mudou** (`_arvore/index.js`, `arvores_multiplas`, `org_chart`):
+- Novo `layoutHorizontalEstavel`: X do nível k = soma das larguras dos
+  níveis anteriores (maior rótulo + ícone + folga + "+/−"), medidas no ramo
+  COMPLETO — abrir/fechar não move nenhum nível visível. O d3 só dá a ordem
+  e a posição vertical (`nodeSize`); cada linha tem max(ícone, texto) +
+  folga, e a altura cresce com rolagem em vez de comprimir.
+- Largura além da célula: "Texto longo" = Mostrar inteiro cresce com
+  rolagem; os outros modos recebem um limite por rótulo calculado da
+  largura disponível. O rótulo começa depois do ícone.
+- Opções novas (aba Estilo): `tamanhoDoIcone` ("Árvore · Tamanho do ícone
+  (0 = auto)", 0 = automático como antes) e `ajusteDeEscala` ("Árvore ·
+  Ajuste de escala": Tamanho real com rolagem | Ajustar à área).
+- org_chart: o mesmo defeito reproduziu de duas formas e foi corrigido — o
+  texto do cartão passava por cima do ícone (agora a área do texto começa
+  depois dele) e, de cima para baixo, abrir um nó movia os níveis (o
+  tamanho do cartão e a extensão no eixo dos níveis vêm da árvore completa).
+- Modo radial: sem mudança.
+
+**Mudanças de comportamento**
+- **Escala:** padrão novo "Tamanho real com rolagem": a árvore não é mais
+  espremida para caber na célula; quando não cabe, a célula rola (nas duas
+  direções). Para o visual reduzido, use "Ajuste de escala" = Ajustar à
+  área (a fonte na tela nunca fica abaixo de "Fonte mínima").
+- Os níveis não ocupam mais toda a largura da célula: a distância vem dos
+  rótulos (com um extra de até 80 px por nível quando sobra espaço) e a
+  árvore é centralizada pela largura do ramo COMPLETO (por isso, com tudo
+  recolhido, pode sobrar espaço à direita: é o lugar dos níveis fechados).
+- "Distribuição dos nós" cluster × tree agora só muda a posição vertical:
+  as folhas não são mais empurradas para a última coluna.
+- "Esconder rótulos sobrepostos" deixa de ter efeito no layout horizontal,
+  porque os rótulos não se sobrepõem mais.
+- org_chart: o cartão tem o tamanho do maior texto da árvore inteira (antes,
+  só dos cartões abertos), e com ícone o texto fica à direita dele.
+
+**Testado (automático, geometria com `medida-texto.js`)**:
+`test/arvores_espacamento_v32.test.mjs` — com 2, 3 e 4 níveis visíveis
+(expandindo um nó por vez) os X dos níveis visíveis não mudam; distância
+entre níveis ≥ maior rótulo + ícone + folga; nenhum rótulo cobre ícone ou
+círculo, ícones de irmãos não se sobrepõem, nos 7 modos de "Texto longo";
+modos de corte cabem na célula e "Mostrar inteiro" rola; altura cresce;
+"Ajustar à área" respeita a fonte mínima; org_chart sem texto sobre o ícone
+e com níveis parados (das duas orientações). Suíte inteira: 936 testes
+(935 ok, 1 pulado); sem pacotes: 930 ok, 6 pulados; segurança sem violação.
+
+**Conferir no Looker real:** `docs/TESTE_NO_LOOKER.md`, seção v3.2.

@@ -16,6 +16,7 @@
  *     (ao carregar, a cada abrir/fechar, ou só pelo botão). Desenho maior
  *     que a área: rola nas duas direções, sem cortar o lado esquerdo.
  *   - Texto longo (5.11): `core/texto-longo.js`.
+ *   - Tamanho do ícone e Ajuste de escala (v3.2): `opcoesDeEspacamento`.
  *   - "Permitir selecionar texto" (padrão desligado): user-select none.
  */
 
@@ -23,6 +24,7 @@ import { criarEl } from '../../core/dom.js';
 import { listaDeValores } from '../../core/options-kit.js';
 import { opcoesDeTextoLongo } from '../../core/texto-longo.js';
 import { opcoesDeIconePorValor } from '../../core/icone-por-valor.js';
+import { opcoesDeEspacamento } from './index.js';
 
 export const CURVAS_CSS = {
   linear: 'linear',
@@ -97,6 +99,8 @@ export function opcoesComunsDasArvores({ comCadaArvore = false } = {}) {
     ...opcoesDeTextoLongo({ secao: 'Texto longo' }),
     // 5.14f — ícone por valor (o valor é o nome do nó)
     ...opcoesDeIconePorValor({ secao: 'Ícone por valor', comCampo: false }),
+    // v3.2 — tamanho do ícone e ajuste de escala
+    ...opcoesDeEspacamento({ secao: 'Árvore' }),
   };
   if (comCadaArvore) saida.centralizarCadaArvore = cen('boolean', 'Cada árvore na célula', true);
   return saida;

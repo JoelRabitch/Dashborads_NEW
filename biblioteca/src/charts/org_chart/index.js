@@ -47,6 +47,12 @@
  *     no modo "Mostrar inteiro" o cartão cresce até o maior nome (antes o
  *     nome terminava em "…"). `truncarRotulo` só vale em "Cortar com
  *     reticências".
+ *
+ * v3.2: com "Ícone por valor", o texto do cartão começa depois do ícone
+ * ("Tamanho do ícone", 0 = 16 px); o tamanho do cartão e a extensão no eixo
+ * dos níveis vêm da árvore COMPLETA, então abrir um nó não move os níveis
+ * visíveis; "Ajuste de escala" = Ajustar à área reduz o desenho para caber
+ * (fonte na tela ≥ "Fonte mínima").
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -85,6 +91,7 @@ import {
   CSS_BARRA,
   CSS_ANIMACAO_ARVORE,
 } from '../_arvore/comum.js';
+import { escalaDeAjuste, LADO_MINIMO_DO_ICONE } from '../_arvore/index.js';
 
 /** Default declarado de "Cor do contorno" (blocoDeCores): tratado como "automática". */
 const COR_PADRAO_DO_CONTORNO = '#FFFFFF';
@@ -409,9 +416,15 @@ export default defineViz({
     const fonte = FONTES[config.fonteDoCartao] || tema.fonte;
     const nos = visivel.descendants();
     const textos = new Map();
-    let larguraNecessaria = 0;
-    let alturaNecessaria = 0;
-    for (const no of nos) {
+    // Ícone por valor (5.14f) no canto esquerdo do cartão. v3.2: o texto
+    // começa DEPOIS do ícone (antes podia passar por cima dele) e o lado
+    // segue "Tamanho do ícone" (0 = 16 px, como antes), sem passar da
+    // altura do cartão.
+    const iconePorValor = criarIconePorValor(config);
+    const algumIcone = !!iconePorValor && raiz.descendants().some((n) => iconePorValor(n.data.rotulo));
+    const ladoPedido = Number(config.tamanhoDoIcone) > 0 ? Number(config.tamanhoDoIcone) : 16;
+    const recuoDoIcone = (lado) => (algumIcone ? 4 + lado + 4 : margemInterna);
+    const textosDe = (no, larguraUtil) => {
       const caminho = caminhoPorDados.get(no.data) || caminhoDoNo(no);
       const completo = completosPorCaminho.get(caminho) || { valor: no.value || 0, descendentes: 0, filhos: 0 };
       const cargo =
@@ -419,26 +432,26 @@ export default defineViz({
           ? modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, undefined, '')
           : '';
       const linhas = rot.mostrar
-        ? linhasDoCartao({
-          no,
-          rot,
-          tl,
-          completo,
-          valueFormat,
-          totalGeral,
-          cargo,
-          config,
-          temValor: !!campoDoValor,
-          larguraUtil: ajustavel && tl.modo === 'inteiro' ? Infinity : larguraBase - margemInterna * 2,
-        })
+        ? linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor: !!campoDoValor, larguraUtil })
         : [];
-      textos.set(no, { linhas, completo, caminho });
-      larguraNecessaria = Math.max(larguraNecessaria, ...linhas.map((l) => l.largura + margemInterna * 2 + tl.margemExtra));
+      return { linhas, completo, caminho };
+    };
+    // Tamanho do cartão medido na árvore COMPLETA (v3.2): abrir ou fechar
+    // um nó não muda o cartão nem a distância entre os níveis.
+    const larguraUtilDoTexto = ajustavel && tl.modo === 'inteiro' ? Infinity : larguraBase - recuoDoIcone(ladoPedido) - margemInterna;
+    let larguraNecessaria = 0;
+    let alturaNecessaria = 0;
+    for (const no of raiz.descendants()) {
+      const { linhas } = textosDe(no, larguraUtilDoTexto);
+      larguraNecessaria = Math.max(larguraNecessaria, ...linhas.map((l) => l.largura + recuoDoIcone(ladoPedido) + margemInterna + tl.margemExtra));
       alturaNecessaria = Math.max(alturaNecessaria, linhas.reduce((a, l) => a + l.tamanho * 1.25, 0) + 12);
     }
+    for (const no of nos) textos.set(no, textosDe(no, larguraUtilDoTexto));
     // Balão que se ajusta ao conteúdo (uniforme, para o layout em grade do d3).
     const larguraDoCartao = ajustavel ? Math.max(larguraBase, Math.ceil(larguraNecessaria)) : larguraBase;
     const alturaDoCartao = ajustavel ? Math.max(alturaBase, Math.ceil(alturaNecessaria)) : alturaBase;
+    const ladoDoIcone = Math.max(LADO_MINIMO_DO_ICONE, Math.min(ladoPedido, alturaDoCartao - 8));
+    const recuoEsquerdo = recuoDoIcone(ladoDoIcone);
     const entreNiveis = Number(config.espacoEntreNiveis) || 60;
     const entreIrmaos = Number(config.espacoEntreIrmaos) || 16;
     const deCimaParaBaixo = (config.orientacao || 'cima') === 'cima';
@@ -454,6 +467,12 @@ export default defineViz({
     const xs = nos.map((n) => posicaoDe(n).x);
     const ys = nos.map((n) => posicaoDe(n).y);
     const margem = 24;
+    // No eixo dos níveis, a extensão vem da profundidade da árvore
+    // COMPLETA (v3.2): abrir um nível não muda o tamanho do desenho nesse
+    // eixo, então a centralização não empurra os níveis já visíveis.
+    const ultimoNivel = raiz.height * ((deCimaParaBaixo ? alturaDoCartao : larguraDoCartao) + entreNiveis);
+    if (deCimaParaBaixo) ys.push(0, ultimoNivel);
+    else xs.push(0, ultimoNivel);
     const minX = Math.min(...xs) - larguraDoCartao / 2 - margem;
     const maxX = Math.max(...xs) + larguraDoCartao / 2 + margem;
     const minY = Math.min(...ys) - alturaDoCartao / 2 - margem;
@@ -465,7 +484,14 @@ export default defineViz({
       largura: Math.max(80, area.clientWidth || largura),
       altura: Math.max(80, (area.clientHeight || altura) - (area.clientHeight ? 0 : alturaDaBarra)),
     };
-    const desenho = { largura: maxX - minX, altura: maxY - minY };
+    // "Ajuste de escala" (v3.2): real com rolagem (padrão) ou reduzido
+    // para caber, sem a fonte passar da mínima.
+    const escala = escalaDeAjuste(config, {
+      area: visivelNaArea,
+      desenho: { largura: maxX - minX, altura: maxY - minY },
+      fonte: rot.tamanho,
+    });
+    const desenho = { largura: (maxX - minX) * escala, altura: (maxY - minY) * escala };
     const alvoNo =
       config.oQueCentralizar === 'raiz'
         ? visivel
@@ -475,7 +501,7 @@ export default defineViz({
     const plano = planoDeCentralizacao({
       area: visivelNaArea,
       desenho,
-      alvo: alvoNo ? { x: posicaoDe(alvoNo).x - minX, y: posicaoDe(alvoNo).y - minY } : null,
+      alvo: alvoNo ? { x: (posicaoDe(alvoNo).x - minX) * escala, y: (posicaoDe(alvoNo).y - minY) * escala } : null,
       config,
     });
 
@@ -485,7 +511,12 @@ export default defineViz({
     });
     const conteudo = criarSvgEl('g', {
       pai: svg,
-      atributos: { transform: `translate(${(plano.offsetX - minX).toFixed(2)},${(plano.offsetY - minY).toFixed(2)})` },
+      atributos: {
+        transform:
+          escala === 1
+            ? `translate(${(plano.offsetX - minX).toFixed(2)},${(plano.offsetY - minY).toFixed(2)})`
+            : `translate(${plano.offsetX.toFixed(2)},${plano.offsetY.toFixed(2)}) scale(${escala.toFixed(4)}) translate(${(-minX).toFixed(2)},${(-minY).toFixed(2)})`,
+      },
     });
     if (centralizarAgora) {
       area.scrollLeft = plano.scrollLeft;
@@ -546,7 +577,6 @@ export default defineViz({
 
     // ---------- Cartões ----------
     const tooltip = ctx.tooltip();
-    const iconePorValor = criarIconePorValor(config);
     const grupoDosCartoes = criarSvgEl('g', { pai: conteudo });
     const atuais = [];
     nos.forEach((no, indice) => {
@@ -576,10 +606,10 @@ export default defineViz({
       aplicarContorno(caixa, contornoAutomatico ? Object.assign({}, contornoDoPainel, { cor }) : contornoDoPainel);
       if (config.sombraDoCartao === true) caixa.setAttribute('filter', 'url(#oc-sombra)');
 
-      desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna });
+      desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna, recuoEsquerdo });
 
       // Ícone por valor (5.14f): no canto esquerdo do cartão.
-      const ic = desenharIconePorValor(iconePorValor, { pai: grupo, valor: no.data.rotulo, lado: 16, corPadrao: cor, estilo: config.estiloDoIcone });
+      const ic = desenharIconePorValor(iconePorValor, { pai: grupo, valor: no.data.rotulo, lado: ladoDoIcone, corPadrao: cor, estilo: config.estiloDoIcone });
       if (ic) {
         ic.setAttribute('x', String(x - larguraDoCartao / 2 + 4));
         ic.setAttribute('y', String(y - alturaDoCartao / 2 + 4));
@@ -694,7 +724,7 @@ function linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo,
 }
 
 /** Desenha as linhas do cartão (posição, alinhamento, cor com contraste). */
-function desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna }) {
+function desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna, recuoEsquerdo = margemInterna }) {
   const alinh = config.alinhamentoDoTextoDoCartao || 'auto';
   const ancora =
     alinh === 'esquerda' ? 'start'
@@ -703,7 +733,10 @@ function desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchid
           : rot.posicao === 'dentro' ? 'start'
             : rot.posicao === 'fora' || rot.posicao === 'foraComLinha' ? 'end'
               : 'middle';
-  const tx = ancora === 'start' ? x - larguraDoCartao / 2 + margemInterna : ancora === 'end' ? x + larguraDoCartao / 2 - margemInterna : x;
+  // Área do texto: do fim do ícone (recuo) até a margem direita.
+  const esq = x - larguraDoCartao / 2 + recuoEsquerdo;
+  const dir = x + larguraDoCartao / 2 - margemInterna;
+  const tx = ancora === 'start' ? esq : ancora === 'end' ? dir : (esq + dir) / 2;
   const contraste = config.contrasteAutomatico !== false;
   const corDoTexto = preenchido && contraste ? textoLegivelSobre(cor, tema) : tema.texto;
   const alturaTotal = linhas.reduce((a, l) => a + l.tamanho * 1.25, 0);

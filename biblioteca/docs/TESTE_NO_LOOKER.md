@@ -163,3 +163,11 @@ real antes de considerar resolvido.
   - [ ] "Estilo do ícone" = Preenchido. "Meta em xícara" no kpi_vivo (com meta); tipo "Progresso em xícara" no cartão e na tabela.
 - **5.15 URLs da v3.1**
   - [ ] Abra uma URL principal de `dist/URLS.md` (com `@v3.1`) no navegador: o arquivo carrega. Se não carregar, use a alternativa (com o hash). Troque o Main de cada visualização e cadastre o `cartao_multivalor`.
+
+## v3.2 — espaçamento dos níveis e ícone nas árvores
+
+- [ ] arvores_multiplas com "Ícone por valor" ligado (pacote Café) e "Níveis abertos no início" = 1: anote onde estão os níveis, expanda UMA linha e confira que os níveis anteriores NÃO se movem, que os ícones dos filhos não caem no texto do pai e que nada fica menor.
+- [ ] Expanda mais um nível (e use "Expandir tudo"): a célula ganha rolagem (horizontal e vertical) em vez de espremer; nenhum texto passa por cima de ícone ou círculo.
+- [ ] "Árvore · Tamanho do ícone" = 20: os ícones crescem e o nome começa depois do ícone. "Árvore · Ajuste de escala" = Ajustar à área: o desenho reduz para caber, sem a letra ficar menor que "Fonte mínima".
+- [ ] "Texto longo" = Quebrar em linhas / Reduzir a fonte / Cortar com reticências numa célula estreita: o texto se ajusta à célula sem sobrepor o ícone.
+- [ ] org_chart com ícone por valor: o texto do cartão fica à direita do ícone; expanda um "+" e confira que os níveis já visíveis não se movem.

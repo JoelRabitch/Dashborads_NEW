@@ -10,6 +10,10 @@
  * pai e deixa as folhas em profundidades diferentes; `cluster` alinha
  * TODAS as folhas na borda. Para organograma o primeiro é melhor; para
  * árvore radial com rótulos na borda, o segundo.
+ *
+ * v3.2: no layout HORIZONTAL o d3 só dá a ordem e a posição vertical; a
+ * posição de cada nível é calculada aqui (`layoutHorizontalEstavel`), pela
+ * largura dos rótulos e do ícone. O radial não mudou.
  */
 
 import { criarSvgEl, definirTexto } from '../../core/dom.js';
@@ -146,11 +150,217 @@ export function layoutRadial(raiz, { raioMaximo, config }) {
   return fabrica(raiz);
 }
 
-/** Posiciona os nós da esquerda para a direita. */
-export function layoutHorizontal(raiz, { largura, altura, config }) {
-  const fabrica = (config.layoutDaArvore === 'tree' ? d3Tree : d3Cluster)();
-  fabrica.size([altura, largura]);
-  return fabrica(raiz);
+/* ---------- Layout horizontal ESTÁVEL (v3.2) ---------- */
+
+/** Folga entre rótulo, ícone e o nível seguinte (px). */
+export const FOLGA_DA_ARVORE = 8;
+/** Menor lado legível do ícone por valor (px). */
+export const LADO_MINIMO_DO_ICONE = 10;
+/** Largura reservada para o "+"/"−" à esquerda de um nó com filhos. */
+const LARGURA_DO_INDICADOR = 12;
+/** Teto do espaço extra distribuído entre níveis quando a árvore cabe. */
+const EXTRA_MAXIMO_POR_NIVEL = 80;
+
+/** Raio do marcador de um nó (mesma regra de sempre). */
+export function raioDoNoDaArvore(valor, config, maiorValor) {
+  const base = Number(config.tamanhoDoNo);
+  const b = Number.isFinite(base) ? base : 4;
+  return config.tamanhoPorValor ? Math.max(1.5, b * Math.sqrt((valor || 0) / (maiorValor || 1)) * 2.2) : b;
+}
+
+/**
+ * Lado do ícone por valor: "Tamanho do ícone" (px) ou, em Automático (0),
+ * o tamanho de antes (marcador + 6, no mínimo 12). Nunca maior que o espaço
+ * vertical entre irmãos menos a folga, e nunca menor que o mínimo legível.
+ */
+export function ladoDoIconeDaArvore(config, raio, espacoVertical = Infinity) {
+  const pedido = Number(config.tamanhoDoIcone) > 0 ? Number(config.tamanhoDoIcone) : Math.max(12, raio * 2 + 6);
+  return Math.max(LADO_MINIMO_DO_ICONE, Math.min(pedido, espacoVertical - FOLGA_DA_ARVORE / 2));
+}
+
+/** Opções novas da v3.2 (comuns às duas árvores). */
+export function opcoesDeEspacamento({ secao = 'Árvore' } = {}) {
+  return {
+    tamanhoDoIcone: { type: 'number', label: 'Tamanho do ícone (0 = auto)', section: secao, default: 0 },
+    ajusteDeEscala: {
+      type: 'string',
+      label: 'Ajuste de escala',
+      section: secao,
+      display: 'select',
+      default: 'real',
+      values: listaDeValores([
+        { rotulo: 'Tamanho real com rolagem', valor: 'real' },
+        { rotulo: 'Ajustar à área', valor: 'ajustar' },
+      ]),
+    },
+  };
+}
+
+/**
+ * Escala do modo "Ajustar à área": reduz o desenho para caber, mas a fonte
+ * na tela nunca fica abaixo de "Fonte mínima" (o resto rola).
+ * @returns {number} fator ≤ 1 (1 = tamanho real)
+ */
+export function escalaDeAjuste(config, { area, desenho, fonte }) {
+  if (config.ajusteDeEscala !== 'ajustar') return 1;
+  const tl = lerTextoLongo(config);
+  const minima = Math.min(1, tl.fonteMinima / Math.max(1, fonte));
+  const s = Math.min(1, area.largura / Math.max(1, desenho.largura), area.altura / Math.max(1, desenho.altura));
+  return Math.max(minima, s);
+}
+
+/**
+ * Posiciona a árvore horizontal (v3.2). Substitui o antigo
+ * `cluster/tree.size([altura, largura])`, que dividia uma largura FIXA pelo
+ * número de níveis visíveis: ao abrir um nível novo, todos se aproximavam e
+ * os ícones dos filhos caíam no texto do pai.
+ *
+ * Eixo dos níveis (x na tela, `no.y`): X do nível k = soma, para j < k, de
+ * (maior rótulo à direita do nível j + ícone + folga + maior rótulo à
+ * esquerda do nível j+1 + "+/−"). As larguras saem da árvore COMPLETA
+ * (todos os nós do nível, abertos ou não, com o rótulo que teriam): abrir
+ * ou fechar um nó NUNCA move um nível já visível.
+ *
+ * Eixo vertical (`no.x`): o d3 só dá a ORDEM e a separação entre irmãos
+ * (`nodeSize`); o espaço por linha é max(ícone, texto) + folga. Se sobrar
+ * altura, as linhas se espalham (como antes); se faltar, a altura cresce.
+ *
+ * "Texto longo" (5.11): se a largura necessária passar da disponível, os
+ * modos que não são "Mostrar inteiro" recebem um limite por rótulo,
+ * calculado a partir da largura disponível; "Mostrar inteiro" cresce.
+ *
+ * @param {object} p
+ * @param {object} p.visivel   hierarquia do d3 VISÍVEL (é a que é posicionada)
+ * @param {object} p.completa  nó da árvore completa equivalente à raiz visível
+ * @param {(no:object)=>boolean} p.temFilhos  o nó tem filhos nos DADOS
+ * @param {(no:object)=>boolean} p.temIcone   o nó terá ícone por valor
+ * @returns {{largura:number, larguraVisivel:number, altura:number,
+ *   limiteDoRotulo:number, ladoDoIcone:(raio:number)=>number}}
+ */
+export function layoutHorizontalEstavel({
+  visivel,
+  completa,
+  config,
+  tema,
+  valueFormat,
+  total,
+  maiorValor,
+  larguraUtil,
+  alturaUtil,
+  temFilhos,
+  temIcone = () => false,
+}) {
+  const rot = lerRotulos(config, tema);
+  const tl = lerTextoLongo(config);
+  const folga = FOLGA_DA_ARVORE;
+  const posicao = rot.posicao;
+  const centro = posicao === 'centro';
+  const mostrarFolha = config.mostrarRotulosDeFolha !== false;
+  const mostrarInterno = config.mostrarRotulosInternos === true;
+  const comValor = config.mostrarValorNoRotulo === true;
+  const nos = completa.descendants();
+  const base = completa.depth;
+  const profundidade = Math.max(0, ...nos.map((n) => n.depth - base));
+  const raioMax = Math.max(0, ...nos.map((n) => raioDoNoDaArvore(n.value, config, maiorValor)));
+  const algumIcone = nos.some(temIcone);
+  // Lado do ícone pedido (sem o teto vertical, que ainda não se conhece).
+  const ladoPedido = (raio) => (algumIcone ? ladoDoIconeDaArvore(config, raio) : 0);
+  const larguraDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
+
+  // Lados em que cada nó PODE ter rótulo (aberto ou fechado).
+  const lados = (n) => {
+    if (!rot.mostrar || !n.data.rotulo) return [];
+    const comFilhos = temFilhos(n);
+    // Fechado, um nó com filhos é folha; aberto, é nó interno.
+    const comoFolha = mostrarFolha;
+    const comoInterno = comFilhos && mostrarInterno;
+    if (!comoFolha && !comoInterno) return [];
+    if (centro) return ['centro'];
+    if (posicao === 'fora' || posicao === 'foraComLinha') return ['dir'];
+    if (posicao === 'dentro') return ['esq'];
+    const s = [];
+    if (comoFolha) s.push('dir');
+    if (comoInterno) s.push('esq');
+    return s;
+  };
+
+  const medir = (limite) => {
+    const dir = new Array(profundidade + 1).fill(0);
+    const esq = new Array(profundidade + 1).fill(0);
+    const linhas = new Array(profundidade + 1).fill(0);
+    const comIndicador = new Array(profundidade + 1).fill(false);
+    let tamanho = rot.tamanho;
+    for (const n of nos) {
+      const k = n.depth - base;
+      if (temFilhos(n)) comIndicador[k] = true;
+      const ls = lados(n);
+      if (!ls.length) continue;
+      const pt = partesDoRotuloDoNo(rot, n, { valueFormat, total, mostrarValor: comValor, tl });
+      const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
+      linhas[k] = Math.max(linhas[k], aj.linhas.length * aj.tamanho * 1.15);
+      tamanho = Math.max(tamanho, aj.tamanho);
+      for (const l of ls) {
+        if (l === 'dir') dir[k] = Math.max(dir[k], aj.largura);
+        else if (l === 'esq') esq[k] = Math.max(esq[k], aj.largura);
+        else {
+          dir[k] = Math.max(dir[k], aj.largura / 2);
+          esq[k] = Math.max(esq[k], aj.largura / 2);
+        }
+      }
+    }
+    const meia = larguraDoNo / 2;
+    // Reserva à esquerda e à direita do CENTRO do nó, por nível.
+    const reservaEsq = esq.map((e, k) => meia + (comIndicador[k] ? LARGURA_DO_INDICADOR : 0) + (e ? (centro ? e - meia : e + 4) : 0));
+    const reservaDir = dir.map((d) => meia + (d ? (centro ? d - meia : d + 4) : 0));
+    const passos = [];
+    for (let k = 0; k < profundidade; k++) passos.push(Math.max(0, reservaDir[k]) + folga + Math.max(0, reservaEsq[k + 1]));
+    const largura = folga + Math.max(0, reservaEsq[0]) + passos.reduce((a, b) => a + b, 0) + Math.max(0, reservaDir[profundidade]) + folga;
+    const colunas = dir.filter(Boolean).length + esq.filter(Boolean).length;
+    return { reservaEsq, reservaDir, passos, largura, linhas, colunas, rotulos: dir.concat(esq).reduce((a, b) => a + b, 0) };
+  };
+
+  let limite = Infinity;
+  let m = medir(limite);
+  if (tl.modo !== 'inteiro' && m.largura > larguraUtil && m.colunas) {
+    // Não cabe: limite por rótulo a partir da largura disponível.
+    const fixo = m.largura - m.rotulos;
+    limite = Math.max(40, (larguraUtil - fixo) / m.colunas);
+    m = medir(limite);
+  }
+
+  // Sobra largura: espalha os níveis (como antes, com teto), de forma
+  // estável (a conta usa a árvore completa).
+  const extra = m.largura < larguraUtil && profundidade > 0 ? Math.min(EXTRA_MAXIMO_POR_NIVEL, (larguraUtil - m.largura) / profundidade) : 0;
+  const xDoNivel = [folga + Math.max(0, m.reservaEsq[0])];
+  for (let k = 0; k < profundidade; k++) xDoNivel.push(xDoNivel[k] + m.passos[k] + extra);
+  const largura = m.largura + extra * profundidade;
+
+  // ---------- Vertical ----------
+  const alturaDoTexto = Math.max(0, ...m.linhas);
+  const alturaDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
+  const minimo = (centro ? alturaDoNo + alturaDoTexto + 4 : Math.max(alturaDoNo, alturaDoTexto)) + folga;
+  const fabrica = (config.layoutDaArvore === 'tree' ? d3Tree : d3Cluster)().nodeSize([1, 1]);
+  fabrica(visivel);
+  const visiveis = visivel.descendants();
+  const minU = Math.min(...visiveis.map((n) => n.x));
+  const maxU = Math.max(...visiveis.map((n) => n.x));
+  const unidades = maxU - minU + 1;
+  const espaco = Math.max(minimo, alturaUtil > 0 ? alturaUtil / unidades : 0);
+  const topo = centro ? alturaDoTexto + 4 : 0;
+  let maisFundo = 0;
+  for (const n of visiveis) {
+    n.x = topo + (n.x - minU + 0.5) * espaco;
+    n.y = xDoNivel[n.depth];
+    maisFundo = Math.max(maisFundo, n.depth);
+  }
+  const larguraVisivel = xDoNivel[maisFundo] + Math.max(0, m.reservaDir[maisFundo]) + folga;
+  return {
+    largura,
+    larguraVisivel,
+    altura: topo + unidades * espaco,
+    limiteDoRotulo: limite,
+    ladoDoIcone: (raio) => ladoDoIconeDaArvore(config, raio, espaco),
+  };
 }
 
 /** Converte (ângulo, raio) para (x, y) com o zero apontando para cima. */
@@ -331,6 +541,7 @@ export function desenharArvore({
   valorDeReferencia = null,
   chaveDe = null,
   limiteDoRotulo = Infinity,
+  geometria = null,
 }) {
   const grupo = criarSvgEl('g', { pai: svg });
   if (deslocamento.x || deslocamento.y) {
@@ -366,7 +577,6 @@ export function desenharArvore({
 
   // --- Nós ---
   const grupoDeNos = criarSvgEl('g', { pai: grupo, classe: 'av-nos' });
-  const tamanhoBase = Number(config.tamanhoDoNo);
   const formaDoNo = formaDoMarcador(config.formaDoPonto);
   const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
   const rot = lerRotulos(config, tema);
@@ -382,11 +592,11 @@ export function desenharArvore({
 
   for (const no of raiz.descendants()) {
     const [x, y] = modo === 'radial' ? paraCartesiano(no.x, no.y) : [no.y, no.x];
-    const raioDoNo = config.tamanhoPorValor
-      ? Math.max(1.5, (Number.isFinite(tamanhoBase) ? tamanhoBase : 4) * Math.sqrt((no.value || 0) / maiorValor) * 2.2)
-      : Number.isFinite(tamanhoBase)
-      ? tamanhoBase
-      : 4;
+    const raioDoNo = raioDoNoDaArvore(no.value, config, maiorValor);
+    // Meia largura ocupada pelo nó (marcador ou ícone): o rótulo começa
+    // depois dela (v3.2) — antes começava depois do marcador e o ícone,
+    // maior, ficava por baixo do texto.
+    let meiaLargura = Math.max(0, raioDoNo);
 
     // Um <g> por nó (marcador + rótulo + indicador): é ele que anima ao
     // abrir/fechar (5.9) — o marcador tem o próprio transform de posição.
@@ -400,16 +610,19 @@ export function desenharArvore({
         classe: 'av-no',
         'data-diametro': diametro.toFixed(2),
       });
+      elemento.setAttribute('data-meia', meiaLargura.toFixed(2));
       aplicarPreenchimento(elemento, cores(no), config);
       aplicarContorno(elemento, contorno);
       // Ícone por valor (5.14f): ícone do nome do nó, sobre o marcador.
       if (iconePorValor && modo !== 'radial') {
-        const ic = desenharIconePorValor(iconePorValor, { pai: grupoDoNo, valor: no.data.rotulo, lado: Math.max(12, raioDoNo * 2 + 6), corPadrao: cores(no), estilo: config.estiloDoIcone });
+        const lado = geometria ? geometria.ladoDoIcone(raioDoNo) : ladoDoIconeDaArvore(config, raioDoNo);
+        const ic = desenharIconePorValor(iconePorValor, { pai: grupoDoNo, valor: no.data.rotulo, lado, corPadrao: cores(no), estilo: config.estiloDoIcone });
         if (ic) {
-          const lado = Number(ic.getAttribute('width'));
           ic.setAttribute('x', String(x - lado / 2));
           ic.setAttribute('y', String(y - lado / 2));
           ic.style.pointerEvents = 'none';
+          meiaLargura = Math.max(meiaLargura, lado / 2);
+          elemento.setAttribute('data-meia', meiaLargura.toFixed(2));
         }
       }
       saida.push({ no, elemento });
@@ -424,7 +637,7 @@ export function desenharArvore({
       : config.mostrarRotulosInternos === true;
     if (!querRotulo || !no.data.rotulo) continue;
 
-    const afastamento = Math.max(0, raioDoNo) + 4;
+    const afastamento = meiaLargura + 4;
     if (modo === 'radial') {
       const texto = textoDoRotuloDoNo(rot, no, {
         valueFormat,
@@ -464,7 +677,9 @@ export function desenharArvore({
       const aDireita =
         rot.posicao === 'fora' || rot.posicao === 'foraComLinha' ? true : rot.posicao === 'dentro' ? false : ehFolha;
       ancora = aDireita ? 'start' : 'end';
-      tx = aDireita ? x + afastamento : x - afastamento;
+      // À esquerda de um nó com filhos fica o "+"/"−": o rótulo vai além dele.
+      const recuo = !aDireita && geometria && geometria.comIndicador && geometria.comIndicador(no) ? LARGURA_DO_INDICADOR : 0;
+      tx = aDireita ? x + afastamento : x - afastamento - recuo;
     }
     // Texto longo (5.11): inteiro / quebrar / reduzir / cortar / abreviar / só o nome.
     const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });

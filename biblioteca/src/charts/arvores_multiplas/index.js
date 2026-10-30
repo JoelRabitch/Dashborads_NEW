@@ -29,6 +29,14 @@
  *   - opção "Níveis abertos no início" (0 = tudo aberto);
  *   - o estado (o que está aberto) sobrevive aos redesenhos e às
  *     atualizações; só volta ao inicial quando a opção de nível muda.
+ *
+ * Espaçamento (v3.2, `layoutHorizontalEstavel` em _arvore): a distância
+ * entre níveis vem do maior rótulo de cada nível + ícone + folga, medida
+ * no ramo COMPLETO — abrir/fechar não move os níveis visíveis. Cada linha
+ * tem max(ícone, texto) + folga e a célula rola quando não cabe. Opções
+ * novas: "Tamanho do ícone" (`tamanhoDoIcone`, 0 = automático) e "Ajuste
+ * de escala" (`ajusteDeEscala`: real com rolagem, padrão, ou ajustar à
+ * área com a fonte mínima do "Texto longo").
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -55,12 +63,14 @@ import {
 import {
   CSS_ARVORE,
   opcoesDeArvore,
-  layoutHorizontal,
+  layoutHorizontalEstavel,
+  escalaDeAjuste,
   desenharArvore,
   criarCoresDaArvore,
   montarLinhas,
-  medirRotulosDaArvore,
 } from '../_arvore/index.js';
+import { lerRotulos } from '../../core/rotulos.js';
+import { criarIconePorValor } from '../../core/icone-por-valor.js';
 import {
   opcoesComunsDasArvores,
   criarBarraDaArvore,
@@ -287,6 +297,7 @@ export default defineViz({
     const maiorGlobal = raiz.value || 1;
     const espacoDoTitulo = 18;
     const semRotulos = config.mostrarRotulos === false || config.mostrarRotulosDeFolha === false;
+    const iconePorValor = criarIconePorValor(config);
 
     for (const ramo of ramos) {
       const chaveDoRamo = chaveDoNo(ramo);
@@ -324,35 +335,56 @@ export default defineViz({
         .sort((a, b) => (b.value || 0) - (a.value || 0));
       const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
 
-      // ---------- Texto longo (5.11): espaço dos rótulos ----------
-      // "Mostrar inteiro": a árvore reserva a largura do MAIOR rótulo e a
-      // célula rola na horizontal se precisar. Nos outros modos, o rótulo
-      // cabe na faixa de 38% da célula (como antes) e é ajustado ao modo.
-      const limiteFixo = Math.max(40, larguraDaCelula * 0.38 - 10);
-      const limite = tl.modo === 'inteiro' ? Infinity : limiteFixo;
-      const medida = medirRotulosDaArvore(subRaiz, { config, tema, valueFormat, total: maiorGlobal, limite });
-      const reservaDireita = semRotulos ? 12 : (tl.modo === 'inteiro' ? medida.folhas : Math.min(medida.folhas, limiteFixo)) + 12 + tl.margemExtra;
-      const reservaEsquerda = 12 + (config.mostrarRotulosInternos === true && medida.internos ? medida.internos + 8 : 0);
-      const profundidade = Math.max(1, subRaiz.height);
-      const larguraDoLayout = Math.max(profundidade * 48, larguraDaCelula - reservaEsquerda - reservaDireita);
-      const larguraDoSvg = reservaEsquerda + larguraDoLayout + reservaDireita;
-      const alturaDoSvg = alturaDaCelula;
+      // ---------- Layout estável (v3.2) ----------
+      // Os níveis ficam a uma distância que cabe o maior rótulo + ícone +
+      // folga, calculada sobre o ramo COMPLETO: abrir ou fechar um nó não
+      // move os níveis já visíveis. Se não couber na célula, vale o modo do
+      // "Texto longo" (5.11): "Mostrar inteiro" cresce com rolagem; os
+      // outros modos ajustam o rótulo à largura disponível.
+      const margemDireita = semRotulos ? 0 : tl.margemExtra;
+      const plano = layoutHorizontalEstavel({
+        visivel: subRaiz,
+        completa: ramo,
+        config,
+        tema,
+        valueFormat,
+        total: maiorGlobal,
+        maiorValor: config.escalaPorArvore ? ramo.value || 1 : maiorGlobal,
+        larguraUtil: larguraDaCelula - margemDireita,
+        alturaUtil: alturaDaCelula - espacoDoTitulo - 12,
+        temFilhos: (n) => temFilhos(n.data),
+        temIcone: (n) => !!(iconePorValor && iconePorValor(n.data.rotulo)),
+      });
+      const limite = plano.limiteDoRotulo;
+      // Centralizar (5.10) pela largura do ramo COMPLETO, que não muda ao
+      // abrir/fechar: assim a árvore não "pula" para o lado.
+      const larguraCompleta = plano.largura + margemDireita;
+      const sobra = Math.max(0, larguraDaCelula - larguraCompleta);
+      const deslocX =
+        config.centralizarCadaArvore === false || alinhH === 'esquerda' ? 0 : alinhH === 'direita' ? sobra : sobra / 2;
+      let larguraDoSvg = Math.max(larguraDaCelula, deslocX + plano.larguraVisivel + margemDireita);
+      let alturaDoSvg = Math.max(alturaDaCelula, espacoDoTitulo + plano.altura + 12);
+      // "Ajuste de escala" (v3.2): tamanho real com rolagem (padrão) ou
+      // reduzido para caber, sem a fonte passar da mínima.
+      const escala = escalaDeAjuste(config, {
+        area: { largura: larguraDaCelula, altura: alturaDaCelula },
+        desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
+        fonte: lerRotulos(config, tema).tamanho,
+      });
+      const viewBox = `0 0 ${larguraDoSvg} ${alturaDoSvg}`;
+      larguraDoSvg *= escala;
+      alturaDoSvg *= escala;
 
       const svg = criarSvgEl('svg', {
         pai: celula,
         atributos: {
           width: larguraDoSvg,
           height: alturaDoSvg,
-          viewBox: `0 0 ${larguraDoSvg} ${alturaDoSvg}`,
+          viewBox,
         },
       });
       svg.style.display = 'block';
       svg.style.flex = '0 0 auto';
-      // Cada árvore centralizada na própria célula (5.10, opção).
-      if (config.centralizarCadaArvore !== false && larguraDoSvg < larguraDaCelula) {
-        svg.style.marginLeft = alinhH === 'esquerda' ? '0' : 'auto';
-        svg.style.marginRight = alinhH === 'direita' ? '0' : 'auto';
-      }
 
       const titulo = criarSvgEl('text', {
         pai: svg,
@@ -366,17 +398,11 @@ export default defineViz({
       });
       definirTexto(titulo, `${ramo.data.rotulo} (${formatar(ramo.value || 0)})`);
 
-      layoutHorizontal(subRaiz, {
-        largura: Math.max(20, larguraDoLayout),
-        altura: Math.max(20, alturaDoSvg - espacoDoTitulo - 12),
-        config,
-      });
-
       const desenho = desenharArvore({
         svg,
         raiz: subRaiz,
         modo: 'horizontal',
-        deslocamento: { x: reservaEsquerda, y: espacoDoTitulo },
+        deslocamento: { x: deslocX, y: espacoDoTitulo },
         config,
         valorDeReferencia: config.escalaPorArvore ? null : maiorGlobal,
         tema,
@@ -386,6 +412,7 @@ export default defineViz({
         compacto: true,
         chaveDe: (n) => chavePorDados.get(n.data),
         limiteDoRotulo: limite,
+        geometria: { ladoDoIcone: plano.ladoDoIcone, comIndicador: (n) => temFilhos(n.data) },
         aoInteragir(elemento, no) {
           const conteudo = () => ({
             titulo: `${ramo.data.rotulo} › ${no.data.rotulo}`,
@@ -449,24 +476,26 @@ export default defineViz({
 
       // ---------- Centralizar na célula (5.10) ----------
       const rolagemGuardada = estado.rolagemDasCelulas.get(chaveDoRamo);
-      if (centralizarAgora && larguraDoSvg > larguraDaCelula) {
+      if (centralizarAgora && (larguraDoSvg > larguraDaCelula || alturaDoSvg > alturaDaCelula)) {
         const alvoNo =
           config.oQueCentralizar === 'raiz'
             ? subRaiz
             : config.oQueCentralizar === 'selecionado'
               ? subRaiz.descendants().find((n) => chavePorDados.get(n.data) === estado.selecionado) || null
               : null;
-        const plano = planoDeCentralizacao({
+        const centro = planoDeCentralizacao({
           area: { largura: larguraDaCelula, altura: alturaDaCelula },
           desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
-          alvo: alvoNo ? alvoNo.__xy : null,
+          alvo: alvoNo ? { x: alvoNo.__xy.x * escala, y: alvoNo.__xy.y * escala } : null,
           config,
         });
-        celula.scrollLeft = plano.scrollLeft;
+        celula.scrollLeft = centro.scrollLeft;
+        celula.scrollTop = centro.scrollTop;
       } else if (rolagemGuardada) {
-        celula.scrollLeft = rolagemGuardada;
+        celula.scrollLeft = rolagemGuardada.x;
+        celula.scrollTop = rolagemGuardada.y;
       }
-      ctx.eventos.on(celula, 'scroll', () => estado.rolagemDasCelulas.set(chaveDoRamo, celula.scrollLeft));
+      ctx.eventos.on(celula, 'scroll', () => estado.rolagemDasCelulas.set(chaveDoRamo, { x: celula.scrollLeft, y: celula.scrollTop }));
     }
     if (centralizarAgora) estado.jaCentralizou = true;
   },
@@ -515,7 +544,8 @@ function desenharIndicador(marcador, recolhido, tema) {
   if (!pai) return;
   const m = /translate\(([-\d.]+),([-\d.]+)\)/.exec(marcador.getAttribute('transform') || '');
   if (!m) return;
-  const raio = (Number(marcador.getAttribute('data-diametro')) || 6) / 2;
+  // Depois do ícone (se houver), não por baixo dele (v3.2).
+  const raio = Number(marcador.getAttribute('data-meia')) || (Number(marcador.getAttribute('data-diametro')) || 6) / 2;
   const t = criarSvgEl('text', {
     pai,
     classe: 'am-indicador',
