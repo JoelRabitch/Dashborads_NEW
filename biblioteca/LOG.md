@@ -3201,3 +3201,37 @@ PRÓXIMA AÇÃO: 5.1b (4 abas e rótulos curtos).
 - `npm test` 802/802.
 
 PRÓXIMA AÇÃO: 5.1c (componente de título, subtítulo e nota).
+
+### 5.1c Título, subtítulo e nota (concluído em código; conferir no Looker real)
+- Confirmado no código: a nota era um elemento de cada gráfico (classes
+  `bp-nota`, `bc-nota`, `st-nota`, `lv-nota`...), quase sempre
+  `position:absolute; bottom:4px` POR CIMA da área; `mostrarAvisos` não a
+  tocava (o aviso é outro elemento, `bl-aviso`).
+- Novo `src/core/cabecalho.js` + `src/core/medida-texto.js` (função única
+  de largura estimada de texto, documentada). Faixas `.bl-cabecalho` (topo)
+  e `.bl-rodape` (base) no fluxo do flex, com a altura do plano
+  `planejarCabecalho`; a área do gráfico é o que sobra. Tile pequeno:
+  some a nota, depois subtítulo, depois título.
+- Opções novas (aba Texto, 35 ids): `mostrarTitulo`, `posicaoDoTitulo`,
+  `alinhamentoDoTitulo`, `deslocamentoXDoTitulo`, `deslocamentoYDoTitulo`,
+  `tamanhoDoTitulo`, `fonteDoTitulo`, `pesoDoTitulo`, `corDoTitulo`,
+  `margemDoTitulo`, `quebrarTitulo`, `linhasDoTitulo` (e o mesmo com
+  `Subtitulo`); `mostrarNota`, `posicaoDaNota` (abaixo|acima|icone),
+  `alinhamentoDaNota`, `tamanhoDaNota`, `fonteDaNota`, `corDaNota`,
+  `quebrarNota`, `linhasDaNota`, `textoDaNota` (auto|auto_mais|meu|nenhum),
+  `meuTextoDaNota`. Padrões = visual anterior.
+- Cada gráfico informa o texto automático num único lugar: `ctx.nota`
+  (elemento fora do documento); o núcleo lê depois do render. Se a nota
+  mudar a altura da área, redesenha uma vez no espaço certo.
+- kpi_vivo (cabeçalho próprio): o título continua dentro do cartão, mas
+  segue mostrar/cor/tamanho/fonte/peso/alinhamento. Decisão: "Esquerda"
+  (padrão) mantém o alinhamento do cartão; posição acima/abaixo não se
+  aplica a ele. A nota do KPI passa ao componente único.
+- `cartao_multivalor` ainda não existe: usará o mesmo componente (5.14).
+- Aviso no rodapé passa a ficar logo depois da área (antes da faixa de
+  baixo). Testes antigos passam a ler a nota por `.bl-nota`.
+- Testes: `test/cabecalho_v3.test.mjs` (geometria do plano em 4 tamanhos
+  de tile × todas as posições; modos do texto; em todos os 22 gráficos a
+  nota/título ficam fora da área). `npm test` 829/829; segurança ok.
+
+PRÓXIMA AÇÃO: FASE 2 — 5.3 (busca "contém" na tabela).

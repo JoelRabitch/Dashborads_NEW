@@ -380,7 +380,7 @@ export default defineViz({
     });
 
     // ---------- Nota ----------
-    const nota = criarEl('div', { classe: 'bp-nota', pai: area });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     const comLacunas = series.some((s) => s.posicoes.some((p) => p === null));
     definirTexto(

@@ -376,7 +376,7 @@ export default defineViz({
       span.style.textAlign = marca.p === 0 ? 'left' : marca.p === 1 ? 'right' : 'center';
       definirTexto(span, formatarAntes(marca.valor));
     }
-    lista.raiz.insertBefore(regua, lista.nota);
+    lista.raiz.appendChild(regua);
 
     const subiram = itens.filter((i) => i.diferenca > 0).length;
     const cairam = itens.filter((i) => i.diferenca < 0).length;

@@ -75,7 +75,8 @@ test('kpi — meta com barra de progresso, ícone, layouts, título e subtítulo
     assert.ok(compacto.q('.kv-cartao.kv-compacto'));
     assert.equal(titulos.q('.kv-titulo').textContent, 'Receita');
     assert.equal(titulos.q('.kv-subtitulo').textContent, 'acumulado do mês');
-    assert.equal(titulos.q('.bl-titulo').style.display, 'none', 'o título não pode sair duas vezes (cabeçalho + cartão)');
+    // v3 (5.1c): com cabeçalho próprio o componente único não desenha o título.
+    assert.equal(titulos.q('.bl-cabecalho .bl-titulo'), null, 'o título não pode sair duas vezes (cabeçalho + cartão)');
   } finally {
     [meta, icone, horizontal, compacto, titulos].forEach((r) => r.fim());
   }

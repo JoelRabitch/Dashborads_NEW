@@ -360,7 +360,7 @@ export default defineViz({
     }
 
     // ---------- Nota ----------
-    const nota = criarEl('div', { classe: 'mk-nota', pai: area });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     definirTexto(
       nota,

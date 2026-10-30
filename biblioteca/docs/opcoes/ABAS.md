@@ -62,6 +62,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `permitirOrdenar` | Interação | Mais | Clique · Ordenar no cabeçalho | Clique · Ordenar clicando no cabeçalho |
 | `mostrarBusca` | Interação | Mais | Clique · Campo de busca | Clique · Mostrar caixa de busca |
 | `mostrarFiltrosPorColuna` | Interação | Mais | Clique · Filtro por coluna | Clique · Mostrar filtro em cada coluna |
@@ -262,6 +296,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -378,6 +446,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `rotulo_superiorEsquerdo` | Texto | Texto | Quadrantes · Nome: "Baixo / Alto" | Quadrantes · Nome do quadrante "Baixo / Alto" |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -495,6 +597,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `rotulo_superiorEsquerdo` | Texto | Texto | Quadrantes · Nome: "Oportunidade" | Quadrantes · Nome do quadrante "Oportunidade" |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -614,6 +750,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `eixoXSimetricoEmTorno1` | Texto | Texto | Eixo X centrado em 1 | Quadrantes · Centrar o eixo X em 1 (deixa a divisória no meio, como na matriz original) |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -698,6 +868,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -781,6 +985,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -862,6 +1100,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -961,6 +1233,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1055,6 +1361,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1131,6 +1471,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `mostrarTitulosDeGrupo` | Texto | Texto | Treemap · Nome de cada grupo | Treemap · Faixa com o nome de cada grupo |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1253,6 +1627,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `rotulo_superiorEsquerdo` | Texto | Texto | Nome: "Retorno alto, risco baixo" | Quadrantes · Nome do quadrante "Retorno alto, risco baixo" |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1353,6 +1761,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1417,6 +1859,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1491,6 +1967,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1565,6 +2075,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1642,6 +2186,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `mostrarPosicao` | Texto | Texto | Ranking · Posição no ponto | Ranking · Número da posição dentro do ponto |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1722,6 +2300,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -1800,6 +2412,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `mostrarRank` | Texto | Texto | Corrida · Número do rank | Corrida · Mostrar o número do rank (1, 2, 3…) |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `modoDebug` | Avançado | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Mais | Aplicar o JSON acima | Aplicar o JSON acima por cima das opções |
@@ -1871,6 +2517,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `contadorAnimado` | Interação | Mais | Animação · Números contando | Animação · Animação de contagem do número |
 | `modoDebug` | Avançado | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
@@ -1935,6 +2615,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |
@@ -2012,6 +2726,40 @@ Ids marcados com ★ são novos (não existiam antes).
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
+| `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
+| `posicaoDoTitulo` ★ | — | Texto | Título · Posição |  |
+| `alinhamentoDoTitulo` ★ | — | Texto | Título · Alinhamento |  |
+| `deslocamentoXDoTitulo` ★ | — | Texto | Título · Deslocamento X (px) |  |
+| `deslocamentoYDoTitulo` ★ | — | Texto | Título · Deslocamento Y (px) |  |
+| `tamanhoDoTitulo` ★ | — | Texto | Título · Tamanho (px, 0 = auto) |  |
+| `fonteDoTitulo` ★ | — | Texto | Título · Fonte |  |
+| `pesoDoTitulo` ★ | — | Texto | Título · Peso |  |
+| `corDoTitulo` ★ | — | Texto | Título · Cor (vazio = tema) |  |
+| `margemDoTitulo` ★ | — | Texto | Título · Margem (px) |  |
+| `quebrarTitulo` ★ | — | Texto | Título · Quebrar linha |  |
+| `linhasDoTitulo` ★ | — | Texto | Título · Máximo de linhas (0 = sem) |  |
+| `mostrarSubtitulo` ★ | — | Texto | Subtítulo · Mostrar |  |
+| `posicaoDoSubtitulo` ★ | — | Texto | Subtítulo · Posição |  |
+| `alinhamentoDoSubtitulo` ★ | — | Texto | Subtítulo · Alinhamento |  |
+| `deslocamentoXDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento X (px) |  |
+| `deslocamentoYDoSubtitulo` ★ | — | Texto | Subtítulo · Deslocamento Y (px) |  |
+| `tamanhoDoSubtitulo` ★ | — | Texto | Subtítulo · Tamanho (px, 0 = auto) |  |
+| `fonteDoSubtitulo` ★ | — | Texto | Subtítulo · Fonte |  |
+| `pesoDoSubtitulo` ★ | — | Texto | Subtítulo · Peso |  |
+| `corDoSubtitulo` ★ | — | Texto | Subtítulo · Cor (vazio = tema) |  |
+| `margemDoSubtitulo` ★ | — | Texto | Subtítulo · Margem (px) |  |
+| `quebrarSubtitulo` ★ | — | Texto | Subtítulo · Quebrar linha |  |
+| `linhasDoSubtitulo` ★ | — | Texto | Subtítulo · Máximo de linhas (0 = sem) |  |
+| `mostrarNota` ★ | — | Texto | Nota · Mostrar |  |
+| `posicaoDaNota` ★ | — | Texto | Nota · Posição |  |
+| `alinhamentoDaNota` ★ | — | Texto | Nota · Alinhamento |  |
+| `tamanhoDaNota` ★ | — | Texto | Nota · Tamanho (px) |  |
+| `fonteDaNota` ★ | — | Texto | Nota · Fonte |  |
+| `corDaNota` ★ | — | Texto | Nota · Cor (vazio = tema) |  |
+| `quebrarNota` ★ | — | Texto | Nota · Quebrar linha |  |
+| `linhasDaNota` ★ | — | Texto | Nota · Máximo de linhas (0 = sem) |  |
+| `textoDaNota` ★ | — | Texto | Nota · Texto |  |
+| `meuTextoDaNota` ★ | — | Texto | Nota · Meu texto |  |
 | `mostrarTooltip` | Interação | Mais | Tooltip · Mostrar tooltip |  |
 | `tooltipPersonalizado` | Interação | Mais | Tooltip · Personalizado | Tooltip · Usar tooltip personalizado |
 | `modeloDeTooltip` | Interação | Mais | Tooltip · Modelo | Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão |

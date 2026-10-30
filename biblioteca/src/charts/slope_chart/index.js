@@ -445,7 +445,7 @@ export default defineViz({
     const subiram = itens.filter((i) => i.variacao > 0).length;
     const cairam = itens.filter((i) => i.variacao < 0).length;
 
-    const nota = criarEl('div', { classe: 'sl-nota', pai: area });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     definirTexto(
       nota,

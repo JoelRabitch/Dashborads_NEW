@@ -2439,6 +2439,9 @@
     Avan\u00E7ado: "Mais"
   };
   var ABA_POR_SECAO = {
+    T\u00EDtulo: "Texto",
+    Subt\u00EDtulo: "Texto",
+    Nota: "Texto",
     Dados: "Dados",
     Medidas: "Dados",
     Formato: "Visual",
@@ -2454,6 +2457,9 @@
     Avan\u00E7ado: "Avan\xE7ado"
   };
   var PREFIXO_POR_SECAO = {
+    T\u00EDtulo: "T\xEDtulo",
+    Subt\u00EDtulo: "Subt\xEDtulo",
+    Nota: "Nota",
     Cores: "Cor",
     Cor: "Cor",
     R\u00F3tulos: "R\xF3tulo",
@@ -2544,9 +2550,9 @@
   }
   function opcaoDeEscolhaDeCampo(chave, rotulo, campos, opcoes = {}) {
     const { secao = "Dados", incluirNenhum = false, padrao = null } = opcoes;
-    const valores = [];
-    if (incluirNenhum) valores.push({ "(nenhum)": "" });
-    for (const campo of campos) valores.push({ [campo.rotulo]: campo.nome });
+    const valores2 = [];
+    if (incluirNenhum) valores2.push({ "(nenhum)": "" });
+    for (const campo of campos) valores2.push({ [campo.rotulo]: campo.nome });
     return {
       [chave]: {
         type: "string",
@@ -2554,7 +2560,7 @@
         section: secao,
         display: "select",
         default: padrao !== null ? padrao : campos[0] && campos[0].nome || "",
-        values: valores
+        values: valores2
       }
     };
   }
@@ -2808,6 +2814,311 @@
     return marcas.length;
   }
 
+  // src/core/medida-texto.js
+  var ESTREITOS = /* @__PURE__ */ new Set([...`iljtf.,:;|!'"()[]{} `]);
+  var LARGOS = /* @__PURE__ */ new Set([..."mwMWQGOD@%"]);
+  function larguraDoTexto(texto, tamanho = 12, { negrito = false, mono = false } = {}) {
+    const s = String(texto != null ? texto : "");
+    if (!s) return 0;
+    if (mono) return s.length * 0.62 * tamanho;
+    let em = 0;
+    for (const ch of s) {
+      if (ESTREITOS.has(ch)) em += 0.32;
+      else if (LARGOS.has(ch)) em += 0.86;
+      else if (ch >= "A" && ch <= "Z") em += 0.68;
+      else if (ch >= "0" && ch <= "9") em += 0.56;
+      else em += 0.53;
+    }
+    return em * tamanho * (negrito ? 1.09 : 1);
+  }
+  function linhasDoTexto(texto, larguraDisponivel, tamanho = 12, opcoes = {}) {
+    const s = String(texto != null ? texto : "").trim();
+    if (!s) return 0;
+    if (!(larguraDisponivel > 0)) return 1;
+    const espaco = larguraDoTexto(" ", tamanho, opcoes);
+    let linhas = 1;
+    let atual = 0;
+    for (const palavra of s.split(/\s+/)) {
+      const w = larguraDoTexto(palavra, tamanho, opcoes);
+      if (atual === 0) {
+        atual = w;
+        if (w > larguraDisponivel) {
+          linhas += Math.ceil(w / larguraDisponivel) - 1;
+          atual = w % larguraDisponivel;
+        }
+      } else if (atual + espaco + w <= larguraDisponivel) {
+        atual += espaco + w;
+      } else {
+        linhas += 1;
+        atual = Math.min(w, larguraDisponivel);
+        if (w > larguraDisponivel) linhas += Math.ceil(w / larguraDisponivel) - 1;
+      }
+    }
+    return linhas;
+  }
+
+  // src/core/cabecalho.js
+  var valores = (pares) => pares.map(([rotulo, valor]) => ({ [rotulo]: valor }));
+  var ALINHAMENTOS = valores([["Esquerda", "esquerda"], ["Centro", "centro"], ["Direita", "direita"]]);
+  var FONTES = valores([["Do tema", "tema"], ["Sistema", "sistema"], ["Monoespa\xE7ada", "mono"], ["Serifada", "serifada"]]);
+  var PESOS = valores([["Negrito", "negrito"], ["Normal", "normal"]]);
+  function blocoDeTexto(sufixo, secao, { peso, tamanho }) {
+    const o = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: secao, default: def, ...extra });
+    return {
+      [`mostrar${sufixo}`]: o("boolean", "Mostrar", true),
+      [`posicaoDo${sufixo}`]: o("string", "Posi\xE7\xE3o", "acima", {
+        display: "select",
+        values: valores([["Acima do gr\xE1fico", "acima"], ["Abaixo do gr\xE1fico", "abaixo"]])
+      }),
+      [`alinhamentoDo${sufixo}`]: o("string", "Alinhamento", "esquerda", { display: "select", values: ALINHAMENTOS }),
+      [`deslocamentoXDo${sufixo}`]: o("number", "Deslocamento X (px)", 0),
+      [`deslocamentoYDo${sufixo}`]: o("number", "Deslocamento Y (px)", 0),
+      [`tamanhoDo${sufixo}`]: o("number", "Tamanho (px, 0 = auto)", tamanho),
+      [`fonteDo${sufixo}`]: o("string", "Fonte", "tema", { display: "select", values: FONTES }),
+      [`pesoDo${sufixo}`]: o("string", "Peso", peso, { display: "select", values: PESOS }),
+      [`corDo${sufixo}`]: o("string", "Cor (vazio = tema)", "", { display: "color" }),
+      [`margemDo${sufixo}`]: o("number", "Margem (px)", 0),
+      [`quebrar${sufixo}`]: o("boolean", "Quebrar linha", true),
+      [`linhasDo${sufixo}`]: o("number", "M\xE1ximo de linhas (0 = sem)", 0)
+    };
+  }
+  function opcoesDoCabecalho() {
+    const n = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: "Nota", default: def, ...extra });
+    return {
+      ...blocoDeTexto("Titulo", "T\xEDtulo", { peso: "negrito", tamanho: 0 }),
+      ...blocoDeTexto("Subtitulo", "Subt\xEDtulo", { peso: "normal", tamanho: 0 }),
+      mostrarNota: n("boolean", "Mostrar", true),
+      posicaoDaNota: n("string", "Posi\xE7\xE3o", "abaixo", {
+        display: "select",
+        values: valores([
+          ["Abaixo do gr\xE1fico", "abaixo"],
+          ["Acima do gr\xE1fico", "acima"],
+          ["S\xF3 no \xEDcone \u24D8", "icone"]
+        ])
+      }),
+      alinhamentoDaNota: n("string", "Alinhamento", "esquerda", { display: "select", values: ALINHAMENTOS }),
+      tamanhoDaNota: n("number", "Tamanho (px)", 10),
+      fonteDaNota: n("string", "Fonte", "tema", { display: "select", values: FONTES }),
+      corDaNota: n("string", "Cor (vazio = tema)", "", { display: "color" }),
+      quebrarNota: n("boolean", "Quebrar linha", true),
+      linhasDaNota: n("number", "M\xE1ximo de linhas (0 = sem)", 0),
+      textoDaNota: n("string", "Texto", "auto", {
+        display: "select",
+        values: valores([
+          ["Autom\xE1tico", "auto"],
+          ["Autom\xE1tico + meu texto", "auto_mais"],
+          ["S\xF3 meu texto", "meu"],
+          ["Nenhum", "nenhum"]
+        ])
+      }),
+      meuTextoDaNota: n("string", "Meu texto", "")
+    };
+  }
+  function textoFinalDaNota(config = {}, automatico = "") {
+    const auto = String(automatico || "").trim();
+    const meu = String(config.meuTextoDaNota || "").trim();
+    switch (config.textoDaNota) {
+      case "nenhum":
+        return "";
+      case "meu":
+        return meu;
+      case "auto_mais":
+        return [auto, meu].filter(Boolean).join(" \xB7 ");
+      default:
+        return auto;
+    }
+  }
+  var num = (v, padrao) => Number.isFinite(Number(v)) && v !== "" && v !== null ? Number(v) : padrao;
+  function familia(fonte, tema) {
+    if (fonte === "sistema") return 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+    if (fonte === "mono") return 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';
+    if (fonte === "serifada") return 'Georgia, "Times New Roman", serif';
+    return tema && tema.fonte || "";
+  }
+  function estiloDoTexto(tipo, config = {}, tema = {}) {
+    const base = num(tema.tamanhoBase, 12);
+    if (tipo === "nota") {
+      return {
+        mostrar: config.mostrarNota !== false,
+        posicao: ["acima", "icone"].includes(config.posicaoDaNota) ? config.posicaoDaNota : "abaixo",
+        alinhamento: config.alinhamentoDaNota || "esquerda",
+        dx: 0,
+        dy: 0,
+        tamanho: Math.max(6, num(config.tamanhoDaNota, 10) || 10),
+        fonte: familia(config.fonteDaNota, tema),
+        mono: config.fonteDaNota === "mono",
+        negrito: false,
+        cor: (config.corDaNota || "").trim() || tema.textoSuave || "",
+        opacidade: (config.corDaNota || "").trim() ? 1 : 0.75,
+        margem: 0,
+        quebrar: config.quebrarNota !== false,
+        linhas: Math.max(0, Math.floor(num(config.linhasDaNota, 0))),
+        alturaDaLinha: 1.35
+      };
+    }
+    const S = tipo === "titulo" ? "Titulo" : "Subtitulo";
+    const automatico = tipo === "titulo" ? Math.round(base * 1.25) : Math.round(base * 0.95);
+    const tamanho = num(config[`tamanhoDo${S}`], 0);
+    const peso = config[`pesoDo${S}`] || (tipo === "titulo" ? "negrito" : "normal");
+    const cor = (config[`corDo${S}`] || "").trim();
+    return {
+      mostrar: config[`mostrar${S}`] !== false,
+      posicao: config[`posicaoDo${S}`] === "abaixo" ? "abaixo" : "acima",
+      alinhamento: config[`alinhamentoDo${S}`] || "esquerda",
+      dx: num(config[`deslocamentoXDo${S}`], 0),
+      dy: num(config[`deslocamentoYDo${S}`], 0),
+      tamanho: tamanho > 0 ? tamanho : automatico,
+      fonte: familia(config[`fonteDo${S}`], tema),
+      mono: config[`fonteDo${S}`] === "mono",
+      negrito: peso === "negrito",
+      cor: cor || "",
+      opacidade: tipo === "subtitulo" && !cor ? 0.7 : 1,
+      margem: Math.max(0, num(config[`margemDo${S}`], 0)),
+      quebrar: config[`quebrar${S}`] !== false,
+      linhas: Math.max(0, Math.floor(num(config[`linhasDo${S}`], 0))),
+      alturaDaLinha: 1.2
+    };
+  }
+  var FOLGA = { lateral: 10, topo: 6, base: 4, entreItens: 2, icone: 18 };
+  function planejarCabecalho({ largura, altura, config = {}, tema = {}, textos = {}, areaMinima }) {
+    const minimo = areaMinima != null ? areaMinima : Math.max(40, Math.round(altura * 0.25));
+    const ocultos = [];
+    const pedidos = [];
+    for (const tipo of ["titulo", "subtitulo", "nota"]) {
+      const texto = String(textos[tipo] || "").trim();
+      const estilo = estiloDoTexto(tipo, config, tema);
+      if (!texto || !estilo.mostrar) continue;
+      pedidos.push({ tipo, texto, estilo });
+    }
+    const calcular = (itens) => {
+      const icone = itens.find((i) => i.tipo === "nota" && i.estilo.posicao === "icone");
+      const noFluxo = itens.filter((i) => i !== icone);
+      const larguraUtil = Math.max(20, largura - 2 * FOLGA.lateral);
+      const medir2 = (i) => {
+        const reservaDoIcone = icone && i.estilo.posicao === "acima" ? FOLGA.icone + 4 : 0;
+        const larguraDoItem = Math.max(20, larguraUtil - Math.abs(i.estilo.dx) - reservaDoIcone);
+        const opts = { negrito: i.estilo.negrito, mono: i.estilo.mono };
+        let linhas = i.estilo.quebrar ? linhasDoTexto(i.texto, larguraDoItem, i.estilo.tamanho, opts) : 1;
+        if (i.estilo.linhas > 0) linhas = Math.min(linhas, i.estilo.linhas);
+        const alturaDoTexto = Math.ceil(linhas * i.estilo.tamanho * i.estilo.alturaDaLinha);
+        return { ...i, linhas, largura: larguraDoItem, alturaDoTexto, altura: alturaDoTexto + 2 * i.estilo.margem };
+      };
+      const topo = noFluxo.filter((i) => i.estilo.posicao === "acima").map(medir2);
+      const base = noFluxo.filter((i) => i.estilo.posicao === "abaixo").map(medir2);
+      const somar = (lista) => lista.reduce((s, i) => s + i.altura, 0) + Math.max(0, lista.length - 1) * FOLGA.entreItens;
+      let alturaTopo = topo.length ? FOLGA.topo + somar(topo) : 0;
+      if (icone) alturaTopo = Math.max(alturaTopo, FOLGA.topo + FOLGA.icone);
+      const alturaBase = base.length ? somar(base) + FOLGA.base : 0;
+      let y = FOLGA.topo;
+      for (const i of topo) {
+        i.x = FOLGA.lateral + i.estilo.dx;
+        i.y = y + i.estilo.margem + i.estilo.dy;
+        y += i.altura + FOLGA.entreItens;
+      }
+      y = altura - alturaBase;
+      for (const i of base) {
+        i.x = FOLGA.lateral + i.estilo.dx;
+        i.y = y + i.estilo.margem + i.estilo.dy;
+        y += i.altura + FOLGA.entreItens;
+      }
+      return {
+        topo,
+        base,
+        icone: icone ? icone.texto : "",
+        estiloDoIcone: icone ? icone.estilo : null,
+        alturaTopo,
+        alturaBase,
+        area: { y: alturaTopo, altura: altura - alturaTopo - alturaBase }
+      };
+    };
+    let plano = calcular(pedidos);
+    for (const tipo of ["nota", "subtitulo", "titulo"]) {
+      if (plano.area.altura >= minimo) break;
+      const idx = pedidos.findIndex((p) => p.tipo === tipo);
+      if (idx < 0) continue;
+      pedidos.splice(idx, 1);
+      ocultos.push(tipo);
+      plano = calcular(pedidos);
+    }
+    return { ...plano, ocultos };
+  }
+  var CSS = `
+.bl-cabecalho,.bl-rodape{position:relative;flex:0 0 auto;overflow:hidden;padding:0 ${FOLGA.lateral}px;}
+.bl-cabecalho{padding-top:${FOLGA.topo}px;}
+.bl-rodape{padding-bottom:${FOLGA.base}px;}
+.bl-cabecalho>.bl-texto+.bl-texto,.bl-rodape>.bl-texto+.bl-texto{margin-top:${FOLGA.entreItens}px;}
+.bl-texto{position:relative;overflow:hidden;}
+.bl-texto.bl-sem-quebra{white-space:nowrap;text-overflow:ellipsis;}
+.bl-texto.bl-limitado{display:-webkit-box;-webkit-box-orient:vertical;}
+.bl-nota-icone{position:absolute;top:${FOLGA.topo - 2}px;right:${FOLGA.lateral - 4}px;width:${FOLGA.icone}px;height:${FOLGA.icone}px;
+  border:0;padding:0;background:transparent;color:inherit;font:inherit;font-size:14px;line-height:${FOLGA.icone}px;cursor:help;opacity:.7;}
+.bl-nota-icone:hover,.bl-nota-icone:focus{opacity:1;}
+.bl-nota-balao{position:absolute;z-index:5;right:${FOLGA.lateral}px;top:${FOLGA.topo + FOLGA.icone + 2}px;max-width:calc(100% - ${2 * FOLGA.lateral}px);
+  padding:6px 8px;border-radius:6px;box-shadow:0 4px 14px rgba(15,23,42,.22);display:none;line-height:1.35;}
+.bl-nota-balao.bl-visivel{display:block;}
+`;
+  function cssDoCabecalho() {
+    return CSS;
+  }
+  function aplicarEstilo(el, item, tema) {
+    const e = item.estilo;
+    el.className = `bl-texto bl-${item.tipo}`;
+    el.style.fontSize = `${e.tamanho}px`;
+    el.style.lineHeight = String(e.alturaDaLinha);
+    el.style.fontWeight = e.negrito ? "600" : "400";
+    el.style.fontFamily = e.fonte || "";
+    el.style.color = e.cor || "";
+    el.style.opacity = String(e.opacidade);
+    el.style.textAlign = e.alinhamento === "centro" ? "center" : e.alinhamento === "direita" ? "right" : "left";
+    el.style.left = `${e.dx}px`;
+    el.style.top = `${e.dy}px`;
+    el.style.margin = `${e.margem}px 0`;
+    el.style.height = `${item.alturaDoTexto}px`;
+    if (!e.quebrar) el.classList.add("bl-sem-quebra");
+    if (e.linhas > 0 && e.quebrar) {
+      el.classList.add("bl-limitado");
+      el.style.webkitLineClamp = String(e.linhas);
+    }
+    definirTexto(el, item.texto);
+    if (item.tipo === "nota" && !e.cor) el.style.color = tema.textoSuave || "";
+  }
+  function desenharCabecalho(bl, plano, tema = {}) {
+    for (const [faixa, itens, altura] of [
+      [bl.cabecalho, plano.topo, plano.alturaTopo],
+      [bl.rodape, plano.base, plano.alturaBase]
+    ]) {
+      if (!faixa) continue;
+      limpar(faixa);
+      faixa.style.display = altura > 0 ? "block" : "none";
+      faixa.style.height = `${altura}px`;
+      for (const item of itens) aplicarEstilo(criarEl("div", { pai: faixa }), item, tema);
+    }
+    if (plano.icone && bl.cabecalho) {
+      const botao = criarEl("button", { classe: "bl-nota-icone", texto: "\u24D8", pai: bl.cabecalho });
+      botao.type = "button";
+      botao.setAttribute("aria-label", "Nota explicativa");
+      const balao = criarEl("div", { classe: "bl-nota-balao bl-texto bl-nota", pai: bl.raiz });
+      definirTexto(balao, plano.icone);
+      const e = plano.estiloDoIcone || {};
+      balao.style.fontSize = `${e.tamanho || 10}px`;
+      balao.style.fontFamily = e.fonte || "";
+      balao.style.background = tema.tooltipFundo || "rgba(15,23,42,.94)";
+      balao.style.color = tema.tooltipTexto || "#F8FAFC";
+      balao.style.textAlign = e.alinhamento === "centro" ? "center" : e.alinhamento === "direita" ? "right" : "left";
+      const mostrar = () => balao.classList.add("bl-visivel");
+      const esconder = () => balao.classList.remove("bl-visivel");
+      botao.addEventListener("pointerenter", mostrar);
+      botao.addEventListener("focus", mostrar);
+      botao.addEventListener("pointerleave", esconder);
+      botao.addEventListener("blur", esconder);
+      bl.balaoDaNota = balao;
+    }
+  }
+  function limparBalaoDaNota(bl) {
+    if (bl.balaoDaNota && bl.balaoDaNota.parentNode) bl.balaoDaNota.parentNode.removeChild(bl.balaoDaNota);
+    bl.balaoDaNota = null;
+  }
+
   // src/core/interaction.js
   var SELETOR_DE_ITENS = "[data-item], .bl-marcador";
   var CSS_DESTAQUE = `
@@ -2925,7 +3236,7 @@
       const c = contextos.get(raiz);
       return c && c.config || {};
     }
-    function aplicarEstilo() {
+    function aplicarEstilo2() {
       const c = config();
       const cor = (v) => typeof v === "string" && v.trim() ? v.trim() : "";
       el.style.background = cor(c.corDeFundoDoTooltip) || tema.tooltipFundo || "rgba(15,23,42,.94)";
@@ -2998,9 +3309,9 @@
       ultimoConteudo: null,
       definirTema(novo) {
         tema = novo || tema;
-        aplicarEstilo();
+        aplicarEstilo2();
       },
-      aplicarEstilo,
+      aplicarEstilo: aplicarEstilo2,
       /**
        * Mostra o tooltip.
        * @param {{titulo?:string, linhas?:Array<{rotulo:string,valor:string,cor?:string}>,
@@ -3092,7 +3403,7 @@
     ouvir(document, "visibilitychange", () => {
       if (document.hidden) api.soltarEEsconder();
     });
-    aplicarEstilo();
+    aplicarEstilo2();
     return api;
   }
   function variaveisDoConteudo(conteudo = {}) {
@@ -3217,9 +3528,6 @@
 .bl-raiz{position:relative;width:100%;height:100%;overflow:hidden;box-sizing:border-box;
   display:flex;flex-direction:column;}
 .bl-raiz *{box-sizing:border-box;}
-.bl-cabecalho{padding:6px 10px 0;flex:0 0 auto;}
-.bl-titulo{font-weight:600;line-height:1.2;}
-.bl-subtitulo{opacity:.7;line-height:1.2;}
 .bl-area{position:relative;width:100%;flex:1 1 auto;min-height:0;}
 .bl-aviso{flex:0 0 auto;display:flex;gap:6px;align-items:flex-start;margin:4px 8px;padding:4px 6px 4px 8px;
   border-radius:4px;font-size:11px;line-height:1.35;}
@@ -3250,7 +3558,7 @@
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
     const opcoes = organizarAbas(
-      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO)
+      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho())
     );
     const definicao = {
       id,
@@ -3258,19 +3566,17 @@
       options: opcoes,
       create(element, _config) {
         limpar(element);
-        injetarEstilo(element, CSS_BASE, "bl-base");
+        injetarEstilo(element, CSS_BASE + cssDoCabecalho(), "bl-base");
         const raiz = criarEl("div", { classe: "bl-raiz", pai: element });
         const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
-        const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
-        const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
         const avisoEl = criarAviso(raiz);
         const area = criarEl("div", { classe: "bl-area", pai: raiz });
+        const rodape = criarEl("div", { classe: "bl-rodape", pai: raiz });
         this._bl = {
           element,
           raiz,
           cabecalho,
-          tituloEl,
-          subtituloEl,
+          rodape,
           area,
           avisoEl,
           eventos: criarGerenciadorDeEventos(),
@@ -3378,7 +3684,13 @@
       });
     }
     configurarTooltipsDe(bl.raiz, { config: configFinal, ponte });
-    aplicarCabecalho(bl, cabecalhoProprio ? {} : configFinal, tema);
+    const textosDoCabecalho = () => ({
+      titulo: cabecalhoProprio ? "" : configFinal.titulo,
+      subtitulo: cabecalhoProprio ? "" : configFinal.subtitulo,
+      nota: textoFinalDaNota(configFinal, bl.notaAutomatica || "")
+    });
+    const aplicarCabecalhoV3 = () => aplicarCabecalho(bl, configFinal, tema, textosDoCabecalho());
+    aplicarCabecalhoV3();
     const problema = validarModelo(modelo, exigencia);
     if (problema) {
       mostrarEstadoVazio(bl, tema, problema.mensagem);
@@ -3402,6 +3714,11 @@
       detalhes: details,
       primeiraRenderizacao: bl.primeiraRenderizacao,
       recursosDoLooker: recursosDoLooker(),
+      /**
+       * Texto AUTOMÁTICO da nota (5.1c): o gráfico escreve aqui (é um
+       * elemento fora do documento); o núcleo decide onde e se mostra.
+       */
+      nota: null,
       limparRaiz() {
         limpar(bl.area);
       },
@@ -3450,19 +3767,38 @@
         esconderTooltipsDe(bl.raiz);
         limparAviso(bl);
         try {
-          render(ctx);
+          renderizar();
           ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
         } catch (e) {
           if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
         }
       }
     };
+    function renderizar({ repetir = true } = {}) {
+      ctx.nota = criarEl("div");
+      render(ctx);
+      const nova = (ctx.nota.textContent || "").trim();
+      if (nova !== (bl.notaAutomatica || "")) {
+        bl.notaAutomatica = nova;
+        aplicarCabecalhoV3();
+        const tamanho = medir(bl.area);
+        if (repetir && (tamanho.largura !== ctx.largura || tamanho.altura !== ctx.altura)) {
+          ctx.largura = tamanho.largura;
+          ctx.altura = tamanho.altura;
+          bl.eventos.limpar();
+          limparPendencias(bl);
+          esconderTooltipsDe(bl.raiz);
+          renderizar({ repetir: false });
+        }
+      }
+    }
     bl.raiz.style.background = tema.fundo;
     bl.raiz.style.color = tema.texto;
     bl.raiz.style.fontFamily = tema.fonte;
     bl.raiz.style.fontSize = `${tema.tamanhoBase}px`;
     bl.ultimoDesenho = () => {
       if (!this._bl) return;
+      aplicarCabecalhoV3();
       const tamanho = medir(bl.area);
       if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
       ctx.largura = tamanho.largura;
@@ -3471,13 +3807,13 @@
       esconderTooltipsDe(bl.raiz);
       limparAviso(bl);
       try {
-        render(ctx);
+        renderizar();
         ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
       } catch (e) {
         if (typeof console !== "undefined" && console.error) console.error(`[${id}]`, e);
       }
     };
-    render(ctx);
+    renderizar();
     ligarDestaqueAoPassar({ area: bl.area, eventos: bl.eventos, config: configFinal });
     if (!animacaoPropria) {
       animarEntradaGenerica(bl.area, configFinal, { primeiraRenderizacao: bl.primeiraRenderizacao });
@@ -3492,19 +3828,17 @@
   }
   function definicaoCreateManual(element) {
     limpar(element);
-    injetarEstilo(element, CSS_BASE, "bl-base");
+    injetarEstilo(element, CSS_BASE + cssDoCabecalho(), "bl-base");
     const raiz = criarEl("div", { classe: "bl-raiz", pai: element });
     const cabecalho = criarEl("div", { classe: "bl-cabecalho", pai: raiz });
-    const tituloEl = criarEl("div", { classe: "bl-titulo", pai: cabecalho });
-    const subtituloEl = criarEl("div", { classe: "bl-subtitulo", pai: cabecalho });
     const avisoEl = criarAviso(raiz);
     const area = criarEl("div", { classe: "bl-area", pai: raiz });
+    const rodape = criarEl("div", { classe: "bl-rodape", pai: raiz });
     this._bl = {
       element,
       raiz,
       cabecalho,
-      tituloEl,
-      subtituloEl,
+      rodape,
       area,
       avisoEl,
       eventos: criarGerenciadorDeEventos(),
@@ -3516,16 +3850,13 @@
       cancelarObservador: null
     };
   }
-  function aplicarCabecalho(bl, config, tema) {
-    const titulo = (config.titulo || "").trim();
-    const subtitulo = (config.subtitulo || "").trim();
-    definirTexto(bl.tituloEl, titulo);
-    definirTexto(bl.subtituloEl, subtitulo);
-    bl.tituloEl.style.display = titulo ? "block" : "none";
-    bl.subtituloEl.style.display = subtitulo ? "block" : "none";
-    bl.tituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 1.25)}px`;
-    bl.subtituloEl.style.fontSize = `${Math.round(tema.tamanhoBase * 0.95)}px`;
-    bl.cabecalho.style.display = titulo || subtitulo ? "block" : "none";
+  function aplicarCabecalho(bl, config, tema, textos) {
+    const { largura, altura } = medir(bl.raiz);
+    limparBalaoDaNota(bl);
+    const plano = planejarCabecalho({ largura, altura, config, tema, textos });
+    desenharCabecalho(bl, plano, tema);
+    bl.planoDoCabecalho = plano;
+    return plano;
   }
   function criarAviso(raiz) {
     const avisoEl = criarEl("div", { classe: "bl-aviso", pai: raiz });
@@ -3559,7 +3890,7 @@
     const ligado = config.mostrarAvisos !== false;
     bl.posicaoDoAviso = ligado ? config.posicaoDosAvisos || "topo" : "oculto";
     if (bl.posicaoDoAviso === "rodape") {
-      if (bl.avisoEl.nextSibling) bl.raiz.appendChild(bl.avisoEl);
+      if (bl.area.nextSibling !== bl.avisoEl) bl.raiz.insertBefore(bl.avisoEl, bl.area.nextSibling);
     } else if (bl.avisoEl.nextSibling !== bl.area) {
       bl.raiz.insertBefore(bl.avisoEl, bl.area);
     }
@@ -4419,7 +4750,7 @@
     el.setAttribute("data-rotulo", "1");
     return el;
   }
-  function larguraDoTexto(texto, tamanho) {
+  function larguraDoTexto2(texto, tamanho) {
     return String(texto || "").length * tamanho * 0.58;
   }
   function esconderColisoes(caixas, rot) {
@@ -5320,7 +5651,7 @@
       el.setAttribute("y", ty);
       el.setAttribute("text-anchor", ancora);
       estilizarRotulo(el, rot, { x: tx, y: ty });
-      const largura = larguraDoTexto(texto, rot.tamanho);
+      const largura = larguraDoTexto2(texto, rot.tamanho);
       caixasDeRotulo.push({
         el,
         peso: no.value || 0,

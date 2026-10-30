@@ -95,7 +95,8 @@ export function criarListaVirtual({
 
   const rolagem = criarEl('div', { classe: 'lv-rolagem', pai: caixa });
   const conteudo = criarEl('div', { classe: 'lv-conteudo', pai: rolagem });
-  const nota = criarEl('div', { classe: 'lv-nota', pai: caixa });
+  // 5.1c: a nota é do componente único do núcleo; a lista só escreve o texto.
+  const nota = ctx.nota || criarEl('div');
   nota.style.color = tema.textoSuave;
 
   const estado = { visiveis: itens };

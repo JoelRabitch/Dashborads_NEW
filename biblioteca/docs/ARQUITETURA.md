@@ -113,6 +113,7 @@ Declara as opções (compondo blocos do `options-kit`) e desenha. Nada mais.
 ### O que o define-viz faz por TODOS os gráficos (correções v2)
 
 1. **Config normalizado** (`normalizarConfig`): defaults nas chaves ausentes, tipos corrigidos; relido a cada `updateAsync`.
+- **Título, subtítulo e nota (v3, 5.1c)**: `src/core/cabecalho.js` (faixas `.bl-cabecalho`/`.bl-rodape` no fluxo, plano com `medida-texto.js`); cada gráfico escreve o texto automático da nota em `ctx.nota`.
 2. **Abas padronizadas** (`organizarAbas`, lista única `ABAS` em `options-kit.js`): Dados · Estilo · Texto · Mais (v3, 5.1b; o Looker mostra em ordem alfabética: Dados · Estilo · Mais · Texto). Rótulos no limite de 30/40 caracteres por `src/core/rotulos-do-painel.js`; só `section`/`order`/`label` mudam, nunca id/tipo/default. Relatório (com o rótulo completo de cada opção) em `docs/opcoes/ABAS.md`.
 3. **Tooltip único** por gráfico (`ctx.tooltip()`), escondido em todo redesenho e removido no destroy; `ctx.cliqueNoItem(ev, celula, conteudo)` aplica a "Ação do clique".
 4. **Aviso** no fluxo (topo/rodapé/oculto), com ×, sempre também no console.

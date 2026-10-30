@@ -375,7 +375,7 @@ export default defineViz({
     });
 
     // ---------- Nota: o método e a hipótese ----------
-    const nota = criarEl('div', { classe: 'st-nota', pai: plano.area });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     definirTexto(
       nota,

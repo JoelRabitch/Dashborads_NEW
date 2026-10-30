@@ -60,6 +60,7 @@ import { formatarPercentual, formatarData, truncar, criarFormatadorNumerico } fr
 import { opcoesDeAnimacao, animarContador } from '../../core/animate.js';
 import { lerRotulos, textoDoRotulo, estilizarRotulo, formatadorDoRotulo } from '../../core/rotulos.js';
 import { larguraAproximada } from '../../core/eixos.js';
+import { estiloDoTexto } from '../../core/cabecalho.js';
 import {
   montarOpcoes,
   comDefaults,
@@ -417,7 +418,7 @@ export default defineViz({
 
     // ---------- Nota (uma só, embaixo) ----------
     const serie = lerSerie({ modelo, medida: medidaEscolhida, campoDoPeriodo, config });
-    const nota = criarEl('div', { classe: 'kv-nota', pai: raiz });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     const incompleto = detectarPeriodoIncompleto(serie.contagens);
     definirTexto(
@@ -499,11 +500,31 @@ function desenharCartao({ ctx, pai, medida, campoDoPeriodo, largura, altura, emG
   const texto = criarEl('div', { classe: 'kv-texto', pai: cartao });
 
   const secundarios = [];
+  /**
+   * 5.1c: o KPI desenha título e subtítulo DENTRO do cartão (cabeçalho
+   * próprio), mas segue as opções do componente único: mostrar, cor,
+   * tamanho, fonte, peso e alinhamento. "Esquerda" (o padrão do
+   * componente) mantém o alinhamento do próprio cartão, para nada mudar
+   * até o usuário mexer. Posição acima/abaixo do gráfico não se aplica.
+   */
+  const aplicarOpcoesDoComponente = (el, tipo) => {
+    const e = estiloDoTexto(tipo, config, tema);
+    const S = tipo === 'titulo' ? 'Titulo' : 'Subtitulo';
+    if (e.alinhamento === 'centro') el.style.textAlign = 'center';
+    else if (e.alinhamento === 'direita') el.style.textAlign = 'right';
+    if (e.cor) el.style.color = e.cor;
+    if (Number(config[`tamanhoDo${S}`]) > 0) el.style.fontSize = `${e.tamanho}px`;
+    if (config[`fonteDo${S}`] && config[`fonteDo${S}`] !== 'tema') el.style.fontFamily = e.fonte;
+    const pesoPadrao = tipo === 'titulo' ? 'negrito' : 'normal';
+    if (config[`pesoDo${S}`] && config[`pesoDo${S}`] !== pesoPadrao) el.style.fontWeight = e.negrito ? '600' : '400';
+    return e.mostrar;
+  };
   const criarTitulo = () => {
     if (!rot.mostrar || nomeNoNumero) return;
     const el = criarEl('div', { classe: 'kv-titulo', pai: texto });
     definirTexto(el, ajustarTexto(textoDoTitulo, rot.tamanho));
     estilizarRotulo(el, rot, { corAutomatica: tema.textoSuave });
+    if (!aplicarOpcoesDoComponente(el, 'titulo')) el.style.display = 'none';
     if (rot.posicao === 'foraComLinha') {
       el.style.borderBottom = `1px solid ${tema.borda}`;
       el.style.paddingBottom = '2px';
@@ -513,6 +534,7 @@ function desenharCartao({ ctx, pai, medida, campoDoPeriodo, largura, altura, emG
       const sub = criarEl('div', { classe: 'kv-subtitulo', pai: texto });
       definirTexto(sub, ajustarTexto(textoDoSubtitulo, rot.tamanho - 1));
       estilizarRotulo(sub, Object.assign({}, rot, { tamanho: Math.max(7, rot.tamanho - 1) }), { corAutomatica: tema.textoSuave });
+      if (!aplicarOpcoesDoComponente(sub, 'subtitulo')) sub.style.display = 'none';
       secundarios.push({ el: sub, altura: rot.tamanho * 1.3, prioridade: 2.5 });
     }
   };

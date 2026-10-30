@@ -341,7 +341,7 @@ export default defineViz({
       span.style.textAlign = marca.p === 0 ? 'left' : marca.p === 1 ? 'right' : 'center';
       definirTexto(span, formatar(marca.valor));
     }
-    lista.raiz.insertBefore(regua, lista.nota);
+    lista.raiz.appendChild(regua);
 
     definirTexto(
       lista.nota,

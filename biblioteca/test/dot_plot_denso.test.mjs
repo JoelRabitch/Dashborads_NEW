@@ -67,7 +67,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
       valor: el.querySelector('.dp-valor')?.textContent || '',
     })),
     contagem: palco.querySelector('.dp-contagem')?.textContent || '',
-    nota: palco.querySelector('.dp-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     regua: Array.from(palco.querySelectorAll('.dp-escala span')).map((s) => s.textContent),
     busca: palco.querySelector('.dp-busca'),
     legenda: Array.from(palco.querySelectorAll('.dp-chip')).map((c) => c.textContent),

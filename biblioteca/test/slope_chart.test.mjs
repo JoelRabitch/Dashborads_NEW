@@ -75,7 +75,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
       y: Number(t.getAttribute('y')),
     })),
     cabecalhos: Array.from(palco.querySelectorAll('.sl-cabecalho')).map((t) => t.textContent),
-    nota: palco.querySelector('.sl-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     vazio: palco.querySelector('.bl-vazio')?.textContent || '',
     fim: () => amb.restaurar(),

@@ -60,7 +60,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     palco,
     sinais: Array.from(palco.querySelectorAll('.bl-marcador.gc-sinal')),
     pontos: Array.from(palco.querySelectorAll('.bl-marcador.st-ponto')),
-    nota: palco.querySelector('.st-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     vazio: palco.querySelector('.bl-vazio')?.textContent || '',
     textos: Array.from(palco.querySelectorAll('text')).map((t) => t.textContent),

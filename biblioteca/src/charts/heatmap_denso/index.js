@@ -411,7 +411,7 @@ export default defineViz({
     }
 
     // ---------- Nota ----------
-    const nota = criarEl('div', { classe: 'hd-nota', pai: area });
+    const nota = ctx.nota; // 5.1c: texto automático da nota
     nota.style.color = tema.textoSuave;
     const partes = [
       `${linhas.length} × ${colunas.length} = ${totalDeCelulas.toLocaleString('pt-BR')} células`,

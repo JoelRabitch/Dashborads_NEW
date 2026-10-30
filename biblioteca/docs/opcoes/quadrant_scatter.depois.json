@@ -720,6 +720,312 @@
     "dinamica": false
   },
   {
+    "id": "mostrarTitulo",
+    "label": "Título · Mostrar",
+    "rotuloCompleto": "Título · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoTitulo",
+    "label": "Título · Posição",
+    "rotuloCompleto": "Título · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoTitulo",
+    "label": "Título · Alinhamento",
+    "rotuloCompleto": "Título · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoTitulo",
+    "label": "Título · Deslocamento X (px)",
+    "rotuloCompleto": "Título · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoTitulo",
+    "label": "Título · Deslocamento Y (px)",
+    "rotuloCompleto": "Título · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoTitulo",
+    "label": "Título · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Título · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoTitulo",
+    "label": "Título · Fonte",
+    "rotuloCompleto": "Título · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoTitulo",
+    "label": "Título · Peso",
+    "rotuloCompleto": "Título · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "negrito",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTitulo",
+    "label": "Título · Cor (vazio = tema)",
+    "rotuloCompleto": "Título · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoTitulo",
+    "label": "Título · Margem (px)",
+    "rotuloCompleto": "Título · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarTitulo",
+    "label": "Título · Quebrar linha",
+    "rotuloCompleto": "Título · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoTitulo",
+    "label": "Título · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Título · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSubtitulo",
+    "label": "Subtítulo · Mostrar",
+    "rotuloCompleto": "Subtítulo · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoSubtitulo",
+    "label": "Subtítulo · Posição",
+    "rotuloCompleto": "Subtítulo · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "acima",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoSubtitulo",
+    "label": "Subtítulo · Alinhamento",
+    "rotuloCompleto": "Subtítulo · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDoSubtitulo",
+    "label": "Subtítulo · Deslocamento X (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento X (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDoSubtitulo",
+    "label": "Subtítulo · Deslocamento Y (px)",
+    "rotuloCompleto": "Subtítulo · Deslocamento Y (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoSubtitulo",
+    "label": "Subtítulo · Tamanho (px, 0 = auto)",
+    "rotuloCompleto": "Subtítulo · Tamanho (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoSubtitulo",
+    "label": "Subtítulo · Fonte",
+    "rotuloCompleto": "Subtítulo · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "pesoDoSubtitulo",
+    "label": "Subtítulo · Peso",
+    "rotuloCompleto": "Subtítulo · Peso",
+    "section": "Texto",
+    "type": "string",
+    "default": "normal",
+    "dinamica": false
+  },
+  {
+    "id": "corDoSubtitulo",
+    "label": "Subtítulo · Cor (vazio = tema)",
+    "rotuloCompleto": "Subtítulo · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoSubtitulo",
+    "label": "Subtítulo · Margem (px)",
+    "rotuloCompleto": "Subtítulo · Margem (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarSubtitulo",
+    "label": "Subtítulo · Quebrar linha",
+    "rotuloCompleto": "Subtítulo · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDoSubtitulo",
+    "label": "Subtítulo · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Subtítulo · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarNota",
+    "label": "Nota · Mostrar",
+    "rotuloCompleto": "Nota · Mostrar",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDaNota",
+    "label": "Nota · Posição",
+    "rotuloCompleto": "Nota · Posição",
+    "section": "Texto",
+    "type": "string",
+    "default": "abaixo",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDaNota",
+    "label": "Nota · Alinhamento",
+    "rotuloCompleto": "Nota · Alinhamento",
+    "section": "Texto",
+    "type": "string",
+    "default": "esquerda",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaNota",
+    "label": "Nota · Tamanho (px)",
+    "rotuloCompleto": "Nota · Tamanho (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 10,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDaNota",
+    "label": "Nota · Fonte",
+    "rotuloCompleto": "Nota · Fonte",
+    "section": "Texto",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "corDaNota",
+    "label": "Nota · Cor (vazio = tema)",
+    "rotuloCompleto": "Nota · Cor (vazio = tema)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "quebrarNota",
+    "label": "Nota · Quebrar linha",
+    "rotuloCompleto": "Nota · Quebrar linha",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasDaNota",
+    "label": "Nota · Máximo de linhas (0 = sem)",
+    "rotuloCompleto": "Nota · Máximo de linhas (0 = sem)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "textoDaNota",
+    "label": "Nota · Texto",
+    "rotuloCompleto": "Nota · Texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "meuTextoDaNota",
+    "label": "Nota · Meu texto",
+    "rotuloCompleto": "Nota · Meu texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
     "id": "mostrarTooltip",
     "label": "Tooltip · Mostrar tooltip",
     "rotuloCompleto": "Tooltip · Mostrar tooltip",

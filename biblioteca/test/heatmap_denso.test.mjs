@@ -79,7 +79,7 @@ function renderizar(nomeDaFixture, ajustes = {}) {
     })),
     rotulos: Array.from(palco.querySelectorAll('.hd-rotulo')).map((t) => t.textContent),
     legenda: Array.from(palco.querySelectorAll('.hd-legenda')),
-    nota: palco.querySelector('.hd-nota')?.textContent || '',
+    nota: palco.querySelector('.bl-nota')?.textContent || '',
     aviso: palco.querySelector('.bl-aviso')?.textContent || '',
     vazio: palco.querySelector('.bl-vazio')?.textContent || '',
     canvas: palco.querySelector('canvas.hd-canvas'),

@@ -96,3 +96,11 @@ real antes de considerar resolvido.
 - **5.1b Painel de opções (todos os gráficos)**
   - [ ] Abra o editor de um tile: aparecem no máximo 4 abas (Dados, Estilo, Mais, Texto — provavelmente nessa ordem alfabética), todas inteiras na barra.
   - [ ] Percorra as abas: nenhum rótulo termina em "…". Na tabela, as opções por coluna aparecem como "Coluna <nome> · …".
+- **5.1c Título, subtítulo e nota (todos os gráficos)**
+  - [ ] Sem mexer em nada, o visual é o de antes: título e subtítulo à esquerda no topo, nota pequena e cinza no rodapé.
+  - [ ] A nota fica ABAIXO do gráfico (não por cima): no bump_chart a última linha não encosta mais na nota; no bar_race a nota não cobre o botão de avançar.
+  - [ ] Aba Texto: "Título · Posição" = Abaixo, "Alinhamento" = Centro, "Tamanho", "Cor", "Fonte", "Peso", "Deslocamento X/Y"; o gráfico se reajusta ao espaço.
+  - [ ] "Nota · Posição" = Só no ícone ⓘ: aparece um ⓘ no canto superior direito; passar o mouse mostra o texto.
+  - [ ] "Nota · Texto" = Só meu texto, com "Nota · Meu texto" preenchido; e = Nenhum.
+  - [ ] Num tile bem pequeno, a nota some em vez de apertar o gráfico.
+  - [ ] kpi_vivo: as opções de título (mostrar, cor, tamanho, alinhamento) valem no título dentro do cartão.
