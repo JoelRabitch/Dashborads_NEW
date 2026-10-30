@@ -39,6 +39,7 @@ import { comOpacidade, textoLegivelSobre } from '../../core/theme.js';
 import { formatadorDeValueFormat, truncar } from '../../core/format.js';
 import { paletaDoConfig, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
 import { lerRotulos, textoDoRotulo, posicaoEfetiva, larguraDoTexto } from '../../core/rotulos.js';
+import { posicaoDoRotuloNaBorda } from '../../core/rotulo-na-borda.js';
 import {
   CSS_LISTA_VIRTUAL,
   criarListaVirtual,
@@ -499,7 +500,20 @@ function montarLinha({
       textoDoValor: item.texto,
     });
     const cabeDentro = larguraDoTexto(texto, rot.tamanho) + 8 < geometria.largura * larguraDoTrilho;
-    const posicao = posicaoEfetiva(rot, { cabeDentro });
+    let posicao = posicaoEfetiva(rot, { cabeDentro });
+    // 5.13b (v3): "fora" na ponta da MAIOR barra saía do trilho e era
+    // cortado. Se não cabe à direita, vai para dentro da barra.
+    if (posicao === 'fora' && geometria.paraDireita) {
+      const lugar = posicaoDoRotuloNaBorda({
+        x: (geometria.inicio + geometria.largura) * larguraDoTrilho,
+        limite: larguraDoTrilho,
+        texto,
+        tamanho: rot.tamanho,
+        afastamento: 4,
+        negrito: rot.negrito,
+      });
+      if (lugar.lado === 'esquerda') posicao = 'dentro';
+    }
     // A "ponta" da barra: à direita para positivos, à esquerda para negativos.
     const ponta = geometria.paraDireita ? geometria.inicio + geometria.largura : geometria.inicio;
     const paraDentro = geometria.paraDireita ? 'translate(calc(-100% - 4px), -50%)' : 'translate(4px, -50%)';

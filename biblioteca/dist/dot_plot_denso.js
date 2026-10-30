@@ -4342,6 +4342,209 @@
     return el;
   }
 
+  // src/core/texto-longo.js
+  var MODOS_DO_TEXTO_LONGO = [
+    { rotulo: "Mostrar inteiro", valor: "inteiro" },
+    { rotulo: "Quebrar em linhas", valor: "quebrar" },
+    { rotulo: "Reduzir a fonte", valor: "reduzir" },
+    { rotulo: "Cortar com retic\xEAncias", valor: "reticencias" },
+    { rotulo: "Cortar sem retic\xEAncias", valor: "cortar" },
+    { rotulo: "Abreviar n\xFAmeros (K, M, B)", valor: "abreviar" },
+    { rotulo: "S\xF3 o nome (resto no tooltip)", valor: "soNome" }
+  ];
+  function opcoesDeTextoLongo({ secao = "Texto longo", comPartes = true, comMoeda = true } = {}) {
+    const o = (tipo, label, def, extra = {}) => ({ type: tipo, label, section: secao, default: def, ...extra });
+    const saida = {
+      modoDoTextoLongo: o("string", "Modo", "inteiro", { display: "select", values: listaDeValores(MODOS_DO_TEXTO_LONGO) }),
+      larguraMaximaDoRotulo: o("number", "Largura m\xE1xima (px, 0 = auto)", 0),
+      linhasMaximasDoRotulo: o("number", "M\xE1ximo de linhas", 2),
+      fonteMinimaDoRotulo: o("number", "Fonte m\xEDnima (px)", 8),
+      tooltipComTextoCompleto: o("boolean", "Texto completo no tooltip", true),
+      margemExtraDoRotulo: o("number", "Margem extra \xE0 direita (px)", 0),
+      permitirSelecionarTexto: o("boolean", "Permitir selecionar texto", false)
+    };
+    if (comPartes) {
+      Object.assign(saida, {
+        partesDoRotulo: o("string", "O que aparece no r\xF3tulo", "auto", {
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Autom\xE1tico (como antes)", valor: "auto" },
+            { rotulo: "Nome", valor: "nome" },
+            { rotulo: "Nome e valor", valor: "nomeValor" },
+            { rotulo: "Nome, valor e percentual", valor: "nomeValorPct" },
+            { rotulo: "Nome e percentual", valor: "nomePct" }
+          ])
+        }),
+        separadorDoRotulo: o("string", "Separador", " \xB7 ")
+      });
+    }
+    if (comMoeda) {
+      Object.assign(saida, {
+        simboloDaMoedaDoRotulo: o("string", "S\xEDmbolo da moeda", "auto", {
+          display: "select",
+          values: listaDeValores([
+            { rotulo: "Autom\xE1tico (como antes)", valor: "auto" },
+            { rotulo: "R$", valor: "R$" },
+            { rotulo: "$", valor: "$" },
+            { rotulo: "\u20AC", valor: "\u20AC" },
+            { rotulo: "Nenhum", valor: "nenhum" },
+            { rotulo: "Personalizado", valor: "personalizado" }
+          ])
+        }),
+        moedaPersonalizadaDoRotulo: o("string", "Moeda personalizada", "")
+      });
+    }
+    return saida;
+  }
+  function lerTextoLongo(config = {}) {
+    const n = (v, d) => Number.isFinite(Number(v)) && v !== "" && v !== null ? Number(v) : d;
+    const modo = MODOS_DO_TEXTO_LONGO.some((m) => m.valor === config.modoDoTextoLongo) ? config.modoDoTextoLongo : "inteiro";
+    return {
+      modo,
+      larguraMaxima: Math.max(0, n(config.larguraMaximaDoRotulo, 0)),
+      linhas: Math.max(1, Math.floor(n(config.linhasMaximasDoRotulo, 2))),
+      fonteMinima: Math.max(5, n(config.fonteMinimaDoRotulo, 8)),
+      tooltipCompleto: config.tooltipComTextoCompleto !== false,
+      margemExtra: Math.max(0, n(config.margemExtraDoRotulo, 0)),
+      selecionavel: config.permitirSelecionarTexto === true,
+      // `truncarRotulo` (opção antiga) só no modo reticências.
+      truncarEmCaracteres: modo === "reticencias" ? Math.max(0, n(config.truncarRotulo, 0)) : 0,
+      partes: config.partesDoRotulo || "auto",
+      separador: typeof config.separadorDoRotulo === "string" ? config.separadorDoRotulo : " \xB7 ",
+      moeda: config.simboloDaMoedaDoRotulo || "auto",
+      moedaPersonalizada: String(config.moedaPersonalizadaDoRotulo || "")
+    };
+  }
+  function trocarMoeda(texto, tl) {
+    if (!tl || tl.moeda === "auto") return texto;
+    const novo = tl.moeda === "nenhum" ? "" : tl.moeda === "personalizado" ? tl.moedaPersonalizada : tl.moeda;
+    const s = String(texto);
+    const re2 = /(R\$|US\$|\$|€|£)\s?/;
+    if (!re2.test(s)) return s;
+    return s.replace(re2, novo ? `${novo}${tl.moeda === "R$" || novo.length > 1 ? " " : ""}` : "").trim();
+  }
+  function abreviarNumeros(texto) {
+    return String(texto).replace(/(-?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?|-?\d{4,}(?:[.,]\d+)?)/g, (m) => {
+      const limpo = /[.,]\d{1,2}$/.test(m) ? m.replace(/[.,](\d{1,2})$/, "D$1").replace(/[.,]/g, "").replace("D", ".") : m.replace(/[.,]/g, "");
+      const v = Number(limpo);
+      if (!Number.isFinite(v)) return m;
+      const a = Math.abs(v);
+      const [d, suf] = a >= 1e9 ? [1e9, "B"] : a >= 1e6 ? [1e6, "M"] : a >= 1e3 ? [1e3, "K"] : [1, ""];
+      if (!suf) return m;
+      const x = v / d;
+      return `${Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1).replace(/\.0$/, "")}${suf}`;
+    });
+  }
+  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias) {
+    if (larguraDoTexto(texto, tamanho, opcoes) <= largura) return texto;
+    const sufixo = comReticencias ? "\u2026" : "";
+    let ini = 0;
+    let fim = texto.length;
+    while (ini < fim) {
+      const meio = Math.ceil((ini + fim) / 2);
+      if (larguraDoTexto(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
+      else fim = meio - 1;
+    }
+    return texto.slice(0, Math.max(1, ini)).trimEnd() + sufixo;
+  }
+  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo) {
+    const palavras = String(texto).split(/\s+/).filter(Boolean);
+    const linhas = [];
+    let atual = "";
+    for (const p of palavras) {
+      const t = atual ? `${atual} ${p}` : p;
+      if (!atual || larguraDoTexto(t, tamanho, opcoes) <= largura) atual = t;
+      else {
+        linhas.push(atual);
+        atual = p;
+      }
+    }
+    if (atual) linhas.push(atual);
+    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true));
+    if (saida.length > maximo) {
+      const resto = saida.slice(maximo - 1).join(" ");
+      saida.length = maximo - 1;
+      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true));
+    }
+    return saida;
+  }
+  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null }) {
+    const sep = tl.separador;
+    const juntar = formatar || ((n, e) => [n, ...e].join(sep));
+    const limpos = extras.filter(Boolean).map((e) => trocarMoeda(e, tl));
+    const completo = juntar(String(nome), limpos);
+    let texto = tl.modo === "soNome" ? String(nome) : completo;
+    if (tl.modo === "abreviar") texto = juntar(String(nome), limpos.map(abreviarNumeros));
+    const limite = tl.larguraMaxima > 0 ? Math.min(tl.larguraMaxima, largura > 0 ? largura : Infinity) : largura > 0 ? largura : Infinity;
+    const mede = (t, tam2) => larguraDoTexto(t, tam2, estilo);
+    let linhas = [texto];
+    let tam = tamanho;
+    switch (tl.modo) {
+      case "quebrar":
+        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas);
+        break;
+      case "reduzir":
+        while (Number.isFinite(limite) && mede(texto, tam) > limite && tam > tl.fonteMinima) tam -= 0.5;
+        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true)];
+        break;
+      case "reticencias": {
+        let t = texto;
+        if (tl.truncarEmCaracteres > 0 && t.length > tl.truncarEmCaracteres) {
+          t = `${t.slice(0, Math.max(1, tl.truncarEmCaracteres - 1)).trimEnd()}\u2026`;
+        }
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true) : t];
+        break;
+      }
+      case "cortar":
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false) : texto];
+        break;
+      case "abreviar":
+      case "soNome":
+      case "inteiro":
+      default:
+        if (tl.larguraMaxima > 0 && mede(texto, tam) > tl.larguraMaxima) {
+          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99);
+        }
+        break;
+    }
+    const larguraFinal = Math.max(0, ...linhas.map((l) => mede(l, tam)));
+    return { linhas, tamanho: tam, largura: larguraFinal, completo, cortado: linhas.join(" ") !== completo };
+  }
+
+  // src/core/rotulo-na-borda.js
+  var MODOS_DA_BORDA = [
+    { rotulo: "Inverter para a esquerda do ponto", valor: "inverter" },
+    { rotulo: "Reservar folga na escala", valor: "folga" },
+    { rotulo: "Reduzir a fonte", valor: "reduzir" }
+  ];
+  function opcaoDeRotuloNaBorda(secao = "R\xF3tulos") {
+    return {
+      rotuloNaBorda: {
+        type: "string",
+        label: "R\xF3tulo na borda",
+        section: secao,
+        display: "select",
+        default: "inverter",
+        values: listaDeValores(MODOS_DA_BORDA)
+      }
+    };
+  }
+  function folgaParaRotulos(textos, tamanho, { afastamento = 8, negrito = false } = {}) {
+    return Math.max(0, ...textos.map((t) => larguraDoTexto(t, tamanho, { negrito }))) + afastamento + 2;
+  }
+  function posicaoDoRotuloNaBorda({ x, limite, texto, tamanho, afastamento = 6, modo = "inverter", negrito = false }) {
+    let t = tamanho;
+    const largura = (tam) => larguraDoTexto(texto, tam, { negrito });
+    const cabeDireita = (tam) => x + afastamento + largura(tam) <= limite;
+    if (!cabeDireita(t) && modo === "reduzir") {
+      while (!cabeDireita(t) && t > 7) t -= 0.5;
+    }
+    if (cabeDireita(t) || modo === "folga") {
+      return { lado: "direita", tamanho: t, x0: x + afastamento, x1: x + afastamento + largura(t) };
+    }
+    return { lado: "esquerda", tamanho: t, x0: x - afastamento - largura(t), x1: x - afastamento };
+  }
+
   // src/charts/_lista_virtual/index.js
   var CSS_LISTA_VIRTUAL = `
 .lv-raiz{position:relative;width:100%;height:100%;display:flex;flex-direction:column;}
@@ -4534,8 +4737,12 @@
       maximo += passo / 2;
     } else if (!comecarEmZero) {
       const margem = (maximo - minimo) * folga;
+      const minimoDosDados = minimo;
+      const maximoDosDados = maximo;
       minimo -= margem;
       maximo += margem;
+      if (minimoDosDados >= 0 && minimo < 0) minimo = 0;
+      if (maximoDosDados <= 0 && maximo > 0) maximo = 0;
     }
     const extensao = maximo - minimo || 1;
     const posicao = (v) => v === null || !Number.isFinite(v) ? null : (v - minimo) / extensao;
@@ -4585,7 +4792,16 @@
         blocoDeTooltip(),
         blocoDeTema(),
         blocoAvancado(),
+        // 5.13b (v3): rótulo do valor extremo e nomes longos.
+        opcaoDeRotuloNaBorda("R\xF3tulos"),
+        opcoesDeTextoLongo({ secao: "Texto longo", comPartes: false, comMoeda: false }),
         {
+          larguraMaximaDosNomes: {
+            type: "number",
+            label: "Nomes: largura m\xE1xima (% do gr\xE1fico)",
+            section: "Dot plot",
+            default: 35
+          },
           comecarEmZero: {
             type: "boolean",
             label: "Come\xE7ar o eixo em zero (desligue para ver diferen\xE7as pequenas)",
@@ -4750,8 +4966,21 @@
       const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
       const forma = formaDoMarcador(config.formaDoPonto);
       const alturaDaLinha = Math.max(12, Number(config.alturaDaLinha) || 22);
-      const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 160);
       const tamanhoDoPonto = Math.max(4, Number(config.tamanhoDoPonto) || 9);
+      const tl = lerTextoLongo(config);
+      const fonteDaLinha = Math.max(9, Math.min(tema.tamanhoBase, 20));
+      const limiteDosNomes = ctx.largura * Math.max(10, Math.min(80, Number(config.larguraMaximaDosNomes) || 35)) / 100;
+      let maiorNome = 0;
+      for (const item of itens) maiorNome = Math.max(maiorNome, larguraDoTexto(item.nome, fonteDaLinha));
+      const larguraDoNome = tl.modo === "inteiro" ? Math.max(40, Math.min(Math.ceil(maiorNome) + 4 + tl.margemExtra, limiteDosNomes)) : Math.max(40, Number(config.larguraDoNome) || 160);
+      const modoDaBorda = config.rotuloNaBorda || "inverter";
+      const modoDoValor = config.escreverValores || "nenhum";
+      let folga = 0;
+      if (modoDaBorda === "folga" && rot.mostrar && modoDoValor !== "nenhum") {
+        const textos = itens.map((item) => textoDoValor({ item, medidas, rot, modoDoValor, totalDaPrimeira }));
+        folga = folgaParaRotulos(textos, rot.tamanho, { afastamento: tamanhoDoPonto / 2 + 4, negrito: rot.negrito });
+      }
+      const larguraDoTrilho = Math.max(20, ctx.largura - 16 - larguraDoNome - 6 - folga);
       const tooltip = ctx.tooltip();
       const lista = criarListaVirtual({
         ctx,
@@ -4772,7 +5001,12 @@
           rot,
           contorno,
           forma,
-          totalDaPrimeira
+          totalDaPrimeira,
+          tl,
+          fonteDaLinha,
+          larguraDoTrilho,
+          folga,
+          modoDaBorda
         })
       });
       lista.raiz.classList.add("dp-raiz");
@@ -4793,6 +5027,10 @@
       }
       const regua = criarEl("div", { classe: "dp-escala", pai: lista.raiz });
       regua.style.color = tema.textoSuave;
+      regua.style.borderTop = `1px solid ${tema.borda}`;
+      regua.style.background = tema.fundo;
+      regua.style.paddingTop = "2px";
+      regua.style.paddingRight = `${8 + folga}px`;
       const vazio = criarEl("span", { pai: regua });
       vazio.style.flex = `0 0 ${larguraDoNome + 14}px`;
       for (const marca of escala.marcas) {
@@ -4920,7 +5158,12 @@
     rot,
     contorno,
     forma,
-    totalDaPrimeira
+    totalDaPrimeira,
+    tl,
+    fonteDaLinha,
+    larguraDoTrilho,
+    folga = 0,
+    modoDaBorda = "inverter"
   }) {
     const linha = document.createElement("div");
     linha.className = "dp-linha";
@@ -4931,10 +5174,23 @@
     nome.style.width = `${larguraDoNome}px`;
     nome.style.color = tema.texto;
     nome.title = item.nome;
-    nome.textContent = truncar(item.nome, Math.max(6, Math.floor(larguraDoNome / 7)));
+    const aj = ajustarRotulo({
+      nome: item.nome,
+      tamanho: fonteDaLinha,
+      largura: larguraDoNome - 2,
+      tl: tl.modo === "inteiro" ? { ...tl, modo: "reticencias", truncarEmCaracteres: 0 } : tl
+    });
+    nome.textContent = aj.linhas.join("\n");
+    if (aj.linhas.length > 1) {
+      nome.style.whiteSpace = "pre-line";
+      nome.style.lineHeight = "1.05";
+    }
+    if (aj.tamanho !== fonteDaLinha) nome.style.fontSize = `${aj.tamanho}px`;
     linha.appendChild(nome);
     const trilho = document.createElement("div");
     trilho.className = "dp-trilho";
+    if (folga) trilho.style.marginRight = `${folga}px`;
+    trilho.dataset.largura = String(Math.round(larguraDoTrilho));
     linha.appendChild(trilho);
     if (config.mostrarGuias !== false) {
       const internas = escala.marcas.filter((m) => m.p !== 0 && m.p !== 1).map((m) => m.p);
@@ -4974,7 +5230,22 @@
         const menor = Math.min(...validas);
         const posicao = rot.posicao === "dentro" || rot.posicao === "centro" ? rot.posicao : "fora";
         let esquerda = maior;
-        let deslocamento = `translate(${tamanhoDoPonto / 2 + 4}px, -50%)`;
+        const afastamento = tamanhoDoPonto / 2 + 4;
+        let deslocamento = `translate(${afastamento}px, -50%)`;
+        let tamanhoDoTexto = null;
+        if (posicao === "fora") {
+          const lugar = posicaoDoRotuloNaBorda({
+            x: maior * larguraDoTrilho,
+            limite: larguraDoTrilho + folga,
+            texto,
+            tamanho: rot.tamanho,
+            afastamento,
+            modo: modoDaBorda,
+            negrito: rot.negrito
+          });
+          if (lugar.lado === "esquerda") deslocamento = `translate(calc(-100% - ${afastamento}px), -50%)`;
+          if (lugar.tamanho !== rot.tamanho) tamanhoDoTexto = lugar.tamanho;
+        }
         if (posicao === "dentro") {
           esquerda = menor;
           deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 4}px), -50%)`;
@@ -4989,7 +5260,10 @@
           posicao,
           corAutomatica: tema.textoSuave
         });
-        if (valorEl) valorEl.style.left = `${esquerda * 100}%`;
+        if (valorEl) {
+          valorEl.style.left = `${esquerda * 100}%`;
+          if (tamanhoDoTexto) valorEl.style.fontSize = `${tamanhoDoTexto}px`;
+        }
       }
     }
     return linha;

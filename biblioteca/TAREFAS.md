@@ -150,7 +150,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] 5.11 Texto longo
 - [x] 5.12 arvores_multiplas: grade
 - [x] 5.13 org_chart
-- [ ] 5.13b dot_plot_denso: rótulos nas margens + auditoria
+- [x] 5.13b dot_plot_denso: rótulos nas margens + auditoria
 
 ### FASE 5 — cartao_multivalor
 - [ ] 5.14 Cartão Multi-Valores

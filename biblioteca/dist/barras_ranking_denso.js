@@ -4188,6 +4188,20 @@
     return el;
   }
 
+  // src/core/rotulo-na-borda.js
+  function posicaoDoRotuloNaBorda({ x, limite, texto, tamanho, afastamento = 6, modo = "inverter", negrito = false }) {
+    let t = tamanho;
+    const largura = (tam) => larguraDoTexto(texto, tam, { negrito });
+    const cabeDireita = (tam) => x + afastamento + largura(tam) <= limite;
+    if (!cabeDireita(t) && modo === "reduzir") {
+      while (!cabeDireita(t) && t > 7) t -= 0.5;
+    }
+    if (cabeDireita(t) || modo === "folga") {
+      return { lado: "direita", tamanho: t, x0: x + afastamento, x1: x + afastamento + largura(t) };
+    }
+    return { lado: "esquerda", tamanho: t, x0: x - afastamento - largura(t), x1: x - afastamento };
+  }
+
   // src/charts/_lista_virtual/index.js
   var CSS_LISTA_VIRTUAL = `
 .lv-raiz{position:relative;width:100%;height:100%;display:flex;flex-direction:column;}
@@ -4710,7 +4724,18 @@
         textoDoValor: item.texto
       });
       const cabeDentro = larguraDoTexto2(texto, rot.tamanho) + 8 < geometria.largura * larguraDoTrilho;
-      const posicao = posicaoEfetiva(rot, { cabeDentro });
+      let posicao = posicaoEfetiva(rot, { cabeDentro });
+      if (posicao === "fora" && geometria.paraDireita) {
+        const lugar = posicaoDoRotuloNaBorda({
+          x: (geometria.inicio + geometria.largura) * larguraDoTrilho,
+          limite: larguraDoTrilho,
+          texto,
+          tamanho: rot.tamanho,
+          afastamento: 4,
+          negrito: rot.negrito
+        });
+        if (lugar.lado === "esquerda") posicao = "dentro";
+      }
       const ponta = geometria.paraDireita ? geometria.inicio + geometria.largura : geometria.inicio;
       const paraDentro = geometria.paraDireita ? "translate(calc(-100% - 4px), -50%)" : "translate(4px, -50%)";
       const paraFora = geometria.paraDireita ? "translate(4px, -50%)" : "translate(calc(-100% - 4px), -50%)";

@@ -3419,3 +3419,28 @@ centralizar, Texto longo).
   cartão fixo para o teste de "esconder sobrepostos". 884/884.
 
 PRÓXIMA AÇÃO: 5.13b (dot_plot_denso: rótulos nas margens + auditoria).
+
+### 5.13b dot_plot_denso + auditoria da família (concluído; conferir no Looker real)
+- Causas (lidas no código): (1) rótulo "fora" do maior valor posicionado
+  à direita do ponto em `left: p%`, sem reserva de margem — o trilho
+  (overflow hidden na rolagem) cortava o texto; (2) nomes cortados por
+  caracteres (`larguraDoNome / 7`); (3) "Puerto R…" sob o eixo: a régua já
+  estava FORA da área rolável — é o corte normal da rolagem, mas faltava
+  separação visual; (4) eixo negativo: a folga visual de 4% era subtraída
+  do mínimo e cruzava o zero (não era por design) — corrigido em
+  `montarEscala` (vale também para o dumbbell).
+- Novos: `src/core/rotulo-na-borda.js` (cálculo de margem compartilhado;
+  opção `rotuloNaBorda`: inverter (padrão) | folga | reduzir) e Texto
+  longo na coluna de nomes (mesmos ids das árvores, sem partes/moeda) +
+  `larguraMaximaDosNomes` (35%). `larguraDoNome` salva vale só nos modos
+  de corte.
+- Auditoria (`test/auditoria_borda_v3.test.mjs`): pareto ✔, drawdown ✔,
+  bar_race ✔ (sem defeito); heatmap_denso ✖ → corrigido (margem direita
+  da régua de cores era fixa em 62 px; agora pela largura do maior
+  rótulo); barras_ranking_denso ✖ com posição "fora" → o rótulo da maior
+  barra vai para dentro quando não cabe; dumbbell ✖ → inverte para a
+  esquerda do ponto. Todos com o mesmo módulo.
+- Teste antigo ajustado (barras "fora": confere um rótulo que cabe).
+- `test/dot_plot_v3.test.mjs` (3; os 3 falhavam antes). 894/894.
+
+PRÓXIMA AÇÃO: FASE 5 — 5.14 cartao_multivalor.

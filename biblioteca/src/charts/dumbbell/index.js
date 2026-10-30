@@ -43,6 +43,7 @@ import { formatadorDeValueFormat, formatarPercentual, truncar } from '../../core
 import { paletaDoConfig, lerContorno, aplicarContorno } from '../../core/cores.js';
 import { lerRotulos, textoDoRotulo, formatadorDoRotulo } from '../../core/rotulos.js';
 import { formaDoMarcador } from '../../core/shapes.js';
+import { posicaoDoRotuloNaBorda } from '../../core/rotulo-na-borda.js';
 import {
   CSS_LISTA_VIRTUAL,
   criarListaVirtual,
@@ -326,6 +327,8 @@ export default defineViz({
 
     const alturaDaLinha = Math.max(12, Number(config.alturaDaLinha) || 24);
     const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 170);
+    // Largura do trilho = linha − padding (8+8) − nome − gap (6) (5.13b).
+    const larguraDoTrilho = Math.max(20, ctx.largura - 16 - larguraDoNome - 6);
     const tamanhoDoPonto = Math.max(4, Number(config.tamanhoDoPonto) || 10);
     const espessura = Math.max(1, Number(config.espessuraDaBarra) || 4);
 
@@ -341,7 +344,7 @@ export default defineViz({
       montarLinha: (item) =>
         montarLinha({
           item, escala, cores, corDaBarra, larguraDoNome, tamanhoDoPonto, espessura,
-          tema, config, rot, contorno, forma, valueFormat: antes.valueFormat,
+          tema, config, rot, contorno, forma, valueFormat: antes.valueFormat, larguraDoTrilho,
         }),
     });
 
@@ -511,7 +514,7 @@ export function textoDoHaltere({ item, rot, modo, valueFormat }) {
 
 function montarLinha({
   item, escala, cores, corDaBarra, larguraDoNome, tamanhoDoPonto, espessura,
-  tema, config, rot, contorno, forma, valueFormat,
+  tema, config, rot, contorno, forma, valueFormat, larguraDoTrilho = 600,
 }) {
   const linha = document.createElement('div');
   linha.className = 'db-linha';
@@ -588,6 +591,19 @@ function montarLinha({
     const posicao = rot.posicao === 'dentro' || rot.posicao === 'centro' ? rot.posicao : 'fora';
     let esquerda = maior;
     let deslocamento = `translate(${tamanhoDoPonto / 2 + 5}px, -50%)`;
+    // 5.13b (v3): o rótulo do valor extremo cabe — se não cabe à direita,
+    // vai para a esquerda do ponto.
+    if (posicao === 'fora') {
+      const lugar = posicaoDoRotuloNaBorda({
+        x: maior * larguraDoTrilho,
+        limite: larguraDoTrilho,
+        texto,
+        tamanho: rot.tamanho,
+        afastamento: tamanhoDoPonto / 2 + 5,
+        negrito: rot.negrito,
+      });
+      if (lugar.lado === 'esquerda') deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 5}px), -50%)`;
+    }
     if (posicao === 'dentro') {
       esquerda = menor;
       deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 5}px), -50%)`;

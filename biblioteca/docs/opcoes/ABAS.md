@@ -2227,6 +2227,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaGrade` | Visual | Estilo | Cor · Cor das linhas de grade | Cor · Cor das linhas de grade (tema personalizado) |
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
+| `larguraMaximaDosNomes` ★ | — | Estilo | Dot plot · Nomes: largura máxima | Dot plot · Nomes: largura máxima (% do gráfico) |
 | `alturaDaLinha` | Visual | Estilo | Dot plot · Altura de cada linha (px) |  |
 | `tamanhoDoPonto` | Visual | Estilo | Dot plot · Tamanho do ponto (px) |  |
 | `formaDoPonto` | Visual | Estilo | Dot plot · Forma do ponto |  |
@@ -2243,10 +2244,16 @@ Ids marcados com ★ são novos (não existiam antes).
 | `conteudoDoRotulo` | Texto | Texto | Rótulo · O que mostrar no rótulo |  |
 | `formatoDoRotulo` | Texto | Texto | Rótulo · Formato do número no rótulo |  |
 | `casasDecimaisDoRotulo` | Texto | Texto | Rótulo · Casas decimais no rótulo |  |
+| `rotuloNaBorda` ★ | — | Texto | Rótulo · Rótulo na borda |  |
 | `escreverValores` | Texto | Texto | Rótulo · Escrever os valores |  |
 | `titulo` | Texto | Texto | Título · Título |  |
 | `subtitulo` | Texto | Texto | Título · Subtítulo |  |
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
+| `modoDoTextoLongo` ★ | — | Texto | Texto longo · Modo |  |
+| `larguraMaximaDoRotulo` ★ | — | Texto | Texto longo · Largura máxima | Texto longo · Largura máxima (px, 0 = auto) |
+| `linhasMaximasDoRotulo` ★ | — | Texto | Texto longo · Máximo de linhas |  |
+| `fonteMinimaDoRotulo` ★ | — | Texto | Texto longo · Fonte mínima (px) |  |
+| `margemExtraDoRotulo` ★ | — | Texto | Texto longo · Margem extra à direita | Texto longo · Margem extra à direita (px) |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
 | `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
@@ -2297,6 +2304,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `modoDebug` | Avançado | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Mais | Aplicar o JSON acima | Aplicar o JSON acima por cima das opções |
+| `tooltipComTextoCompleto` ★ | — | Mais | Texto completo no tooltip | Texto longo · Texto completo no tooltip |
+| `permitirSelecionarTexto` ★ | — | Mais | Permitir selecionar texto | Texto longo · Permitir selecionar texto |
 | `mostrarBusca` | Interação | Mais | Dot plot · Campo de busca | Dot plot · Campo de busca por nome |
 | `animacaoAtiva` | Interação | Mais | Animação · Ativar animações |  |
 | `duracaoDaAnimacao` | Interação | Mais | Animação · Duração (ms) |  |

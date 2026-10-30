@@ -42,6 +42,9 @@ import { formatadorDeValueFormat, truncar } from '../../core/format.js';
 import { paletaDoConfig, lerContorno } from '../../core/cores.js';
 import { lerRotulos, textoDoRotulo, formatadorDoRotulo } from '../../core/rotulos.js';
 import { formaDoMarcador } from '../../core/shapes.js';
+import { larguraDoTexto } from '../../core/medida-texto.js';
+import { opcoesDeTextoLongo, lerTextoLongo, ajustarRotulo } from '../../core/texto-longo.js';
+import { opcaoDeRotuloNaBorda, posicaoDoRotuloNaBorda, folgaParaRotulos } from '../../core/rotulo-na-borda.js';
 import {
   CSS_LISTA_VIRTUAL,
   criarListaVirtual,
@@ -101,7 +104,16 @@ export default defineViz({
       blocoDeTooltip(),
       blocoDeTema(),
       blocoAvancado(),
+      // 5.13b (v3): rótulo do valor extremo e nomes longos.
+      opcaoDeRotuloNaBorda('Rótulos'),
+      opcoesDeTextoLongo({ secao: 'Texto longo', comPartes: false, comMoeda: false }),
       {
+        larguraMaximaDosNomes: {
+          type: 'number',
+          label: 'Nomes: largura máxima (% do gráfico)',
+          section: 'Dot plot',
+          default: 35,
+        },
         comecarEmZero: {
           type: 'boolean',
           label: 'Começar o eixo em zero (desligue para ver diferenças pequenas)',
@@ -290,8 +302,32 @@ export default defineViz({
     const forma = formaDoMarcador(config.formaDoPonto);
 
     const alturaDaLinha = Math.max(12, Number(config.alturaDaLinha) || 22);
-    const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 160);
     const tamanhoDoPonto = Math.max(4, Number(config.tamanhoDoPonto) || 9);
+
+    // ---------- Coluna de nomes: "Texto longo" (5.13b) ----------
+    // "Mostrar inteiro" (padrão novo): a coluna tem a largura do maior nome,
+    // limitada a uma % do gráfico. Nos modos de corte vale a `larguraDoNome`
+    // salva (ex.: 80).
+    const tl = lerTextoLongo(config);
+    const fonteDaLinha = Math.max(9, Math.min(tema.tamanhoBase, 20));
+    const limiteDosNomes = (ctx.largura * Math.max(10, Math.min(80, Number(config.larguraMaximaDosNomes) || 35))) / 100;
+    let maiorNome = 0;
+    for (const item of itens) maiorNome = Math.max(maiorNome, larguraDoTexto(item.nome, fonteDaLinha));
+    const larguraDoNome =
+      tl.modo === 'inteiro'
+        ? Math.max(40, Math.min(Math.ceil(maiorNome) + 4 + tl.margemExtra, limiteDosNomes))
+        : Math.max(40, Number(config.larguraDoNome) || 160);
+
+    // ---------- Trilho e "Rótulo na borda" (5.13b) ----------
+    // Largura do trilho = linha − padding (8+8) − nome − gap (6).
+    const modoDaBorda = config.rotuloNaBorda || 'inverter';
+    const modoDoValor = config.escreverValores || 'nenhum';
+    let folga = 0;
+    if (modoDaBorda === 'folga' && rot.mostrar && modoDoValor !== 'nenhum') {
+      const textos = itens.map((item) => textoDoValor({ item, medidas, rot, modoDoValor, totalDaPrimeira }));
+      folga = folgaParaRotulos(textos, rot.tamanho, { afastamento: tamanhoDoPonto / 2 + 4, negrito: rot.negrito });
+    }
+    const larguraDoTrilho = Math.max(20, ctx.largura - 16 - larguraDoNome - 6 - folga);
 
     const tooltip = ctx.tooltip();
 
@@ -306,6 +342,7 @@ export default defineViz({
         montarLinha({
           item, medidas, cores, escala, tamanhoDoPonto, larguraDoNome,
           tema, config, rot, contorno, forma, totalDaPrimeira,
+          tl, fonteDaLinha, larguraDoTrilho, folga, modoDaBorda,
         }),
     });
 
@@ -332,6 +369,12 @@ export default defineViz({
     // --- Régua do eixo, embaixo ---
     const regua = criarEl('div', { classe: 'dp-escala', pai: lista.raiz });
     regua.style.color = tema.textoSuave;
+    // 5.13b: a régua fica FORA da área rolável, separada por uma linha;
+    // nenhuma linha da lista passa por baixo das marcas do eixo.
+    regua.style.borderTop = `1px solid ${tema.borda}`;
+    regua.style.background = tema.fundo;
+    regua.style.paddingTop = '2px';
+    regua.style.paddingRight = `${8 + folga}px`;
     // O primeiro espaço espelha a coluna de nomes, para a régua começar
     // onde o trilho começa.
     const vazio = criarEl('span', { pai: regua });
@@ -480,7 +523,7 @@ export function textoDoValor({ item, medidas, rot, modoDoValor, totalDaPrimeira 
 
 function montarLinha({
   item, medidas, cores, escala, tamanhoDoPonto, larguraDoNome, tema, config,
-  rot, contorno, forma, totalDaPrimeira,
+  rot, contorno, forma, totalDaPrimeira, tl, fonteDaLinha, larguraDoTrilho, folga = 0, modoDaBorda = 'inverter',
 }) {
   const linha = document.createElement('div');
   linha.className = 'dp-linha';
@@ -492,11 +535,26 @@ function montarLinha({
   nome.style.width = `${larguraDoNome}px`;
   nome.style.color = tema.texto;
   nome.title = item.nome;
-  nome.textContent = truncar(item.nome, Math.max(6, Math.floor(larguraDoNome / 7)));
+  // Texto longo (5.13b): no modo "inteiro" o nome cabe na coluna (que foi
+  // dimensionada pelo maior nome); só passa do limite % e aí é cortado.
+  const aj = ajustarRotulo({
+    nome: item.nome,
+    tamanho: fonteDaLinha,
+    largura: larguraDoNome - 2,
+    tl: tl.modo === 'inteiro' ? { ...tl, modo: 'reticencias', truncarEmCaracteres: 0 } : tl,
+  });
+  nome.textContent = aj.linhas.join('\n');
+  if (aj.linhas.length > 1) {
+    nome.style.whiteSpace = 'pre-line';
+    nome.style.lineHeight = '1.05';
+  }
+  if (aj.tamanho !== fonteDaLinha) nome.style.fontSize = `${aj.tamanho}px`;
   linha.appendChild(nome);
 
   const trilho = document.createElement('div');
   trilho.className = 'dp-trilho';
+  if (folga) trilho.style.marginRight = `${folga}px`;
+  trilho.dataset.largura = String(Math.round(larguraDoTrilho));
   linha.appendChild(trilho);
 
   if (config.mostrarGuias !== false) {
@@ -545,7 +603,23 @@ function montarLinha({
       const menor = Math.min(...validas);
       const posicao = rot.posicao === 'dentro' || rot.posicao === 'centro' ? rot.posicao : 'fora';
       let esquerda = maior;
-      let deslocamento = `translate(${tamanhoDoPonto / 2 + 4}px, -50%)`;
+      const afastamento = tamanhoDoPonto / 2 + 4;
+      let deslocamento = `translate(${afastamento}px, -50%)`;
+      let tamanhoDoTexto = null;
+      if (posicao === 'fora') {
+        // 5.13b: o rótulo do valor extremo precisa caber dentro do trilho.
+        const lugar = posicaoDoRotuloNaBorda({
+          x: maior * larguraDoTrilho,
+          limite: larguraDoTrilho + folga,
+          texto,
+          tamanho: rot.tamanho,
+          afastamento,
+          modo: modoDaBorda,
+          negrito: rot.negrito,
+        });
+        if (lugar.lado === 'esquerda') deslocamento = `translate(calc(-100% - ${afastamento}px), -50%)`;
+        if (lugar.tamanho !== rot.tamanho) tamanhoDoTexto = lugar.tamanho;
+      }
       if (posicao === 'dentro') {
         esquerda = menor;
         deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 4}px), -50%)`;
@@ -560,7 +634,10 @@ function montarLinha({
         posicao,
         corAutomatica: tema.textoSuave,
       });
-      if (valorEl) valorEl.style.left = `${esquerda * 100}%`;
+      if (valorEl) {
+        valorEl.style.left = `${esquerda * 100}%`;
+        if (tamanhoDoTexto) valorEl.style.fontSize = `${tamanhoDoTexto}px`;
+      }
     }
   }
 

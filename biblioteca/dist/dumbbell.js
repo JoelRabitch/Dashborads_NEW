@@ -4347,6 +4347,20 @@
     return el;
   }
 
+  // src/core/rotulo-na-borda.js
+  function posicaoDoRotuloNaBorda({ x, limite, texto, tamanho, afastamento = 6, modo = "inverter", negrito = false }) {
+    let t = tamanho;
+    const largura = (tam) => larguraDoTexto(texto, tam, { negrito });
+    const cabeDireita = (tam) => x + afastamento + largura(tam) <= limite;
+    if (!cabeDireita(t) && modo === "reduzir") {
+      while (!cabeDireita(t) && t > 7) t -= 0.5;
+    }
+    if (cabeDireita(t) || modo === "folga") {
+      return { lado: "direita", tamanho: t, x0: x + afastamento, x1: x + afastamento + largura(t) };
+    }
+    return { lado: "esquerda", tamanho: t, x0: x - afastamento - largura(t), x1: x - afastamento };
+  }
+
   // src/charts/_lista_virtual/index.js
   var CSS_LISTA_VIRTUAL = `
 .lv-raiz{position:relative;width:100%;height:100%;display:flex;flex-direction:column;}
@@ -4539,8 +4553,12 @@
       maximo += passo / 2;
     } else if (!comecarEmZero) {
       const margem = (maximo - minimo) * folga;
+      const minimoDosDados = minimo;
+      const maximoDosDados = maximo;
       minimo -= margem;
       maximo += margem;
+      if (minimoDosDados >= 0 && minimo < 0) minimo = 0;
+      if (maximoDosDados <= 0 && maximo > 0) maximo = 0;
     }
     const extensao = maximo - minimo || 1;
     const posicao = (v) => v === null || !Number.isFinite(v) ? null : (v - minimo) / extensao;
@@ -4785,6 +4803,7 @@
       };
       const alturaDaLinha = Math.max(12, Number(config.alturaDaLinha) || 24);
       const larguraDoNome = Math.max(40, Number(config.larguraDoNome) || 170);
+      const larguraDoTrilho = Math.max(20, ctx.largura - 16 - larguraDoNome - 6);
       const tamanhoDoPonto = Math.max(4, Number(config.tamanhoDoPonto) || 10);
       const espessura = Math.max(1, Number(config.espessuraDaBarra) || 4);
       const tooltip = ctx.tooltip();
@@ -4808,7 +4827,8 @@
           rot,
           contorno,
           forma,
-          valueFormat: antes.valueFormat
+          valueFormat: antes.valueFormat,
+          larguraDoTrilho
         })
       });
       lista.raiz.classList.add("db-raiz");
@@ -4952,7 +4972,8 @@
     rot,
     contorno,
     forma,
-    valueFormat
+    valueFormat,
+    larguraDoTrilho = 600
   }) {
     const linha = document.createElement("div");
     linha.className = "db-linha";
@@ -5015,6 +5036,17 @@
       const posicao = rot.posicao === "dentro" || rot.posicao === "centro" ? rot.posicao : "fora";
       let esquerda = maior;
       let deslocamento = `translate(${tamanhoDoPonto / 2 + 5}px, -50%)`;
+      if (posicao === "fora") {
+        const lugar = posicaoDoRotuloNaBorda({
+          x: maior * larguraDoTrilho,
+          limite: larguraDoTrilho,
+          texto,
+          tamanho: rot.tamanho,
+          afastamento: tamanhoDoPonto / 2 + 5,
+          negrito: rot.negrito
+        });
+        if (lugar.lado === "esquerda") deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 5}px), -50%)`;
+      }
       if (posicao === "dentro") {
         esquerda = menor;
         deslocamento = `translate(calc(-100% - ${tamanhoDoPonto / 2 + 5}px), -50%)`;

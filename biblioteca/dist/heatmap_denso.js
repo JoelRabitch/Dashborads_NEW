@@ -3995,6 +3995,11 @@
     return ordenados[base] + (ordenados[base + 1] - ordenados[base]) * resto;
   }
 
+  // src/core/rotulo-na-borda.js
+  function folgaParaRotulos(textos, tamanho, { afastamento = 8, negrito = false } = {}) {
+    return Math.max(0, ...textos.map((t) => larguraDoTexto(t, tamanho, { negrito }))) + afastamento + 2;
+  }
+
   // src/charts/heatmap_denso/index.js
   var CSS2 = `
 .hd-area{position:relative;width:100%;height:100%;overflow:hidden;}
@@ -4140,6 +4145,7 @@
       };
       const fonte = Math.max(8, tema.tamanhoBase - 1);
       const comLegenda = config.mostrarLegendaDeCor !== false;
+      const escala = montarEscalaDeCor({ valores: valores2, config });
       const margens = calcularMargens({
         rotulosY: linhas.map((l) => truncar(l.rotulo, 22)),
         rotulosX: colunas.map((c) => truncar(c.rotulo, 14)),
@@ -4147,6 +4153,10 @@
         tema
       });
       margens.direita = Math.max(margens.direita, comLegenda ? 62 : 10);
+      if (comLegenda) {
+        const textos = escala.marcas.map((m) => formatar(m.valor)).concat(["sem dado"]);
+        margens.direita = Math.max(margens.direita, 14 + 15 + folgaParaRotulos(textos, Math.max(8, fonte - 2), { afastamento: 2 }));
+      }
       const alturaDoCabecalho = Math.min(
         altura * 0.35,
         14 + colunas.reduce((a, c) => Math.max(a, larguraAproximada(truncar(c.rotulo, 14), fonte)), 0)
@@ -4158,7 +4168,6 @@
       });
       const larguraDaCelula = retangulo.largura / colunas.length;
       const alturaDaCelula = retangulo.altura / linhas.length;
-      const escala = montarEscalaDeCor({ valores: valores2, config });
       const corDaAusencia = config.corDaAusencia || comOpacidade(tema.borda, 0.45);
       const totalDeCelulas = linhas.length * colunas.length;
       const usarCanvas = totalDeCelulas > LIMITE_PARA_CANVAS;

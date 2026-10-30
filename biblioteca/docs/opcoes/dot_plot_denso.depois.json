@@ -153,6 +153,15 @@
     "dinamica": false
   },
   {
+    "id": "larguraMaximaDosNomes",
+    "label": "Dot plot · Nomes: largura máxima",
+    "rotuloCompleto": "Dot plot · Nomes: largura máxima (% do gráfico)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 35,
+    "dinamica": false
+  },
+  {
     "id": "alturaDaLinha",
     "label": "Dot plot · Altura de cada linha (px)",
     "rotuloCompleto": "Dot plot · Altura de cada linha (px)",
@@ -297,6 +306,15 @@
     "dinamica": false
   },
   {
+    "id": "rotuloNaBorda",
+    "label": "Rótulo · Rótulo na borda",
+    "rotuloCompleto": "Rótulo · Rótulo na borda",
+    "section": "Texto",
+    "type": "string",
+    "default": "inverter",
+    "dinamica": false
+  },
+  {
     "id": "escreverValores",
     "label": "Rótulo · Escrever os valores",
     "rotuloCompleto": "Rótulo · Escrever os valores",
@@ -330,6 +348,51 @@
     "section": "Texto",
     "type": "string",
     "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "modoDoTextoLongo",
+    "label": "Texto longo · Modo",
+    "rotuloCompleto": "Texto longo · Modo",
+    "section": "Texto",
+    "type": "string",
+    "default": "inteiro",
+    "dinamica": false
+  },
+  {
+    "id": "larguraMaximaDoRotulo",
+    "label": "Texto longo · Largura máxima",
+    "rotuloCompleto": "Texto longo · Largura máxima (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "linhasMaximasDoRotulo",
+    "label": "Texto longo · Máximo de linhas",
+    "rotuloCompleto": "Texto longo · Máximo de linhas",
+    "section": "Texto",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "fonteMinimaDoRotulo",
+    "label": "Texto longo · Fonte mínima (px)",
+    "rotuloCompleto": "Texto longo · Fonte mínima (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 8,
+    "dinamica": false
+  },
+  {
+    "id": "margemExtraDoRotulo",
+    "label": "Texto longo · Margem extra à direita",
+    "rotuloCompleto": "Texto longo · Margem extra à direita (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
     "dinamica": false
   },
   {
@@ -777,6 +840,24 @@
     "id": "aplicarConfiguracaoJson",
     "label": "Aplicar o JSON acima",
     "rotuloCompleto": "Aplicar o JSON acima por cima das opções",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "tooltipComTextoCompleto",
+    "label": "Texto completo no tooltip",
+    "rotuloCompleto": "Texto longo · Texto completo no tooltip",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "permitirSelecionarTexto",
+    "label": "Permitir selecionar texto",
+    "rotuloCompleto": "Texto longo · Permitir selecionar texto",
     "section": "Mais",
     "type": "boolean",
     "default": false,

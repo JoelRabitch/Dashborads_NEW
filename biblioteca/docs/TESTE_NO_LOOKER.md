@@ -144,3 +144,9 @@ real antes de considerar resolvido.
   - [ ] Os botões "Expandir tudo", "Colapsar tudo" e "Centralizar" aparecem (antes não apareciam mesmo com a opção ligada).
   - [ ] O contador "+20" fica dentro do círculo; teste "Estilo do contador" = Pílula/Oculto; "Cor do cartão por", sombra, fonte, alinhamento do texto, ligações (cor, espessura, cotovelo/reta/curva).
   - [ ] Sem barras de rolagem quando o organograma cabe na área.
+- **5.13b dot_plot_denso (e família)**
+  - [ ] Lista com valores em milhões e "Escrever os valores" ligado: o rótulo do MAIOR valor, no fim da escala, aparece inteiro (ex.: "74.05M (21.3%)"), à esquerda do ponto se não couber à direita. Teste "Rótulo na borda" = Reservar folga / Reduzir a fonte.
+  - [ ] Os nomes não terminam mais em "…" ("South Ko…"): a coluna de nomes tem a largura do maior nome (até 35% do gráfico). Com "Texto longo · Modo" = Cortar com reticências, volta a valer a "Largura do nome" salva (80).
+  - [ ] Com todos os valores positivos, o eixo não começa mais em negativo.
+  - [ ] A última linha da lista não passa por baixo da régua do eixo (há uma linha separando).
+  - [ ] heatmap_denso: os números da régua de cores à direita aparecem inteiros. barras_ranking_denso com "Posição do rótulo" = Fora e dumbbell: o rótulo do maior valor não é cortado.

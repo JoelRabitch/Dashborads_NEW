@@ -162,7 +162,8 @@ test('barras_ranking_denso — posição do rótulo: fora e centro', () => {
   const fora = desenhar('barras_ranking_denso', 'semPivo', { posicaoDoRotulo: 'fora' });
   const centro = desenhar('barras_ranking_denso', 'semPivo', { posicaoDoRotulo: 'centro' });
   try {
-    const f = fora.palco.querySelector('[data-rotulo]');
+    // v3 (5.13b): o rótulo da MAIOR barra não cabe fora e vai para dentro; os outros ficam fora.
+    const f = Array.from(fora.palco.querySelectorAll('[data-rotulo]')).find((e) => e.dataset.posicao === 'fora');
     const c = centro.palco.querySelector('[data-rotulo]');
     assert.equal(f.dataset.posicao, 'fora');
     assert.equal(c.dataset.posicao, 'centro');
