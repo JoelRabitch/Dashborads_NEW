@@ -144,12 +144,12 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] 5.7 diagrama_venn: layout e hover
 
 ### FASE 4 — árvores e organograma
-- [~] 5.8 Base compartilhada das árvores
-- [~] 5.9 Animação ao abrir e fechar
-- [~] 5.10 Centralizar
-- [~] 5.11 Texto longo
-- [~] 5.12 arvores_multiplas: grade
-- [ ] 5.13 org_chart
+- [x] 5.8 Base compartilhada das árvores
+- [x] 5.9 Animação ao abrir e fechar
+- [x] 5.10 Centralizar
+- [x] 5.11 Texto longo
+- [x] 5.12 arvores_multiplas: grade
+- [x] 5.13 org_chart
 - [ ] 5.13b dot_plot_denso: rótulos nas margens + auditoria
 
 ### FASE 5 — cartao_multivalor

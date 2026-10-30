@@ -929,6 +929,14 @@ Ids marcados com ★ são novos (não existiam antes).
 | `formatoDaHierarquia` | Dados | Dados | Como a hierarquia está montada |  |
 | `rotuloDaRaiz` | Dados | Dados | Nome do nó raiz | Nome do nó raiz (quando há várias raízes) |
 | `profundidadeMaxima` | Dados | Dados | Profundidade máxima (0 = toda a árvore) |  |
+| `alinhamentoHorizontalDaArvore` ★ | — | Dados | Centralizar · Horizontal |  |
+| `alinhamentoVerticalDaArvore` ★ | — | Dados | Centralizar · Vertical |  |
+| `deslocamentoXDaArvore` ★ | — | Dados | Centralizar · Deslocamento X (px) |  |
+| `deslocamentoYDaArvore` ★ | — | Dados | Centralizar · Deslocamento Y (px) |  |
+| `oQueCentralizar` ★ | — | Dados | Centralizar · O que centralizar |  |
+| `quandoCentralizar` ★ | — | Dados | Centralizar · Quando |  |
+| `mostrarBotaoCentralizar` ★ | — | Dados | Botão "Centralizar" | Centralizar · Botão "Centralizar" |
+| `centralizarCadaArvore` ★ | — | Dados | Cada árvore na célula | Centralizar · Cada árvore na célula |
 | `paleta` | Visual | Estilo | Cor · Paleta de cores |  |
 | `inverterPaleta` | Visual | Estilo | Cor · Inverter ordem das cores |  |
 | `opacidade` | Visual | Estilo | Cor · Opacidade do preenchimento |  |
@@ -953,7 +961,10 @@ Ids marcados com ★ são novos (não existiam antes).
 | `espessuraPorValor` | Visual | Estilo | Árvore · Ligação proporcional | Árvore · Ligação mais grossa para ramos maiores |
 | `escalaPorArvore` | Visual | Estilo | Grade · Escala por árvore | Grade · Cada árvore com o próprio tamanho de nó (deixa de ser comparável) |
 | `tamanhoDoNo` | Visual | Estilo | Árvore · Tamanho do nó |  |
+| `espacoHorizontalDaGrade` ★ | — | Estilo | Grade · Espaço entre colunas (px) |  |
 | `tamanhoPorValor` | Visual | Estilo | Árvore · Nó pelo valor | Árvore · Nó maior para valores maiores |
+| `espacoVerticalDaGrade` ★ | — | Estilo | Grade · Espaço entre linhas (px) |  |
+| `linhasGuiaDaGrade` ★ | — | Estilo | Grade · Linhas-guia da grade |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -971,6 +982,15 @@ Ids marcados com ★ são novos (não existiam antes).
 | `titulo` | Texto | Texto | Título · Título |  |
 | `subtitulo` | Texto | Texto | Título · Subtítulo |  |
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
+| `modoDoTextoLongo` ★ | — | Texto | Texto longo · Modo |  |
+| `larguraMaximaDoRotulo` ★ | — | Texto | Texto longo · Largura máxima | Texto longo · Largura máxima (px, 0 = auto) |
+| `linhasMaximasDoRotulo` ★ | — | Texto | Texto longo · Máximo de linhas |  |
+| `fonteMinimaDoRotulo` ★ | — | Texto | Texto longo · Fonte mínima (px) |  |
+| `margemExtraDoRotulo` ★ | — | Texto | Texto longo · Margem extra à direita | Texto longo · Margem extra à direita (px) |
+| `partesDoRotulo` ★ | — | Texto | Texto longo · O que aparece no rótulo |  |
+| `separadorDoRotulo` ★ | — | Texto | Texto longo · Separador |  |
+| `simboloDaMoedaDoRotulo` ★ | — | Texto | Texto longo · Símbolo da moeda |  |
+| `moedaPersonalizadaDoRotulo` ★ | — | Texto | Texto longo · Moeda personalizada |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
 | `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
@@ -1026,15 +1046,28 @@ Ids marcados com ★ são novos (não existiam antes).
 | `suavizacaoDaAnimacao` | Interação | Mais | Animação · Curva da animação |  |
 | `quandoAnimar` | Interação | Mais | Animação · Quando animar |  |
 | `contadorAnimado` | Interação | Mais | Animação · Números contando | Animação · Números sobem/descem até o valor (contador) |
+| `animarExpandir` ★ | — | Mais | Animação · Animar abrir/fechar |  |
+| `duracaoDeExpandir` ★ | — | Mais | Animação · Duração abrir/fechar (ms) |  |
+| `movimentoDeExpandir` ★ | — | Mais | Animação · Movimento abrir/fechar |  |
+| `cascataDeExpandir` ★ | — | Mais | Animação · Atraso entre filhos (ms) |  |
+| `respeitarMenosMovimento` ★ | — | Mais | Respeitar "menos movimento" | Animação · Respeitar "menos movimento" |
 | `modoDebug` | Avançado | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Mais | Aplicar o JSON acima | Aplicar o JSON acima por cima das opções |
+| `tooltipComTextoCompleto` ★ | — | Mais | Texto completo no tooltip | Texto longo · Texto completo no tooltip |
 | `nivelInicialExpandido` | Interação | Mais | Árvore · Níveis abertos no início | Árvore · Níveis abertos no início (0 = tudo aberto) |
+| `permitirSelecionarTexto` ★ | — | Mais | Permitir selecionar texto | Texto longo · Permitir selecionar texto |
 | `destacarAoPassarMouse` | Interação | Mais | Clique · Destacar sob o mouse | Clique · Destacar ao passar o mouse |
 | `campoDoId` | Dados | Dados | Campo do ID (formato id/superior) |  |
 | `campoDoPai` | Dados | Dados | Campo do superior (formato id/superior) |  |
 | `campoDoNome` | Dados | Dados | Campo do nome a exibir |  |
 | `campoDoValor` | Dados | Dados | Medida do tamanho |  |
+| `largura_Tecnologia` ★ | — | Estilo | Grade · Largura — Tecnologia |  |
+| `altura_Tecnologia` ★ | — | Estilo | Grade · Altura — Tecnologia |  |
+| `largura_Comercial` ★ | — | Estilo | Grade · Largura — Comercial |  |
+| `altura_Comercial` ★ | — | Estilo | Grade · Altura — Comercial |  |
+| `largura_Operacoes` ★ | — | Estilo | Grade · Largura — Operações |  |
+| `altura_Operacoes` ★ | — | Estilo | Grade · Altura — Operações |  |
 
 </details>
 
@@ -1050,6 +1083,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `formatoDaHierarquia` | Dados | Dados | Como a hierarquia está montada |  |
 | `rotuloDaRaiz` | Dados | Dados | Nome do nó raiz | Nome do nó raiz (quando há várias raízes) |
 | `profundidadeMaxima` | Dados | Dados | Profundidade máxima (0 = toda a árvore) |  |
+| `alinhamentoHorizontalDaArvore` ★ | — | Dados | Centralizar · Horizontal |  |
+| `alinhamentoVerticalDaArvore` ★ | — | Dados | Centralizar · Vertical |  |
+| `deslocamentoXDaArvore` ★ | — | Dados | Centralizar · Deslocamento X (px) |  |
+| `deslocamentoYDaArvore` ★ | — | Dados | Centralizar · Deslocamento Y (px) |  |
+| `oQueCentralizar` ★ | — | Dados | Centralizar · O que centralizar |  |
+| `quandoCentralizar` ★ | — | Dados | Centralizar · Quando |  |
+| `mostrarBotaoCentralizar` ★ | — | Dados | Botão "Centralizar" | Centralizar · Botão "Centralizar" |
 | `comecarRecolhidoAPartirDe` | Dados | Dados | Organograma · Recolher a partir do nível | Organograma · Começar recolhido a partir do nível (0 = tudo aberto) |
 | `paleta` | Visual | Estilo | Cor · Paleta de cores |  |
 | `inverterPaleta` | Visual | Estilo | Cor · Inverter ordem das cores |  |
@@ -1059,6 +1099,9 @@ Ids marcados com ★ são novos (não existiam antes).
 | `espessuraDoContorno` | Visual | Estilo | Cor · Espessura do contorno (px) |  |
 | `tracejadoDoContorno` | Visual | Estilo | Cor · Estilo do contorno |  |
 | `preencherCartao` | Visual | Estilo | Cor · Cartão na cor do ramo | Cor · Cartão preenchido com a cor do ramo |
+| `corDoCartaoPor` ★ | — | Estilo | Cor · Cor do cartão por |  |
+| `contrasteAutomatico` ★ | — | Estilo | Contraste automático do texto | Cor · Contraste automático do texto |
+| `corDaLigacaoDoOrg` ★ | — | Estilo | Cor · Cor das ligações |  |
 | `tema` | Visual | Estilo | Tema · Tema |  |
 | `corDeFundo` | Visual | Estilo | Cor · Cor de fundo (vazio = do tema) |  |
 | `corDoTexto` | Visual | Estilo | Cor · Cor do texto (tema personalizado) |  |
@@ -1072,6 +1115,12 @@ Ids marcados com ★ são novos (não existiam antes).
 | `espacoEntreNiveis` | Visual | Estilo | Organograma · Espaço entre níveis (px) |  |
 | `espacoEntreIrmaos` | Visual | Estilo | Organograma · Espaço entre vizinhos | Organograma · Espaço entre cartões vizinhos (px) |
 | `raioDoCartao` | Visual | Estilo | Organograma · Arredondamento do cartão | Organograma · Arredondamento do cartão (px) |
+| `sombraDoCartao` ★ | — | Estilo | Organograma · Sombra do cartão |  |
+| `cartaoAjustavel` ★ | — | Estilo | Cartão cresce com o texto | Organograma · Cartão cresce com o texto |
+| `fonteDoCartao` ★ | — | Estilo | Organograma · Fonte do cartão |  |
+| `estiloDoContador` ★ | — | Estilo | Organograma · Estilo do contador |  |
+| `espessuraDaLigacaoDoOrg` ★ | — | Estilo | Organograma · Espessura das ligações |  |
+| `formaDaLigacaoDoOrg` ★ | — | Estilo | Organograma · Forma das ligações |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -1085,9 +1134,21 @@ Ids marcados com ★ são novos (não existiam antes).
 | `casasDecimaisDoRotulo` | Texto | Texto | Rótulo · Casas decimais no rótulo |  |
 | `mostrarValorNoCartao` | Texto | Texto | Rótulo · Valor no cartão | Rótulo · Mostrar o valor dentro do cartão |
 | `mostrarContagemDeEquipe` | Texto | Texto | Rótulo · Total de descendentes | Rótulo · Mostrar quantos descendentes cada cartão tem |
+| `mostrarNomeNoCartao` ★ | — | Texto | Rótulo · Nome no cartão |  |
+| `mostrarPercentualNoCartao` ★ | — | Texto | Rótulo · Percentual no cartão |  |
 | `titulo` | Texto | Texto | Título · Título |  |
 | `subtitulo` | Texto | Texto | Título · Subtítulo |  |
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
+| `modoDoTextoLongo` ★ | — | Texto | Texto longo · Modo |  |
+| `larguraMaximaDoRotulo` ★ | — | Texto | Texto longo · Largura máxima | Texto longo · Largura máxima (px, 0 = auto) |
+| `linhasMaximasDoRotulo` ★ | — | Texto | Texto longo · Máximo de linhas |  |
+| `fonteMinimaDoRotulo` ★ | — | Texto | Texto longo · Fonte mínima (px) |  |
+| `margemExtraDoRotulo` ★ | — | Texto | Texto longo · Margem extra à direita | Texto longo · Margem extra à direita (px) |
+| `partesDoRotulo` ★ | — | Texto | Texto longo · O que aparece no rótulo |  |
+| `separadorDoRotulo` ★ | — | Texto | Texto longo · Separador |  |
+| `simboloDaMoedaDoRotulo` ★ | — | Texto | Texto longo · Símbolo da moeda |  |
+| `moedaPersonalizadaDoRotulo` ★ | — | Texto | Texto longo · Moeda personalizada |  |
+| `alinhamentoDoTextoDoCartao` ★ | — | Texto | Organograma · Alinhamento do texto |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
 | `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
@@ -1135,6 +1196,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaBordaDoTooltip` | Interação | Mais | Tooltip · Cor da borda do tooltip |  |
 | `corDoTextoDoTooltip` | Interação | Mais | Tooltip · Cor do texto do tooltip | Tooltip · Cor do texto do tooltip (vazio = do tema) |
 | `tamanhoDoTooltip` | Interação | Mais | Tooltip · Tamanho da fonte do tooltip | Tooltip · Tamanho da fonte do tooltip (px) |
+| `mostrarBotoesDeExpandir` ★ | — | Mais | Clique · Botões de expandir | Clique · Mostrar botões "Expandir tudo" e "Colapsar tudo" |
 | `animacaoAtiva` | Interação | Mais | Animação · Ativar animações |  |
 | `duracaoDaAnimacao` | Interação | Mais | Animação · Duração (ms) |  |
 | `atrasoDaAnimacao` | Interação | Mais | Animação · Atraso inicial (ms) |  |
@@ -1142,10 +1204,17 @@ Ids marcados com ★ são novos (não existiam antes).
 | `suavizacaoDaAnimacao` | Interação | Mais | Animação · Curva da animação |  |
 | `quandoAnimar` | Interação | Mais | Animação · Quando animar |  |
 | `contadorAnimado` | Interação | Mais | Animação · Números contando | Animação · Números sobem/descem até o valor (contador) |
+| `animarExpandir` ★ | — | Mais | Animação · Animar abrir/fechar |  |
+| `duracaoDeExpandir` ★ | — | Mais | Animação · Duração abrir/fechar (ms) |  |
+| `movimentoDeExpandir` ★ | — | Mais | Animação · Movimento abrir/fechar |  |
+| `cascataDeExpandir` ★ | — | Mais | Animação · Atraso entre filhos (ms) |  |
+| `respeitarMenosMovimento` ★ | — | Mais | Respeitar "menos movimento" | Animação · Respeitar "menos movimento" |
 | `modoDebug` | Avançado | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Mais | Aplicar o JSON acima | Aplicar o JSON acima por cima das opções |
+| `tooltipComTextoCompleto` ★ | — | Mais | Texto completo no tooltip | Texto longo · Texto completo no tooltip |
 | `permitirRecolher` | Interação | Mais | Recolher ao clicar | Organograma · Recolher uma área clicando no cartão |
+| `permitirSelecionarTexto` ★ | — | Mais | Permitir selecionar texto | Texto longo · Permitir selecionar texto |
 | `destacarAoPassarMouse` | Interação | Mais | Clique · Destacar sob o mouse | Clique · Destacar ao passar o mouse |
 | `campoDoId` | Dados | Dados | Campo do ID (formato id/superior) |  |
 | `campoDoPai` | Dados | Dados | Campo do superior (formato id/superior) |  |

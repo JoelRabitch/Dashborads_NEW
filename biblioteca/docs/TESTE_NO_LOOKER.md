@@ -131,3 +131,16 @@ real antes de considerar resolvido.
   - [ ] Os números ficam maiores, com contorno da cor do fundo, valor e percentual em linhas separadas (ligue "Mostrar o percentual"); regiões pequenas levam o número para fora, com linha-guia.
   - [ ] Passe o mouse: a região cresce um pouco, ganha contorno forte e as outras clareiam; tooltip com nome, valor e %. Clique fixa; Esc ou clique fora solta; com drill, o menu do Looker abre.
   - [ ] Teste tiles pequenos e grandes, 2 a 5 conjuntos, "Nomes dos conjuntos" = Fora / Só na legenda, "Apelidos", "Tamanho dos textos" = Fixo, e "Layout" = Clássico (o desenho anterior).
+- **5.8/5.9 Árvores e organograma — abrir e fechar**
+  - [ ] arvores_multiplas e org_chart: ao abrir um nó, os filhos saem do pai deslizando e aparecendo; ao fechar, voltam para ele; irmãos se reposicionam sem pulo. "Animar abrir/fechar" desligado (aba Mais) = sem animação. Rolar não anima nada.
+- **5.10 Centralizar**
+  - [ ] Ao carregar, o desenho fica centralizado; botão "Centralizar" ao lado de "Expandir tudo"/"Colapsar tudo". Árvore maior que a área: rola nas duas direções e o lado esquerdo não fica cortado. Teste "Centralizar · O que centralizar" = A raiz / O nó selecionado e "Quando" = Só no botão.
+- **5.11 Texto longo (árvores, organograma)**
+  - [ ] Com rótulos longos (nome + valor + %), "Texto longo · Modo" = Mostrar inteiro (padrão): nada é cortado; a árvore ganha rolagem horizontal; no organograma o cartão cresce. Teste os outros modos; "Cortar com reticências" usa o "Truncar rótulo" salvo (60).
+  - [ ] Clique/duplo clique no gráfico não deixa texto selecionado em azul ("Permitir selecionar texto" desligado). "Símbolo da moeda" = $ troca o R$ dos rótulos.
+- **5.12 arvores_multiplas — grade**
+  - [ ] "Espaço entre colunas/linhas", "Linhas-guia da grade" e "Largura — <árvore>" / "Altura — <árvore>" na aba Estilo. (Arrastar a borda não foi feito.)
+- **5.13 org_chart**
+  - [ ] Os botões "Expandir tudo", "Colapsar tudo" e "Centralizar" aparecem (antes não apareciam mesmo com a opção ligada).
+  - [ ] O contador "+20" fica dentro do círculo; teste "Estilo do contador" = Pílula/Oculto; "Cor do cartão por", sombra, fonte, alinhamento do texto, ligações (cor, espessura, cotovelo/reta/curva).
+  - [ ] Sem barras de rolagem quando o organograma cabe na área.

@@ -3383,3 +3383,39 @@ PRÓXIMA AÇÃO: FASE 4 — 5.8 (base `_arvore`), 5.9, 5.10, 5.11 juntos.
 
 PRÓXIMA AÇÃO: org_chart (botões, estética, contador, rolagem, animação,
 centralizar, Texto longo).
+
+### 5.8–5.13 concluídos (conferir no Looker real)
+- org_chart reescrito no desenho (arquivo passou de CRLF para LF).
+  Causa do defeito dos botões: `mostrarBotoesDeExpandir` nunca existiu no
+  org_chart (só no arvores_multiplas); agora é opção comum das árvores.
+- Contador "+N": círculo com raio pelo texto (ou pílula/oculto).
+- Barras de rolagem desnecessárias: o <svg> era inline (sobra de linha) e
+  sempre `max(área, desenho)`; agora display:block e, quando cabe, o
+  tamanho exato da área (conteúdo deslocado para centralizar).
+- Opções novas do org_chart: `corDoCartaoPor`, `sombraDoCartao`,
+  `cartaoAjustavel` (padrão ligado: o cartão cresce com o texto),
+  `fonteDoCartao`, `alinhamentoDoTextoDoCartao` (auto = como antes),
+  `contrasteAutomatico`, `mostrarNomeNoCartao`, `mostrarPercentualNoCartao`,
+  `estiloDoContador`, `corDaLigacaoDoOrg`, `espessuraDaLigacaoDoOrg`,
+  `formaDaLigacaoDoOrg`. Comuns (os dois gráficos, mesmos ids/rótulos):
+  `animarExpandir`, `duracaoDeExpandir`, `movimentoDeExpandir`,
+  `cascataDeExpandir`, `respeitarMenosMovimento`,
+  `alinhamentoHorizontalDaArvore`, `alinhamentoVerticalDaArvore`,
+  `deslocamentoXDaArvore`, `deslocamentoYDaArvore`, `oQueCentralizar`,
+  `quandoCentralizar`, `mostrarBotaoCentralizar`, `mostrarBotoesDeExpandir`
+  (novo no org_chart), `modoDoTextoLongo`, `larguraMaximaDoRotulo`,
+  `linhasMaximasDoRotulo`, `fonteMinimaDoRotulo`, `tooltipComTextoCompleto`,
+  `margemExtraDoRotulo`, `permitirSelecionarTexto`, `partesDoRotulo`,
+  `separadorDoRotulo`, `simboloDaMoedaDoRotulo`, `moedaPersonalizadaDoRotulo`;
+  arvores_multiplas: `centralizarCadaArvore`, `espacoHorizontalDaGrade`,
+  `espacoVerticalDaGrade`, `linhasGuiaDaGrade`, `largura_<árvore>`,
+  `altura_<árvore>` (dinâmicas).
+- Decisões: as opções de animação existentes (`animacaoAtiva` etc.) valem
+  como interruptor geral; as de abrir/fechar são próprias (duração padrão
+  350). Ligações não "deslizam" (só os nós); elas reaparecem com
+  esmaecimento. Cartão uniforme (a maior largura) para o layout do d3.
+  `cluster` mantido como estava.
+- Teste novo `test/arvores_v3.test.mjs` (8). Testes antigos ajustados:
+  cartão fixo para o teste de "esconder sobrepostos". 884/884.
+
+PRÓXIMA AÇÃO: 5.13b (dot_plot_denso: rótulos nas margens + auditoria).

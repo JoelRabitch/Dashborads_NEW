@@ -284,8 +284,9 @@ test('org_chart — conteúdo, formato e posição do rótulo', () => {
 });
 
 test('org_chart — esconder sobrepostos e truncar', () => {
-  const com = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: true });
-  const sem = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: false });
+  // v3 (5.13): com o cartão fixo (o padrão novo faz o cartão crescer com o texto).
+  const com = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: true, cartaoAjustavel: false });
+  const sem = OC({ tamanhoDoRotulo: 28, evitarColisaoDeRotulos: false, cartaoAjustavel: false });
   // v3 (5.11): truncarRotulo só vale no modo "Cortar com reticências".
   const trunc = OC({ truncarRotulo: 3, modoDoTextoLongo: 'reticencias' });
   try {

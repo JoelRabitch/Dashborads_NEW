@@ -27,6 +27,69 @@
     "dinamica": false
   },
   {
+    "id": "alinhamentoHorizontalDaArvore",
+    "label": "Centralizar · Horizontal",
+    "rotuloCompleto": "Centralizar · Horizontal",
+    "section": "Dados",
+    "type": "string",
+    "default": "centro",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoVerticalDaArvore",
+    "label": "Centralizar · Vertical",
+    "rotuloCompleto": "Centralizar · Vertical",
+    "section": "Dados",
+    "type": "string",
+    "default": "meio",
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoXDaArvore",
+    "label": "Centralizar · Deslocamento X (px)",
+    "rotuloCompleto": "Centralizar · Deslocamento X (px)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "deslocamentoYDaArvore",
+    "label": "Centralizar · Deslocamento Y (px)",
+    "rotuloCompleto": "Centralizar · Deslocamento Y (px)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "oQueCentralizar",
+    "label": "Centralizar · O que centralizar",
+    "rotuloCompleto": "Centralizar · O que centralizar",
+    "section": "Dados",
+    "type": "string",
+    "default": "desenho",
+    "dinamica": false
+  },
+  {
+    "id": "quandoCentralizar",
+    "label": "Centralizar · Quando",
+    "rotuloCompleto": "Centralizar · Quando",
+    "section": "Dados",
+    "type": "string",
+    "default": "carregar",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarBotaoCentralizar",
+    "label": "Botão \"Centralizar\"",
+    "rotuloCompleto": "Centralizar · Botão \"Centralizar\"",
+    "section": "Dados",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
     "id": "comecarRecolhidoAPartirDe",
     "label": "Organograma · Recolher a partir do nível",
     "rotuloCompleto": "Organograma · Começar recolhido a partir do nível (0 = tudo aberto)",
@@ -105,6 +168,33 @@
     "section": "Estilo",
     "type": "boolean",
     "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "corDoCartaoPor",
+    "label": "Cor · Cor do cartão por",
+    "rotuloCompleto": "Cor · Cor do cartão por",
+    "section": "Estilo",
+    "type": "string",
+    "default": "ramo",
+    "dinamica": false
+  },
+  {
+    "id": "contrasteAutomatico",
+    "label": "Contraste automático do texto",
+    "rotuloCompleto": "Cor · Contraste automático do texto",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "corDaLigacaoDoOrg",
+    "label": "Cor · Cor das ligações",
+    "rotuloCompleto": "Cor · Cor das ligações",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
     "dinamica": false
   },
   {
@@ -225,6 +315,60 @@
     "dinamica": false
   },
   {
+    "id": "sombraDoCartao",
+    "label": "Organograma · Sombra do cartão",
+    "rotuloCompleto": "Organograma · Sombra do cartão",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "cartaoAjustavel",
+    "label": "Cartão cresce com o texto",
+    "rotuloCompleto": "Organograma · Cartão cresce com o texto",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "fonteDoCartao",
+    "label": "Organograma · Fonte do cartão",
+    "rotuloCompleto": "Organograma · Fonte do cartão",
+    "section": "Estilo",
+    "type": "string",
+    "default": "tema",
+    "dinamica": false
+  },
+  {
+    "id": "estiloDoContador",
+    "label": "Organograma · Estilo do contador",
+    "rotuloCompleto": "Organograma · Estilo do contador",
+    "section": "Estilo",
+    "type": "string",
+    "default": "circulo",
+    "dinamica": false
+  },
+  {
+    "id": "espessuraDaLigacaoDoOrg",
+    "label": "Organograma · Espessura das ligações",
+    "rotuloCompleto": "Organograma · Espessura das ligações",
+    "section": "Estilo",
+    "type": "number",
+    "default": 1.5,
+    "dinamica": false
+  },
+  {
+    "id": "formaDaLigacaoDoOrg",
+    "label": "Organograma · Forma das ligações",
+    "rotuloCompleto": "Organograma · Forma das ligações",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cotovelo",
+    "dinamica": false
+  },
+  {
     "id": "mostrarRotulos",
     "label": "Rótulo · Mostrar rótulos",
     "rotuloCompleto": "Rótulo · Mostrar rótulos",
@@ -342,6 +486,24 @@
     "dinamica": false
   },
   {
+    "id": "mostrarNomeNoCartao",
+    "label": "Rótulo · Nome no cartão",
+    "rotuloCompleto": "Rótulo · Nome no cartão",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarPercentualNoCartao",
+    "label": "Rótulo · Percentual no cartão",
+    "rotuloCompleto": "Rótulo · Percentual no cartão",
+    "section": "Texto",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
     "id": "titulo",
     "label": "Título · Título",
     "rotuloCompleto": "Título · Título",
@@ -366,6 +528,96 @@
     "section": "Texto",
     "type": "string",
     "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "modoDoTextoLongo",
+    "label": "Texto longo · Modo",
+    "rotuloCompleto": "Texto longo · Modo",
+    "section": "Texto",
+    "type": "string",
+    "default": "inteiro",
+    "dinamica": false
+  },
+  {
+    "id": "larguraMaximaDoRotulo",
+    "label": "Texto longo · Largura máxima",
+    "rotuloCompleto": "Texto longo · Largura máxima (px, 0 = auto)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "linhasMaximasDoRotulo",
+    "label": "Texto longo · Máximo de linhas",
+    "rotuloCompleto": "Texto longo · Máximo de linhas",
+    "section": "Texto",
+    "type": "number",
+    "default": 2,
+    "dinamica": false
+  },
+  {
+    "id": "fonteMinimaDoRotulo",
+    "label": "Texto longo · Fonte mínima (px)",
+    "rotuloCompleto": "Texto longo · Fonte mínima (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 8,
+    "dinamica": false
+  },
+  {
+    "id": "margemExtraDoRotulo",
+    "label": "Texto longo · Margem extra à direita",
+    "rotuloCompleto": "Texto longo · Margem extra à direita (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "partesDoRotulo",
+    "label": "Texto longo · O que aparece no rótulo",
+    "rotuloCompleto": "Texto longo · O que aparece no rótulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "separadorDoRotulo",
+    "label": "Texto longo · Separador",
+    "rotuloCompleto": "Texto longo · Separador",
+    "section": "Texto",
+    "type": "string",
+    "default": " · ",
+    "dinamica": false
+  },
+  {
+    "id": "simboloDaMoedaDoRotulo",
+    "label": "Texto longo · Símbolo da moeda",
+    "rotuloCompleto": "Texto longo · Símbolo da moeda",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "moedaPersonalizadaDoRotulo",
+    "label": "Texto longo · Moeda personalizada",
+    "rotuloCompleto": "Texto longo · Moeda personalizada",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "alinhamentoDoTextoDoCartao",
+    "label": "Organograma · Alinhamento do texto",
+    "rotuloCompleto": "Organograma · Alinhamento do texto",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
     "dinamica": false
   },
   {
@@ -792,6 +1044,15 @@
     "dinamica": false
   },
   {
+    "id": "mostrarBotoesDeExpandir",
+    "label": "Clique · Botões de expandir",
+    "rotuloCompleto": "Clique · Mostrar botões \"Expandir tudo\" e \"Colapsar tudo\"",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
     "id": "animacaoAtiva",
     "label": "Animação · Ativar animações",
     "rotuloCompleto": "Animação · Ativar animações",
@@ -855,6 +1116,51 @@
     "dinamica": false
   },
   {
+    "id": "animarExpandir",
+    "label": "Animação · Animar abrir/fechar",
+    "rotuloCompleto": "Animação · Animar abrir/fechar",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "duracaoDeExpandir",
+    "label": "Animação · Duração abrir/fechar (ms)",
+    "rotuloCompleto": "Animação · Duração abrir/fechar (ms)",
+    "section": "Mais",
+    "type": "number",
+    "default": 350,
+    "dinamica": false
+  },
+  {
+    "id": "movimentoDeExpandir",
+    "label": "Animação · Movimento abrir/fechar",
+    "rotuloCompleto": "Animação · Movimento abrir/fechar",
+    "section": "Mais",
+    "type": "string",
+    "default": "saida",
+    "dinamica": false
+  },
+  {
+    "id": "cascataDeExpandir",
+    "label": "Animação · Atraso entre filhos (ms)",
+    "rotuloCompleto": "Animação · Atraso entre filhos (ms)",
+    "section": "Mais",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "respeitarMenosMovimento",
+    "label": "Respeitar \"menos movimento\"",
+    "rotuloCompleto": "Animação · Respeitar \"menos movimento\"",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
     "id": "modoDebug",
     "label": "Modo debug",
     "rotuloCompleto": "Modo debug (escreve no console a estrutura dos dados)",
@@ -882,12 +1188,30 @@
     "dinamica": false
   },
   {
+    "id": "tooltipComTextoCompleto",
+    "label": "Texto completo no tooltip",
+    "rotuloCompleto": "Texto longo · Texto completo no tooltip",
+    "section": "Mais",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
     "id": "permitirRecolher",
     "label": "Recolher ao clicar",
     "rotuloCompleto": "Organograma · Recolher uma área clicando no cartão",
     "section": "Mais",
     "type": "boolean",
     "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "permitirSelecionarTexto",
+    "label": "Permitir selecionar texto",
+    "rotuloCompleto": "Texto longo · Permitir selecionar texto",
+    "section": "Mais",
+    "type": "boolean",
+    "default": false,
     "dinamica": false
   },
   {
