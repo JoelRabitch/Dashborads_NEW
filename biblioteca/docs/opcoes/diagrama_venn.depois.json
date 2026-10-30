@@ -36,6 +36,24 @@
     "dinamica": false
   },
   {
+    "id": "layoutDoVenn",
+    "label": "Layout",
+    "rotuloCompleto": "Layout",
+    "section": "Estilo",
+    "type": "string",
+    "default": "moderno",
+    "dinamica": false
+  },
+  {
+    "id": "margemDoVenn",
+    "label": "Margem (px)",
+    "rotuloCompleto": "Margem (px)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
     "id": "paleta",
     "label": "Cor · Paleta de cores",
     "rotuloCompleto": "Cor · Paleta de cores",
@@ -387,6 +405,42 @@
     "dinamica": false
   },
   {
+    "id": "tamanhoDoTextoDoVenn",
+    "label": "Rótulo · Tamanho dos textos",
+    "rotuloCompleto": "Rótulo · Tamanho dos textos",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "nomesDosConjuntos",
+    "label": "Rótulo · Nomes dos conjuntos",
+    "rotuloCompleto": "Rótulo · Nomes dos conjuntos",
+    "section": "Texto",
+    "type": "string",
+    "default": "dentro",
+    "dinamica": false
+  },
+  {
+    "id": "removerDoNome",
+    "label": "Rótulo · Remover do fim do nome",
+    "rotuloCompleto": "Rótulo · Remover do fim do nome",
+    "section": "Texto",
+    "type": "string",
+    "default": "(Yes / No)",
+    "dinamica": false
+  },
+  {
+    "id": "apelidosDosConjuntos",
+    "label": "Rótulo · Apelidos (Nome=Apelido; …)",
+    "rotuloCompleto": "Rótulo · Apelidos (Nome=Apelido; …)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
     "id": "mostrarLegenda",
     "label": "Legenda · Mostrar legenda",
     "rotuloCompleto": "Legenda · Mostrar legenda",
@@ -429,6 +483,15 @@
     "section": "Texto",
     "type": "number",
     "default": 11,
+    "dinamica": false
+  },
+  {
+    "id": "legendaDoVenn",
+    "label": "Legenda · Legenda do Venn",
+    "rotuloCompleto": "Legenda · Legenda do Venn",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
     "dinamica": false
   },
   {
@@ -942,6 +1005,15 @@
     "section": "Mais",
     "type": "boolean",
     "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "duracaoDaTransicaoDoVenn",
+    "label": "Animação · Duração do destaque (ms)",
+    "rotuloCompleto": "Animação · Duração do destaque (ms)",
+    "section": "Mais",
+    "type": "number",
+    "default": 180,
     "dinamica": false
   },
   {

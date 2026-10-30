@@ -3338,3 +3338,27 @@ PRÓXIMA AÇÃO: FASE 3 — 5.6 (bump_chart: alinhamento).
 - 867/867; segurança ok.
 
 PRÓXIMA AÇÃO: 5.7 (diagrama_venn: layout e hover).
+
+### 5.7 diagrama_venn: layout e hover (concluído; conferir no Looker real)
+- Causas no código: escala = min(L, A)/2 sobre coordenadas ±1, mas as
+  formas ocupam só o meio desse quadrado (diagrama pequeno); nomes FORA em
+  `posicaoDoRotuloDoConjunto` sem anti-colisão (o nome de um caía sobre o
+  outro); números em negrito na cor do texto, tamanho só para "caber";
+  nomes repetidos na legenda (`mostrarLegenda` padrão ligado).
+- Novo `moderno.js` (padrão, `layoutDoVenn: moderno`); o anterior fica
+  como "Clássico". Detalhes no cabeçalho do index.js. Código próprio; a
+  referência visual do Venn nativo foi só estética.
+- Decisões: áreas proporcionais aos valores NÃO foram implementadas (é
+  referência do pedido, não requisito; com 4–5 conjuntos não há solução
+  exata e o layout fixo é o que garante todas as regiões). Percentual em
+  linha própria quando `mostrarPercentual` (salvo) ou conteúdo com %.
+  `mostrarTotalDoConjunto` (salvo, padrão ligado) continua pondo o total no
+  nome. `removerDoNome` nasce com "(Yes / No)".
+- Testes antigos do Venn rodam no "Clássico" (são da estrutura antiga).
+  Novos: `test/venn_v3.test.mjs` (2–5 conjuntos, 900×560 e 320×240:
+  nada se sobrepõe nem sai da área; ocupa ≥80% do lado limitante com 2–3
+  conjuntos e ≥55–60% com 4–5, que levam números para fora; nomes longos;
+  halo/linhas; fora/legenda; hover cresce + clareia; clique fixa; Esc).
+- 876/876; segurança ok.
+
+PRÓXIMA AÇÃO: FASE 4 — 5.8 (base `_arvore`), 5.9, 5.10, 5.11 juntos.

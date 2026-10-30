@@ -47,7 +47,10 @@ function carregar(id) {
       const { data, queryResponse } = typeof dados === 'string' ? FIXTURES[dados]() : dados;
       // Primeiro desenho registra as opções dinâmicas; o config do usuário
       // é montado com os defaults do painel inteiro, como o Looker faz.
-      const config = Object.assign(configPadrao(definicao), ajustes);
+      // v3 (5.7): estes testes conferem o layout ANTERIOR do Venn, que
+      // continua disponível como "Clássico"; o Moderno tem test/venn_v3.
+      const base = id === 'diagrama_venn' ? { layoutDoVenn: 'classico' } : {};
+      const config = Object.assign(configPadrao(definicao), base, ajustes);
       let ok = false;
       inst.updateAsync(data, palco, config, queryResponse, {}, () => { ok = true; });
       assert.ok(ok, 'done() precisa ser chamado');

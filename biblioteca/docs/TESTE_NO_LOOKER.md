@@ -126,3 +126,8 @@ real antes de considerar resolvido.
   - [ ] A linha do rank mais baixo não encosta na nota (a nota está numa faixa própria embaixo).
   - [ ] Com "Suavização da linha" = Catmull-Rom (valor salvo no tile), as curvas não fazem mais "ondas" entre colunas; teste também "Bump (horizontal nas pontas)".
   - [ ] "Posição do valor" = Acima / Abaixo / Só no tooltip. Num tile estreito, a fonte diminui e os números viram 1.2M (o valor completo fica no tooltip).
+- **5.7 diagrama_venn — layout Moderno (padrão)**
+  - [ ] Com 3 conjuntos de nomes longos "(Yes / No)": o diagrama ocupa a área; os nomes aparecem DENTRO de cada conjunto, sem o "(Yes / No)", uma vez só (sem legenda repetida).
+  - [ ] Os números ficam maiores, com contorno da cor do fundo, valor e percentual em linhas separadas (ligue "Mostrar o percentual"); regiões pequenas levam o número para fora, com linha-guia.
+  - [ ] Passe o mouse: a região cresce um pouco, ganha contorno forte e as outras clareiam; tooltip com nome, valor e %. Clique fixa; Esc ou clique fora solta; com drill, o menu do Looker abre.
+  - [ ] Teste tiles pequenos e grandes, 2 a 5 conjuntos, "Nomes dos conjuntos" = Fora / Só na legenda, "Apelidos", "Tamanho dos textos" = Fixo, e "Layout" = Clássico (o desenho anterior).

@@ -344,6 +344,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `separadorDeConjuntos` | Dados | Dados | Separador dos conjuntos na dimensão |  |
 | `medirPor` | Dados | Dados | O número mostrado é |  |
 | `maximoDeConjuntos` | Dados | Dados | Máximo de conjuntos (2 a 5) |  |
+| `layoutDoVenn` ★ | — | Estilo | Layout |  |
+| `margemDoVenn` ★ | — | Estilo | Margem (px) |  |
 | `paleta` | Visual | Estilo | Cor · Paleta de cores |  |
 | `inverterPaleta` | Visual | Estilo | Cor · Inverter ordem das cores |  |
 | `modoDeCor` | Visual | Estilo | Cor · Como colorir |  |
@@ -383,11 +385,16 @@ Ids marcados com ★ são novos (não existiam antes).
 | `mostrarPercentual` | Texto | Texto | Rótulo · Mostrar percentual | Rótulo · Mostrar o percentual junto do número |
 | `mostrarTotalDoConjunto` | Texto | Texto | Rótulo · Total do conjunto | Rótulo · Mostrar o total de cada conjunto no nome |
 | `listarRegioesPequenas` | Texto | Texto | Rótulo · Listar as pequenas | Rótulo · Listar num canto as regiões pequenas demais para o número caber |
+| `tamanhoDoTextoDoVenn` ★ | — | Texto | Rótulo · Tamanho dos textos |  |
+| `nomesDosConjuntos` ★ | — | Texto | Rótulo · Nomes dos conjuntos |  |
+| `removerDoNome` ★ | — | Texto | Rótulo · Remover do fim do nome |  |
+| `apelidosDosConjuntos` ★ | — | Texto | Rótulo · Apelidos (Nome=Apelido; …) |  |
 | `mostrarLegenda` | Texto | Texto | Legenda · Mostrar legenda |  |
 | `posicaoDaLegenda` | Texto | Texto | Legenda · Posição da legenda |  |
 | `legendaInterativa` | Texto | Texto | Legenda · Clique liga/desliga | Legenda · Clicar na legenda liga/desliga a série |
 | `mostrarValoresNaLegenda` | Texto | Texto | Legenda · Mostrar valores | Legenda · Mostrar valores na legenda |
 | `tamanhoDaLegenda` | Texto | Texto | Legenda · Tamanho do texto da legenda | Legenda · Tamanho do texto da legenda (px) |
+| `legendaDoVenn` ★ | — | Texto | Legenda · Legenda do Venn |  |
 | `titulo` | Texto | Texto | Título · Título |  |
 | `subtitulo` | Texto | Texto | Título · Subtítulo |  |
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
@@ -445,6 +452,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `suavizacaoDaAnimacao` | Interação | Mais | Animação · Curva da animação |  |
 | `quandoAnimar` | Interação | Mais | Animação · Quando animar |  |
 | `contadorAnimado` | Interação | Mais | Animação · Números contando | Animação · Números sobem/descem até o valor (contador) |
+| `duracaoDaTransicaoDoVenn` ★ | — | Mais | Animação · Duração do destaque (ms) |  |
 | `modoDebug` | Avançado | Mais | Modo debug | Modo debug (escreve no console a estrutura dos dados) |
 | `configuracaoJson` | Avançado | Mais | Configuração em JSON | Configuração em JSON (cole aqui para importar) |
 | `aplicarConfiguracaoJson` | Avançado | Mais | Aplicar o JSON acima | Aplicar o JSON acima por cima das opções |
