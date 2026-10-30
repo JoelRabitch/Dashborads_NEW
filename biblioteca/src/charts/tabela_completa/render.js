@@ -258,6 +258,10 @@ export function desenharTabela(params) {
     aoFiltrarColuna,
     aoMenuDeContexto,
   } = params;
+  // 5.2 (v3): a entrada animada das linhas só vale para o PRIMEIRO desenho
+  // da janela depois de carregar, ordenar, filtrar ou buscar. Selecionar,
+  // redimensionar e — principalmente — ROLAR não animam.
+  let animarProximaJanela = params.animarEntrada !== false;
   // Mutáveis: busca e filtros trocam linhas, totais e pintor SEM refazer o
   // cabeçalho e a barra (ver `atualizarDados` no fim) — é o que mantém o
   // foco e o cursor no campo enquanto o usuário digita.
@@ -374,10 +378,19 @@ export function desenharTabela(params) {
     deslocamentos,
     fixas,
     alturaCabecalhoTotal,
+    // Posição desejada no primeiro desenho (restaurada de uma atualização
+    // anterior): o corpo ainda está vazio, então o navegador cortaria o
+    // scrollTop se ele fosse aplicado antes de existir conteúdo.
+    topoDesejado: estado.rolagemTopo || 0,
+    janelaAtual: null,
   };
 
-  function desenharJanela() {
-    desenharLinhasVisiveis({
+  function desenharJanela({ forcar = true } = {}) {
+    const animar = animarProximaJanela;
+    animarProximaJanela = false;
+    const desenhou = desenharLinhasVisiveis({
+      forcar,
+      animar,
       ctx,
       estadoDeDesenho,
       itens,
@@ -390,17 +403,20 @@ export function desenharTabela(params) {
       aoMenuDeContexto,
       pintarCelula,
     });
-    if (resumoEl) atualizarResumo(resumoEl, indicesDeDados, estado, colunasVisiveis, modelo);
+    if (desenhou && resumoEl) atualizarResumo(resumoEl, indicesDeDados, estado, colunasVisiveis, modelo);
   }
 
-  // Preserva a rolagem entre atualizações.
+  // Rolagem: guarda a posição e redesenha SÓ se a janela de linhas mudou
+  // (rolagem horizontal ou dentro da margem não recria nada), sem animação
+  // e sem destaque de valor.
   ctx.eventos.on(rolagem, 'scroll', () => {
     estado.rolagemTopo = rolagem.scrollTop;
     estado.rolagemEsquerda = rolagem.scrollLeft;
-    desenharJanela();
+    desenharJanela({ forcar: false });
   });
 
   desenharJanela();
+  estadoDeDesenho.topoDesejado = 0;
 
   if (estado.rolagemTopo) rolagem.scrollTop = estado.rolagemTopo;
   if (estado.rolagemEsquerda) rolagem.scrollLeft = estado.rolagemEsquerda;
@@ -415,6 +431,7 @@ export function desenharTabela(params) {
     desenharRodape();
     rolagem.scrollTop = 0;
     estado.rolagemTopo = 0;
+    animarProximaJanela = true; // busca/filtro: as linhas novas entram animadas
     desenharJanela();
   }
 
@@ -653,8 +670,20 @@ function estiloDeRodape(td, visual, config) {
   if (config.rodapeFixo === false) td.style.position = 'static';
 }
 
-/** Desenha só a janela de linhas visível (virtualização). */
+/**
+ * Desenha só a janela de linhas visível (virtualização).
+ *
+ * 5.2 (v3): mede a posição ANTES de mexer no corpo e troca as linhas de uma
+ * vez (fragmento + replaceChildren). Antes o corpo era esvaziado primeiro;
+ * a leitura de `scrollTop`/`clientHeight` com o corpo vazio forçava um
+ * layout em que o conteúdo não tinha altura, o navegador cortava o
+ * scrollTop e a tabela "piscava em branco e voltava ao início".
+ *
+ * @returns {boolean} se redesenhou
+ */
 function desenharLinhasVisiveis({
+  forcar = true,
+  animar: animarEstaJanela = false,
   ctx,
   estadoDeDesenho,
   itens,
@@ -667,27 +696,16 @@ function desenharLinhasVisiveis({
   aoMenuDeContexto,
   pintarCelula,
 }) {
-  const { rolagem, tbody, colunasVisiveis, deslocamentos, fixas, alturaCabecalhoTotal } = estadoDeDesenho;
+  const { rolagem, tbody: tbodyReal, colunasVisiveis, deslocamentos, fixas, alturaCabecalhoTotal } = estadoDeDesenho;
   const alturaLinha = visual.alturaLinha;
   const total = itens.length;
 
-  limpar(tbody);
-
-  if (!total) {
-    const tr = criarEl('tr', { pai: tbody });
-    const td = criarEl('td', { pai: tr, classe: 'tc-vazio' });
-    td.colSpan = colunasVisiveis.length + (config.mostrarNumeroDaLinha ? 1 : 0);
-    const temFiltro = estado.busca || Object.values(estado.filtros).some((v) => v && v.trim());
-    definirTexto(
-      td,
-      temFiltro ? 'Nenhuma linha encontrada para a busca.' : config.textoSemDados || 'Sem dados para exibir'
-    );
-    return;
-  }
+  // Medidas primeiro (corpo ainda intacto).
+  const alturaUtil = rolagem.clientHeight || 400;
+  const topoAtual = Math.max(rolagem.scrollTop || 0, estadoDeDesenho.topoDesejado || 0);
 
   const margem = 10;
-  const alturaUtil = rolagem.clientHeight || 400;
-  const deslocamento = Math.max(0, (rolagem.scrollTop || 0) - alturaCabecalhoTotal);
+  const deslocamento = Math.max(0, topoAtual - alturaCabecalhoTotal);
   let inicio = Math.max(0, Math.floor(deslocamento / alturaLinha) - margem);
   let fim = Math.min(total, inicio + Math.ceil(alturaUtil / alturaLinha) + margem * 2);
 
@@ -699,12 +717,43 @@ function desenharLinhasVisiveis({
     fim = Math.min(total, inicio + porPagina);
   }
 
+  // Rolagem que não muda a janela (horizontal, ou dentro da margem): nada a fazer.
+  const chave = `${inicio}|${fim}|${total}`;
+  if (!forcar && estadoDeDesenho.janelaAtual === chave) return false;
+  estadoDeDesenho.janelaAtual = chave;
+
+  // As linhas são montadas fora do documento e entram de uma vez.
+  const tbody = document.createDocumentFragment();
+  const trocar = () => {
+    if (typeof tbodyReal.replaceChildren === 'function') tbodyReal.replaceChildren(tbody);
+    else {
+      limpar(tbodyReal);
+      tbodyReal.appendChild(tbody);
+    }
+  };
+
+  if (!total) {
+    const tr = criarEl('tr', { pai: tbody });
+    const td = criarEl('td', { pai: tr, classe: 'tc-vazio' });
+    td.colSpan = colunasVisiveis.length + (config.mostrarNumeroDaLinha ? 1 : 0);
+    const temFiltro = estado.busca || Object.values(estado.filtros).some((v) => v && v.trim());
+    definirTexto(
+      td,
+      temFiltro ? 'Nenhuma linha encontrada para a busca.' : config.textoSemDados || 'Sem dados para exibir'
+    );
+    trocar();
+    return true;
+  }
+
   if (inicio > 0) tbody.appendChild(linhaEspacadora(inicio * alturaLinha, colunasVisiveis.length + 1));
 
   // "Ativar animações" (interruptor de todo gráfico, 2.7) também desliga a
   // entrada das linhas da tabela, que anima por conta própria.
   const animar =
-    config.animacaoAtiva !== false && config.animarEntradaDasLinhas !== false && !preferindoMenosMovimento();
+    animarEstaJanela &&
+    config.animacaoAtiva !== false &&
+    config.animarEntradaDasLinhas !== false &&
+    !preferindoMenosMovimento();
 
   for (let i = inicio; i < fim; i++) {
     const item = itens[i];
@@ -780,6 +829,8 @@ function desenharLinhasVisiveis({
   if (fim < total && porPagina <= 0) {
     tbody.appendChild(linhaEspacadora((total - fim) * alturaLinha, colunasVisiveis.length + 1));
   }
+  trocar();
+  return true;
 }
 
 /** Linha de cabeçalho de grupo, com o subtotal já embutido. */

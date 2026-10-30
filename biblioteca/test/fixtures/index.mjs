@@ -430,6 +430,27 @@ export function rotulosLongos({ linhas = 10 } = {}) {
   return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
 }
 
+/**
+ * Tabela larga (melhorias v3, 5.2): 500 linhas × 50 colunas (2 dimensões +
+ * 48 medidas), códigos sintéticos. Usada nos testes de rolagem.
+ */
+export function tabelaLarga({ linhas = 500, medidas: quantasMedidas = 48, semente = 11 } = {}) {
+  const rng = criarRng(semente);
+  const dimensoes = [campoDimensao('codigo', 'Código'), campoDimensao('grupo', 'Grupo')];
+  const medidas = [];
+  for (let m = 0; m < quantasMedidas; m++) medidas.push(campoMedida(`m${m}`, `Medida ${m + 1}`));
+  const data = new Array(linhas);
+  for (let i = 0; i < linhas; i++) {
+    const linha = {
+      codigo: celula(`ABC${String(i).padStart(4, '0')}XX`),
+      grupo: celula(`Grupo ${String.fromCharCode(65 + (i % 6))}`),
+    };
+    for (let m = 0; m < quantasMedidas; m++) linha[`m${m}`] = celula(Math.round(rng() * 10000) / 10);
+    data[i] = linha;
+  }
+  return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+}
+
 /** Catálogo nomeado, usado pelo harness e pelo smoke test. */
 export const FIXTURES = {
   semPivo: () => semPivo(),
@@ -452,6 +473,7 @@ export const FIXTURES = {
   somenteNulos: () => somenteNulos(),
   rotulosLongos: () => rotulosLongos(),
   grande5k: () => volumeGrande({ linhas: 5000 }),
+  tabelaLarga: () => tabelaLarga(),
   grande50k: () => volumeGrande({ linhas: 50000 }),
 };
 

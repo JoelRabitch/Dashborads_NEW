@@ -382,7 +382,7 @@ export default defineViz({
     function redesenhar() {
       recalcular();
       pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, null);
-      desenhar();
+      desenhar({ animarEntrada: true });
     }
 
     /**
@@ -403,9 +403,15 @@ export default defineViz({
 
     let desenho = null;
 
-    function desenhar() {
+    /**
+     * `animarEntrada` (5.2, v3): só carregar, ordenar, agrupar e (via
+     * atualizarDados) buscar/filtrar animam a entrada das linhas.
+     * Selecionar e redimensionar redesenham sem animação.
+     */
+    function desenhar({ animarEntrada = false } = {}) {
       ctx.eventos.limpar();
       desenho = desenharTabela({
+        animarEntrada,
         ctx,
         colunas,
         gruposDePivo,
@@ -539,11 +545,15 @@ export default defineViz({
       return colunasVisiveis.map((c) => c.texto(linha, nulo)).join('\t');
     }
 
-    desenhar();
+    desenhar({ animarEntrada: true });
 
     // A virtualização só pinta a janela visível, então o mapa cobre o que
     // apareceu. Mesclamos com o anterior para não perder o resto da tabela.
     estado.valoresAnteriores = new Map([...(estado.valoresAnteriores || []), ...comparacao.novos]);
+    // 5.2 (v3): o destaque de valor que mudou vale só nesta primeira pintura.
+    // Linhas que entram depois (rolagem, seleção) usam o mesmo pintor e não
+    // podem piscar: a comparação é desligada aqui.
+    comparacao.anteriores = null;
   },
 
   aoDestruir({ estado }) {

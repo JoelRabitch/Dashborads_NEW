@@ -89,3 +89,7 @@ real antes de considerar resolvido.
   - [ ] Com o menu de drill aberto, leve o mouse para fora do gráfico: nenhum tooltip sobra.
   - [ ] Shift+clique (ou "Ação do clique" = Fixar tooltip): o tooltip fixa e mostra um "×"; o "×", Esc e clique fora soltam.
   - [ ] Clique em outra parte do dashboard (fora do iframe): o tooltip fixo some.
+- **5.2 tabela_completa — rolagem**
+  - [ ] Explore com até 500 linhas e 50 colunas: role com a roda e com a barra (vertical e horizontal). A tabela não fica em branco, não volta ao início e as linhas não "entram" animadas enquanto rola (mesmo com "Animar entrada das linhas" ligado e "Quando animar" = sempre).
+  - [ ] Ordene uma coluna e faça uma busca: aí sim as linhas entram animadas.
+  - [ ] Com o tile em atualização automática, a posição da rolagem se mantém e só os valores que mudaram piscam em verde/vermelho; rolar depois disso não pisca nada.

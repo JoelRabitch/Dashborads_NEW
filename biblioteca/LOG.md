@@ -3155,3 +3155,28 @@ PRÓXIMA AÇÃO: regenerar `.antes.json`, commit; depois 5.1 (tooltip).
 - `npm test` 773/773; `npm run seguranca` sem violação.
 
 PRÓXIMA AÇÃO: 5.2 (tabela: rolagem e animação ao rolar).
+
+### 5.2 Tabela: rolagem (concluído em código; conferir no Looker real)
+- Causa confirmada lendo `render.js`: cada evento `scroll` chamava
+  `desenharJanela`, que (1) esvaziava o `<tbody>` e SÓ DEPOIS lia
+  `scrollTop`/`clientHeight` — no navegador isso força layout com o corpo
+  vazio e o scrollTop é cortado (tabela em branco, volta ao início);
+  (2) recriava todas as linhas com `tc-entrando` (animação a cada rolagem);
+  (3) usava o pintor da primeira pintura, que compara com os valores
+  anteriores (destaque verde/vermelho também na rolagem).
+- Teste primeiro: `test/tabela_rolagem_v3.test.mjs` com fixture sintética
+  `tabelaLarga` (500×50) e um `scrollTop` simulado que corta pelo
+  conteúdo como o navegador. 5 de 6 falham no bundle anterior (o 6º —
+  preservar posição em atualização de dados — já passava; ficou como
+  regressão).
+- Correção: mede antes, monta as linhas num fragmento e troca de uma vez
+  (`replaceChildren`); só redesenha se a janela (início/fim) mudou;
+  animação só no primeiro desenho após carregar/ordenar/agrupar/buscar/
+  filtrar (`animarEntrada`); seleção e redimensionamento não animam;
+  comparação de valores desligada depois da primeira pintura; posição
+  restaurada usada já no primeiro desenho (`topoDesejado`).
+- Decisão: não existe navegação de página na UI (só `linhasPorPagina`);
+  nada a fazer para "trocar de página".
+- `npm test` 779/779; segurança sem violação.
+
+PRÓXIMA AÇÃO: 5.1b (4 abas e rótulos curtos).

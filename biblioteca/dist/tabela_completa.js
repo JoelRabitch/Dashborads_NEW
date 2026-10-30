@@ -3712,6 +3712,7 @@
       aoFiltrarColuna,
       aoMenuDeContexto
     } = params;
+    let animarProximaJanela = params.animarEntrada !== false;
     let { itens, indicesDeDados, pintarCelula } = params;
     const { modelo, config, tema, raiz } = ctx;
     limpar(raiz);
@@ -3806,10 +3807,19 @@
       colunasVisiveis,
       deslocamentos,
       fixas,
-      alturaCabecalhoTotal
+      alturaCabecalhoTotal,
+      // Posição desejada no primeiro desenho (restaurada de uma atualização
+      // anterior): o corpo ainda está vazio, então o navegador cortaria o
+      // scrollTop se ele fosse aplicado antes de existir conteúdo.
+      topoDesejado: estado.rolagemTopo || 0,
+      janelaAtual: null
     };
-    function desenharJanela() {
-      desenharLinhasVisiveis({
+    function desenharJanela({ forcar = true } = {}) {
+      const animar = animarProximaJanela;
+      animarProximaJanela = false;
+      const desenhou = desenharLinhasVisiveis({
+        forcar,
+        animar,
         ctx,
         estadoDeDesenho,
         itens,
@@ -3822,14 +3832,15 @@
         aoMenuDeContexto,
         pintarCelula
       });
-      if (resumoEl) atualizarResumo(resumoEl, indicesDeDados, estado, colunasVisiveis, modelo);
+      if (desenhou && resumoEl) atualizarResumo(resumoEl, indicesDeDados, estado, colunasVisiveis, modelo);
     }
     ctx.eventos.on(rolagem, "scroll", () => {
       estado.rolagemTopo = rolagem.scrollTop;
       estado.rolagemEsquerda = rolagem.scrollLeft;
-      desenharJanela();
+      desenharJanela({ forcar: false });
     });
     desenharJanela();
+    estadoDeDesenho.topoDesejado = 0;
     if (estado.rolagemTopo) rolagem.scrollTop = estado.rolagemTopo;
     if (estado.rolagemEsquerda) rolagem.scrollLeft = estado.rolagemEsquerda;
     function atualizarDados(novosItens, novosIndices, novoPintor) {
@@ -3839,6 +3850,7 @@
       desenharRodape();
       rolagem.scrollTop = 0;
       estado.rolagemTopo = 0;
+      animarProximaJanela = true;
       desenharJanela();
     }
     return { rolagem, tabela, tbody, redesenharJanela: desenharJanela, atualizarDados };
@@ -4036,6 +4048,8 @@
     if (config.rodapeFixo === false) td.style.position = "static";
   }
   function desenharLinhasVisiveis({
+    forcar = true,
+    animar: animarEstaJanela = false,
     ctx,
     estadoDeDesenho,
     itens,
@@ -4048,10 +4062,32 @@
     aoMenuDeContexto,
     pintarCelula
   }) {
-    const { rolagem, tbody, colunasVisiveis, deslocamentos, fixas, alturaCabecalhoTotal } = estadoDeDesenho;
+    const { rolagem, tbody: tbodyReal, colunasVisiveis, deslocamentos, fixas, alturaCabecalhoTotal } = estadoDeDesenho;
     const alturaLinha = visual.alturaLinha;
     const total = itens.length;
-    limpar(tbody);
+    const alturaUtil = rolagem.clientHeight || 400;
+    const topoAtual = Math.max(rolagem.scrollTop || 0, estadoDeDesenho.topoDesejado || 0);
+    const margem = 10;
+    const deslocamento = Math.max(0, topoAtual - alturaCabecalhoTotal);
+    let inicio = Math.max(0, Math.floor(deslocamento / alturaLinha) - margem);
+    let fim = Math.min(total, inicio + Math.ceil(alturaUtil / alturaLinha) + margem * 2);
+    const porPagina = Number(config.linhasPorPagina) || 0;
+    if (porPagina > 0) {
+      const pagina = estado.pagina || 0;
+      inicio = pagina * porPagina;
+      fim = Math.min(total, inicio + porPagina);
+    }
+    const chave = `${inicio}|${fim}|${total}`;
+    if (!forcar && estadoDeDesenho.janelaAtual === chave) return false;
+    estadoDeDesenho.janelaAtual = chave;
+    const tbody = document.createDocumentFragment();
+    const trocar = () => {
+      if (typeof tbodyReal.replaceChildren === "function") tbodyReal.replaceChildren(tbody);
+      else {
+        limpar(tbodyReal);
+        tbodyReal.appendChild(tbody);
+      }
+    };
     if (!total) {
       const tr = criarEl("tr", { pai: tbody });
       const td = criarEl("td", { pai: tr, classe: "tc-vazio" });
@@ -4061,21 +4097,11 @@
         td,
         temFiltro ? "Nenhuma linha encontrada para a busca." : config.textoSemDados || "Sem dados para exibir"
       );
-      return;
-    }
-    const margem = 10;
-    const alturaUtil = rolagem.clientHeight || 400;
-    const deslocamento = Math.max(0, (rolagem.scrollTop || 0) - alturaCabecalhoTotal);
-    let inicio = Math.max(0, Math.floor(deslocamento / alturaLinha) - margem);
-    let fim = Math.min(total, inicio + Math.ceil(alturaUtil / alturaLinha) + margem * 2);
-    const porPagina = Number(config.linhasPorPagina) || 0;
-    if (porPagina > 0) {
-      const pagina = estado.pagina || 0;
-      inicio = pagina * porPagina;
-      fim = Math.min(total, inicio + porPagina);
+      trocar();
+      return true;
     }
     if (inicio > 0) tbody.appendChild(linhaEspacadora(inicio * alturaLinha, colunasVisiveis.length + 1));
-    const animar = config.animacaoAtiva !== false && config.animarEntradaDasLinhas !== false && !preferindoMenosMovimento();
+    const animar = animarEstaJanela && config.animacaoAtiva !== false && config.animarEntradaDasLinhas !== false && !preferindoMenosMovimento();
     for (let i = inicio; i < fim; i++) {
       const item = itens[i];
       if (item.tipo === "grupo") {
@@ -4135,6 +4161,8 @@
     if (fim < total && porPagina <= 0) {
       tbody.appendChild(linhaEspacadora((total - fim) * alturaLinha, colunasVisiveis.length + 1));
     }
+    trocar();
+    return true;
   }
   function linhaDeGrupo({ item, ctx, colunasVisiveis, visual, config, modelo, fixas, deslocamentos, aoAlternarGrupo }) {
     const tr = criarEl("tr", { classe: "tc-grupo" });
@@ -5282,7 +5310,7 @@
       function redesenhar() {
         recalcular();
         pintarCelula = criarPintorDeCelula(ctx, nulo, estatisticas(), porId, null);
-        desenhar();
+        desenhar({ animarEntrada: true });
       }
       function filtrarDepoisDeDigitar() {
         if (estado.timerDoFiltro) clearTimeout(estado.timerDoFiltro);
@@ -5295,9 +5323,10 @@
         }, ESPERA_DO_FILTRO);
       }
       let desenho = null;
-      function desenhar() {
+      function desenhar({ animarEntrada = false } = {}) {
         ctx.eventos.limpar();
         desenho = desenharTabela({
+          animarEntrada,
           ctx,
           colunas,
           gruposDePivo,
@@ -5412,8 +5441,9 @@
         const linha = modelo.linhas[indice];
         return colunasVisiveis.map((c) => c.texto(linha, nulo)).join("	");
       }
-      desenhar();
+      desenhar({ animarEntrada: true });
       estado.valoresAnteriores = new Map([...estado.valoresAnteriores || [], ...comparacao.novos]);
+      comparacao.anteriores = null;
     },
     aoDestruir({ estado }) {
       fecharPainelDeCsv(estado);

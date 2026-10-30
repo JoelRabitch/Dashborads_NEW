@@ -38,6 +38,7 @@ var FIXTURES_BL = (() => {
     semCampos: () => semCampos,
     semPivo: () => semPivo,
     somenteNulos: () => somenteNulos,
+    tabelaLarga: () => tabelaLarga,
     temporal: () => temporal,
     vazio: () => vazio,
     volumeGrande: () => volumeGrande
@@ -452,6 +453,22 @@ var FIXTURES_BL = (() => {
     }
     return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
   }
+  function tabelaLarga({ linhas = 500, medidas: quantasMedidas = 48, semente = 11 } = {}) {
+    const rng = criarRng(semente);
+    const dimensoes = [campoDimensao("codigo", "C\xF3digo"), campoDimensao("grupo", "Grupo")];
+    const medidas = [];
+    for (let m = 0; m < quantasMedidas; m++) medidas.push(campoMedida(`m${m}`, `Medida ${m + 1}`));
+    const data = new Array(linhas);
+    for (let i = 0; i < linhas; i++) {
+      const linha = {
+        codigo: celula(`ABC${String(i).padStart(4, "0")}XX`),
+        grupo: celula(`Grupo ${String.fromCharCode(65 + i % 6)}`)
+      };
+      for (let m = 0; m < quantasMedidas; m++) linha[`m${m}`] = celula(Math.round(rng() * 1e4) / 10);
+      data[i] = linha;
+    }
+    return { data, queryResponse: montarQueryResponse({ dimensoes, medidas }) };
+  }
   var FIXTURES = {
     semPivo: () => semPivo(),
     semPivoSemNulos: () => semPivo({ comNulos: false }),
@@ -473,6 +490,7 @@ var FIXTURES_BL = (() => {
     somenteNulos: () => somenteNulos(),
     rotulosLongos: () => rotulosLongos(),
     grande5k: () => volumeGrande({ linhas: 5e3 }),
+    tabelaLarga: () => tabelaLarga(),
     grande50k: () => volumeGrande({ linhas: 5e4 })
   };
   var FIXTURES_BASICAS = [

@@ -130,7 +130,7 @@ arquivados em `_arquivados/` e não devem ser retomados:
 
 ### FASE 1 — módulos compartilhados
 - [x] 5.1 Tooltip preso (drill)
-- [ ] 5.2 Tabela: rolagem e animação ao rolar
+- [x] 5.2 Tabela: rolagem e animação ao rolar
 - [ ] 5.1b Painel: 4 abas e rótulos curtos
 - [ ] 5.1c Título, subtítulo e nota explicativa
 
