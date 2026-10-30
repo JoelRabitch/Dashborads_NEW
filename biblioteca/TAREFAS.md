@@ -122,3 +122,49 @@ arquivados em `_arquivados/` e não devem ser retomados:
 ### Fase D
 - [x] 2.9 Build determinístico e URLs
 - [x] D.1 `docs/RELATORIO_CORRECOES.md`
+
+## Melhorias v3 (PROMPT_AGENTE v3)
+
+### Fase 0
+- [x] 0.1 Linha de base das opções (`docs/opcoes/<id>.antes.json` regenerado do estado atual)
+
+### FASE 1 — módulos compartilhados
+- [ ] 5.1 Tooltip preso (drill)
+- [ ] 5.2 Tabela: rolagem e animação ao rolar
+- [ ] 5.1b Painel: 4 abas e rótulos curtos
+- [ ] 5.1c Título, subtítulo e nota explicativa
+
+### FASE 2 — tabela_completa
+- [ ] 5.3 Busca "contém"
+- [ ] 5.4 Colunas calculadas com fórmulas
+- [ ] 5.5 Layouts da tabela
+
+### FASE 3 — bump_chart e diagrama_venn
+- [ ] 5.6 bump_chart: alinhamento
+- [ ] 5.7 diagrama_venn: layout e hover
+
+### FASE 4 — árvores e organograma
+- [ ] 5.8 Base compartilhada das árvores
+- [ ] 5.9 Animação ao abrir e fechar
+- [ ] 5.10 Centralizar
+- [ ] 5.11 Texto longo
+- [ ] 5.12 arvores_multiplas: grade
+- [ ] 5.13 org_chart
+- [ ] 5.13b dot_plot_denso: rótulos nas margens + auditoria
+
+### FASE 5 — cartao_multivalor
+- [ ] 5.14 Cartão Multi-Valores
+
+### FASE 5b — pacotes temáticos
+- [ ] 5.14b Infraestrutura de pacotes
+- [ ] 5.14c Pacote Café: regras de conteúdo
+- [ ] 5.14d Ícones do pacote Café
+- [ ] 5.14e Paletas
+- [ ] 5.14f Ícone por valor
+- [ ] 5.14g Progresso em xícara
+- [ ] 5.14h Formas de marcador do pacote
+- [ ] 5.14i (opcional) Cardápio, Comanda, vapor
+
+### FASE 6 — fechamento
+- [ ] 5.15 Build, testes, tag v3.N, URLs, docs, relatório
+- [ ] 5.15b Portabilidade do repositório

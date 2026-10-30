@@ -3105,3 +3105,27 @@ cabeçalho, só reescreve se mudou), `dist/URLS.md`/`URLS.csv`, MANIFEST sem
 TODAS AS FASES CONCLUÍDAS. PRÓXIMA AÇÃO: nenhuma pendente no agente; o
 usuário cadastra as URLs de `dist/URLS.md` e percorre
 `docs/TESTE_NO_LOOKER.md` no Looker real.
+
+# Melhorias v3 (PROMPT_AGENTE v3)
+
+## Sessão iniciada em 2026-10-30
+- Título do PROMPT conferido: "PROMPT_AGENTE (v3)". Cópia em
+  `biblioteca/PROMPT_AGENTE.md` já era idêntica à da raiz (o usuário
+  atualizou as duas).
+- `git fetch`: a `main` tinha um merge (PR #1) que não estava no branch;
+  merge da `main` no `agente/novas-viz` sem conflito e sem mudança de
+  conteúdo (commit 2bc1598).
+- Base: build 22/22, `npm test` 765/765.
+- Instrução do usuário nesta sessão: não pode responder perguntas; decidir
+  pelo caminho mais simples e registrar aqui.
+
+### Decisão: linha de base das opções (4.1)
+- Os `docs/opcoes/<id>.antes.json` da v2 guardavam o estado ANTERIOR à v2.
+  Para a v3 eles são regenerados do estado atual (`npm run build` +
+  `listar-opcoes --antes`), que é um superconjunto do anterior (o teste da
+  v2 já garantia isso). A versão v2 continua no histórico do Git.
+
+PRÓXIMA AÇÃO: regenerar `.antes.json`, commit; depois 5.1 (tooltip).
+- `listar-opcoes --antes` nunca sobrescreve; feito com cópia de
+  `.depois.json` (regenerado agora, idêntico ao commitado) para
+  `.antes.json`. `test/opcoes.test.mjs` passa.

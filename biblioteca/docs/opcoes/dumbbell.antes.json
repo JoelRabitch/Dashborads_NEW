@@ -1,151 +1,327 @@
 [
   {
+    "id": "comecarEmZero",
+    "label": "Halteres · Começar o eixo em zero",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "ordem",
+    "label": "Halteres · Ordenar por",
+    "section": "Dados",
+    "type": "string",
+    "default": "diferenca",
+    "dinamica": false
+  },
+  {
+    "id": "menorEhMelhor",
+    "label": "Halteres · Menor é melhor (custo, churn, tempo de resposta…)",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "larguraDoNome",
+    "label": "Largura da coluna de nomes (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 170,
+    "dinamica": false
+  },
+  {
     "id": "paleta",
-    "label": "Paleta de cores",
-    "section": "Cores",
+    "label": "Cor · Paleta de cores",
+    "section": "Visual",
     "type": "string",
     "default": "looker",
     "dinamica": false
   },
   {
     "id": "inverterPaleta",
-    "label": "Inverter ordem das cores",
-    "section": "Cores",
+    "label": "Cor · Inverter ordem das cores",
+    "section": "Visual",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
     "id": "opacidade",
-    "label": "Opacidade do preenchimento",
-    "section": "Cores",
+    "label": "Cor · Opacidade do preenchimento",
+    "section": "Visual",
     "type": "number",
     "default": 1,
     "dinamica": false
   },
   {
     "id": "mostrarContorno",
-    "label": "Mostrar contorno",
-    "section": "Cores",
+    "label": "Cor · Mostrar contorno",
+    "section": "Visual",
     "type": "boolean",
     "default": true,
     "dinamica": false
   },
   {
     "id": "corDoContorno",
-    "label": "Cor do contorno",
-    "section": "Cores",
+    "label": "Cor · Cor do contorno",
+    "section": "Visual",
     "type": "string",
     "default": "#FFFFFF",
     "dinamica": false
   },
   {
     "id": "espessuraDoContorno",
-    "label": "Espessura do contorno (px)",
-    "section": "Cores",
+    "label": "Cor · Espessura do contorno (px)",
+    "section": "Visual",
     "type": "number",
     "default": 1,
     "dinamica": false
   },
   {
     "id": "tracejadoDoContorno",
-    "label": "Estilo do contorno",
-    "section": "Cores",
+    "label": "Cor · Estilo do contorno",
+    "section": "Visual",
     "type": "string",
     "default": "solido",
     "dinamica": false
   },
   {
+    "id": "tema",
+    "label": "Tema · Tema",
+    "section": "Visual",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundo",
+    "label": "Cor · Cor de fundo (vazio = do tema)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTexto",
+    "label": "Cor · Cor do texto (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBorda",
+    "label": "Cor · Cor das bordas (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaGrade",
+    "label": "Cor · Cor das linhas de grade (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "familiaDaFonte",
+    "label": "Tema · Fonte",
+    "section": "Visual",
+    "type": "string",
+    "default": "sistema",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaFonte",
+    "label": "Tema · Tamanho base da fonte (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "corPorDirecao",
+    "label": "Halteres · Colorir a barra por direção (subiu, desceu)",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "alturaDaLinha",
+    "label": "Halteres · Altura de cada linha (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 24,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoPonto",
+    "label": "Halteres · Tamanho dos pontos (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 10,
+    "dinamica": false
+  },
+  {
+    "id": "formaDoPonto",
+    "label": "Halteres · Forma do ponto",
+    "section": "Visual",
+    "type": "string",
+    "default": "circulo",
+    "dinamica": false
+  },
+  {
+    "id": "espessuraDaBarra",
+    "label": "Halteres · Espessura da barra (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 4,
+    "dinamica": false
+  },
+  {
     "id": "mostrarRotulos",
-    "label": "Mostrar rótulos",
-    "section": "Rótulos",
+    "label": "Rótulo · Mostrar rótulos",
+    "section": "Texto",
     "type": "boolean",
     "default": true,
     "dinamica": false
   },
   {
     "id": "tamanhoDoRotulo",
-    "label": "Tamanho do rótulo (px)",
-    "section": "Rótulos",
+    "label": "Rótulo · Tamanho do rótulo (px)",
+    "section": "Texto",
     "type": "number",
     "default": 11,
     "dinamica": false
   },
   {
     "id": "corDoRotulo",
-    "label": "Cor do rótulo (vazio = automática)",
-    "section": "Rótulos",
+    "label": "Rótulo · Cor do rótulo (vazio = automática)",
+    "section": "Texto",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
     "id": "negritoNoRotulo",
-    "label": "Rótulo em negrito",
-    "section": "Rótulos",
+    "label": "Rótulo · Rótulo em negrito",
+    "section": "Texto",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
     "id": "rotacaoDoRotulo",
-    "label": "Rotação do rótulo (graus)",
-    "section": "Rótulos",
+    "label": "Rótulo · Rotação do rótulo (graus)",
+    "section": "Texto",
     "type": "number",
     "default": 0,
     "dinamica": false
   },
   {
     "id": "evitarColisaoDeRotulos",
-    "label": "Esconder rótulos que se sobrepõem",
-    "section": "Rótulos",
+    "label": "Rótulo · Esconder rótulos que se sobrepõem",
+    "section": "Texto",
     "type": "boolean",
     "default": true,
     "dinamica": false
   },
   {
     "id": "truncarRotulo",
-    "label": "Truncar rótulo com mais de N caracteres (0 = não truncar)",
-    "section": "Rótulos",
+    "label": "Rótulo · Truncar rótulo com mais de N caracteres (0 = não truncar)",
+    "section": "Texto",
     "type": "number",
     "default": 0,
     "dinamica": false
   },
   {
     "id": "posicaoDoRotulo",
-    "label": "Posição do rótulo",
-    "section": "Rótulos",
+    "label": "Rótulo · Posição do rótulo",
+    "section": "Texto",
     "type": "string",
     "default": "auto",
     "dinamica": false
   },
   {
     "id": "conteudoDoRotulo",
-    "label": "O que mostrar no rótulo",
-    "section": "Rótulos",
+    "label": "Rótulo · O que mostrar no rótulo",
+    "section": "Texto",
     "type": "string",
     "default": "valor",
     "dinamica": false
   },
   {
     "id": "formatoDoRotulo",
-    "label": "Formato do número no rótulo",
-    "section": "Rótulos",
+    "label": "Rótulo · Formato do número no rótulo",
+    "section": "Texto",
     "type": "string",
     "default": "auto",
     "dinamica": false
   },
   {
     "id": "casasDecimaisDoRotulo",
-    "label": "Casas decimais no rótulo",
-    "section": "Rótulos",
+    "label": "Rótulo · Casas decimais no rótulo",
+    "section": "Texto",
     "type": "number",
     "default": 1,
     "dinamica": false
   },
   {
+    "id": "escreverValores",
+    "label": "Rótulo · Escrever",
+    "section": "Texto",
+    "type": "string",
+    "default": "diferenca",
+    "dinamica": false
+  },
+  {
+    "id": "titulo",
+    "label": "Título · Título",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "subtitulo",
+    "label": "Título · Subtítulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "textoSemDados",
+    "label": "Aviso · Mensagem quando não há dados",
+    "section": "Texto",
+    "type": "string",
+    "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarAvisos",
+    "label": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDosAvisos",
+    "label": "Aviso · Posição dos avisos",
+    "section": "Texto",
+    "type": "string",
+    "default": "topo",
+    "dinamica": false
+  },
+  {
     "id": "mostrarTooltip",
-    "label": "Mostrar tooltip",
+    "label": "Tooltip · Mostrar tooltip",
     "section": "Interação",
     "type": "boolean",
     "default": true,
@@ -153,7 +329,7 @@
   },
   {
     "id": "tooltipPersonalizado",
-    "label": "Usar tooltip personalizado",
+    "label": "Tooltip · Usar tooltip personalizado",
     "section": "Interação",
     "type": "boolean",
     "default": false,
@@ -161,7 +337,7 @@
   },
   {
     "id": "modeloDeTooltip",
-    "label": "Modelo do tooltip (use {{nome_do_campo}})",
+    "label": "Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão",
     "section": "Interação",
     "type": "string",
     "default": "",
@@ -169,7 +345,7 @@
   },
   {
     "id": "tooltipComNomeCompleto",
-    "label": "Mostrar nome completo do campo no tooltip",
+    "label": "Tooltip · Mostrar nome completo do campo no tooltip",
     "section": "Interação",
     "type": "boolean",
     "default": false,
@@ -177,90 +353,122 @@
   },
   {
     "id": "tooltipComValorBruto",
-    "label": "Mostrar também o valor sem formatação",
+    "label": "Tooltip · Mostrar também o valor sem formatação",
     "section": "Interação",
     "type": "boolean",
     "default": false,
     "dinamica": false
   },
   {
-    "id": "tema",
-    "label": "Tema",
-    "section": "Tema",
+    "id": "acaoDoClique",
+    "label": "Clique · Ação do clique (Shift+clique sempre fixa; Esc solta)",
+    "section": "Interação",
     "type": "string",
-    "default": "claro",
+    "default": "drill",
     "dinamica": false
   },
   {
-    "id": "corDeFundo",
-    "label": "Cor de fundo (vazio = do tema)",
-    "section": "Tema",
-    "type": "string",
-    "default": "",
+    "id": "permitirHtmlDoLooker",
+    "label": "Tooltip · Permitir HTML do Looker nas variáveis do tooltip",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
     "dinamica": false
   },
   {
-    "id": "corDoTexto",
-    "label": "Cor do texto (tema personalizado)",
-    "section": "Tema",
-    "type": "string",
-    "default": "",
-    "dinamica": false
-  },
-  {
-    "id": "corDaBorda",
-    "label": "Cor das bordas (tema personalizado)",
-    "section": "Tema",
+    "id": "corDeFundoDoTooltip",
+    "label": "Tooltip · Cor de fundo do tooltip (vazio = do tema)",
+    "section": "Interação",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
-    "id": "corDaGrade",
-    "label": "Cor das linhas de grade (tema personalizado)",
-    "section": "Tema",
+    "id": "corDaBordaDoTooltip",
+    "label": "Tooltip · Cor da borda do tooltip",
+    "section": "Interação",
     "type": "string",
     "default": "",
     "dinamica": false
   },
   {
-    "id": "familiaDaFonte",
-    "label": "Fonte",
-    "section": "Tema",
+    "id": "corDoTextoDoTooltip",
+    "label": "Tooltip · Cor do texto do tooltip (vazio = do tema)",
+    "section": "Interação",
     "type": "string",
-    "default": "sistema",
+    "default": "",
     "dinamica": false
   },
   {
-    "id": "tamanhoDaFonte",
-    "label": "Tamanho base da fonte (px)",
-    "section": "Tema",
+    "id": "tamanhoDoTooltip",
+    "label": "Tooltip · Tamanho da fonte do tooltip (px)",
+    "section": "Interação",
     "type": "number",
-    "default": 12,
+    "default": 11,
     "dinamica": false
   },
   {
-    "id": "titulo",
-    "label": "Título",
-    "section": "Tema",
-    "type": "string",
-    "default": "",
+    "id": "mostrarBusca",
+    "label": "Halteres · Campo de busca por nome",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
     "dinamica": false
   },
   {
-    "id": "subtitulo",
-    "label": "Subtítulo",
-    "section": "Tema",
-    "type": "string",
-    "default": "",
+    "id": "animacaoAtiva",
+    "label": "Animação · Ativar animações",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
     "dinamica": false
   },
   {
-    "id": "textoSemDados",
-    "label": "Mensagem quando não há dados",
-    "section": "Tema",
+    "id": "duracaoDaAnimacao",
+    "label": "Animação · Duração (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 600,
+    "dinamica": false
+  },
+  {
+    "id": "atrasoDaAnimacao",
+    "label": "Animação · Atraso inicial (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "cascataDaAnimacao",
+    "label": "Animação · Cascata entre itens (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 20,
+    "dinamica": false
+  },
+  {
+    "id": "suavizacaoDaAnimacao",
+    "label": "Animação · Curva da animação",
+    "section": "Interação",
     "type": "string",
-    "default": "Sem dados para exibir",
+    "default": "saida",
+    "dinamica": false
+  },
+  {
+    "id": "quandoAnimar",
+    "label": "Animação · Quando animar",
+    "section": "Interação",
+    "type": "string",
+    "default": "sempre",
+    "dinamica": false
+  },
+  {
+    "id": "destacarAoPassarMouse",
+    "label": "Clique · Destacar ao passar o mouse",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
     "dinamica": false
   },
   {
@@ -285,86 +493,6 @@
     "section": "Avançado",
     "type": "boolean",
     "default": false,
-    "dinamica": false
-  },
-  {
-    "id": "comecarEmZero",
-    "label": "Começar o eixo em zero",
-    "section": "Halteres",
-    "type": "boolean",
-    "default": false,
-    "dinamica": false
-  },
-  {
-    "id": "ordem",
-    "label": "Ordenar por",
-    "section": "Halteres",
-    "type": "string",
-    "default": "diferenca",
-    "dinamica": false
-  },
-  {
-    "id": "corPorDirecao",
-    "label": "Colorir a barra por direção (subiu, desceu)",
-    "section": "Halteres",
-    "type": "boolean",
-    "default": true,
-    "dinamica": false
-  },
-  {
-    "id": "menorEhMelhor",
-    "label": "Menor é melhor (custo, churn, tempo de resposta…)",
-    "section": "Halteres",
-    "type": "boolean",
-    "default": false,
-    "dinamica": false
-  },
-  {
-    "id": "alturaDaLinha",
-    "label": "Altura de cada linha (px)",
-    "section": "Halteres",
-    "type": "number",
-    "default": 24,
-    "dinamica": false
-  },
-  {
-    "id": "tamanhoDoPonto",
-    "label": "Tamanho dos pontos (px)",
-    "section": "Halteres",
-    "type": "number",
-    "default": 10,
-    "dinamica": false
-  },
-  {
-    "id": "espessuraDaBarra",
-    "label": "Espessura da barra (px)",
-    "section": "Halteres",
-    "type": "number",
-    "default": 4,
-    "dinamica": false
-  },
-  {
-    "id": "escreverValores",
-    "label": "Escrever",
-    "section": "Rótulos",
-    "type": "string",
-    "default": "diferenca",
-    "dinamica": false
-  },
-  {
-    "id": "mostrarBusca",
-    "label": "Campo de busca por nome",
-    "section": "Halteres",
-    "type": "boolean",
-    "default": true,
-    "dinamica": false
-  },
-  {
-    "id": "larguraDoNome",
-    "label": "Largura da coluna de nomes (px)",
-    "section": "Formato",
-    "type": "number",
-    "default": 170,
     "dinamica": false
   },
   {
