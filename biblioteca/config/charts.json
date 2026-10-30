@@ -1,0 +1,346 @@
+{
+  "descricao": "Registro dos gráficos da biblioteca. Usado pelo build (gera dist/<id>.js e dist/MANIFEST.md), pelo harness e pelos testes. Para adicionar um gráfico novo, veja docs/COMO_ADICIONAR_GRAFICO.md.",
+  "graficos": [
+    {
+      "id": "tabela_completa",
+      "label": "Tabela Completa",
+      "tier": 1,
+      "pasta": "tabela_completa",
+      "resumo": "Tabela com pivôs agrupados, agrupamento de linhas, formatação condicional, tipos de célula (barras, sparklines, badges) e campos animados.",
+      "explore": "1 ou mais dimensões e 1 ou mais medidas. Aceita pivô (vira cabeçalho de dois níveis).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "semPivo",
+        "duasDimensoes",
+        "comPivo",
+        "temporal",
+        "vazio",
+        "somenteNulos",
+        "rotulosLongos",
+        "grande5k"
+      ]
+    },
+    {
+      "id": "diagrama_venn",
+      "label": "Diagrama de Venn",
+      "tier": 1,
+      "pasta": "diagrama_venn",
+      "resumo": "Diagrama de Venn de 2 a 5 conjuntos, lendo três formatos de dados (uma linha por região, uma linha por item e conjunto, ou colunas sim/não).",
+      "explore": "Uma dimensão com os conjuntos (\"A\", \"A,B\"), ou duas dimensões (item e conjunto), ou várias colunas sim/não. Não aceita pivô.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "conjuntos2",
+        "conjuntos3",
+        "conjuntos4",
+        "conjuntos5",
+        "conjuntosPorItem",
+        "conjuntosBooleanos"
+      ]
+    },
+    {
+      "id": "quadrant_scatter",
+      "label": "Dispersão com Quadrantes",
+      "tier": 1,
+      "pasta": "quadrant_scatter",
+      "resumo": "Dispersão de duas medidas com linhas divisórias (média, mediana, zero ou valor fixo) partindo o plano em quatro quadrantes nomeáveis. Pontos em canvas, eixos e rótulos em SVG.",
+      "explore": "1 dimensão (o nome de cada ponto) e pelo menos 2 medidas (eixos X e Y). Opcionalmente mais medidas para tamanho e cor. Não aceita pivô.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "grande5k",
+        "ohlc",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "matriz_2x2",
+      "label": "Matriz 2x2",
+      "tier": 1,
+      "pasta": "matriz_2x2",
+      "resumo": "Matriz de decisão 2x2: duas medidas nos eixos, corte no ponto médio, quadrantes nomeáveis e todos os itens rotulados.",
+      "explore": "1 dimensão (o nome do item) e 2 medidas (os dois eixos). Opcionalmente uma terceira para o tamanho. Não aceita pivô.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "matriz_bcg",
+      "label": "Matriz BCG",
+      "tier": 1,
+      "pasta": "matriz_bcg",
+      "resumo": "Matriz crescimento x participação do BCG: eixo X em log e invertido (participação alta à esquerda), corte em 1, bolhas por receita e os quatro nomes clássicos.",
+      "explore": "1 dimensão (o produto ou unidade), 1 medida de participação (eixo X), 1 de crescimento (eixo Y) e opcionalmente 1 de receita (tamanho). Não aceita pivô.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "somenteNulos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "arvores_multiplas",
+      "label": "Múltiplas Árvores",
+      "tier": 1,
+      "pasta": "arvores_multiplas",
+      "resumo": "Uma arvore pequena por ramo de primeiro nivel, lado a lado, para comparar a forma de cada ramo.",
+      "explore": "Varias dimensoes (uma por nivel) ou um par de campos id/superior, mais uma medida para o tamanho.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "hierarquia",
+        "paiFilho",
+        "duasDimensoes",
+        "vazio"
+      ]
+    },
+    {
+      "id": "org_chart",
+      "label": "Organograma",
+      "tier": 1,
+      "pasta": "org_chart",
+      "resumo": "Organograma em cartoes, de cima para baixo ou da esquerda para a direita, com ligacoes em cotovelo e areas que podem ser recolhidas.",
+      "explore": "Um par de campos id/superior (ou varias dimensoes, uma por nivel), mais uma medida opcional para o cartao.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "paiFilho",
+        "hierarquia",
+        "duasDimensoes",
+        "vazio"
+      ]
+    },
+    {
+      "id": "upset_plot",
+      "label": "UpSet Plot",
+      "tier": 1,
+      "pasta": "upset_plot",
+      "resumo": "Alternativa ao Venn quando ha mais de 5 conjuntos: uma barra por intersecao, ordenada por tamanho, e uma matriz de pontos dizendo quais conjuntos formam cada uma.",
+      "explore": "Uma dimensao com os conjuntos, ou duas dimensoes (item e conjunto), ou varias colunas sim/nao.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "conjuntos3",
+        "conjuntos4",
+        "conjuntos5",
+        "conjuntosPorItem",
+        "conjuntosBooleanos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "drawdown",
+      "label": "Drawdown",
+      "tier": 2,
+      "pasta": "drawdown",
+      "resumo": "Quanto a serie esta abaixo do proprio maximo historico, periodo a periodo, com a pior queda destacada e a duracao da recuperacao.",
+      "explore": "1 dimensao temporal ORDENADA e 1 medida. Aceita pivo (uma curva de drawdown por serie).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "ohlc",
+        "temporal",
+        "comPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "pareto",
+      "label": "Pareto",
+      "tier": 2,
+      "pasta": "pareto",
+      "resumo": "Barras ordenadas da maior para a menor com a linha de percentual acumulado no eixo da direita e a marca dos 80 por cento.",
+      "explore": "1 dimensao (as categorias) e 1 medida. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "rotulosLongos",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "treemap_carteira",
+      "label": "Treemap de Carteira",
+      "tier": 2,
+      "pasta": "treemap_carteira",
+      "resumo": "Retangulos proporcionais ao tamanho e coloridos por uma segunda medida numa escala divergente centrada em zero: o tamanho diz quanto pesa, a cor diz como foi.",
+      "explore": "1 ou mais dimensoes (uma por nivel), 1 medida de tamanho e opcionalmente uma segunda medida para a cor.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "hierarquia",
+        "duasDimensoes",
+        "semPivo",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "risco_retorno",
+      "label": "Risco x Retorno",
+      "tier": 2,
+      "pasta": "risco_retorno",
+      "resumo": "Dispersao com risco no eixo X e retorno no Y, bolha pela exposicao, e a reta de Sharpe a partir da taxa livre de risco.",
+      "explore": "1 dimensao (o ativo) e 2 medidas (risco e retorno). Opcionalmente uma terceira para o tamanho. Nao aceita pivo.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "grafico_controle",
+      "label": "Grafico de Controle",
+      "tier": 3,
+      "pasta": "grafico_controle",
+      "resumo": "Linha central e limites de controle (Shewhart) com as regras de Nelson: separa variacao comum de variacao especial.",
+      "explore": "1 dimensao temporal (os periodos, em ordem) e 1 medida.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "temporal",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "heatmap_denso",
+      "label": "Heatmap Denso",
+      "tier": 4,
+      "pasta": "heatmap_denso",
+      "resumo": "Mapa de calor de duas dimensoes cruzadas, em canvas, com escala linear, divergente centrada em zero ou por quantil, e ausencia distinta de zero.",
+      "explore": "2 dimensoes (linhas e colunas) e 1 medida; ou 1 dimensao, 1 pivo e 1 medida.",
+      "aceitaPivo": true,
+      "fixtures": [
+        "duasDimensoes",
+        "comPivo",
+        "grande5k",
+        "semPivo",
+        "vazio"
+      ]
+    },
+    {
+      "id": "barras_ranking_denso",
+      "label": "Barras de Ranking Denso",
+      "tier": 4,
+      "pasta": "barras_ranking_denso",
+      "resumo": "Milhares de barras ordenadas com rolagem virtualizada, barra sempre a partir do zero e posicao no ranking preservada na busca.",
+      "explore": "1 dimensao (o nome) e 1 medida (a barra).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "grande5k",
+        "rotulosLongos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "dot_plot_denso",
+      "label": "Dot Plot Denso",
+      "tier": 4,
+      "pasta": "dot_plot_denso",
+      "resumo": "Pontos de Cleveland para muitas categorias e varias medidas por linha, com rolagem virtualizada e aviso quando o eixo esta cortado.",
+      "explore": "1 dimensao (o nome) e 1 ou mais medidas.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "semPivo",
+        "ohlc",
+        "grande5k",
+        "rotulosLongos",
+        "vazio"
+      ]
+    },
+    {
+      "id": "bump_chart",
+      "label": "Bump Chart",
+      "tier": 4,
+      "pasta": "bump_chart",
+      "resumo": "Evolucao do ranking ao longo do tempo: o eixo Y e a posicao, nao o valor — e o grafico declara que isso apaga a magnitude.",
+      "explore": "1 dimensao no eixo (de preferencia temporal) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
+    },
+    {
+      "id": "slope_chart",
+      "label": "Slope Chart",
+      "tier": 4,
+      "pasta": "slope_chart",
+      "resumo": "Dois periodos ligados por uma linha por item: o eixo e o VALOR, entao a inclinacao e a variacao real. Rotulos com anti-colisao que preserva a ordem.",
+      "explore": "1 dimensao no eixo (usa o primeiro e o ultimo periodo) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
+    },
+    {
+      "id": "bar_race",
+      "label": "Bar Chart Race",
+      "tier": 5,
+      "pasta": "bar_race",
+      "resumo": "Barras que se reordenam ao longo do tempo, com barra de tempo tao proeminente quanto o play e respeito a preferencia de menos movimento.",
+      "explore": "1 dimensao no eixo (os periodos) e varias series (pivo, 2a dimensao ou varias medidas).",
+      "aceitaPivo": true,
+      "fixtures": [
+        "comPivo",
+        "duasDimensoes",
+        "temporal",
+        "vazio"
+      ]
+    },
+    {
+      "id": "kpi_vivo",
+      "label": "KPI Vivo",
+      "tier": 5,
+      "pasta": "kpi_vivo",
+      "resumo": "O numero grande com a BASE da comparacao sempre declarada, opcao de menor-e-melhor, sparkline de contexto e deteccao de periodo incompleto.",
+      "explore": "1 medida. Opcionalmente 1 dimensao de tempo para a comparacao e a sparkline.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "temporal",
+        "semPivo",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "dumbbell",
+      "label": "Halteres",
+      "tier": 5,
+      "pasta": "dumbbell",
+      "resumo": "Duas medidas por categoria ligadas por uma barra, com rolagem virtualizada; o eixo pode ser cortado porque a barra representa a DIFERENCA.",
+      "explore": "1 dimensao (o nome) e 2 medidas (o antes e o depois).",
+      "aceitaPivo": false,
+      "fixtures": [
+        "ohlc",
+        "semPivo",
+        "grande5k",
+        "vazio"
+      ]
+    },
+    {
+      "id": "marimekko",
+      "label": "Marimekko",
+      "tier": 5,
+      "pasta": "marimekko",
+      "resumo": "Barras empilhadas com a LARGURA da coluna tambem proporcional: duas dimensoes em area, com as duas conservacoes (larguras 100%, alturas 100% por coluna).",
+      "explore": "2 dimensoes (as colunas e o empilhamento) e 1 medida.",
+      "aceitaPivo": false,
+      "fixtures": [
+        "duasDimensoes",
+        "hierarquia",
+        "grande5k",
+        "vazio"
+      ]
+    }
+  ]
+}

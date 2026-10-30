@@ -380,3 +380,20 @@ No modo Globo: arraste para girar, roda do mouse para zoom, botão
   nas opções Custom.
 - "Iniciar centralizado nos dados" com pontos espalhados perto de ±180° de
   longitude (ver limitação da média circular no cabeçalho do arquivo).
+
+---
+
+## Biblioteca modular (`/biblioteca`)
+
+Além das visualizações avulsas descritas acima, este repositório tem uma
+**biblioteca modular** em [`/biblioteca`](biblioteca/), com núcleo
+compartilhado, build próprio e testes automatizados. Lá, cada gráfico vira
+um `.js` autocontido (campo **Dependencies vazio** no Looker).
+
+- URLs para o campo Main (fixadas no commit): [`biblioteca/dist/URLS.md`](biblioteca/dist/URLS.md)
+- Como montar o Explore de cada gráfico: [`biblioteca/dist/MANIFEST.md`](biblioteca/dist/MANIFEST.md)
+- Visão geral e como trabalhar: [`biblioteca/README.md`](biblioteca/README.md)
+- O que fazer quando a versão do Looker mudar: [`biblioteca/docs/COMPAT.md`](biblioteca/docs/COMPAT.md)
+
+As visualizações desta seção anterior (tabela, globo e mapa) continuam
+válidas e independentes — a biblioteca não as substitui nem as altera.

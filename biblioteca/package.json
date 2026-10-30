@@ -1,0 +1,30 @@
+{
+  "name": "looker-biblioteca-visualizacoes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Biblioteca de visualizacoes customizadas para o Looker. Cada grafico vira um dist/<id>.js autocontido, sem nenhuma dependencia em tempo de execucao (campo Dependencies do Looker fica VAZIO).",
+  "scripts": {
+    "build": "node build/build.mjs",
+    "test": "node --test test/*.test.mjs",
+    "seguranca": "node build/checagem-seguranca.mjs",
+    "urls": "node build/urls.mjs",
+    "opcoes": "node build/listar-opcoes.mjs && node build/relatorio-abas.mjs"
+  },
+  "devDependencies": {
+    "d3-array": "3.2.4",
+    "d3-color": "3.1.0",
+    "d3-format": "3.1.2",
+    "d3-hierarchy": "3.1.2",
+    "d3-interpolate": "3.0.1",
+    "d3-path": "3.1.0",
+    "d3-scale": "4.0.2",
+    "d3-scale-chromatic": "3.1.0",
+    "d3-shape": "3.2.0",
+    "esbuild": "0.28.2",
+    "jsdom": "30.1.2"
+  },
+  "optionalDependencies": {
+    "canvas": "3.2.3"
+  }
+}

@@ -1,0 +1,13 @@
+# Dependências de build (nunca commitadas — ver seção 2 do PROMPT_AGENTE.md)
+node_modules/
+
+# Lockfile do npm fica fora: as versões já estão fixadas (exatas) no package.json
+package-lock.json
+
+# Arquivos temporários de sistema
+.DS_Store
+Thumbs.db
+*.log
+
+# Artefatos temporarios de teste
+tmp/

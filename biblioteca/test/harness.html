@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Harness — Biblioteca de visualizações Looker</title>
+<!--
+  Simulador do ambiente do Looker para testar os gráficos da /biblioteca
+  localmente, sem precisar subir nada.
+
+  COMO USAR
+    1. Rode `npm run build` na pasta /biblioteca (gera dist/ e test/gerado/).
+    2. Abra este arquivo direto no navegador (duplo clique). Não precisa de
+       servidor nem de internet.
+
+  O QUE ELE SIMULA
+    - looker.plugins.visualizations.add(definicao)
+    - LookerCharts.Utils.textForCell / htmlForCell / openDrillMenu /
+      filterableValueForCell / toggleCrossfilter / getCrossfilterSelection
+    - this.addError / this.clearErrors / this.trigger (inclusive o
+      comportamento REAL de registerOptions, que SUBSTITUI o painel inteiro)
+
+  O QUE ELE *NÃO* SIMULA (confira sempre no Looker real)
+    - O editor visual de opções (aqui a config é um JSON editável).
+    - Drill de verdade (o clique mostra um alerta com os links).
+    - Tamanho/tema reais do tile, fontes da conta, modo escuro do Looker.
+    - Tipos de agregação de medidas (a API não expõe).
+-->
+<style>
+  :root { color-scheme: light; }
+  body { margin:0; font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+         background:#F1F5F9; color:#0F172A; }
+  header { background:#0F172A; color:#fff; padding:10px 14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  header h1 { font-size:14px; margin:0; font-weight:600; }
+  header .aviso { font-size:11px; opacity:.75; }
+  .barra { display:flex; gap:12px; padding:10px 14px; background:#fff; border-bottom:1px solid #E2E8F0;
+           align-items:flex-end; flex-wrap:wrap; }
+  label { display:block; font-size:11px; font-weight:600; color:#475569; margin-bottom:3px; }
+  select, button, input { font:inherit; padding:5px 8px; border:1px solid #CBD5E1; border-radius:5px; background:#fff; }
+  button { cursor:pointer; background:#0F172A; color:#fff; border-color:#0F172A; }
+  button.secundario { background:#fff; color:#0F172A; }
+  button:hover { opacity:.9; }
+  main { display:grid; grid-template-columns: 1fr 360px; gap:12px; padding:12px 14px; align-items:start; }
+  #palco { background:#fff; border:1px solid #E2E8F0; border-radius:8px; overflow:hidden;
+           height:70vh; min-height:360px; position:relative; resize:vertical; }
+  .painel { background:#fff; border:1px solid #E2E8F0; border-radius:8px; padding:10px; }
+  .painel h2 { font-size:12px; margin:0 0 6px; text-transform:uppercase; letter-spacing:.04em; color:#64748B; }
+  textarea { width:100%; min-height:260px; font-family: ui-monospace, Consolas, monospace; font-size:11px;
+             border:1px solid #CBD5E1; border-radius:5px; padding:6px; box-sizing:border-box; }
+  #status { font-size:11px; color:#475569; }
+  #erros { font-size:11px; color:#B91C1C; white-space:pre-wrap; margin-top:6px; }
+  #avisosApi { font-size:11px; color:#92400E; white-space:pre-wrap; margin-top:6px; }
+  .chip { display:inline-block; padding:1px 6px; border-radius:999px; background:#E2E8F0; font-size:10px; margin-left:6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Harness — Biblioteca de visualizações Looker</h1>
+  <span class="aviso">Simulação local. Sempre confira no Looker real antes de confiar.</span>
+</header>
+
+<div class="barra">
+  <div>
+    <label for="selGrafico">Gráfico</label>
+    <select id="selGrafico"></select>
+  </div>
+  <div>
+    <label for="selFixture">Dados de exemplo</label>
+    <select id="selFixture"></select>
+  </div>
+  <div>
+    <button id="btnRenderizar">Renderizar</button>
+  </div>
+  <div>
+    <button id="btnPadrao" class="secundario">Restaurar config padrão</button>
+  </div>
+  <div>
+    <button id="btnTemaEscuro" class="secundario">Alternar tema</button>
+  </div>
+  <div id="status"></div>
+</div>
+
+<main>
+  <div id="palco"></div>
+  <div class="painel">
+    <h2>Config (equivale ao painel Edit)</h2>
+    <textarea id="configArea" spellcheck="false"></textarea>
+    <div id="erros"></div>
+    <div id="avisosApi"></div>
+  </div>
+</main>
+
+<!-- Gerados por `npm run build` -->
+<script src="gerado/fixtures.js"></script>
+<script src="gerado/registro.js"></script>
+
+<script>
+/* ------------------------------------------------------------------ */
+/* 1) Simulação do ambiente global do Looker                           */
+/* ------------------------------------------------------------------ */
+var REGISTRO_DE_VIZ = {};
+
+window.looker = {
+  plugins: {
+    visualizations: {
+      add: function (definicao) {
+        REGISTRO_DE_VIZ[definicao.id] = definicao;
+      }
+    }
+  }
+};
+
+var avisosApi = [];
+function anotarApi(texto) {
+  avisosApi.push(texto);
+  var el = document.getElementById('avisosApi');
+  el.textContent = avisosApi.slice(-8).join('\n');
+}
+
+window.LookerCharts = {
+  Utils: {
+    // Nunca devolve null, igual ao real.
+    textForCell: function (cell) {
+      if (!cell) return '';
+      if (cell.value === null || cell.value === undefined) return '∅';
+      return cell.rendered !== undefined && cell.rendered !== null ? String(cell.rendered) : String(cell.value);
+    },
+    htmlForCell: function (cell) {
+      return window.LookerCharts.Utils.textForCell(cell);
+    },
+    filterableValueForCell: function (cell) {
+      return cell && cell.value !== undefined && cell.value !== null ? String(cell.value) : '';
+    },
+    openDrillMenu: function (opcoes) {
+      var links = (opcoes && opcoes.links) || [];
+      anotarApi('openDrillMenu: ' + links.map(function (l) { return l.label; }).join(', '));
+      window.alert('Drill (simulado):\n' + links.map(function (l) { return l.label + ' → ' + l.url; }).join('\n'));
+    },
+    // Os dois abaixo existem de propósito para testar o caminho "disponível".
+    toggleCrossfilter: function (args) {
+      anotarApi('toggleCrossfilter chamado (simulado)');
+    },
+    getCrossfilterSelection: function () { return 0; }
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/* 2) Instância: addError / clearErrors / trigger                      */
+/* ------------------------------------------------------------------ */
+function criarInstancia(definicao) {
+  var inst = Object.create(definicao);
+  inst.addError = function (erro) {
+    var el = document.getElementById('erros');
+    el.textContent += '[addError] ' + (erro.title || '') + ': ' + (erro.message || '') + '\n';
+  };
+  inst.clearErrors = function () {
+    document.getElementById('erros').textContent = '';
+  };
+  inst.trigger = function (evento, args) {
+    if (evento === 'registerOptions') {
+      // IMPORTANTE: no Looker real, registerOptions SUBSTITUI o painel de
+      // opções inteiro. Simulamos igual, de propósito, para pegar aqui o
+      // bug de "sumiram as seções" em vez de só descobrir em produção.
+      definicao.options = args;
+      anotarApi('registerOptions: painel substituído por ' + Object.keys(args || {}).length + ' opções');
+    } else if (evento === 'updateConfig') {
+      anotarApi('updateConfig (persistência "melhor esforço"): ' + JSON.stringify(args && args[0]));
+    } else {
+      anotarApi('trigger("' + evento + '") — não simulado');
+    }
+  };
+  return inst;
+}
+
+/* ------------------------------------------------------------------ */
+/* 3) Orquestração                                                     */
+/* ------------------------------------------------------------------ */
+var selGrafico = document.getElementById('selGrafico');
+var selFixture = document.getElementById('selFixture');
+var configArea = document.getElementById('configArea');
+var palco = document.getElementById('palco');
+var status = document.getElementById('status');
+
+var instanciaAtual = null;
+var definicaoAtual = null;
+
+function montarConfigPadrao(definicao) {
+  var cfg = {};
+  var opts = definicao.options || {};
+  Object.keys(opts).forEach(function (chave) {
+    if (opts[chave].default !== undefined) cfg[chave] = opts[chave].default;
+  });
+  return cfg;
+}
+
+function popularGraficos() {
+  var registro = window.REGISTRO_BL || [];
+  selGrafico.innerHTML = '';
+  registro.forEach(function (g) {
+    if (!g.existe) return;
+    var opt = document.createElement('option');
+    opt.value = g.id;
+    opt.textContent = g.label + ' (' + g.id + ')';
+    selGrafico.appendChild(opt);
+  });
+  if (!selGrafico.options.length) {
+    status.textContent = 'Nenhum gráfico construído. Rode `npm run build` na pasta /biblioteca.';
+  }
+}
+
+function popularFixtures() {
+  var fx = (window.FIXTURES_BL && window.FIXTURES_BL.FIXTURES) || {};
+  var registro = (window.REGISTRO_BL || []).filter(function (g) { return g.id === selGrafico.value; })[0];
+  var preferidas = (registro && registro.fixtures) || [];
+  var nomes = Object.keys(fx);
+  // Mostra primeiro as fixtures que o gráfico declarou.
+  nomes.sort(function (a, b) {
+    var ia = preferidas.indexOf(a), ib = preferidas.indexOf(b);
+    if (ia >= 0 && ib < 0) return -1;
+    if (ib >= 0 && ia < 0) return 1;
+    if (ia >= 0 && ib >= 0) return ia - ib;
+    return a.localeCompare(b);
+  });
+  selFixture.innerHTML = '';
+  nomes.forEach(function (nome) {
+    var opt = document.createElement('option');
+    opt.value = nome;
+    opt.textContent = nome + (preferidas.indexOf(nome) >= 0 ? ' ★' : '');
+    selFixture.appendChild(opt);
+  });
+}
+
+function carregarGrafico(id, aoTerminar) {
+  if (REGISTRO_DE_VIZ[id]) { aoTerminar(); return; }
+  var registro = (window.REGISTRO_BL || []).filter(function (g) { return g.id === id; })[0];
+  if (!registro) { aoTerminar(); return; }
+  var s = document.createElement('script');
+  s.src = registro.arquivo;
+  s.onload = function () { aoTerminar(); };
+  s.onerror = function () {
+    status.textContent = 'Falha ao carregar ' + registro.arquivo + ' (rodou `npm run build`?)';
+    aoTerminar();
+  };
+  document.head.appendChild(s);
+}
+
+function renderizar() {
+  var id = selGrafico.value;
+  if (!id) return;
+  carregarGrafico(id, function () {
+    var definicao = REGISTRO_DE_VIZ[id];
+    if (!definicao) { status.textContent = 'Gráfico "' + id + '" não se registrou.'; return; }
+    definicaoAtual = definicao;
+
+    var fx = (window.FIXTURES_BL && window.FIXTURES_BL.FIXTURES) || {};
+    var gerar = fx[selFixture.value];
+    if (!gerar) { status.textContent = 'Fixture não encontrada.'; return; }
+    var conjunto = gerar();
+
+    var config;
+    try {
+      config = JSON.parse(configArea.value || '{}');
+    } catch (e) {
+      status.textContent = 'Config inválida (JSON): ' + e.message;
+      return;
+    }
+
+    document.getElementById('erros').textContent = '';
+    palco.innerHTML = '';
+    instanciaAtual = criarInstancia(definicao);
+
+    var t0 = performance.now();
+    try {
+      instanciaAtual.create(palco, config);
+      instanciaAtual.updateAsync(conjunto.data, palco, config, conjunto.queryResponse, {}, function () {
+        var t1 = performance.now();
+        status.textContent = 'OK — ' + conjunto.data.length + ' linha(s) em ' + (t1 - t0).toFixed(1) + ' ms';
+      });
+    } catch (e) {
+      document.getElementById('erros').textContent += '[exceção] ' + (e && e.stack ? e.stack : e) + '\n';
+      status.textContent = 'Erro ao renderizar.';
+    }
+  });
+}
+
+function restaurarPadrao() {
+  var id = selGrafico.value;
+  carregarGrafico(id, function () {
+    var definicao = REGISTRO_DE_VIZ[id];
+    if (!definicao) return;
+    configArea.value = JSON.stringify(montarConfigPadrao(definicao), null, 2);
+  });
+}
+
+document.getElementById('btnRenderizar').addEventListener('click', renderizar);
+document.getElementById('btnPadrao').addEventListener('click', function () { restaurarPadrao(); });
+document.getElementById('btnTemaEscuro').addEventListener('click', function () {
+  var cfg = {};
+  try { cfg = JSON.parse(configArea.value || '{}'); } catch (e) { /* ignora */ }
+  cfg.tema = cfg.tema === 'escuro' ? 'claro' : 'escuro';
+  configArea.value = JSON.stringify(cfg, null, 2);
+  renderizar();
+});
+selGrafico.addEventListener('change', function () {
+  popularFixtures();
+  restaurarPadrao();
+});
+
+popularGraficos();
+popularFixtures();
+restaurarPadrao();
+if (selGrafico.options.length) setTimeout(renderizar, 150);
+</script>
+
+</body>
+</html>

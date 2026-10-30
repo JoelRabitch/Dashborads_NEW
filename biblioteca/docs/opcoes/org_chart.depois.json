@@ -1,0 +1,570 @@
+[
+  {
+    "id": "formatoDaHierarquia",
+    "label": "Como a hierarquia está montada",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "rotuloDaRaiz",
+    "label": "Nome do nó raiz (quando há várias raízes)",
+    "section": "Dados",
+    "type": "string",
+    "default": "Total",
+    "dinamica": false
+  },
+  {
+    "id": "profundidadeMaxima",
+    "label": "Profundidade máxima (0 = toda a árvore)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "comecarRecolhidoAPartirDe",
+    "label": "Organograma · Começar recolhido a partir do nível (0 = tudo aberto)",
+    "section": "Dados",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "paleta",
+    "label": "Cor · Paleta de cores",
+    "section": "Visual",
+    "type": "string",
+    "default": "looker",
+    "dinamica": false
+  },
+  {
+    "id": "inverterPaleta",
+    "label": "Cor · Inverter ordem das cores",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "opacidade",
+    "label": "Cor · Opacidade do preenchimento",
+    "section": "Visual",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarContorno",
+    "label": "Cor · Mostrar contorno",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "corDoContorno",
+    "label": "Cor · Cor do contorno",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FFFFFF",
+    "dinamica": false
+  },
+  {
+    "id": "espessuraDoContorno",
+    "label": "Cor · Espessura do contorno (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "tracejadoDoContorno",
+    "label": "Cor · Estilo do contorno",
+    "section": "Visual",
+    "type": "string",
+    "default": "solido",
+    "dinamica": false
+  },
+  {
+    "id": "preencherCartao",
+    "label": "Cor · Cartão preenchido com a cor do ramo",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "tema",
+    "label": "Tema · Tema",
+    "section": "Visual",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundo",
+    "label": "Cor · Cor de fundo (vazio = do tema)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTexto",
+    "label": "Cor · Cor do texto (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBorda",
+    "label": "Cor · Cor das bordas (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaGrade",
+    "label": "Cor · Cor das linhas de grade (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "familiaDaFonte",
+    "label": "Tema · Fonte",
+    "section": "Visual",
+    "type": "string",
+    "default": "sistema",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaFonte",
+    "label": "Tema · Tamanho base da fonte (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "orientacao",
+    "label": "Organograma · Direção",
+    "section": "Visual",
+    "type": "string",
+    "default": "cima",
+    "dinamica": false
+  },
+  {
+    "id": "larguraDoCartao",
+    "label": "Organograma · Largura do cartão (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 150,
+    "dinamica": false
+  },
+  {
+    "id": "alturaDoCartao",
+    "label": "Organograma · Altura do cartão (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 56,
+    "dinamica": false
+  },
+  {
+    "id": "espacoEntreNiveis",
+    "label": "Organograma · Espaço entre níveis (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 60,
+    "dinamica": false
+  },
+  {
+    "id": "espacoEntreIrmaos",
+    "label": "Organograma · Espaço entre cartões vizinhos (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 16,
+    "dinamica": false
+  },
+  {
+    "id": "raioDoCartao",
+    "label": "Organograma · Arredondamento do cartão (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 6,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarRotulos",
+    "label": "Rótulo · Mostrar rótulos",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoRotulo",
+    "label": "Rótulo · Tamanho do rótulo (px)",
+    "section": "Texto",
+    "type": "number",
+    "default": 11,
+    "dinamica": false
+  },
+  {
+    "id": "corDoRotulo",
+    "label": "Rótulo · Cor do rótulo (vazio = automática)",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "negritoNoRotulo",
+    "label": "Rótulo · Rótulo em negrito",
+    "section": "Texto",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "rotacaoDoRotulo",
+    "label": "Rótulo · Rotação do rótulo (graus)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "evitarColisaoDeRotulos",
+    "label": "Rótulo · Esconder rótulos que se sobrepõem",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "truncarRotulo",
+    "label": "Rótulo · Truncar rótulo com mais de N caracteres (0 = não truncar)",
+    "section": "Texto",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDoRotulo",
+    "label": "Rótulo · Posição do rótulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "conteudoDoRotulo",
+    "label": "Rótulo · O que mostrar no rótulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "valor",
+    "dinamica": false
+  },
+  {
+    "id": "formatoDoRotulo",
+    "label": "Rótulo · Formato do número no rótulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "casasDecimaisDoRotulo",
+    "label": "Rótulo · Casas decimais no rótulo",
+    "section": "Texto",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarValorNoCartao",
+    "label": "Rótulo · Mostrar o valor dentro do cartão",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarContagemDeEquipe",
+    "label": "Rótulo · Mostrar quantos descendentes cada cartão tem",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "titulo",
+    "label": "Título · Título",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "subtitulo",
+    "label": "Título · Subtítulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "textoSemDados",
+    "label": "Aviso · Mensagem quando não há dados",
+    "section": "Texto",
+    "type": "string",
+    "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarAvisos",
+    "label": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDosAvisos",
+    "label": "Aviso · Posição dos avisos",
+    "section": "Texto",
+    "type": "string",
+    "default": "topo",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarTooltip",
+    "label": "Tooltip · Mostrar tooltip",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "tooltipPersonalizado",
+    "label": "Tooltip · Usar tooltip personalizado",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "modeloDeTooltip",
+    "label": "Tooltip · Tooltip (HTML): {{categoria}} {{valor}} {{serie}} {{percentual}} ou {{campo}}; tags b, i, br, span; vazio = padrão",
+    "section": "Interação",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "tooltipComNomeCompleto",
+    "label": "Tooltip · Mostrar nome completo do campo no tooltip",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "tooltipComValorBruto",
+    "label": "Tooltip · Mostrar também o valor sem formatação",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "acaoDoClique",
+    "label": "Clique · Ação do clique (Shift+clique sempre fixa; Esc solta)",
+    "section": "Interação",
+    "type": "string",
+    "default": "drill",
+    "dinamica": false
+  },
+  {
+    "id": "permitirHtmlDoLooker",
+    "label": "Tooltip · Permitir HTML do Looker nas variáveis do tooltip",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundoDoTooltip",
+    "label": "Tooltip · Cor de fundo do tooltip (vazio = do tema)",
+    "section": "Interação",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBordaDoTooltip",
+    "label": "Tooltip · Cor da borda do tooltip",
+    "section": "Interação",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTextoDoTooltip",
+    "label": "Tooltip · Cor do texto do tooltip (vazio = do tema)",
+    "section": "Interação",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDoTooltip",
+    "label": "Tooltip · Tamanho da fonte do tooltip (px)",
+    "section": "Interação",
+    "type": "number",
+    "default": 11,
+    "dinamica": false
+  },
+  {
+    "id": "animacaoAtiva",
+    "label": "Animação · Ativar animações",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "duracaoDaAnimacao",
+    "label": "Animação · Duração (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 600,
+    "dinamica": false
+  },
+  {
+    "id": "atrasoDaAnimacao",
+    "label": "Animação · Atraso inicial (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "cascataDaAnimacao",
+    "label": "Animação · Cascata entre itens (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 20,
+    "dinamica": false
+  },
+  {
+    "id": "suavizacaoDaAnimacao",
+    "label": "Animação · Curva da animação",
+    "section": "Interação",
+    "type": "string",
+    "default": "saida",
+    "dinamica": false
+  },
+  {
+    "id": "quandoAnimar",
+    "label": "Animação · Quando animar",
+    "section": "Interação",
+    "type": "string",
+    "default": "sempre",
+    "dinamica": false
+  },
+  {
+    "id": "contadorAnimado",
+    "label": "Animação · Números sobem/descem até o valor (contador)",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "permitirRecolher",
+    "label": "Organograma · Recolher uma área clicando no cartão",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "destacarAoPassarMouse",
+    "label": "Clique · Destacar ao passar o mouse",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "modoDebug",
+    "label": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON (cole aqui para importar)",
+    "section": "Avançado",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima por cima das opções",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "campoDoId",
+    "label": "Campo do ID (formato id/superior)",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "campoDoPai",
+    "label": "Campo do superior (formato id/superior)",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "campoDoNome",
+    "label": "Campo do nome a exibir",
+    "section": "Dados",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "campoDoValor",
+    "label": "Medida do tamanho",
+    "section": "Dados",
+    "type": "string",
+    "default": "equipe",
+    "dinamica": true
+  },
+  {
+    "id": "campoDoCargo",
+    "label": "Rótulo · Campo da segunda linha do cartão",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  }
+]

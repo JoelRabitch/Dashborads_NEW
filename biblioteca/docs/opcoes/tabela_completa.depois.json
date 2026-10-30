@@ -1,0 +1,1434 @@
+[
+  {
+    "id": "agruparPor",
+    "label": "Agrupar linhas por",
+    "section": "Dados",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": false
+  },
+  {
+    "id": "gruposComecamAbertos",
+    "label": "Grupos começam abertos",
+    "section": "Dados",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarSubtotais",
+    "label": "Mostrar subtotal por grupo",
+    "section": "Dados",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "transporPivo",
+    "label": "Transpor (valores do pivô viram linhas)",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarTotalDeLinha",
+    "label": "Mostrar coluna de total por linha (quando pivotado)",
+    "section": "Dados",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "ordenacaoInicial",
+    "label": "Ordenação inicial",
+    "section": "Dados",
+    "type": "string",
+    "default": "original",
+    "dinamica": false
+  },
+  {
+    "id": "tratamentoDeNulos",
+    "label": "Valores nulos",
+    "section": "Dados",
+    "type": "string",
+    "default": "manter",
+    "dinamica": false
+  },
+  {
+    "id": "textoParaNulo",
+    "label": "Texto para valor nulo",
+    "section": "Dados",
+    "type": "string",
+    "default": "∅",
+    "dinamica": false
+  },
+  {
+    "id": "estiloDeData",
+    "label": "Formato das colunas com tipo de célula \"Data\"",
+    "section": "Dados",
+    "type": "string",
+    "default": "auto",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarTotais",
+    "label": "Mostrar linha de totais",
+    "section": "Dados",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "agregacaoDoTotal",
+    "label": "Como calcular os totais (quando o Looker não envia)",
+    "section": "Dados",
+    "type": "string",
+    "default": "soma",
+    "dinamica": false
+  },
+  {
+    "id": "rotuloDoTotal",
+    "label": "Rótulo da linha de totais",
+    "section": "Dados",
+    "type": "string",
+    "default": "Total",
+    "dinamica": false
+  },
+  {
+    "id": "densidade",
+    "label": "Densidade",
+    "section": "Visual",
+    "type": "string",
+    "default": "normal",
+    "dinamica": false
+  },
+  {
+    "id": "alturaDaLinha",
+    "label": "Altura da linha (px) — 0 usa a densidade",
+    "section": "Visual",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "alturaDoCabecalho",
+    "label": "Altura do cabeçalho (px) — 0 usa a densidade",
+    "section": "Visual",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "larguraPadraoDaColuna",
+    "label": "Largura padrão das colunas (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 130,
+    "dinamica": false
+  },
+  {
+    "id": "larguraDasDimensoes",
+    "label": "Largura das colunas de dimensão (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 180,
+    "dinamica": false
+  },
+  {
+    "id": "colunasFixasAEsquerda",
+    "label": "Quantas colunas ficam fixas à esquerda",
+    "section": "Visual",
+    "type": "number",
+    "default": 1,
+    "dinamica": false
+  },
+  {
+    "id": "cabecalhoFixo",
+    "label": "Cabeçalho fixo ao rolar",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "rodapeFixo",
+    "label": "Totais fixos no rodapé",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "quebrarTexto",
+    "label": "Texto que não cabe",
+    "section": "Visual",
+    "type": "string",
+    "default": "truncar",
+    "dinamica": false
+  },
+  {
+    "id": "cabecalhoVertical",
+    "label": "Cabeçalho com texto na vertical",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarNumeroDaLinha",
+    "label": "Mostrar número da linha",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "tema",
+    "label": "Tema · Tema",
+    "section": "Visual",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDeFundo",
+    "label": "Cor · Cor de fundo (vazio = do tema)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTexto",
+    "label": "Cor · Cor do texto (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaBorda",
+    "label": "Cor · Cor das bordas (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaGrade",
+    "label": "Cor · Cor das linhas de grade (tema personalizado)",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "familiaDaFonte",
+    "label": "Tema · Fonte",
+    "section": "Visual",
+    "type": "string",
+    "default": "sistema",
+    "dinamica": false
+  },
+  {
+    "id": "tamanhoDaFonte",
+    "label": "Tema · Tamanho base da fonte (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 12,
+    "dinamica": false
+  },
+  {
+    "id": "estiloDaTabela",
+    "label": "Tema · Estilo",
+    "section": "Visual",
+    "type": "string",
+    "default": "claro",
+    "dinamica": false
+  },
+  {
+    "id": "corDoCabecalho",
+    "label": "Tema · Fundo do cabeçalho",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoTextoDoCabecalho",
+    "label": "Tema · Texto do cabeçalho",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaZebra",
+    "label": "Tema · Cor das linhas alternadas",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDoHover",
+    "label": "Tema · Cor ao passar o mouse",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "corDaSelecao",
+    "label": "Tema · Cor da linha selecionada",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarBordasVerticais",
+    "label": "Tema · Bordas verticais",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarBordasHorizontais",
+    "label": "Tema · Bordas horizontais",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "raioDaBorda",
+    "label": "Tema · Arredondamento (px)",
+    "section": "Visual",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "titulo",
+    "label": "Título · Título",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "subtitulo",
+    "label": "Título · Subtítulo",
+    "section": "Texto",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "textoSemDados",
+    "label": "Aviso · Mensagem quando não há dados",
+    "section": "Texto",
+    "type": "string",
+    "default": "Sem dados para exibir",
+    "dinamica": false
+  },
+  {
+    "id": "mostrarAvisos",
+    "label": "Aviso · Mostrar avisos (eles sempre vão também para o console)",
+    "section": "Texto",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "posicaoDosAvisos",
+    "label": "Aviso · Posição dos avisos",
+    "section": "Texto",
+    "type": "string",
+    "default": "topo",
+    "dinamica": false
+  },
+  {
+    "id": "permitirOrdenar",
+    "label": "Clique · Ordenar clicando no cabeçalho",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarBusca",
+    "label": "Clique · Mostrar caixa de busca",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mostrarFiltrosPorColuna",
+    "label": "Clique · Mostrar filtro em cada coluna",
+    "section": "Interação",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "permitirSelecionarLinhas",
+    "label": "Clique · Selecionar linhas (clique) e somar",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "destacarLinhaEColuna",
+    "label": "Clique · Destacar linha e coluna sob o mouse",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "permitirRedimensionarColunas",
+    "label": "Clique · Redimensionar colunas arrastando",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "permitirDrill",
+    "label": "Clique · Drill ao clicar na célula",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "permitirExportarCsv",
+    "label": "Clique · Botão de exportar CSV",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "permitirCopiar",
+    "label": "Clique · Permitir copiar (Ctrl+C / menu)",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "linhasPorPagina",
+    "label": "Clique · Linhas por página (0 = rolagem contínua)",
+    "section": "Interação",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "animarEntradaDasLinhas",
+    "label": "Animação · Animar entrada das linhas",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "animarMudancaDeValor",
+    "label": "Animação · Piscar quando o valor mudar entre atualizações",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "corDeSubida",
+    "label": "Animação · Cor quando o valor sobe",
+    "section": "Interação",
+    "type": "string",
+    "default": "#16A34A",
+    "dinamica": false
+  },
+  {
+    "id": "corDeDescida",
+    "label": "Animação · Cor quando o valor desce",
+    "section": "Interação",
+    "type": "string",
+    "default": "#DC2626",
+    "dinamica": false
+  },
+  {
+    "id": "animacaoAtiva",
+    "label": "Animação · Ativar animações",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "duracaoDaAnimacao",
+    "label": "Animação · Duração (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 600,
+    "dinamica": false
+  },
+  {
+    "id": "atrasoDaAnimacao",
+    "label": "Animação · Atraso inicial (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "cascataDaAnimacao",
+    "label": "Animação · Cascata entre itens (ms)",
+    "section": "Interação",
+    "type": "number",
+    "default": 20,
+    "dinamica": false
+  },
+  {
+    "id": "suavizacaoDaAnimacao",
+    "label": "Animação · Curva da animação",
+    "section": "Interação",
+    "type": "string",
+    "default": "saida",
+    "dinamica": false
+  },
+  {
+    "id": "quandoAnimar",
+    "label": "Animação · Quando animar",
+    "section": "Interação",
+    "type": "string",
+    "default": "sempre",
+    "dinamica": false
+  },
+  {
+    "id": "destacarAoPassarMouse",
+    "label": "Clique · Destacar ao passar o mouse",
+    "section": "Interação",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "modoDebug",
+    "label": "Modo debug (escreve no console a estrutura dos dados)",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "configuracaoJson",
+    "label": "Configuração em JSON (cole aqui para importar)",
+    "section": "Avançado",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "aplicarConfiguracaoJson",
+    "label": "Aplicar o JSON acima por cima das opções",
+    "section": "Avançado",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "col_dim_loja_visivel",
+    "label": "Coluna Loja · Mostrar esta coluna",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_rotulo",
+    "label": "Coluna Loja · Renomear para",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_largura",
+    "label": "Coluna Loja · Largura (px, 0 = padrão)",
+    "section": "Visual",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_alinhamento",
+    "label": "Coluna Loja · Alinhamento",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_tipoDeCelula",
+    "label": "Coluna Loja · Tipo de célula",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_corDoTexto",
+    "label": "Coluna Loja · Cor do texto",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_corDeFundo",
+    "label": "Coluna Loja · Cor de fundo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_prefixo",
+    "label": "Coluna Loja · Prefixo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_sufixo",
+    "label": "Coluna Loja · Sufixo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1",
+    "label": "Coluna Loja · Regra 1: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1Valor",
+    "label": "Coluna Loja · Regra 1: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1Valor2",
+    "label": "Coluna Loja · Regra 1: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1Acao",
+    "label": "Coluna Loja · Regra 1: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1Cor",
+    "label": "Coluna Loja · Regra 1: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1Icone",
+    "label": "Coluna Loja · Regra 1: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1LinhaInteira",
+    "label": "Coluna Loja · Regra 1: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra1Coluna",
+    "label": "Coluna Loja · Regra 1: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2",
+    "label": "Coluna Loja · Regra 2: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2Valor",
+    "label": "Coluna Loja · Regra 2: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2Valor2",
+    "label": "Coluna Loja · Regra 2: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2Acao",
+    "label": "Coluna Loja · Regra 2: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2Cor",
+    "label": "Coluna Loja · Regra 2: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2Icone",
+    "label": "Coluna Loja · Regra 2: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2LinhaInteira",
+    "label": "Coluna Loja · Regra 2: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra2Coluna",
+    "label": "Coluna Loja · Regra 2: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3",
+    "label": "Coluna Loja · Regra 3: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3Valor",
+    "label": "Coluna Loja · Regra 3: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3Valor2",
+    "label": "Coluna Loja · Regra 3: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3Acao",
+    "label": "Coluna Loja · Regra 3: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3Cor",
+    "label": "Coluna Loja · Regra 3: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3Icone",
+    "label": "Coluna Loja · Regra 3: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3LinhaInteira",
+    "label": "Coluna Loja · Regra 3: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_dim_loja_regra3Coluna",
+    "label": "Coluna Loja · Regra 3: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_visivel",
+    "label": "Coluna Vendas · Mostrar esta coluna",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_rotulo",
+    "label": "Coluna Vendas · Renomear para",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_largura",
+    "label": "Coluna Vendas · Largura (px, 0 = padrão)",
+    "section": "Visual",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_alinhamento",
+    "label": "Coluna Vendas · Alinhamento",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_tipoDeCelula",
+    "label": "Coluna Vendas · Tipo de célula",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_corDoTexto",
+    "label": "Coluna Vendas · Cor do texto",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_corDeFundo",
+    "label": "Coluna Vendas · Cor de fundo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_prefixo",
+    "label": "Coluna Vendas · Prefixo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_sufixo",
+    "label": "Coluna Vendas · Sufixo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_formato",
+    "label": "Coluna Vendas · Formato do número",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_casasDecimais",
+    "label": "Coluna Vendas · Casas decimais",
+    "section": "Visual",
+    "type": "number",
+    "default": 2,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_corDaBarra",
+    "label": "Coluna Vendas · Cor da barra/sparkline",
+    "section": "Visual",
+    "type": "string",
+    "default": "#4276BE",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1",
+    "label": "Coluna Vendas · Regra 1: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1Valor",
+    "label": "Coluna Vendas · Regra 1: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1Valor2",
+    "label": "Coluna Vendas · Regra 1: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1Acao",
+    "label": "Coluna Vendas · Regra 1: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1Cor",
+    "label": "Coluna Vendas · Regra 1: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1Icone",
+    "label": "Coluna Vendas · Regra 1: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1LinhaInteira",
+    "label": "Coluna Vendas · Regra 1: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra1Coluna",
+    "label": "Coluna Vendas · Regra 1: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2",
+    "label": "Coluna Vendas · Regra 2: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2Valor",
+    "label": "Coluna Vendas · Regra 2: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2Valor2",
+    "label": "Coluna Vendas · Regra 2: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2Acao",
+    "label": "Coluna Vendas · Regra 2: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2Cor",
+    "label": "Coluna Vendas · Regra 2: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2Icone",
+    "label": "Coluna Vendas · Regra 2: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2LinhaInteira",
+    "label": "Coluna Vendas · Regra 2: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra2Coluna",
+    "label": "Coluna Vendas · Regra 2: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3",
+    "label": "Coluna Vendas · Regra 3: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3Valor",
+    "label": "Coluna Vendas · Regra 3: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3Valor2",
+    "label": "Coluna Vendas · Regra 3: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3Acao",
+    "label": "Coluna Vendas · Regra 3: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3Cor",
+    "label": "Coluna Vendas · Regra 3: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3Icone",
+    "label": "Coluna Vendas · Regra 3: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3LinhaInteira",
+    "label": "Coluna Vendas · Regra 3: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_regra3Coluna",
+    "label": "Coluna Vendas · Regra 3: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_escalaDeCor",
+    "label": "Coluna Vendas · Escala de cor (mapa de calor) nesta coluna",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_escalaCorMin",
+    "label": "Coluna Vendas · Escala: cor do menor valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FFFFFF",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_vendas_escalaCorMax",
+    "label": "Coluna Vendas · Escala: cor do maior valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#60A5FA",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_visivel",
+    "label": "Coluna Pedidos · Mostrar esta coluna",
+    "section": "Visual",
+    "type": "boolean",
+    "default": true,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_rotulo",
+    "label": "Coluna Pedidos · Renomear para",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_largura",
+    "label": "Coluna Pedidos · Largura (px, 0 = padrão)",
+    "section": "Visual",
+    "type": "number",
+    "default": 0,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_alinhamento",
+    "label": "Coluna Pedidos · Alinhamento",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_tipoDeCelula",
+    "label": "Coluna Pedidos · Tipo de célula",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_corDoTexto",
+    "label": "Coluna Pedidos · Cor do texto",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_corDeFundo",
+    "label": "Coluna Pedidos · Cor de fundo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_prefixo",
+    "label": "Coluna Pedidos · Prefixo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_sufixo",
+    "label": "Coluna Pedidos · Sufixo",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_formato",
+    "label": "Coluna Pedidos · Formato do número",
+    "section": "Visual",
+    "type": "string",
+    "default": "auto",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_casasDecimais",
+    "label": "Coluna Pedidos · Casas decimais",
+    "section": "Visual",
+    "type": "number",
+    "default": 2,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_corDaBarra",
+    "label": "Coluna Pedidos · Cor da barra/sparkline",
+    "section": "Visual",
+    "type": "string",
+    "default": "#4276BE",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1",
+    "label": "Coluna Pedidos · Regra 1: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1Valor",
+    "label": "Coluna Pedidos · Regra 1: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1Valor2",
+    "label": "Coluna Pedidos · Regra 1: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1Acao",
+    "label": "Coluna Pedidos · Regra 1: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1Cor",
+    "label": "Coluna Pedidos · Regra 1: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1Icone",
+    "label": "Coluna Pedidos · Regra 1: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1LinhaInteira",
+    "label": "Coluna Pedidos · Regra 1: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra1Coluna",
+    "label": "Coluna Pedidos · Regra 1: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2",
+    "label": "Coluna Pedidos · Regra 2: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2Valor",
+    "label": "Coluna Pedidos · Regra 2: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2Valor2",
+    "label": "Coluna Pedidos · Regra 2: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2Acao",
+    "label": "Coluna Pedidos · Regra 2: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2Cor",
+    "label": "Coluna Pedidos · Regra 2: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2Icone",
+    "label": "Coluna Pedidos · Regra 2: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2LinhaInteira",
+    "label": "Coluna Pedidos · Regra 2: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra2Coluna",
+    "label": "Coluna Pedidos · Regra 2: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3",
+    "label": "Coluna Pedidos · Regra 3: condição",
+    "section": "Visual",
+    "type": "string",
+    "default": "nenhuma",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3Valor",
+    "label": "Coluna Pedidos · Regra 3: valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3Valor2",
+    "label": "Coluna Pedidos · Regra 3: valor 2 (para \"entre\")",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3Acao",
+    "label": "Coluna Pedidos · Regra 3: o que fazer",
+    "section": "Visual",
+    "type": "string",
+    "default": "fundo",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3Cor",
+    "label": "Coluna Pedidos · Regra 3: cor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FEE2E2",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3Icone",
+    "label": "Coluna Pedidos · Regra 3: ícone",
+    "section": "Visual",
+    "type": "string",
+    "default": "bolinha",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3LinhaInteira",
+    "label": "Coluna Pedidos · Regra 3: aplicar na linha inteira",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_regra3Coluna",
+    "label": "Coluna Pedidos · Regra 3: comparar com a coluna",
+    "section": "Visual",
+    "type": "string",
+    "default": "",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_escalaDeCor",
+    "label": "Coluna Pedidos · Escala de cor (mapa de calor) nesta coluna",
+    "section": "Visual",
+    "type": "boolean",
+    "default": false,
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_escalaCorMin",
+    "label": "Coluna Pedidos · Escala: cor do menor valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#FFFFFF",
+    "dinamica": true
+  },
+  {
+    "id": "col_med_pedidos_escalaCorMax",
+    "label": "Coluna Pedidos · Escala: cor do maior valor",
+    "section": "Visual",
+    "type": "string",
+    "default": "#60A5FA",
+    "dinamica": true
+  }
+]
