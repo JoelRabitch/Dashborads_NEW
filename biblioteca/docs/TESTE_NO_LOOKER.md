@@ -77,3 +77,15 @@ em `faltandoNoConfig`, o Looker não está mandando o valor.
   - [ ] Ícone, limites verde/amarelo/vermelho, layouts Compacto e Horizontal, subtítulo.
   - [ ] O título aparece UMA vez só.
   - [ ] Clique no cartão abre o drill.
+
+## Melhorias v3
+
+Cada item abaixo foi testado só em simulação (jsdom). Confira no Looker
+real antes de considerar resolvido.
+
+- **5.1 Tooltip preso (todos os gráficos com tooltip)**
+  - [ ] Com "Ação do clique" = Drill (o valor salvo nos tiles), clique num ponto SEM link: o tooltip NÃO fica fixo (antes ficava).
+  - [ ] Clique num ponto COM link: o tooltip some antes de o menu de drill aparecer; feche o menu (Esc ou clique fora): nada fica na tela.
+  - [ ] Com o menu de drill aberto, leve o mouse para fora do gráfico: nenhum tooltip sobra.
+  - [ ] Shift+clique (ou "Ação do clique" = Fixar tooltip): o tooltip fixa e mostra um "×"; o "×", Esc e clique fora soltam.
+  - [ ] Clique em outra parte do dashboard (fora do iframe): o tooltip fixo some.

@@ -3129,3 +3129,29 @@ PRÓXIMA AÇÃO: regenerar `.antes.json`, commit; depois 5.1 (tooltip).
 - `listar-opcoes --antes` nunca sobrescreve; feito com cópia de
   `.depois.json` (regenerado agora, idêntico ao commitado) para
   `.antes.json`. `test/opcoes.test.mjs` passa.
+
+### 5.1 Tooltip preso (concluído em código; conferir no Looker real)
+- Lido `src/core/tooltip.js`: no modo "drill", clique sem link FIXAVA o
+  tooltip; antes do drill só chamava `soltar()`, que não esconde um
+  tooltip apenas visível (não fixo) — ele ficava na tela quando o mouse ia
+  para o menu do Looker (fora do iframe, sem `pointerleave`). Não havia
+  `blur`/`focus` da janela.
+- Testes primeiro (`test/tooltip_v3.test.mjs`, 7 de 8 falharam antes):
+  clique sem/com link, drill com tooltip visível, blur, focus (menu fecha),
+  mouse saindo do documento, Esc, "×", clique fora.
+- Correção: `executarAcaoDoClique` — drill sem link = nada (só "fixar" ou
+  Shift fixam; vale para qualquer valor salvo, e muda o comportamento da
+  v2: documentar no relatório); `soltarEEsconder()` antes do drill;
+  listeners `blur`, `focus`, `visibilitychange`, `mouseleave` do
+  `<html>`, `mouseout` com relatedTarget nulo; botão "×" no tooltip fixo
+  (o fixo passa a ter `pointer-events:auto`; clique dentro dele não solta).
+- `define-viz`: `ponte.abrirDrill` embrulhado para esconder o tooltip
+  antes de QUALQUER drill (a tabela chama o drill direto).
+- Testes das famílias que diziam "sem link fixa" atualizados para o novo
+  comportamento + verificação do modo "fixar" (series, listas,
+  quadrantes, conjuntos, núcleo).
+- Decisão: `cartao_multivalor` ainda não existe; quando existir, usará
+  `ctx.cliqueNoItem` e herda tudo (teste na 5.14).
+- `npm test` 773/773; `npm run seguranca` sem violação.
+
+PRÓXIMA AÇÃO: 5.2 (tabela: rolagem e animação ao rolar).

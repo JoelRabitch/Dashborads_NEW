@@ -360,7 +360,7 @@ porGrafico('tooltip — variáveis {{categoria}} {{valor}} {{serie}} no modelo d
   }
 });
 
-porGrafico('clique — com links abre o drill; sem links fixa o tooltip; Shift+clique fixa (pareto "não fica persistente")', IDS, (id) => {
+porGrafico('clique — com links abre o drill; sem links não fixa no modo drill (v3) e fixa no modo "fixar"; Shift+clique fixa', IDS, (id) => {
   {
     const comLink = abrir(id, { dados: comLinks(id, true) });
     try {
@@ -372,11 +372,19 @@ porGrafico('clique — com links abre o drill; sem links fixa o tooltip; Shift+c
     } finally {
       comLink.fim();
     }
-    const semLink = abrir(id, { dados: comLinks(id, false) });
+    const drillSemLink = abrir(id, { dados: comLinks(id, false) });
+    try {
+      clicar(drillSemLink);
+      assert.equal(drillSemLink.amb.chamadasDeApi.drills, 0);
+      assert.equal(drillSemLink.doc.querySelector('.bl-tooltip.bl-fixo'), null, `${id}: sem links, no modo drill, não pode fixar (v3)`);
+    } finally {
+      drillSemLink.fim();
+    }
+    const semLink = abrir(id, { dados: comLinks(id, false), ajustes: { acaoDoClique: 'fixar' } });
     try {
       clicar(semLink);
       assert.equal(semLink.amb.chamadasDeApi.drills, 0);
-      assert.ok(semLink.doc.querySelector('.bl-tooltip.bl-fixo'), `${id}: clique sem links não fixou o tooltip`);
+      assert.ok(semLink.doc.querySelector('.bl-tooltip.bl-fixo'), `${id}: modo "fixar" não fixou o tooltip`);
       // Fixo: passar o mouse em outro lugar não troca nem esconde.
       const antes = semLink.tooltip().textContent;
       semLink.palco.querySelector(semLink.spec.area).dispatchEvent(evento(semLink, 'pointerleave', 0, 0));

@@ -215,6 +215,15 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   }
   const bl = this._bl;
 
+  // 5.1 (v3): qualquer abertura do menu de drill (inclusive as que os
+  // gráficos fazem direto, como a tabela) esconde ANTES o tooltip deste
+  // gráfico — fixo ou não —, para nada ficar preso atrás do menu.
+  const abrirDrillDoLooker = ponte.abrirDrill;
+  ponte.abrirDrill = (celula, evento) => {
+    esconderTooltipsDe(bl.raiz);
+    return abrirDrillDoLooker(celula, evento);
+  };
+
   // Limpa o que ficou da renderização anterior (inclusive tooltip aberto).
   limparPendencias(bl);
   esconderTooltipsDe(bl.raiz);

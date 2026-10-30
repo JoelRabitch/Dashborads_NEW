@@ -12,12 +12,19 @@
  * Esconde em: saída do mouse do gráfico, rolagem, redesenho
  * (`updateAsync`, via define-viz) e destruição.
  *
+ * Melhorias v3 (5.1, tooltip que ficava preso depois do drill): também
+ * solta e esconde — fixo ou não — quando a janela (o iframe) perde ou
+ * recupera o foco (o menu de drill do Looker abre por cima e, ao fechar,
+ * devolve o foco), quando o mouse sai do documento sem passar pela raiz,
+ * e ANTES de abrir o menu de drill. O tooltip fixo ganha um botão "×".
+ *
  * Clique ("Ação do clique", opção `acaoDoClique`):
  *   - "drill" (padrão): abre o menu de drill do Looker se a célula tem
- *     links; se não tem, fixa o tooltip;
+ *     links; se não tem, NÃO faz nada (até a v2 fixava o tooltip, e era
+ *     assim que ele ficava preso; mudou na v3 para qualquer valor salvo);
  *   - "fixar": fixa o tooltip;
  *   - "nenhuma": não faz nada.
- *   Shift+clique sempre fixa. Clique fora ou Esc solta.
+ *   Shift+clique sempre fixa. Clique fora, Esc ou "×" solta.
  *
  * SEGURANÇA: todo valor de dado entra por `textContent`. O modelo do
  * usuário (`modeloDeTooltip`) aceita só as tags b, i, br e span, SEM
@@ -34,7 +41,10 @@ const CSS_TOOLTIP = `
   padding:6px 9px;border-radius:6px;font-size:11px;line-height:1.5;border:1px solid transparent;
   box-shadow:0 6px 18px rgba(15,23,42,.25);opacity:0;transition:opacity .12s ease;}
 .bl-tooltip.bl-visivel{opacity:1;}
-.bl-tooltip.bl-fixo{box-shadow:0 0 0 2px rgba(66,118,190,.55),0 6px 18px rgba(15,23,42,.25);}
+.bl-tooltip.bl-fixo{pointer-events:auto;padding-right:24px;box-shadow:0 0 0 2px rgba(66,118,190,.55),0 6px 18px rgba(15,23,42,.25);}
+.bl-tooltip-fechar{position:absolute;top:2px;right:3px;width:18px;height:18px;padding:0;border:0;border-radius:4px;
+  background:transparent;color:inherit;font:inherit;font-size:14px;line-height:18px;cursor:pointer;opacity:.8;}
+.bl-tooltip-fechar:hover{opacity:1;background:rgba(127,127,127,.25);}
 .bl-tooltip-linha{display:flex;gap:8px;justify-content:space-between;white-space:nowrap;}
 .bl-tooltip-rotulo{opacity:.75;}
 .bl-tooltip-valor{font-weight:600;}
@@ -69,10 +79,7 @@ export function configurarTooltipsDe(raiz, { config, ponte } = {}) {
 /** Esconde (e solta) o tooltip do gráfico — usado em todo redesenho. */
 export function esconderTooltipsDe(raiz) {
   const t = registro.get(raizDe(raiz));
-  if (t) {
-    t.soltar();
-    t.esconder();
-  }
+  if (t) t.soltarEEsconder();
 }
 
 /** Remove o tooltip do gráfico do DOM — usado no destroy. */
@@ -191,6 +198,22 @@ function construirTooltip(raiz, temaInicial) {
     }
   }
 
+  /** Botão "×" do tooltip fixo (só existe enquanto ele está fixo). */
+  function colocarBotaoFechar() {
+    removerBotaoFechar();
+    const botao = criarEl('button', { classe: 'bl-tooltip-fechar', texto: '×', pai: el });
+    botao.setAttribute('type', 'button');
+    botao.setAttribute('aria-label', 'Fechar');
+    botao.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      api.soltar();
+    });
+  }
+  function removerBotaoFechar() {
+    const b = el.querySelector('.bl-tooltip-fechar');
+    if (b && b.parentNode) b.parentNode.removeChild(b);
+  }
+
   const api = {
     elemento: el,
     get visivel() {
@@ -246,6 +269,7 @@ function construirTooltip(raiz, temaInicial) {
       fixo = true;
       fixadoEm = Date.now();
       el.classList.add('bl-fixo');
+      colocarBotaoFechar();
       return true;
     },
 
@@ -253,8 +277,15 @@ function construirTooltip(raiz, temaInicial) {
       if (!fixo) return;
       fixo = false;
       el.classList.remove('bl-fixo');
+      removerBotaoFechar();
       el.classList.remove('bl-visivel');
       visivel = false;
+    },
+
+    /** Solta (se fixo) e esconde (se visível): nada fica na tela. */
+    soltarEEsconder() {
+      api.soltar();
+      api.esconder();
     },
 
     destruir() {
@@ -280,12 +311,32 @@ function construirTooltip(raiz, temaInicial) {
     }, true);
   }
   ouvir(document, 'keydown', (ev) => {
-    if (ev && ev.key === 'Escape') api.soltar();
+    if (ev && ev.key === 'Escape') api.soltarEEsconder();
   });
-  ouvir(document, 'pointerdown', () => {
+  ouvir(document, 'pointerdown', (ev) => {
     // O clique que FIXOU chega aqui logo depois; só solta nos seguintes.
+    // Clique DENTRO do tooltip fixo (selecionar texto) não solta; o "×"
+    // cuida de si.
+    if (ev && ev.target && el.contains(ev.target)) return;
     if (fixo && Date.now() - fixadoEm > 50) api.soltar();
   }, true);
+  // 5.1: o menu de drill do Looker fica FORA do iframe. Quando ele abre, a
+  // janela perde o foco e o mouse sai sem `pointerleave` na raiz; quando
+  // fecha, o foco volta. Nos dois casos não sobra nada na tela.
+  if (typeof window !== 'undefined') {
+    ouvir(window, 'blur', () => api.soltarEEsconder());
+    ouvir(window, 'focus', () => api.soltarEEsconder());
+  }
+  if (document.documentElement) {
+    ouvir(document.documentElement, 'mouseleave', () => api.soltarEEsconder());
+  }
+  ouvir(document, 'mouseout', (ev) => {
+    // relatedTarget nulo = o ponteiro saiu do documento (do iframe).
+    if (ev && !ev.relatedTarget && (!ev.target || !el.contains(ev.target))) api.esconder();
+  });
+  ouvir(document, 'visibilitychange', () => {
+    if (document.hidden) api.soltarEEsconder();
+  });
 
   aplicarEstilo();
   return api;
@@ -431,11 +482,15 @@ export function executarAcaoDoClique({ evento, celula, tooltip, ponte, config = 
     return tooltip && tooltip.fixar(conteudo, x, y) ? 'fixou' : 'nada';
   }
   if (acao === 'nenhuma') return 'nada';
-  if (acao === 'drill' && config.permitirDrill !== false && ponte && ponte.temDrill(celula)) {
-    if (tooltip) tooltip.soltar();
+  if (acao === 'fixar') return tooltip && tooltip.fixar(conteudo, x, y) ? 'fixou' : 'nada';
+  // "drill" (padrão e qualquer valor desconhecido): só o drill. Sem link,
+  // NÃO fixa (v3, 5.1) — era assim que o tooltip ficava preso.
+  if (config.permitirDrill !== false && ponte && ponte.temDrill(celula)) {
+    // ANTES de abrir o menu: o tooltip some, fixo ou não.
+    if (tooltip) tooltip.soltarEEsconder();
     return ponte.abrirDrill(celula, evento) ? 'drill' : 'nada';
   }
-  return tooltip && tooltip.fixar(conteudo, x, y) ? 'fixou' : 'nada';
+  return 'nada';
 }
 
 /**

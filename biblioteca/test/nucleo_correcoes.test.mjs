@@ -156,22 +156,22 @@ test('tooltip — modelo do usuário: só b/i/br/span, variáveis entram como te
   }
 });
 
-test('clique — drill quando há links; fixa quando não há; Shift fixa; "nenhuma" não faz nada', async () => {
+test('clique — drill quando há links; sem links NÃO fixa no modo drill (v3, 5.1); Shift fixa; "nenhuma" não faz nada', async () => {
   const amb = montarAmbiente();
   try {
     const { executarAcaoDoClique } = await import('../src/core/tooltip.js');
     let drills = 0;
     let fixados = 0;
     const ponte = { temDrill: (c) => !!(c && c.links), abrirDrill: () => { drills += 1; return true; } };
-    const tooltip = { fixar: () => { fixados += 1; return true; }, soltar: () => {} };
+    const tooltip = { fixar: () => { fixados += 1; return true; }, soltar: () => {}, soltarEEsconder: () => {} };
     const comLink = { value: 1, links: [{ url: '/x' }] };
     assert.equal(executarAcaoDoClique({ evento: {}, celula: comLink, tooltip, ponte, config: {} }), 'drill');
-    assert.equal(executarAcaoDoClique({ evento: {}, celula: { value: 1 }, tooltip, ponte, config: {} }), 'fixou');
+    assert.equal(executarAcaoDoClique({ evento: {}, celula: { value: 1 }, tooltip, ponte, config: {} }), 'nada');
     assert.equal(executarAcaoDoClique({ evento: { shiftKey: true }, celula: comLink, tooltip, ponte, config: {} }), 'fixou');
     assert.equal(executarAcaoDoClique({ evento: {}, celula: comLink, tooltip, ponte, config: { acaoDoClique: 'nenhuma' } }), 'nada');
     assert.equal(executarAcaoDoClique({ evento: {}, celula: comLink, tooltip, ponte, config: { acaoDoClique: 'fixar' } }), 'fixou');
     assert.equal(drills, 1);
-    assert.equal(fixados, 3);
+    assert.equal(fixados, 2);
   } finally {
     amb.restaurar();
   }
