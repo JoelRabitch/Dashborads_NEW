@@ -17,6 +17,8 @@ import {
 } from '../../core/options-kit.js';
 import { opcoesDasCalculadas } from './calculadas.js';
 import { LAYOUTS } from './layouts.js';
+import { listarProgressos } from '../../core/pacotes.js';
+import { opcoesDeIconePorValor } from '../../core/icone-por-valor.js';
 
 /** Quantas regras de formatação condicional cada coluna oferece. */
 export const REGRAS_POR_COLUNA = 3;
@@ -48,7 +50,18 @@ export const TIPOS_DE_CELULA = [
   { rotulo: 'Imagem (URL)', valor: 'imagem' },
   { rotulo: 'Link', valor: 'link' },
   { rotulo: 'Data', valor: 'data' },
+  // 5.14f (v3)
+  { rotulo: 'Ícone por valor', valor: 'icone' },
 ];
+
+/**
+ * Tipos de célula + exibições de pacotes temáticos (5.14g, ex.: xícara).
+ * Função (e não constante) porque os pacotes se registram depois que este
+ * módulo é carregado.
+ */
+export function tiposDeCelula() {
+  return TIPOS_DE_CELULA.concat(listarProgressos().map((p) => ({ rotulo: p.rotulo, valor: p.id })));
+}
 
 export const CONDICOES = [
   { rotulo: '— sem regra —', valor: 'nenhuma' },
@@ -100,6 +113,8 @@ export function opcoesEstaticas() {
     blocoAvancado(),
     // Colunas calculadas por fórmula (5.4, v3): 8 espaços fixos.
     opcoesDasCalculadas(),
+    // Ícone por valor (5.14f, v3): mapa usado pelas células do tipo "Ícone por valor".
+    opcoesDeIconePorValor({ secao: 'Formato', comCampo: false }),
     {
       // ---------- Estrutura ----------
       agruparPor: {
@@ -494,7 +509,7 @@ export function opcoesPorColuna(colunas, colunasNumericas = []) {
       section: secao,
       display: 'select',
       default: 'auto',
-      values: listaDeValores(TIPOS_DE_CELULA),
+      values: listaDeValores(tiposDeCelula()),
     };
     saida[`col_${chave}_corDoTexto`] = {
       type: 'string',

@@ -173,6 +173,8 @@ export function caminhoDoSimbolo(forma, tamanho) {
       return pontosDoWye(r).map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join('') + 'Z';
     case 'circulo':
     default:
+      // Formas registradas por pacotes (5.14b): caminho centrado em (0,0).
+      if (FORMAS_EXTRAS[forma]) return FORMAS_EXTRAS[forma].caminho(tamanho);
       return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
   }
 }
@@ -200,6 +202,31 @@ function pontosDoWye(r) {
 
 /** Formas aceitas pela opção "Forma do ponto". */
 export const FORMAS_DE_MARCADOR = ['circulo', 'quadrado', 'triangulo', 'losango', 'cruz', 'estrela', 'wye'];
+
+/** Rótulos das formas base (para a lista do painel). */
+export const ROTULOS_DAS_FORMAS = {
+  circulo: 'Círculo',
+  quadrado: 'Quadrado',
+  triangulo: 'Triângulo',
+  losango: 'Losango',
+  cruz: 'Cruz',
+  estrela: 'Estrela',
+  wye: 'Wye (Y)',
+};
+
+/** Formas registradas por pacotes (5.14b, v3): id → {rotulo, caminho(tamanho), pacote}. */
+const FORMAS_EXTRAS = {};
+
+export function registrarForma(id, { rotulo, caminho, pacote = null }) {
+  FORMAS_EXTRAS[id] = { rotulo: rotulo || id, caminho, pacote };
+  if (!FORMAS_DE_MARCADOR.includes(id)) FORMAS_DE_MARCADOR.push(id);
+  ROTULOS_DAS_FORMAS[id] = rotulo || id;
+}
+
+/** Lista de formas para o painel (base + pacotes). */
+export function listaDeFormas() {
+  return FORMAS_DE_MARCADOR.map((id) => ({ rotulo: ROTULOS_DAS_FORMAS[id] || id, valor: id }));
+}
 
 /**
  * Normaliza o nome da forma vindo do config (aceita também os nomes do

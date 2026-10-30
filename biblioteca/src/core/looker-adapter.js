@@ -140,7 +140,7 @@ export function criarPonte(instancia, opcoesEstaticas) {
      * @param {object} opcoesDinamicas opções novas (serão mescladas às estáticas)
      * @returns {boolean} true se chegou a registrar agora
      */
-    registrarOpcoes(opcoesDinamicas) {
+    registrarOpcoes(opcoesDinamicas, extra = '') {
       if (!instancia || typeof instancia.trigger !== 'function') {
         avisarUmaVez(
           'sem-trigger',
@@ -149,7 +149,9 @@ export function criarPonte(instancia, opcoesEstaticas) {
         return false;
       }
       const dinamicas = opcoesDinamicas || {};
-      const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + '|' + JSON.stringify(dinamicas);
+      // `extra` (5.14b): muda quando o pacote temático muda — as listas das
+      // opções estáticas mudam junto e o painel precisa ser registrado de novo.
+      const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + '|' + JSON.stringify(dinamicas) + '|' + extra;
       if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
       instancia._blAssinaturaDasOpcoes = assinatura;
       // Chaves em ordem de `order`: se o Looker ordenar pela inserção e não

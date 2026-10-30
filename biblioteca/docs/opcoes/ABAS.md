@@ -118,6 +118,9 @@ Ids marcados com ★ são novos (não existiam antes).
 | `calc6Alvo` ★ | — | Dados | Fórmula 6 · Aplicar na coluna |  |
 | `calc7Alvo` ★ | — | Dados | Fórmula 7 · Aplicar na coluna |  |
 | `calc8Alvo` ★ | — | Dados | Fórmula 8 · Aplicar na coluna |  |
+| `mapaDeIconesPorValor` ★ | — | Estilo | Mapa (valor=ícone; …) |  |
+| `iconePadraoPorValor` ★ | — | Estilo | Ícone padrão |  |
+| `coresPorValor` ★ | — | Estilo | Cores (valor=#cor; …) |  |
 | `layoutDaTabela` ★ | — | Estilo | Layout |  |
 | `camposDoCartao` ★ | — | Estilo | Campos do cartão/lista (vazio = todos) |  |
 | `colunasDosCartoes` ★ | — | Estilo | Cartões por linha (0 = auto) |  |
@@ -150,6 +153,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `mostrarBordasVerticais` | Visual | Estilo | Tema · Bordas verticais |  |
 | `mostrarBordasHorizontais` | Visual | Estilo | Tema · Bordas horizontais |  |
 | `raioDaBorda` | Visual | Estilo | Tema · Arredondamento (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
+| `estiloDoIcone` ★ | — | Estilo | Tema · Estilo do ícone |  |
 | `titulo` | Texto | Texto | Título · Título |  |
 | `subtitulo` | Texto | Texto | Título · Subtítulo |  |
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |
@@ -371,6 +376,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaGrade` | Visual | Estilo | Cor · Cor das linhas de grade | Cor · Cor das linhas de grade (tema personalizado) |
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -511,6 +517,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `cor_inferiorDireito` | Visual | Estilo | Quadrantes · Cor: "Alto / Baixo" | Quadrantes · Cor do quadrante "Alto / Baixo" |
 | `cor_inferiorEsquerdo` | Visual | Estilo | Quadrantes · Cor: "Baixo / Baixo" | Quadrantes · Cor do quadrante "Baixo / Baixo" |
 | `cor_superiorEsquerdo` | Visual | Estilo | Quadrantes · Cor: "Baixo / Alto" | Quadrantes · Cor do quadrante "Baixo / Alto" |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarEixoX` | Texto | Texto | Eixo X · Mostrar eixo X | Eixo X · Mostrar eixo X (horizontal) |
 | `tituloEixoX` | Texto | Texto | Eixo X · Título do eixo X |  |
 | `escalaEixoX` | Texto | Texto | Eixo X · Escala do eixo X |  |
@@ -662,6 +669,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `cor_inferiorDireito` | Visual | Estilo | Quadrantes · Cor do quadrante "Rever" |  |
 | `cor_inferiorEsquerdo` | Visual | Estilo | Quadrantes · Cor: "Descartar" | Quadrantes · Cor do quadrante "Descartar" |
 | `cor_superiorEsquerdo` | Visual | Estilo | Quadrantes · Cor: "Oportunidade" | Quadrantes · Cor do quadrante "Oportunidade" |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarEixoX` | Texto | Texto | Eixo X · Mostrar eixo X | Eixo X · Mostrar eixo X (horizontal) |
 | `tituloEixoX` | Texto | Texto | Eixo X · Título do eixo X |  |
 | `escalaEixoX` | Texto | Texto | Eixo X · Escala do eixo X |  |
@@ -814,6 +822,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `cor_inferiorDireito` | Visual | Estilo | Quadrantes · Cor do quadrante "Abacaxi" |  |
 | `cor_inferiorEsquerdo` | Visual | Estilo | Quadrantes · Cor: "Vaca leiteira" | Quadrantes · Cor do quadrante "Vaca leiteira" |
 | `cor_superiorEsquerdo` | Visual | Estilo | Quadrantes · Cor do quadrante "Estrela" |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarEixoX` | Texto | Texto | Eixo X · Mostrar eixo X | Eixo X · Mostrar eixo X (horizontal) |
 | `tituloEixoX` | Texto | Texto | Eixo X · Título do eixo X |  |
 | `escalaEixoX` | Texto | Texto | Eixo X · Escala do eixo X |  |
@@ -954,10 +963,13 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `layoutDaArvore` | Visual | Estilo | Árvore · Distribuição dos nós |  |
 | `colunasDaGrade` | Visual | Estilo | Grade · Colunas (0 = ajustar ao tamanho) |  |
+| `mapaDeIconesPorValor` ★ | — | Estilo | Ícone por valor · Mapa (valor=ícone; …) |  |
 | `formaDaLigacao` | Visual | Estilo | Árvore · Forma das ligações |  |
 | `larguraMinimaDaArvore` | Visual | Estilo | Grade · Largura mínima de cada árvore | Grade · Largura mínima de cada árvore (px) |
+| `iconePadraoPorValor` ★ | — | Estilo | Ícone por valor · Ícone padrão |  |
 | `espessuraDaLigacao` | Visual | Estilo | Árvore · Espessura das ligações |  |
 | `alturaDaArvore` | Visual | Estilo | Grade · Altura de cada árvore (px) |  |
+| `coresPorValor` ★ | — | Estilo | Ícone por valor · Cores (valor=#cor; …) |  |
 | `espessuraPorValor` | Visual | Estilo | Árvore · Ligação proporcional | Árvore · Ligação mais grossa para ramos maiores |
 | `escalaPorArvore` | Visual | Estilo | Grade · Escala por árvore | Grade · Cada árvore com o próprio tamanho de nó (deixa de ser comparável) |
 | `tamanhoDoNo` | Visual | Estilo | Árvore · Tamanho do nó |  |
@@ -965,6 +977,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoPorValor` | Visual | Estilo | Árvore · Nó pelo valor | Árvore · Nó maior para valores maiores |
 | `espacoVerticalDaGrade` ★ | — | Estilo | Grade · Espaço entre linhas (px) |  |
 | `linhasGuiaDaGrade` ★ | — | Estilo | Grade · Linhas-guia da grade |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
+| `estiloDoIcone` ★ | — | Estilo | Tema · Estilo do ícone |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -1110,8 +1124,11 @@ Ids marcados com ★ são novos (não existiam antes).
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `orientacao` | Visual | Estilo | Organograma · Direção |  |
+| `mapaDeIconesPorValor` ★ | — | Estilo | Ícone por valor · Mapa (valor=ícone; …) |  |
 | `larguraDoCartao` | Visual | Estilo | Organograma · Largura do cartão (px) |  |
+| `iconePadraoPorValor` ★ | — | Estilo | Ícone por valor · Ícone padrão |  |
 | `alturaDoCartao` | Visual | Estilo | Organograma · Altura do cartão (px) |  |
+| `coresPorValor` ★ | — | Estilo | Ícone por valor · Cores (valor=#cor; …) |  |
 | `espacoEntreNiveis` | Visual | Estilo | Organograma · Espaço entre níveis (px) |  |
 | `espacoEntreIrmaos` | Visual | Estilo | Organograma · Espaço entre vizinhos | Organograma · Espaço entre cartões vizinhos (px) |
 | `raioDoCartao` | Visual | Estilo | Organograma · Arredondamento do cartão | Organograma · Arredondamento do cartão (px) |
@@ -1121,6 +1138,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `estiloDoContador` ★ | — | Estilo | Organograma · Estilo do contador |  |
 | `espessuraDaLigacaoDoOrg` ★ | — | Estilo | Organograma · Espessura das ligações |  |
 | `formaDaLigacaoDoOrg` ★ | — | Estilo | Organograma · Forma das ligações |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
+| `estiloDoIcone` ★ | — | Estilo | Tema · Estilo do ícone |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -1256,6 +1275,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaGrade` | Visual | Estilo | Cor · Cor das linhas de grade | Cor · Cor das linhas de grade (tema personalizado) |
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -1368,6 +1388,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `corDaQueda` | Visual | Estilo | Drawdown · Cor da área de queda |  |
 | `opacidadeDaArea` | Visual | Estilo | Drawdown · Opacidade da área |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarEixoX` | Texto | Texto | Eixo X · Mostrar eixo X | Eixo X · Mostrar eixo X (horizontal) |
 | `tituloEixoX` | Texto | Texto | Eixo X · Título do eixo X |  |
 | `escalaEixoX` | Texto | Texto | Eixo X · Escala do eixo X |  |
@@ -1501,6 +1522,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaGrade` | Visual | Estilo | Cor · Cor das linhas de grade | Cor · Cor das linhas de grade (tema personalizado) |
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarEixoX` | Texto | Texto | Eixo X · Mostrar eixo X | Eixo X · Mostrar eixo X (horizontal) |
 | `tituloEixoX` | Texto | Texto | Eixo X · Título do eixo X |  |
 | `escalaEixoX` | Texto | Texto | Eixo X · Escala do eixo X |  |
@@ -1627,6 +1649,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `arranjo` | Visual | Estilo | Treemap · Como arrumar os retângulos |  |
 | `espacoEntreBlocos` | Visual | Estilo | Treemap · Espaço entre retângulos (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -1761,6 +1784,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `cor_inferiorDireito` | Visual | Estilo | Cor: "Retorno baixo, risco alto" | Quadrantes · Cor do quadrante "Retorno baixo, risco alto" |
 | `cor_inferiorEsquerdo` | Visual | Estilo | Cor: "Retorno baixo, risco baixo" | Quadrantes · Cor do quadrante "Retorno baixo, risco baixo" |
 | `cor_superiorEsquerdo` | Visual | Estilo | Cor: "Retorno alto, risco baixo" | Quadrantes · Cor do quadrante "Retorno alto, risco baixo" |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarEixoX` | Texto | Texto | Eixo X · Mostrar eixo X | Eixo X · Mostrar eixo X (horizontal) |
 | `tituloEixoX` | Texto | Texto | Eixo X · Título do eixo X |  |
 | `escalaEixoX` | Texto | Texto | Eixo X · Escala do eixo X |  |
@@ -1900,6 +1924,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `larguraDosLimites` | Visual | Estilo | Controle · Limites em quantos σ |  |
 | `mostrarZonas` | Visual | Estilo | Controle · Zonas de 1σ e 2σ | Controle · Sombrear as zonas de 1σ e 2σ |
 | `corDoSinal` | Visual | Estilo | Controle · Cor fora de controle | Controle · Cor dos pontos fora de controle |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarEixoX` | Texto | Texto | Eixo X · Mostrar eixo X | Eixo X · Mostrar eixo X (horizontal) |
 | `tituloEixoX` | Texto | Texto | Eixo X · Título do eixo X |  |
 | `escalaEixoX` | Texto | Texto | Eixo X · Escala do eixo X |  |
@@ -2017,6 +2042,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `inverterCor` | Visual | Estilo | Cor · Inverter a paleta |  |
 | `corDaAusencia` | Visual | Estilo | Cor · Cor das células sem dado |  |
 | `mostrarLegendaDeCor` | Visual | Estilo | Cor · Mostrar a régua de cor |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2125,6 +2151,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `alturaDaLinha` | Visual | Estilo | Ranking · Altura de cada barra (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2233,6 +2260,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `formaDoPonto` | Visual | Estilo | Dot plot · Forma do ponto |  |
 | `ligarPontos` | Visual | Estilo | Dot plot · Ligar os pontos | Dot plot · Ligar os pontos da mesma linha |
 | `mostrarGuias` | Visual | Estilo | Dot plot · Guias verticais | Dot plot · Linhas de guia verticais |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2351,6 +2379,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaGrade` | Visual | Estilo | Cor · Cor das linhas de grade | Cor · Cor das linhas de grade (tema personalizado) |
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2467,6 +2496,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corPorDirecao` | Visual | Estilo | Slope · Cor por direção | Slope · Colorir por direção (sobe, desce, mantém) |
 | `corDeAlta` | Visual | Estilo | Slope · Cor de quem subiu |  |
 | `corDeBaixa` | Visual | Estilo | Slope · Cor de quem caiu |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2579,6 +2609,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `escalaFixa` | Visual | Estilo | Corrida · Escala fixa | Corrida · Escala fixa (o maior valor de TODOS os períodos) |
 | `tamanhoDoRank` | Visual | Estilo | Corrida · Tamanho do número do rank | Corrida · Tamanho do número do rank (px, 0 = acompanha a barra) |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2668,6 +2699,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `usarLimites` | Dados | Dados | KPI · Cor por limites | KPI · Colorir o número por limites (verde / amarelo / vermelho) |
 | `limiteVerde` | Dados | Dados | KPI · Limite do verde | KPI · Limite do verde (a partir de; com "menor é melhor": até) |
 | `limiteAmarelo` | Dados | Dados | KPI · Limite do amarelo | KPI · Limite do amarelo (a partir de; com "menor é melhor": até) |
+| `progressoEmXicara` ★ | — | Dados | KPI · Meta em xícara | KPI · Meta em xícara (pacote Café) |
 | `colunasDoKpi` | Dados | Dados | KPI · Colunas da grade (0 = automático) |  |
 | `linhasDoKpi` | Dados | Dados | KPI · Linhas da grade (0 = automático) |  |
 | `tema` | Visual | Estilo | Tema · Tema |  |
@@ -2685,6 +2717,8 @@ Ids marcados com ★ são novos (não existiam antes).
 | `iconeDoKpi` | Visual | Estilo | KPI · Ícone |  |
 | `corDoIcone` | Visual | Estilo | KPI · Cor do ícone | KPI · Cor do ícone (vazio = destaque do tema) |
 | `kpisEmGrade` | Visual | Estilo | KPI · Vários KPIs em grade | KPI · Vários KPIs em grade (um cartão por medida) |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
+| `estiloDoIcone` ★ | — | Estilo | Tema · Estilo do ícone |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2782,6 +2816,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `tamanhoDoPonto` | Visual | Estilo | Halteres · Tamanho dos pontos (px) |  |
 | `formaDoPonto` | Visual | Estilo | Halteres · Forma do ponto |  |
 | `espessuraDaBarra` | Visual | Estilo | Halteres · Espessura da barra (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2887,6 +2922,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `familiaDaFonte` | Visual | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Visual | Estilo | Tema · Tamanho base da fonte (px) |  |
 | `espacoEntreColunas` | Visual | Estilo | Marimekko · Espaço entre colunas (px) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
 | `tamanhoDoRotulo` | Texto | Texto | Rótulo · Tamanho do rótulo (px) |  |
 | `corDoRotulo` | Texto | Texto | Rótulo · Cor do rótulo | Rótulo · Cor do rótulo (vazio = automática) |
@@ -2995,6 +3031,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `corDaGrade` | Estilo | Estilo | Cor · Cor das linhas de grade | Cor · Cor das linhas de grade (tema personalizado) |
 | `familiaDaFonte` | Estilo | Estilo | Tema · Fonte |  |
 | `tamanhoDaFonte` | Estilo | Estilo | Tema · Tamanho base da fonte (px) |  |
+| `estiloDoIcone` ★ | — | Estilo | Tema · Estilo do ícone |  |
 | `modoDoCartao` | Estilo | Estilo | Cartão · Modo |  |
 | `faixasMV` | Estilo | Estilo | Faixas · Faixas | Faixas · Faixas (Nome\|mín\|máx\|cor\|ícone; …) |
 | `corDeFundoMV` | Estilo | Estilo | Cartão · Fundo do cartão (vazio = tema) |  |
@@ -3013,6 +3050,11 @@ Ids marcados com ★ são novos (não existiam antes).
 | `fonteMV` | Estilo | Estilo | Cartão · Fonte |  |
 | `secoesRecolhiveisMV` | Estilo | Estilo | Cartão · Seções recolhíveis |  |
 | `ajustarAoTileMV` | Estilo | Estilo | Ajustar ao tamanho do tile | Cartão · Ajustar ao tamanho do tile |
+| `mapaDeIconesPorValor` ★ | — | Estilo | Cartão · Mapa (valor=ícone; …) |  |
+| `iconePadraoPorValor` ★ | — | Estilo | Cartão · Ícone padrão |  |
+| `coresPorValor` ★ | — | Estilo | Cartão · Cores (valor=#cor; …) |  |
+| `campoDoIconePorValor` ★ | — | Estilo | Cartão · Campo (nome ou rótulo) |  |
+| `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `titulo` | Texto | Texto | Título · Título |  |
 | `subtitulo` | Texto | Texto | Título · Subtítulo |  |
 | `textoSemDados` | Texto | Texto | Aviso · Mensagem quando não há dados |  |

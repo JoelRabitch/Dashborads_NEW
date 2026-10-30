@@ -38,6 +38,17 @@ import {
   blocoDeInteracao,
 } from './options-kit.js';
 import { animarEntradaGenerica } from './animate.js';
+// Pacotes temáticos (5.14b): o build troca este módulo pela lista das pastas
+// de src/packs/ (ou por nada, com BL_SEM_PACOTES=1).
+import '../packs/index.js';
+import { existeIcone } from './icones.js';
+import {
+  usaItensDePacote,
+  opcaoDePacoteTematico,
+  filtrarOpcoesPorPacote,
+  pacotesLigados,
+  PACOTE_PADRAO,
+} from './pacotes.js';
 import {
   opcoesDoCabecalho,
   planejarCabecalho,
@@ -108,9 +119,13 @@ export function defineViz(declaracao) {
   // Abas padronizadas (módulo 2.8): só section/order/label mudam aqui.
   // Entram em TODO gráfico: as opções de aviso (2.5) e as de animação (2.7)
   // que ele ainda não declara (as declaradas mantêm os próprios defaults).
-  const opcoes = organizarAbas(
-    Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho())
-  );
+  const juntas = Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho());
+  // "Pacote temático" (5.14b): só nos gráficos com listas de ícones,
+  // formas ou paletas que contêm itens de pacote.
+  if (usaItensDePacote(juntas)) Object.assign(juntas, opcaoDePacoteTematico());
+  // "Estilo do ícone" (5.14d): em todo gráfico com lista de ícones.
+  if (!juntas.estiloDoIcone && temListaDeIcones(juntas)) Object.assign(juntas, OPCAO_ESTILO_DO_ICONE);
+  const opcoes = organizarAbas(juntas);
 
   const definicao = {
     id,
@@ -209,7 +224,8 @@ function limparPendencias(bl) {
 
 function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
   const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
-  const ponte = criarPonte(this, opcoes);
+  // Listas do painel sem os itens de pacotes desligados (5.14b).
+  const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
   ponte.limparErros();
 
   // `create` pode não ter rodado em ambientes de teste; garante a estrutura.
@@ -240,11 +256,26 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   // Modelo de dados.
   const modelo = construirModelo(data, queryResponse, configFinal, ponte);
 
+  // Pacote temático trocado: registra o painel de novo (só nessa troca),
+  // para as listas mostrarem/esconderem os itens do pacote (5.14b).
+  const pacoteAgora = pacotesLigados(configFinal).join(',') || 'nenhum';
+  const pacoteAntes = bl.pacoteRegistrado === undefined ? PACOTE_PADRAO : bl.pacoteRegistrado;
+  const trocouPacote = 'pacoteTematico' in opcoes && pacoteAgora !== pacoteAntes;
+  bl.pacoteRegistrado = pacoteAgora;
+
   // Opções dinâmicas (uma por campo/série), se o gráfico quiser.
+  if (trocouPacote && typeof opcoesDinamicas !== 'function') {
+    ponte.registrarOpcoes({}, pacoteAgora);
+  }
   if (typeof opcoesDinamicas === 'function') {
     try {
       const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-      if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
+      const extra = trocouPacote || bl.pacoteRegistrado !== PACOTE_PADRAO ? pacoteAgora : '';
+      if (
+        dinamicas &&
+        (Object.keys(dinamicas).length || trocouPacote) &&
+        ponte.registrarOpcoes(filtrarOpcoesPorPacote(organizarAbas(dinamicas), configFinal), extra)
+      ) {
         // Opções novas no painel: os defaults delas valem já neste desenho.
         configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
       }
@@ -554,6 +585,24 @@ function mostrarAviso(bl, tema, mensagem) {
 }
 
 /** Opções do aviso, presentes em TODOS os gráficos (aba Texto). */
+/** "Estilo do ícone" (5.14d, v3): vale para todos os ícones do gráfico. */
+export const OPCAO_ESTILO_DO_ICONE = {
+  estiloDoIcone: {
+    type: 'string',
+    label: 'Estilo do ícone',
+    section: 'Tema',
+    display: 'select',
+    default: 'contorno',
+    values: [{ Contorno: 'contorno' }, { Preenchido: 'preenchido' }],
+  },
+};
+
+function temListaDeIcones(opcoes) {
+  return Object.values(opcoes || {}).some(
+    (o) => o && Array.isArray(o.values) && /[íi]cone/i.test(o.label || '') && o.values.some((v) => existeIcone(String(Object.values(v)[0])))
+  );
+}
+
 const OPCOES_DE_AVISO = {
   mostrarAvisos: {
     type: 'boolean',

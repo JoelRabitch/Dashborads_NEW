@@ -8,6 +8,7 @@
  * Fontes: sempre do sistema (nada de Google Fonts — regra da seção 7).
  */
 
+import { interpolateRgb } from 'd3-interpolate';
 import {
   schemeTableau10,
   schemeCategory10,
@@ -201,6 +202,26 @@ export function resolverTema(config = {}) {
 }
 
 /** Devolve o array de cores da paleta escolhida (com fallback seguro). */
+/**
+ * Registro de paletas de pacotes temáticos (5.14b, v3). O id leva o
+ * prefixo do pacote; o valor salvo continua funcionando mesmo com o pacote
+ * desligado (o pacote só filtra as listas do painel).
+ */
+export function registrarPaletaCategorica(id, { rotulo, cores, pacote = null }) {
+  PALETAS_CATEGORICAS[id] = { rotulo, cores: cores.slice(), pacote };
+}
+
+/** Escala contínua de pacote, a partir de pontos de cor (interpolação suave). */
+export function registrarEscalaContinua(id, { rotulo, cores, tipo = 'sequencial', pacote = null }) {
+  const paradas = cores.slice();
+  const interpolador = (t) => {
+    const x = Math.max(0, Math.min(1, Number(t) || 0)) * (paradas.length - 1);
+    const i = Math.min(paradas.length - 2, Math.floor(x));
+    return interpolateRgb(paradas[i], paradas[i + 1])(x - i);
+  };
+  ESCALAS_CONTINUAS[id] = { rotulo, interpolador, tipo, pacote };
+}
+
 export function coresDaPaleta(nomeDaPaleta) {
   const p = PALETAS_CATEGORICAS[nomeDaPaleta] || PALETAS_CATEGORICAS.looker;
   return p.cores;

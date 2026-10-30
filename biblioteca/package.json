@@ -9,7 +9,8 @@
     "test": "node --test test/*.test.mjs",
     "seguranca": "node build/checagem-seguranca.mjs",
     "urls": "node build/urls.mjs",
-    "opcoes": "node build/listar-opcoes.mjs && node build/relatorio-abas.mjs"
+    "opcoes": "node build/listar-opcoes.mjs && node build/relatorio-abas.mjs",
+    "testar-sem-pacotes": "node build/testar-sem-pacotes.mjs"
   },
   "devDependencies": {
     "d3-array": "3.2.4",

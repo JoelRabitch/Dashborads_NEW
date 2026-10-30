@@ -207,6 +207,15 @@
     "dinamica": false
   },
   {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
+    "dinamica": false
+  },
+  {
     "id": "mostrarRotulos",
     "label": "Rótulo · Mostrar rótulos",
     "rotuloCompleto": "Rótulo · Mostrar rótulos",

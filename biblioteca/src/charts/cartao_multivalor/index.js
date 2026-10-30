@@ -48,7 +48,14 @@ import { criarEl, criarSvgEl, definirTexto, injetarEstilo } from '../../core/dom
 import { criarFormatadorNumerico } from '../../core/format.js';
 import { opcoesDeAnimacao, animarContador } from '../../core/animate.js';
 import { compilarFormula, avaliarArvore, criarResolvedor } from '../../core/formulas.js';
-import { desenharIcone, listarIcones } from '../../core/icones.js';
+import { desenharIcone as desenharIconeBase, listarIcones } from '../../core/icones.js';
+import { listarProgressos, desenharProgresso, existeProgresso } from '../../core/pacotes.js';
+import { opcoesDeIconePorValor, criarIconePorValor, desenharIconePorValor } from '../../core/icone-por-valor.js';
+import { OPCAO_ESTILO_DO_ICONE } from '../../core/define-viz.js';
+
+/** "Estilo do ícone" (5.14d) vale para todos os ícones do cartão. */
+let estiloDosIcones = 'contorno';
+const desenharIcone = (p) => desenharIconeBase({ estilo: estiloDosIcones, ...p });
 import { textoLegivelSobre, comOpacidade } from '../../core/theme.js';
 import { paletaDoConfig } from '../../core/cores.js';
 import {
@@ -105,6 +112,8 @@ const TIPOS = [
   { rotulo: 'Estrelas', valor: 'estrelas' },
   { rotulo: 'Semáforo', valor: 'semaforo' },
   { rotulo: 'Ícone', valor: 'icone' },
+  // Exibições de pacotes temáticos (5.14g): ex.: "Progresso em xícara".
+  ...listarProgressos().map((p) => ({ rotulo: p.rotulo, valor: p.id })),
 ];
 const FORMATOS = [
   { rotulo: 'Automático (do Looker)', valor: 'auto' },
@@ -286,7 +295,16 @@ const FONTES = {
 export default defineViz({
   id: 'cartao_multivalor',
   label: 'Cartão Multi-Valores',
-  opcoes: montarOpcoes(blocoDeTooltip(), blocoDeAnimacao(), blocoDeTema(), blocoAvancado(), opcoesGerais()),
+  opcoes: montarOpcoes(
+    blocoDeTooltip(),
+    blocoDeAnimacao(),
+    blocoDeTema(),
+    blocoAvancado(),
+    opcoesGerais(),
+    OPCAO_ESTILO_DO_ICONE,
+    // 5.14f (v3): ícone por valor de um campo, no topo do cartão.
+    opcoesDeIconePorValor({ secao: 'Cartão' })
+  ),
   exigencia: { dimensoesMin: 0, medidasMin: 0, aceitaPivo: false, exigeLinhas: true },
 
   opcoesDinamicas({ modelo }) {
@@ -320,6 +338,8 @@ export default defineViz({
     const novos = new Map();
     const tooltip = ctx.tooltip();
     const fonte = FONTES[config.fonteMV] || tema.fonte;
+    estiloDosIcones = config.estiloDoIcone === 'preenchido' ? 'preenchido' : 'contorno';
+    const iconePorValor = criarIconePorValor(config);
 
     const container = criarEl('div', { classe: 'mv-raiz', pai: raiz });
     container.style.fontFamily = fonte;
@@ -362,6 +382,18 @@ export default defineViz({
         el.style.animation = `mv-entrar ${Math.max(150, anim.duracao)}ms ease-out both`;
         el.style.animationDelay = `${anim.atraso + anim.cascata * ordemDeEntrada++}ms`;
       };
+
+      // ---------- Ícone por valor (5.14f) ----------
+      if (iconePorValor && config.campoDoIconePorValor) {
+        const alvo = String(config.campoDoIconePorValor).trim().toLowerCase();
+        const c = campos.find((x) => [x.campo.nome, x.campo.rotuloCurto, x.rotulo].some((n) => String(n).toLowerCase() === alvo));
+        if (c) {
+          const valor = c.ehMedida ? modelo.valorNumerico(linha, c.campo.nome) : modelo.celula(linha, c.campo.nome)?.value;
+          const caixaDoIcone = criarEl('div', { classe: 'mv-icone-por-valor', pai: cartao });
+          caixaDoIcone.style.textAlign = 'center';
+          desenharIconePorValor(iconePorValor, { pai: caixaDoIcone, valor, lado: Math.round(base * 2), corPadrao: tema.destaque, estilo: estiloDosIcones });
+        }
+      }
 
       // ---------- Cabeçalho calculado ----------
       const cab = valorDoCabecalho({ config, modelo, linha, campos });
@@ -565,7 +597,7 @@ function digitosRolando(el, texto, anim) {
 
 /** Desenha o valor conforme o tipo de exibição. */
 function desenharValor({ el, c, texto, bruto, celula, tema, paleta, faixas, anim, config, modelo, linha, ctx }) {
-  const tipo = c.tipo === 'auto' ? (c.ehMedida ? 'numero' : 'texto') : c.tipo;
+  const tipo = c.tipo === 'auto' ? (c.ehMedida ? 'numero' : 'texto') : existeProgresso(c.tipo) ? '__progresso__' : c.tipo;
   const n = typeof bruto === 'number' ? bruto : Number(bruto);
   const fracao = Number.isFinite(n) ? Math.max(0, Math.min(1, c.meta > 0 ? n / c.meta : Math.abs(n) <= 1 ? Math.abs(n) : Math.abs(n) / 100)) : 0;
   const cor = c.corValor || paleta[0] || tema.destaque;
@@ -660,6 +692,20 @@ function desenharValor({ el, c, texto, bruto, celula, tema, paleta, faixas, anim
     }
     case 'icone': {
       desenharIcone({ pai: el, id: c.icone !== 'nenhum' ? c.icone : 'check', lado: 22, cor });
+      return;
+    }
+    case '__progresso__': {
+      // 5.14g: exibição de progresso de um pacote (ex.: xícara que enche)
+      // conforme o percentual (meta ou 0–100%).
+      desenharProgresso(c.tipo, el, fracao, {
+        lado: 40,
+        cor,
+        contornoCor: tema.texto,
+        animar: anim.ligada && config.animarBarrasMV !== false,
+        duracao: anim.duracao,
+        agendarQuadro: (fn) => ctx.agendarQuadro(fn),
+      });
+      el.appendChild(document.createTextNode(` ${Math.round(fracao * 100)}%`));
       return;
     }
     case 'link':

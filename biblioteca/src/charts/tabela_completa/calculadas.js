@@ -33,7 +33,7 @@ import { compilarFormula, avaliarArvore, criarResolvedor, ErroDeFormula } from '
 import { criarFormatadorNumerico } from '../../core/format.js';
 import { listaDeValores } from '../../core/options-kit.js';
 import { normalizarTexto } from '../../core/interaction.js';
-import { TIPOS_DE_CELULA } from './opcoes.js';
+import { tiposDeCelula } from './opcoes.js';
 
 export const ESPACOS_DE_FORMULA = 8;
 
@@ -83,7 +83,7 @@ export function opcoesDasCalculadas() {
         label: 'Tipo de célula',
         section: s,
         display: 'select',
-        values: listaDeValores(TIPOS_DE_CELULA),
+        values: listaDeValores(tiposDeCelula()),
         default: 'auto',
       },
       [`${p}Posicao`]: {

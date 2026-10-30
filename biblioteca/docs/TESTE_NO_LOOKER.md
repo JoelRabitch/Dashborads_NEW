@@ -157,3 +157,7 @@ real antes de considerar resolvido.
   - [ ] Faixas com selo e legenda; "Modo" = Um cartão por linha (grade); layouts dos itens; divisórias.
   - [ ] Passe o mouse (tooltip, destaque), clique num campo com link (drill), duplo clique copia o valor.
   - [ ] Animações (contador, cascata, barras crescendo, destaque quando muda, pulso em alerta) e "Ativar animações" desligado.
+- **5.14b–h Pacote temático Café (opcional)**
+  - [ ] Aba Estilo → "Tema · Pacote temático" = Café (padrão): paletas "Café · Espresso/Latte/Caramelo/Crema/Mocha", escalas "Café · Torra", formas Xícara/Grão/Copo em "Forma do ponto", ícones do Café no kpi_vivo ("Ícone"), no cartão, na tabela (tipo "Ícone por valor") e nos nós (Ícone por valor · Mapa).
+  - [ ] "Pacote temático" = Nenhum: as listas param de mostrar os itens do Café (o painel é registrado de novo só nessa troca); um tile que já usava uma paleta do Café continua com ela.
+  - [ ] "Estilo do ícone" = Preenchido. "Meta em xícara" no kpi_vivo (com meta); tipo "Progresso em xícara" no cartão e na tabela.

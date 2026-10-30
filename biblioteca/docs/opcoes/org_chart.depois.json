@@ -270,6 +270,15 @@
     "dinamica": false
   },
   {
+    "id": "mapaDeIconesPorValor",
+    "label": "Ícone por valor · Mapa (valor=ícone; …)",
+    "rotuloCompleto": "Ícone por valor · Mapa (valor=ícone; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
     "id": "larguraDoCartao",
     "label": "Organograma · Largura do cartão (px)",
     "rotuloCompleto": "Organograma · Largura do cartão (px)",
@@ -279,12 +288,30 @@
     "dinamica": false
   },
   {
+    "id": "iconePadraoPorValor",
+    "label": "Ícone por valor · Ícone padrão",
+    "rotuloCompleto": "Ícone por valor · Ícone padrão",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": false
+  },
+  {
     "id": "alturaDoCartao",
     "label": "Organograma · Altura do cartão (px)",
     "rotuloCompleto": "Organograma · Altura do cartão (px)",
     "section": "Estilo",
     "type": "number",
     "default": 56,
+    "dinamica": false
+  },
+  {
+    "id": "coresPorValor",
+    "label": "Ícone por valor · Cores (valor=#cor; …)",
+    "rotuloCompleto": "Ícone por valor · Cores (valor=#cor; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
     "dinamica": false
   },
   {
@@ -366,6 +393,24 @@
     "section": "Estilo",
     "type": "string",
     "default": "cotovelo",
+    "dinamica": false
+  },
+  {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
+    "dinamica": false
+  },
+  {
+    "id": "estiloDoIcone",
+    "label": "Tema · Estilo do ícone",
+    "rotuloCompleto": "Tema · Estilo do ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "contorno",
     "dinamica": false
   },
   {

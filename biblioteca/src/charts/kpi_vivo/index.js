@@ -60,6 +60,11 @@ import { formatarPercentual, formatarData, truncar, criarFormatadorNumerico } fr
 import { opcoesDeAnimacao, animarContador } from '../../core/animate.js';
 import { lerRotulos, textoDoRotulo, estilizarRotulo, formatadorDoRotulo } from '../../core/rotulos.js';
 import { larguraAproximada } from '../../core/eixos.js';
+import { listarIcones, existeIcone, desenharIcone as desenharIconeDoRegistro } from '../../core/icones.js';
+import { existeProgresso, desenharProgresso } from '../../core/pacotes.js';
+
+/** Contexto do desenho atual (para agendar quadros da animação da xícara). */
+let ctxDoKpi = null;
 import { estiloDoTexto } from '../../core/cabecalho.js';
 import {
   montarOpcoes,
@@ -285,7 +290,18 @@ export default defineViz({
             { rotulo: 'Relógio', valor: 'relogio' },
             { rotulo: 'Alerta', valor: 'alerta' },
             { rotulo: 'Alvo', valor: 'alvo' },
+            // 5.14d (v3): ícones de pacotes temáticos (somem da lista com
+            // "Pacote temático" = Nenhum; um valor salvo continua valendo).
+            ...listarIcones()
+              .filter((i) => i.pacote)
+              .map((i) => ({ rotulo: i.rotulo, valor: i.id })),
           ]),
+        },
+        progressoEmXicara: {
+          type: 'boolean',
+          label: 'Meta em xícara (pacote Café)',
+          section: 'KPI',
+          default: false,
         },
         corDoIcone: {
           type: 'string',
@@ -362,6 +378,7 @@ export default defineViz({
   },
 
   render(ctx) {
+    ctxDoKpi = ctx;
     const { modelo, config, tema, raiz, largura, altura } = ctx;
 
     const medidaEscolhida =
@@ -495,6 +512,10 @@ function desenharCartao({ ctx, pai, medida, campoDoPeriodo, largura, altura, emG
   if (config.iconeDoKpi && config.iconeDoKpi !== 'nenhum' && ICONES[config.iconeDoKpi]) {
     const lado = layout === 'compacto' ? 20 : Math.max(20, Math.min(40, altura * 0.14));
     desenharIcone({ pai: cartao, nome: config.iconeDoKpi, lado, cor: config.corDoIcone || tema.destaque });
+  } else if (config.iconeDoKpi && config.iconeDoKpi !== 'nenhum' && existeIcone(config.iconeDoKpi)) {
+    // Ícone do registro (pacotes temáticos, 5.14d).
+    const lado = layout === 'compacto' ? 20 : Math.max(20, Math.min(40, altura * 0.14));
+    desenharIconeDoRegistro({ pai: cartao, id: config.iconeDoKpi, lado, cor: config.corDoIcone || tema.destaque, estilo: config.estiloDoIcone, classe: 'kv-icone' });
   }
 
   const texto = criarEl('div', { classe: 'kv-texto', pai: cartao });
@@ -620,6 +641,18 @@ function desenharCartao({ ctx, pai, medida, campoDoPeriodo, largura, altura, emG
     const legenda = criarEl('div', { classe: 'kv-progresso-texto', pai: texto });
     legenda.style.color = tema.textoSuave;
     definirTexto(legenda, `${formatarPercentual(fracao, 0)} da meta (${formatar(meta)})`);
+    // 5.14g (v3): "Progresso em xícara", ao lado da barra de meta.
+    if (config.progressoEmXicara === true && existeProgresso('cafe_xicara')) {
+      const anim = opcoesDeAnimacao(config);
+      desenharProgresso('cafe_xicara', legenda, fracao, {
+        lado: 28,
+        cor: preenchido.style.background || tema.destaque,
+        contornoCor: tema.texto,
+        animar: anim.ligada,
+        duracao: anim.duracao,
+        agendarQuadro: (fn) => ctxDoKpi && ctxDoKpi.agendarQuadro(fn),
+      });
+    }
   }
 
   // "Esconder rótulos que se sobrepõem" (mantido): somem base, variação e

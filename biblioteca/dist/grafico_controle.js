@@ -95,7 +95,7 @@
        * @param {object} opcoesDinamicas opções novas (serão mescladas às estáticas)
        * @returns {boolean} true se chegou a registrar agora
        */
-      registrarOpcoes(opcoesDinamicas) {
+      registrarOpcoes(opcoesDinamicas, extra = "") {
         if (!instancia || typeof instancia.trigger !== "function") {
           avisarUmaVez(
             "sem-trigger",
@@ -104,7 +104,7 @@
           return false;
         }
         const dinamicas = opcoesDinamicas || {};
-        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
+        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas) + "|" + extra;
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
         const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
@@ -944,31 +944,6 @@
     return null;
   }
 
-  // node_modules/d3-scale-chromatic/src/colors.js
-  function colors_default(specifier) {
-    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
-    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
-    return colors;
-  }
-
-  // node_modules/d3-scale-chromatic/src/categorical/category10.js
-  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
-  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
-
-  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
-  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
-  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
-  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
-  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
-
   // node_modules/d3-color/src/define.js
   function define_default(constructor, factory, prototype) {
     constructor.prototype = factory.prototype = prototype;
@@ -1515,6 +1490,31 @@
     };
   }
 
+  // node_modules/d3-scale-chromatic/src/colors.js
+  function colors_default(specifier) {
+    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
+    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
+    return colors;
+  }
+
+  // node_modules/d3-scale-chromatic/src/categorical/category10.js
+  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
+  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
+
+  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
+  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
+  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
+  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
+  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
+
   // node_modules/d3-scale-chromatic/src/ramp.js
   var ramp_default = (scheme8) => rgbBasis(scheme8[scheme8.length - 1]);
 
@@ -1778,6 +1778,18 @@
     tema.metricas = METRICAS;
     return tema;
   }
+  function registrarPaletaCategorica(id, { rotulo, cores, pacote = null }) {
+    PALETAS_CATEGORICAS[id] = { rotulo, cores: cores.slice(), pacote };
+  }
+  function registrarEscalaContinua(id, { rotulo, cores, tipo = "sequencial", pacote = null }) {
+    const paradas = cores.slice();
+    const interpolador = (t) => {
+      const x2 = Math.max(0, Math.min(1, Number(t) || 0)) * (paradas.length - 1);
+      const i = Math.min(paradas.length - 2, Math.floor(x2));
+      return rgb_default(paradas[i], paradas[i + 1])(x2 - i);
+    };
+    ESCALAS_CONTINUAS[id] = { rotulo, interpolador, tipo, pacote };
+  }
   function coresDaPaleta(nomeDaPaleta) {
     const p = PALETAS_CATEGORICAS[nomeDaPaleta] || PALETAS_CATEGORICAS.looker;
     return p.cores;
@@ -1814,6 +1826,753 @@
     if (!rgb2) return cor;
     const a = Math.max(0, Math.min(1, Number(opacidade)));
     return `rgba(${rgb2[0]},${rgb2[1]},${rgb2[2]},${a})`;
+  }
+
+  // node_modules/d3-shape/src/constant.js
+  function constant_default2(x2) {
+    return function constant() {
+      return x2;
+    };
+  }
+
+  // node_modules/d3-path/src/path.js
+  var pi = Math.PI;
+  var tau = 2 * pi;
+  var epsilon = 1e-6;
+  var tauEpsilon = tau - epsilon;
+  function append(strings) {
+    this._ += strings[0];
+    for (let i = 1, n = strings.length; i < n; ++i) {
+      this._ += arguments[i] + strings[i];
+    }
+  }
+  function appendRound(digits) {
+    let d = Math.floor(digits);
+    if (!(d >= 0)) throw new Error(`invalid digits: ${digits}`);
+    if (d > 15) return append;
+    const k = 10 ** d;
+    return function(strings) {
+      this._ += strings[0];
+      for (let i = 1, n = strings.length; i < n; ++i) {
+        this._ += Math.round(arguments[i] * k) / k + strings[i];
+      }
+    };
+  }
+  var Path = class {
+    constructor(digits) {
+      this._x0 = this._y0 = // start of current subpath
+      this._x1 = this._y1 = null;
+      this._ = "";
+      this._append = digits == null ? append : appendRound(digits);
+    }
+    moveTo(x2, y2) {
+      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}`;
+    }
+    closePath() {
+      if (this._x1 !== null) {
+        this._x1 = this._x0, this._y1 = this._y0;
+        this._append`Z`;
+      }
+    }
+    lineTo(x2, y2) {
+      this._append`L${this._x1 = +x2},${this._y1 = +y2}`;
+    }
+    quadraticCurveTo(x1, y1, x2, y2) {
+      this._append`Q${+x1},${+y1},${this._x1 = +x2},${this._y1 = +y2}`;
+    }
+    bezierCurveTo(x1, y1, x2, y2, x3, y3) {
+      this._append`C${+x1},${+y1},${+x2},${+y2},${this._x1 = +x3},${this._y1 = +y3}`;
+    }
+    arcTo(x1, y1, x2, y2, r) {
+      x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
+      if (r < 0) throw new Error(`negative radius: ${r}`);
+      let x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
+      if (this._x1 === null) {
+        this._append`M${this._x1 = x1},${this._y1 = y1}`;
+      } else if (!(l01_2 > epsilon)) ;
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+        this._append`L${this._x1 = x1},${this._y1 = y1}`;
+      } else {
+        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
+        if (Math.abs(t01 - 1) > epsilon) {
+          this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
+        }
+        this._append`A${r},${r},0,0,${+(y01 * x20 > x01 * y20)},${this._x1 = x1 + t21 * x21},${this._y1 = y1 + t21 * y21}`;
+      }
+    }
+    arc(x2, y2, r, a0, a1, ccw) {
+      x2 = +x2, y2 = +y2, r = +r, ccw = !!ccw;
+      if (r < 0) throw new Error(`negative radius: ${r}`);
+      let dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x2 + dx, y0 = y2 + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
+      if (this._x1 === null) {
+        this._append`M${x0},${y0}`;
+      } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+        this._append`L${x0},${y0}`;
+      }
+      if (!r) return;
+      if (da < 0) da = da % tau + tau;
+      if (da > tauEpsilon) {
+        this._append`A${r},${r},0,1,${cw},${x2 - dx},${y2 - dy}A${r},${r},0,1,${cw},${this._x1 = x0},${this._y1 = y0}`;
+      } else if (da > epsilon) {
+        this._append`A${r},${r},0,${+(da >= pi)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
+      }
+    }
+    rect(x2, y2, w, h) {
+      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}h${w = +w}v${+h}h${-w}Z`;
+    }
+    toString() {
+      return this._;
+    }
+  };
+  function path() {
+    return new Path();
+  }
+  path.prototype = Path.prototype;
+
+  // node_modules/d3-shape/src/path.js
+  function withPath(shape) {
+    let digits = 3;
+    shape.digits = function(_) {
+      if (!arguments.length) return digits;
+      if (_ == null) {
+        digits = null;
+      } else {
+        const d = Math.floor(_);
+        if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
+        digits = d;
+      }
+      return shape;
+    };
+    return () => new Path(digits);
+  }
+
+  // node_modules/d3-shape/src/array.js
+  var slice = Array.prototype.slice;
+  function array_default(x2) {
+    return typeof x2 === "object" && "length" in x2 ? x2 : Array.from(x2);
+  }
+
+  // node_modules/d3-shape/src/curve/linear.js
+  function Linear(context) {
+    this._context = context;
+  }
+  Linear.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default:
+          this._context.lineTo(x2, y2);
+          break;
+      }
+    }
+  };
+  function linear_default(context) {
+    return new Linear(context);
+  }
+
+  // node_modules/d3-shape/src/point.js
+  function x(p) {
+    return p[0];
+  }
+  function y(p) {
+    return p[1];
+  }
+
+  // node_modules/d3-shape/src/line.js
+  function line_default(x2, y2) {
+    var defined = constant_default2(true), context = null, curve = linear_default, output = null, path2 = withPath(line);
+    x2 = typeof x2 === "function" ? x2 : x2 === void 0 ? x : constant_default2(x2);
+    y2 = typeof y2 === "function" ? y2 : y2 === void 0 ? y : constant_default2(y2);
+    function line(data) {
+      var i, n = (data = array_default(data)).length, d, defined0 = false, buffer;
+      if (context == null) output = curve(buffer = path2());
+      for (i = 0; i <= n; ++i) {
+        if (!(i < n && defined(d = data[i], i, data)) === defined0) {
+          if (defined0 = !defined0) output.lineStart();
+          else output.lineEnd();
+        }
+        if (defined0) output.point(+x2(d, i, data), +y2(d, i, data));
+      }
+      if (buffer) return output = null, buffer + "" || null;
+    }
+    line.x = function(_) {
+      return arguments.length ? (x2 = typeof _ === "function" ? _ : constant_default2(+_), line) : x2;
+    };
+    line.y = function(_) {
+      return arguments.length ? (y2 = typeof _ === "function" ? _ : constant_default2(+_), line) : y2;
+    };
+    line.defined = function(_) {
+      return arguments.length ? (defined = typeof _ === "function" ? _ : constant_default2(!!_), line) : defined;
+    };
+    line.curve = function(_) {
+      return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
+    };
+    line.context = function(_) {
+      return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
+    };
+    return line;
+  }
+
+  // node_modules/d3-shape/src/curve/bump.js
+  var Bump = class {
+    constructor(context, x2) {
+      this._context = context;
+      this._x = x2;
+    }
+    areaStart() {
+      this._line = 0;
+    }
+    areaEnd() {
+      this._line = NaN;
+    }
+    lineStart() {
+      this._point = 0;
+    }
+    lineEnd() {
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    }
+    point(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0: {
+          this._point = 1;
+          if (this._line) this._context.lineTo(x2, y2);
+          else this._context.moveTo(x2, y2);
+          break;
+        }
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._x) this._context.bezierCurveTo(this._x0 = (this._x0 + x2) / 2, this._y0, this._x0, y2, x2, y2);
+          else this._context.bezierCurveTo(this._x0, this._y0 = (this._y0 + y2) / 2, x2, this._y0, x2, y2);
+          break;
+        }
+      }
+      this._x0 = x2, this._y0 = y2;
+    }
+  };
+  function bumpX(context) {
+    return new Bump(context, true);
+  }
+
+  // node_modules/d3-shape/src/curve/basis.js
+  function point(that, x2, y2) {
+    that._context.bezierCurveTo(
+      (2 * that._x0 + that._x1) / 3,
+      (2 * that._y0 + that._y1) / 3,
+      (that._x0 + 2 * that._x1) / 3,
+      (that._y0 + 2 * that._y1) / 3,
+      (that._x0 + 4 * that._x1 + x2) / 6,
+      (that._y0 + 4 * that._y1 + y2) / 6
+    );
+  }
+  function Basis(context) {
+    this._context = context;
+  }
+  Basis.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 3:
+          point(this, this._x1, this._y1);
+        // falls through
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
+        // falls through
+        default:
+          point(this, x2, y2);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x2;
+      this._y0 = this._y1, this._y1 = y2;
+    }
+  };
+  function basis_default2(context) {
+    return new Basis(context);
+  }
+
+  // node_modules/d3-shape/src/curve/cardinal.js
+  function point2(that, x2, y2) {
+    that._context.bezierCurveTo(
+      that._x1 + that._k * (that._x2 - that._x0),
+      that._y1 + that._k * (that._y2 - that._y0),
+      that._x2 + that._k * (that._x1 - x2),
+      that._y2 + that._k * (that._y1 - y2),
+      that._x2,
+      that._y2
+    );
+  }
+  function Cardinal(context, tension) {
+    this._context = context;
+    this._k = (1 - tension) / 6;
+  }
+  Cardinal.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x2, this._y2);
+          break;
+        case 3:
+          point2(this, this._x1, this._y1);
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+          this._x1 = x2, this._y1 = y2;
+          break;
+        case 2:
+          this._point = 3;
+        // falls through
+        default:
+          point2(this, x2, y2);
+          break;
+      }
+      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x2;
+      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y2;
+    }
+  };
+  var cardinal_default = (function custom(tension) {
+    function cardinal(context) {
+      return new Cardinal(context, tension);
+    }
+    cardinal.tension = function(tension2) {
+      return custom(+tension2);
+    };
+    return cardinal;
+  })(0);
+
+  // node_modules/d3-shape/src/curve/monotone.js
+  function sign(x2) {
+    return x2 < 0 ? -1 : 1;
+  }
+  function slope3(that, x2, y2) {
+    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
+    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
+  }
+  function slope2(that, t) {
+    var h = that._x1 - that._x0;
+    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
+  }
+  function point3(that, t0, t1) {
+    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
+    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
+  }
+  function MonotoneX(context) {
+    this._context = context;
+  }
+  MonotoneX.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      switch (this._point) {
+        case 2:
+          this._context.lineTo(this._x1, this._y1);
+          break;
+        case 3:
+          point3(this, this._t0, slope2(this, this._t0));
+          break;
+      }
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      var t1 = NaN;
+      x2 = +x2, y2 = +y2;
+      if (x2 === this._x1 && y2 === this._y1) return;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+          break;
+        case 2:
+          this._point = 3;
+          point3(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
+          break;
+        default:
+          point3(this, this._t0, t1 = slope3(this, x2, y2));
+          break;
+      }
+      this._x0 = this._x1, this._x1 = x2;
+      this._y0 = this._y1, this._y1 = y2;
+      this._t0 = t1;
+    }
+  };
+  function MonotoneY(context) {
+    this._context = new ReflectContext(context);
+  }
+  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x2, y2) {
+    MonotoneX.prototype.point.call(this, y2, x2);
+  };
+  function ReflectContext(context) {
+    this._context = context;
+  }
+  ReflectContext.prototype = {
+    moveTo: function(x2, y2) {
+      this._context.moveTo(y2, x2);
+    },
+    closePath: function() {
+      this._context.closePath();
+    },
+    lineTo: function(x2, y2) {
+      this._context.lineTo(y2, x2);
+    },
+    bezierCurveTo: function(x1, y1, x2, y2, x3, y3) {
+      this._context.bezierCurveTo(y1, x1, y2, x2, y3, x3);
+    }
+  };
+  function monotoneX(context) {
+    return new MonotoneX(context);
+  }
+  function monotoneY(context) {
+    return new MonotoneY(context);
+  }
+
+  // node_modules/d3-shape/src/curve/natural.js
+  function Natural(context) {
+    this._context = context;
+  }
+  Natural.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = [];
+      this._y = [];
+    },
+    lineEnd: function() {
+      var x2 = this._x, y2 = this._y, n = x2.length;
+      if (n) {
+        this._line ? this._context.lineTo(x2[0], y2[0]) : this._context.moveTo(x2[0], y2[0]);
+        if (n === 2) {
+          this._context.lineTo(x2[1], y2[1]);
+        } else {
+          var px = controlPoints(x2), py = controlPoints(y2);
+          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
+            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x2[i1], y2[i1]);
+          }
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
+      this._line = 1 - this._line;
+      this._x = this._y = null;
+    },
+    point: function(x2, y2) {
+      this._x.push(+x2);
+      this._y.push(+y2);
+    }
+  };
+  function controlPoints(x2) {
+    var i, n = x2.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
+    a[0] = 0, b[0] = 2, r[0] = x2[0] + 2 * x2[1];
+    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x2[i] + 2 * x2[i + 1];
+    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x2[n - 1] + x2[n];
+    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
+    a[n - 1] = r[n - 1] / b[n - 1];
+    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
+    b[n - 1] = (x2[n] + a[n - 1]) / 2;
+    for (i = 0; i < n - 1; ++i) b[i] = 2 * x2[i + 1] - a[i + 1];
+    return [a, b];
+  }
+  function natural_default(context) {
+    return new Natural(context);
+  }
+
+  // node_modules/d3-shape/src/curve/step.js
+  function Step(context, t) {
+    this._context = context;
+    this._t = t;
+  }
+  Step.prototype = {
+    areaStart: function() {
+      this._line = 0;
+    },
+    areaEnd: function() {
+      this._line = NaN;
+    },
+    lineStart: function() {
+      this._x = this._y = NaN;
+      this._point = 0;
+    },
+    lineEnd: function() {
+      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
+      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
+      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
+    },
+    point: function(x2, y2) {
+      x2 = +x2, y2 = +y2;
+      switch (this._point) {
+        case 0:
+          this._point = 1;
+          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
+          break;
+        case 1:
+          this._point = 2;
+        // falls through
+        default: {
+          if (this._t <= 0) {
+            this._context.lineTo(this._x, y2);
+            this._context.lineTo(x2, y2);
+          } else {
+            var x1 = this._x * (1 - this._t) + x2 * this._t;
+            this._context.lineTo(x1, this._y);
+            this._context.lineTo(x1, y2);
+          }
+          break;
+        }
+      }
+      this._x = x2, this._y = y2;
+    }
+  };
+  function step_default(context) {
+    return new Step(context, 0.5);
+  }
+  function stepAfter(context) {
+    return new Step(context, 1);
+  }
+
+  // src/core/shapes.js
+  function CatmullLimitada(contexto) {
+    this._context = contexto;
+  }
+  CatmullLimitada.prototype = {
+    areaStart() {
+      this._line = 0;
+    },
+    areaEnd() {
+      this._line = NaN;
+    },
+    lineStart() {
+      this._pontos = [];
+    },
+    point(x2, y2) {
+      this._pontos.push([+x2, +y2]);
+    },
+    lineEnd() {
+      const p = this._pontos;
+      const n = p.length;
+      const c = this._context;
+      if (n) {
+        if (this._line) c.lineTo(p[0][0], p[0][1]);
+        else c.moveTo(p[0][0], p[0][1]);
+        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = p[i - 1] || p[i];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = p[i + 2] || p2;
+          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
+          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
+          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
+          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
+          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) c.closePath();
+      this._line = 1 - this._line;
+    }
+  };
+  function curvaCatmullLimitada(contexto) {
+    return new CatmullLimitada(contexto);
+  }
+  var CURVAS = {
+    linear: linear_default,
+    monotone: monotoneX,
+    monotoneY,
+    basis: basis_default2,
+    catmull: curvaCatmullLimitada,
+    // "bump" (v3, 5.6): tangente horizontal nas duas pontas, sem overshoot.
+    bump: bumpX,
+    cardinal: cardinal_default,
+    natural: natural_default,
+    step: step_default,
+    stepAfter
+  };
+  function curvaPorNome(nome) {
+    return CURVAS[nome] || monotoneX;
+  }
+  function geradorDeLinha({ x: x2, y: y2, curva = "monotone", definido = null }) {
+    const g = line_default().x(x2).y(y2).curve(curvaPorNome(curva));
+    if (definido) g.defined(definido);
+    return g;
+  }
+  function caminhoDoSimbolo(forma, tamanho) {
+    const r = Math.max(0.5, tamanho / 2);
+    switch (forma) {
+      case "quadrado":
+        return `M${-r},${-r}h${r * 2}v${r * 2}h${-r * 2}Z`;
+      case "triangulo": {
+        const h = r * 1.6;
+        return `M0,${-h}L${r * 1.4},${h * 0.7}L${-r * 1.4},${h * 0.7}Z`;
+      }
+      case "losango":
+        return `M0,${-r * 1.3}L${r * 1},0L0,${r * 1.3}L${-r * 1},0Z`;
+      case "cruz": {
+        const b = r * 0.42;
+        return `M${-b},${-r}h${b * 2}v${r - b}h${r - b}v${b * 2}h${-(r - b)}v${r - b}h${-b * 2}v${-(r - b)}h${-(r - b)}v${-b * 2}h${r - b}Z`;
+      }
+      case "estrela": {
+        const pontas = 5;
+        const rExterno = r * 1.25;
+        const rInterno = r * 0.5;
+        let d = "";
+        for (let i = 0; i < pontas * 2; i++) {
+          const raio = i % 2 === 0 ? rExterno : rInterno;
+          const ang = Math.PI / pontas * i - Math.PI / 2;
+          const x2 = Math.cos(ang) * raio;
+          const y2 = Math.sin(ang) * raio;
+          d += `${i === 0 ? "M" : "L"}${x2.toFixed(2)},${y2.toFixed(2)}`;
+        }
+        return `${d}Z`;
+      }
+      case "wye":
+        return pontosDoWye(r).map(([x2, y2], i) => `${i ? "L" : "M"}${x2.toFixed(2)},${y2.toFixed(2)}`).join("") + "Z";
+      case "circulo":
+      default:
+        if (FORMAS_EXTRAS[forma]) return FORMAS_EXTRAS[forma].caminho(tamanho);
+        return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
+    }
+  }
+  function pontosDoWye(r) {
+    const b = r * 0.38;
+    const pontos = [];
+    for (let k = 0; k < 3; k++) {
+      const ang = -Math.PI / 2 + k * 2 * Math.PI / 3;
+      const cx = Math.cos(ang);
+      const cy = Math.sin(ang);
+      const px = -cy;
+      const py = cx;
+      const centro = b / Math.sqrt(3);
+      pontos.push([cx * r * 1.15 - px * b, cy * r * 1.15 - py * b]);
+      pontos.push([cx * r * 1.15 + px * b, cy * r * 1.15 + py * b]);
+      const prox = ang + Math.PI / 3;
+      pontos.push([Math.cos(prox) * centro * 2, Math.sin(prox) * centro * 2]);
+    }
+    return pontos;
+  }
+  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
+  var ROTULOS_DAS_FORMAS = {
+    circulo: "C\xEDrculo",
+    quadrado: "Quadrado",
+    triangulo: "Tri\xE2ngulo",
+    losango: "Losango",
+    cruz: "Cruz",
+    estrela: "Estrela",
+    wye: "Wye (Y)"
+  };
+  var FORMAS_EXTRAS = {};
+  function registrarForma(id, { rotulo, caminho, pacote = null }) {
+    FORMAS_EXTRAS[id] = { rotulo: rotulo || id, caminho, pacote };
+    if (!FORMAS_DE_MARCADOR.includes(id)) FORMAS_DE_MARCADOR.push(id);
+    ROTULOS_DAS_FORMAS[id] = rotulo || id;
+  }
+  function formaDoMarcador(nome) {
+    const mapa = { circle: "circulo", square: "quadrado", triangle: "triangulo", diamond: "losango", cross: "cruz", star: "estrela", y: "wye" };
+    const n = String(nome || "").trim().toLowerCase();
+    if (FORMAS_DE_MARCADOR.includes(n)) return n;
+    return mapa[n] || "circulo";
+  }
+  function criarMarcadorSvg(pai, forma, x2, y2, diametro, atributos = {}) {
+    const f = formaDoMarcador(forma);
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    el.setAttribute("d", caminhoDoSimbolo(f, Math.max(1, Number(diametro) || 1)));
+    el.setAttribute("transform", `translate(${Number(x2) || 0},${Number(y2) || 0})`);
+    el.setAttribute("class", "bl-marcador");
+    el.setAttribute("data-forma", f);
+    for (const [k, v] of Object.entries(atributos)) {
+      if (v === void 0 || v === null) continue;
+      if (k === "classe") el.setAttribute("class", `bl-marcador ${v}`);
+      else el.setAttribute(k, String(v));
+    }
+    if (pai) pai.appendChild(el);
+    return el;
+  }
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
+    return null;
   }
 
   // src/core/rotulos-do-painel.js
@@ -3088,6 +3847,209 @@
     return marcas.length;
   }
 
+  // src/core/icones.js
+  var registro = /* @__PURE__ */ new Map();
+  function registrarIcone(id, def) {
+    registro.set(id, { rotulo: def.rotulo || id, pacote: def.pacote || null, contorno: def.contorno, preenchido: def.preenchido || null });
+  }
+  function existeIcone(id) {
+    return registro.has(id);
+  }
+  var BASE = {
+    seta: ["Seta", "M5 12h14M13 6l6 6-6 6"],
+    estrela: ["Estrela", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"],
+    carrinho: ["Carrinho", "M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2M9 20h.01M17 20h.01"],
+    pessoa: ["Pessoa", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7"],
+    moeda: ["Moeda", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"],
+    grafico: ["Gr\xE1fico", "M4 20V10M10 20V4M16 20v-7M22 20H2"],
+    relogio: ["Rel\xF3gio", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2"],
+    alerta: ["Alerta", "M12 3l10 18H2zM12 10v5M12 18v.01", "M12 2.5L22.5 21h-21zM11 10h2v5h-2zM11 17h2v2h-2z"],
+    alvo: ["Alvo", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"],
+    check: ["Confirmado", "M4 12l5 5L20 6"],
+    xis: ["Recusado", "M6 6l12 12M18 6L6 18"],
+    coracao: ["Cora\xE7\xE3o", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"],
+    casa: ["Casa", "M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"],
+    sobe: ["Sobe", "M12 19V5M6 11l6-6 6 6"],
+    desce: ["Desce", "M12 5v14M6 13l6 6 6-6"]
+  };
+  for (const [id, [rotulo, contorno, preenchido]] of Object.entries(BASE)) registrarIcone(id, { rotulo, contorno, preenchido });
+
+  // src/core/pacotes.js
+  var PACOTE_PADRAO = "cafe";
+  var pacotes = /* @__PURE__ */ new Map();
+  var progressos = /* @__PURE__ */ new Map();
+  var presets = /* @__PURE__ */ new Map();
+  function registrarPacote({ id, nome, icones = {}, formas = {}, paletas = {}, escalas = {}, progressos: prog = {}, presets: pre = {} }) {
+    const prefixo = `${id}_`;
+    const conferir = (chave) => {
+      if (!chave.startsWith(prefixo)) throw new Error(`pacote ${id}: o id "${chave}" precisa come\xE7ar com "${prefixo}"`);
+    };
+    pacotes.set(id, { id, nome });
+    for (const [k, def] of Object.entries(icones)) {
+      conferir(k);
+      registrarIcone(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(formas)) {
+      conferir(k);
+      registrarForma(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(paletas)) {
+      conferir(k);
+      registrarPaletaCategorica(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(escalas)) {
+      conferir(k);
+      registrarEscalaContinua(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(prog)) {
+      conferir(k);
+      progressos.set(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(pre)) {
+      conferir(k);
+      presets.set(k, { ...def, pacote: id });
+    }
+  }
+  function listarPacotes() {
+    return Array.from(pacotes.values());
+  }
+  function pacotesLigados(config = {}) {
+    const escolhido = config.pacoteTematico;
+    if (escolhido === "nenhum") return [];
+    if (escolhido && pacotes.has(escolhido)) return [escolhido];
+    return pacotes.has(PACOTE_PADRAO) ? [PACOTE_PADRAO] : [];
+  }
+  function prefixosDesligados(config = {}) {
+    const ligados = pacotesLigados(config);
+    return listarPacotes().map((p) => p.id).filter((id) => !ligados.includes(id)).map((id) => `${id}_`);
+  }
+  function usaItensDePacote(opcoes) {
+    const prefixos = listarPacotes().map((p) => `${p.id}_`);
+    if (!prefixos.length) return false;
+    return Object.values(opcoes || {}).some(
+      (o) => o && Array.isArray(o.values) && o.values.some((v) => prefixos.some((p) => String(Object.values(v)[0]).startsWith(p)))
+    );
+  }
+  function filtrarOpcoesPorPacote(opcoes, config) {
+    const prefixos = prefixosDesligados(config);
+    if (!prefixos.length) return opcoes;
+    const saida = {};
+    for (const [id, o] of Object.entries(opcoes || {})) {
+      if (o && Array.isArray(o.values)) {
+        const copia = { ...o, values: o.values.filter((v) => !prefixos.some((p) => String(Object.values(v)[0]).startsWith(p))) };
+        if (o._organizada) Object.defineProperty(copia, "_organizada", { value: true, enumerable: false });
+        saida[id] = copia;
+      } else saida[id] = o;
+    }
+    return saida;
+  }
+  function opcaoDePacoteTematico() {
+    const lista = [{ "Nenhum": "nenhum" }].concat(listarPacotes().map((p) => ({ [p.nome]: p.id })));
+    return {
+      pacoteTematico: {
+        type: "string",
+        label: "Pacote tem\xE1tico",
+        section: "Tema",
+        display: "select",
+        default: pacotes.has(PACOTE_PADRAO) ? PACOTE_PADRAO : "nenhum",
+        values: lista
+      }
+    };
+  }
+
+  // src/packs/cafe/index.js
+  var ICONES = {
+    cafe_xicara: ["X\xEDcara", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M7 3.5v3M10 3.5v3M13 3.5v3M3 21h15", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h1.5a3 3 0 0 1 0 6H16v-1.5h1.5a1.5 1.5 0 0 0 0-3H16zM3 20h15v1.5H3z"],
+    cafe_copo: ["Copo de viagem", "M7 6h10l-1.3 14.5H8.3zM6 6h12M8.5 2.5h7L16 6H8zM7.6 11h8.8", "M6 5.2h12V7H6zM8.4 2.2h7.2L16.4 5H7.6zM7.1 7.6h9.8l-1.2 13H8.3z"],
+    cafe_grao: ["Gr\xE3o", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9zM12.5 3.2c-2.2 3-2.2 6 0 8.8s2.2 5.8 0 8.8", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9z"],
+    cafe_prensa: ["Prensa francesa", "M7 7h9v13H7zM5.5 20.5h12M11.5 2.5v9M9 2.5h5M7 11.5h9M16 9.5h2.5v8H16", "M7 7h9v13H7zM5.5 19.8h12v1.5h-12zM10.8 2h1.4v5h-1.4zM16 9h3v9h-3v-1.5h1.5v-6H16z"],
+    cafe_moedor: ["Moedor", "M6 10h12l-1.2 11H7.2zM8 10V7h8v3M12 7V4.5M12 4.5h4.5M10 15h4", "M6 10h12l-1.2 11H7.2zM8 6.5h8V10H8zM11.3 4h1.4v2.5h-1.4zM11.3 3.8h5.4v1.4h-5.4z"],
+    cafe_espresso: ["M\xE1quina de espresso", "M5 3h14v6H5zM7 9v4h10V9M9.5 13v2M14.5 13v2M8.5 17h7v4h-7zM4 21h16M8 6h3", "M5 3h14v6H5zM7 9h10v4H7zM8.5 16.5h7V21h-7zM4 20.2h16v1.5H4z"],
+    cafe_croissant: ["Croissant", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1zM12 5.5V11M7.5 8l1.5 5M16.5 8L15 13", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1z"],
+    cafe_bolo: ["Bolo", "M4 12h16v8H4zM4 15c2 1.2 4-1 6 0s4 1.2 6 0 3-1 4 0M12 4.5v4M10.5 6.5h3M8 12V9.5h8V12", "M4 12h16v8H4zM8 9h8v3H8zM11.3 4h1.4v5h-1.4z"],
+    cafe_loja: ["Loja", "M3.5 9L5.5 4h13l2 5M3.5 9h17M5 9v11h14V9M10 20v-5.5h4V20M3.5 9a2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0", "M5.5 4h13l2 5h-17zM5 10.5h14V20h-5v-5.5h-4V20H5z"],
+    cafe_quiosque: ["Quiosque", "M4 10h16M6 10v10M18 10v10M4 20h16M4 10l2-6h12l2 6M9 14h6v6H9z", "M6 4h12l2 6H4zM6 11h12v9H6z"],
+    cafe_caminhao: ["Caminh\xE3o de entrega", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7M6 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7zM6 20a2.3 2.3 0 1 0 0-4.6A2.3 2.3 0 0 0 6 20zM17 20a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6z"],
+    cafe_cupom: ["Cupom", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM9 7v10M13 10.5h.01M17 13.5h.01M17.5 10l-5 4", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"],
+    cafe_fidelidade: ["Estrela de fidelidade", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19zM12 6.5l1.7 3.5 3.8.6-2.7 2.6.6 3.8L12 15.2 8.6 17l.6-3.8-2.7-2.6 3.8-.6z", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19z"],
+    cafe_coroa: ["Coroa", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 21h14", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 20.2h14v1.5H5z"],
+    cafe_cartao: ["Cart\xE3o", "M3 6h18v12H3zM3 10h18M6 14.5h4", "M3 6h18v3.2H3zM3 10.8h18V18H3z"]
+  };
+  var FORMAS = {
+    cafe_xicara: {
+      rotulo: "X\xEDcara",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.85)},${f(-0.55)}h${f(1.35)}v${f(0.6)}a${f(0.675)},${f(0.6)} 0 0 1 ${f(-1.35)},0zM${f(0.5)},${f(-0.4)}h${f(0.25)}a${f(0.3)},${f(0.3)} 0 0 1 0,${f(0.6)}h${f(-0.25)}z`;
+      }
+    },
+    cafe_grao: {
+      rotulo: "Gr\xE3o",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        return `M${(-0.72 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(1.44 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(-1.44 * r).toFixed(2)},0z`;
+      }
+    },
+    cafe_copo: {
+      rotulo: "Copo",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.65)},${f(-1)}h${f(1.3)}l${f(-0.22)},${f(2)}h${f(-0.86)}z`;
+      }
+    }
+  };
+  var PALETAS = {
+    cafe_espresso: { rotulo: "Caf\xE9 \xB7 Espresso", cores: ["#3B2416", "#6F4E37", "#A0522D", "#C8A27A", "#E6CCB2", "#7F5539", "#B08968", "#DDB892", "#4A3728"] },
+    cafe_latte: { rotulo: "Caf\xE9 \xB7 Latte", cores: ["#C8A27A", "#E3C9A8", "#8B5E3C", "#F2E6D8", "#A47551", "#D6B48C", "#6B4F3A", "#BFA58A"] },
+    cafe_caramelo: { rotulo: "Caf\xE9 \xB7 Caramelo", cores: ["#AF6E4D", "#D4A373", "#E9C46A", "#F4A261", "#8D5524", "#C68B59", "#FFD8A9", "#7B3F00"] },
+    cafe_crema: { rotulo: "Caf\xE9 \xB7 Crema", cores: ["#FFF1D6", "#F3D9B1", "#E8C39E", "#D9A86C", "#C08552", "#A0673D", "#7A4E2D", "#5C3A21"] },
+    cafe_mocha: { rotulo: "Caf\xE9 \xB7 Mocha", cores: ["#4B3832", "#854442", "#BE9B7B", "#FFF4E6", "#3C2F2F", "#A47148", "#D4A574", "#6E4C3A"] }
+  };
+  var ESCALAS = {
+    cafe_torra: { rotulo: "Caf\xE9 \xB7 Torra (clara \u2192 escura)", cores: ["#F5E6D3", "#D9B48F", "#A9744F", "#6F4E37", "#3B2416"], tipo: "sequencial" },
+    cafe_torra_divergente: { rotulo: "Caf\xE9 \xB7 Torra divergente", cores: ["#3B2416", "#A9744F", "#F5F0E8", "#7FA7A0", "#2F5D57"], tipo: "divergente" }
+  };
+  var contador = 0;
+  function desenharXicara(pai, fracao, { lado = 40, cor = "#6F4E37", contornoCor = "currentColor", animar = false, duracao = 600, curva = "ease-out", agendarQuadro = null } = {}) {
+    const id = `cafe-xic-${contador += 1}`;
+    const svg = criarSvgEl("svg", {
+      pai,
+      classe: "cafe-xicara",
+      atributos: { width: lado, height: lado, viewBox: "0 0 24 24", "data-fracao": fracao.toFixed(3), role: "img", "aria-label": `${Math.round(fracao * 100)}%` }
+    });
+    const defs = criarSvgEl("defs", { pai: svg });
+    const clip = criarSvgEl("clipPath", { pai: defs, atributos: { id } });
+    criarSvgEl("path", { pai: clip, atributos: { d: "M4.6 9.6h10.8v4.4a4.4 4.4 0 0 1-4.4 4.4H9a4.4 4.4 0 0 1-4.4-4.4z" } });
+    const g = criarSvgEl("g", { pai: svg, atributos: { "clip-path": `url(#${id})` } });
+    const liquido = criarSvgEl("rect", { pai: g, classe: "cafe-liquido", atributos: { x: 4, y: 9.6, width: 12, height: 8.8, fill: cor } });
+    liquido.style.transformBox = "fill-box";
+    liquido.style.transformOrigin = "50% 100%";
+    const final = `scaleY(${fracao})`;
+    if (animar && agendarQuadro) {
+      liquido.style.transform = "scaleY(0)";
+      liquido.style.transition = `transform ${duracao}ms ${curva}`;
+      agendarQuadro(() => {
+        liquido.style.transform = final;
+      });
+    } else liquido.style.transform = final;
+    criarSvgEl("path", {
+      pai: svg,
+      atributos: { d: ICONES.cafe_xicara[1], fill: "none", stroke: contornoCor, "stroke-width": 1.6, "stroke-linecap": "round", "stroke-linejoin": "round" }
+    });
+    return svg;
+  }
+  registrarPacote({
+    id: "cafe",
+    nome: "Caf\xE9",
+    icones: Object.fromEntries(Object.entries(ICONES).map(([k, [rotulo, contorno, preenchido]]) => [k, { rotulo: `Caf\xE9 \xB7 ${rotulo}`, contorno, preenchido }])),
+    formas: FORMAS,
+    paletas: PALETAS,
+    escalas: ESCALAS,
+    progressos: { cafe_xicara: { rotulo: "Progresso em x\xEDcara", desenhar: desenharXicara } }
+  });
+
   // src/core/medida-texto.js
   var ESTREITOS = /* @__PURE__ */ new Set([...`iljtf.,:;|!'"()[]{} `]);
   var LARGOS = /* @__PURE__ */ new Set([..."mwMWQGOD@%"]);
@@ -3448,7 +4410,7 @@
 .bl-tooltip-chip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
 .bl-tooltip-dica{opacity:.6;font-size:.9em;margin-top:3px;}
 `;
-  var registro = /* @__PURE__ */ new WeakMap();
+  var registro2 = /* @__PURE__ */ new WeakMap();
   var contextos = /* @__PURE__ */ new WeakMap();
   var TAGS_DO_MODELO = /* @__PURE__ */ new Set(["b", "i", "br", "span"]);
   var TAGS_DO_HTML_DO_LOOKER = /* @__PURE__ */ new Set(["b", "i", "br", "span", "strong", "em", "p", "div", "u", "small"]);
@@ -3461,28 +4423,28 @@
     const r = raizDe(raiz);
     if (!r) return;
     contextos.set(r, { config: config || {}, ponte: ponte || null });
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.aplicarEstilo();
   }
   function esconderTooltipsDe(raiz) {
-    const t = registro.get(raizDe(raiz));
+    const t = registro2.get(raizDe(raiz));
     if (t) t.soltarEEsconder();
   }
   function destruirTooltipsDe(raiz) {
     const r = raizDe(raiz);
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.destruir();
     contextos.delete(r);
   }
   function criarTooltip(hospedeiro, tema) {
     const raiz = raizDe(hospedeiro);
-    const existente = registro.get(raiz);
+    const existente = registro2.get(raiz);
     if (existente && existente.elemento.isConnected) {
       existente.definirTema(tema);
       return existente;
     }
     const t = construirTooltip(raiz, tema);
-    registro.set(raiz, t);
+    registro2.set(raiz, t);
     return t;
   }
   function construirTooltip(raiz, temaInicial) {
@@ -3644,7 +4606,7 @@
           if (el.parentNode) el.parentNode.removeChild(el);
         } catch (_) {
         }
-        if (registro.get(raiz) === api) registro.delete(raiz);
+        if (registro2.get(raiz) === api) registro2.delete(raiz);
         visivel = false;
         fixo = false;
       }
@@ -3831,9 +4793,10 @@
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
-    const opcoes = organizarAbas(
-      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho())
-    );
+    const juntas = Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho());
+    if (usaItensDePacote(juntas)) Object.assign(juntas, opcaoDePacoteTematico());
+    if (!juntas.estiloDoIcone && temListaDeIcones(juntas)) Object.assign(juntas, OPCAO_ESTILO_DO_ICONE);
+    const opcoes = organizarAbas(juntas);
     const definicao = {
       id,
       label,
@@ -3919,7 +4882,7 @@
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
     const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
-    const ponte = criarPonte(this, opcoes);
+    const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
     ponte.limparErros();
     if (!this._bl) {
       definicaoCreateManual.call(this, element);
@@ -3936,10 +4899,18 @@
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
+    const pacoteAgora = pacotesLigados(configFinal).join(",") || "nenhum";
+    const pacoteAntes = bl.pacoteRegistrado === void 0 ? PACOTE_PADRAO : bl.pacoteRegistrado;
+    const trocouPacote = "pacoteTematico" in opcoes && pacoteAgora !== pacoteAntes;
+    bl.pacoteRegistrado = pacoteAgora;
+    if (trocouPacote && typeof opcoesDinamicas !== "function") {
+      ponte.registrarOpcoes({}, pacoteAgora);
+    }
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
+        const extra = trocouPacote || bl.pacoteRegistrado !== PACOTE_PADRAO ? pacoteAgora : "";
+        if (dinamicas && (Object.keys(dinamicas).length || trocouPacote) && ponte.registrarOpcoes(filtrarOpcoesPorPacote(organizarAbas(dinamicas), configFinal), extra)) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -4184,6 +5155,21 @@
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
   }
+  var OPCAO_ESTILO_DO_ICONE = {
+    estiloDoIcone: {
+      type: "string",
+      label: "Estilo do \xEDcone",
+      section: "Tema",
+      display: "select",
+      default: "contorno",
+      values: [{ Contorno: "contorno" }, { Preenchido: "preenchido" }]
+    }
+  };
+  function temListaDeIcones(opcoes) {
+    return Object.values(opcoes || {}).some(
+      (o) => o && Array.isArray(o.values) && /[íi]cone/i.test(o.label || "") && o.values.some((v) => existeIcone(String(Object.values(v)[0])))
+    );
+  }
   var OPCOES_DE_AVISO = {
     mostrarAvisos: {
       type: "boolean",
@@ -4221,737 +5207,6 @@
       queryResponseBruto: queryResponse,
       config: configFinal
     });
-  }
-
-  // node_modules/d3-shape/src/constant.js
-  function constant_default2(x2) {
-    return function constant() {
-      return x2;
-    };
-  }
-
-  // node_modules/d3-path/src/path.js
-  var pi = Math.PI;
-  var tau = 2 * pi;
-  var epsilon = 1e-6;
-  var tauEpsilon = tau - epsilon;
-  function append(strings) {
-    this._ += strings[0];
-    for (let i = 1, n = strings.length; i < n; ++i) {
-      this._ += arguments[i] + strings[i];
-    }
-  }
-  function appendRound(digits) {
-    let d = Math.floor(digits);
-    if (!(d >= 0)) throw new Error(`invalid digits: ${digits}`);
-    if (d > 15) return append;
-    const k = 10 ** d;
-    return function(strings) {
-      this._ += strings[0];
-      for (let i = 1, n = strings.length; i < n; ++i) {
-        this._ += Math.round(arguments[i] * k) / k + strings[i];
-      }
-    };
-  }
-  var Path = class {
-    constructor(digits) {
-      this._x0 = this._y0 = // start of current subpath
-      this._x1 = this._y1 = null;
-      this._ = "";
-      this._append = digits == null ? append : appendRound(digits);
-    }
-    moveTo(x2, y2) {
-      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}`;
-    }
-    closePath() {
-      if (this._x1 !== null) {
-        this._x1 = this._x0, this._y1 = this._y0;
-        this._append`Z`;
-      }
-    }
-    lineTo(x2, y2) {
-      this._append`L${this._x1 = +x2},${this._y1 = +y2}`;
-    }
-    quadraticCurveTo(x1, y1, x2, y2) {
-      this._append`Q${+x1},${+y1},${this._x1 = +x2},${this._y1 = +y2}`;
-    }
-    bezierCurveTo(x1, y1, x2, y2, x3, y3) {
-      this._append`C${+x1},${+y1},${+x2},${+y2},${this._x1 = +x3},${this._y1 = +y3}`;
-    }
-    arcTo(x1, y1, x2, y2, r) {
-      x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
-      if (r < 0) throw new Error(`negative radius: ${r}`);
-      let x0 = this._x1, y0 = this._y1, x21 = x2 - x1, y21 = y2 - y1, x01 = x0 - x1, y01 = y0 - y1, l01_2 = x01 * x01 + y01 * y01;
-      if (this._x1 === null) {
-        this._append`M${this._x1 = x1},${this._y1 = y1}`;
-      } else if (!(l01_2 > epsilon)) ;
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
-        this._append`L${this._x1 = x1},${this._y1 = y1}`;
-      } else {
-        let x20 = x2 - x0, y20 = y2 - y0, l21_2 = x21 * x21 + y21 * y21, l20_2 = x20 * x20 + y20 * y20, l21 = Math.sqrt(l21_2), l01 = Math.sqrt(l01_2), l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2), t01 = l / l01, t21 = l / l21;
-        if (Math.abs(t01 - 1) > epsilon) {
-          this._append`L${x1 + t01 * x01},${y1 + t01 * y01}`;
-        }
-        this._append`A${r},${r},0,0,${+(y01 * x20 > x01 * y20)},${this._x1 = x1 + t21 * x21},${this._y1 = y1 + t21 * y21}`;
-      }
-    }
-    arc(x2, y2, r, a0, a1, ccw) {
-      x2 = +x2, y2 = +y2, r = +r, ccw = !!ccw;
-      if (r < 0) throw new Error(`negative radius: ${r}`);
-      let dx = r * Math.cos(a0), dy = r * Math.sin(a0), x0 = x2 + dx, y0 = y2 + dy, cw = 1 ^ ccw, da = ccw ? a0 - a1 : a1 - a0;
-      if (this._x1 === null) {
-        this._append`M${x0},${y0}`;
-      } else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
-        this._append`L${x0},${y0}`;
-      }
-      if (!r) return;
-      if (da < 0) da = da % tau + tau;
-      if (da > tauEpsilon) {
-        this._append`A${r},${r},0,1,${cw},${x2 - dx},${y2 - dy}A${r},${r},0,1,${cw},${this._x1 = x0},${this._y1 = y0}`;
-      } else if (da > epsilon) {
-        this._append`A${r},${r},0,${+(da >= pi)},${cw},${this._x1 = x2 + r * Math.cos(a1)},${this._y1 = y2 + r * Math.sin(a1)}`;
-      }
-    }
-    rect(x2, y2, w, h) {
-      this._append`M${this._x0 = this._x1 = +x2},${this._y0 = this._y1 = +y2}h${w = +w}v${+h}h${-w}Z`;
-    }
-    toString() {
-      return this._;
-    }
-  };
-  function path() {
-    return new Path();
-  }
-  path.prototype = Path.prototype;
-
-  // node_modules/d3-shape/src/path.js
-  function withPath(shape) {
-    let digits = 3;
-    shape.digits = function(_) {
-      if (!arguments.length) return digits;
-      if (_ == null) {
-        digits = null;
-      } else {
-        const d = Math.floor(_);
-        if (!(d >= 0)) throw new RangeError(`invalid digits: ${_}`);
-        digits = d;
-      }
-      return shape;
-    };
-    return () => new Path(digits);
-  }
-
-  // node_modules/d3-shape/src/array.js
-  var slice = Array.prototype.slice;
-  function array_default(x2) {
-    return typeof x2 === "object" && "length" in x2 ? x2 : Array.from(x2);
-  }
-
-  // node_modules/d3-shape/src/curve/linear.js
-  function Linear(context) {
-    this._context = context;
-  }
-  Linear.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-        // falls through
-        default:
-          this._context.lineTo(x2, y2);
-          break;
-      }
-    }
-  };
-  function linear_default(context) {
-    return new Linear(context);
-  }
-
-  // node_modules/d3-shape/src/point.js
-  function x(p) {
-    return p[0];
-  }
-  function y(p) {
-    return p[1];
-  }
-
-  // node_modules/d3-shape/src/line.js
-  function line_default(x2, y2) {
-    var defined = constant_default2(true), context = null, curve = linear_default, output = null, path2 = withPath(line);
-    x2 = typeof x2 === "function" ? x2 : x2 === void 0 ? x : constant_default2(x2);
-    y2 = typeof y2 === "function" ? y2 : y2 === void 0 ? y : constant_default2(y2);
-    function line(data) {
-      var i, n = (data = array_default(data)).length, d, defined0 = false, buffer;
-      if (context == null) output = curve(buffer = path2());
-      for (i = 0; i <= n; ++i) {
-        if (!(i < n && defined(d = data[i], i, data)) === defined0) {
-          if (defined0 = !defined0) output.lineStart();
-          else output.lineEnd();
-        }
-        if (defined0) output.point(+x2(d, i, data), +y2(d, i, data));
-      }
-      if (buffer) return output = null, buffer + "" || null;
-    }
-    line.x = function(_) {
-      return arguments.length ? (x2 = typeof _ === "function" ? _ : constant_default2(+_), line) : x2;
-    };
-    line.y = function(_) {
-      return arguments.length ? (y2 = typeof _ === "function" ? _ : constant_default2(+_), line) : y2;
-    };
-    line.defined = function(_) {
-      return arguments.length ? (defined = typeof _ === "function" ? _ : constant_default2(!!_), line) : defined;
-    };
-    line.curve = function(_) {
-      return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
-    };
-    line.context = function(_) {
-      return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
-    };
-    return line;
-  }
-
-  // node_modules/d3-shape/src/curve/bump.js
-  var Bump = class {
-    constructor(context, x2) {
-      this._context = context;
-      this._x = x2;
-    }
-    areaStart() {
-      this._line = 0;
-    }
-    areaEnd() {
-      this._line = NaN;
-    }
-    lineStart() {
-      this._point = 0;
-    }
-    lineEnd() {
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    }
-    point(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0: {
-          this._point = 1;
-          if (this._line) this._context.lineTo(x2, y2);
-          else this._context.moveTo(x2, y2);
-          break;
-        }
-        case 1:
-          this._point = 2;
-        // falls through
-        default: {
-          if (this._x) this._context.bezierCurveTo(this._x0 = (this._x0 + x2) / 2, this._y0, this._x0, y2, x2, y2);
-          else this._context.bezierCurveTo(this._x0, this._y0 = (this._y0 + y2) / 2, x2, this._y0, x2, y2);
-          break;
-        }
-      }
-      this._x0 = x2, this._y0 = y2;
-    }
-  };
-  function bumpX(context) {
-    return new Bump(context, true);
-  }
-
-  // node_modules/d3-shape/src/curve/basis.js
-  function point(that, x2, y2) {
-    that._context.bezierCurveTo(
-      (2 * that._x0 + that._x1) / 3,
-      (2 * that._y0 + that._y1) / 3,
-      (that._x0 + 2 * that._x1) / 3,
-      (that._y0 + 2 * that._y1) / 3,
-      (that._x0 + 4 * that._x1 + x2) / 6,
-      (that._y0 + 4 * that._y1 + y2) / 6
-    );
-  }
-  function Basis(context) {
-    this._context = context;
-  }
-  Basis.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._y0 = this._y1 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 3:
-          point(this, this._x1, this._y1);
-        // falls through
-        case 2:
-          this._context.lineTo(this._x1, this._y1);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-          this._context.lineTo((5 * this._x0 + this._x1) / 6, (5 * this._y0 + this._y1) / 6);
-        // falls through
-        default:
-          point(this, x2, y2);
-          break;
-      }
-      this._x0 = this._x1, this._x1 = x2;
-      this._y0 = this._y1, this._y1 = y2;
-    }
-  };
-  function basis_default2(context) {
-    return new Basis(context);
-  }
-
-  // node_modules/d3-shape/src/curve/cardinal.js
-  function point2(that, x2, y2) {
-    that._context.bezierCurveTo(
-      that._x1 + that._k * (that._x2 - that._x0),
-      that._y1 + that._k * (that._y2 - that._y0),
-      that._x2 + that._k * (that._x1 - x2),
-      that._y2 + that._k * (that._y1 - y2),
-      that._x2,
-      that._y2
-    );
-  }
-  function Cardinal(context, tension) {
-    this._context = context;
-    this._k = (1 - tension) / 6;
-  }
-  Cardinal.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._x2 = this._y0 = this._y1 = this._y2 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x2, this._y2);
-          break;
-        case 3:
-          point2(this, this._x1, this._y1);
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          this._x1 = x2, this._y1 = y2;
-          break;
-        case 2:
-          this._point = 3;
-        // falls through
-        default:
-          point2(this, x2, y2);
-          break;
-      }
-      this._x0 = this._x1, this._x1 = this._x2, this._x2 = x2;
-      this._y0 = this._y1, this._y1 = this._y2, this._y2 = y2;
-    }
-  };
-  var cardinal_default = (function custom(tension) {
-    function cardinal(context) {
-      return new Cardinal(context, tension);
-    }
-    cardinal.tension = function(tension2) {
-      return custom(+tension2);
-    };
-    return cardinal;
-  })(0);
-
-  // node_modules/d3-shape/src/curve/monotone.js
-  function sign(x2) {
-    return x2 < 0 ? -1 : 1;
-  }
-  function slope3(that, x2, y2) {
-    var h0 = that._x1 - that._x0, h1 = x2 - that._x1, s0 = (that._y1 - that._y0) / (h0 || h1 < 0 && -0), s1 = (y2 - that._y1) / (h1 || h0 < 0 && -0), p = (s0 * h1 + s1 * h0) / (h0 + h1);
-    return (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0;
-  }
-  function slope2(that, t) {
-    var h = that._x1 - that._x0;
-    return h ? (3 * (that._y1 - that._y0) / h - t) / 2 : t;
-  }
-  function point3(that, t0, t1) {
-    var x0 = that._x0, y0 = that._y0, x1 = that._x1, y1 = that._y1, dx = (x1 - x0) / 3;
-    that._context.bezierCurveTo(x0 + dx, y0 + dx * t0, x1 - dx, y1 - dx * t1, x1, y1);
-  }
-  function MonotoneX(context) {
-    this._context = context;
-  }
-  MonotoneX.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x0 = this._x1 = this._y0 = this._y1 = this._t0 = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      switch (this._point) {
-        case 2:
-          this._context.lineTo(this._x1, this._y1);
-          break;
-        case 3:
-          point3(this, this._t0, slope2(this, this._t0));
-          break;
-      }
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      var t1 = NaN;
-      x2 = +x2, y2 = +y2;
-      if (x2 === this._x1 && y2 === this._y1) return;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-          break;
-        case 2:
-          this._point = 3;
-          point3(this, slope2(this, t1 = slope3(this, x2, y2)), t1);
-          break;
-        default:
-          point3(this, this._t0, t1 = slope3(this, x2, y2));
-          break;
-      }
-      this._x0 = this._x1, this._x1 = x2;
-      this._y0 = this._y1, this._y1 = y2;
-      this._t0 = t1;
-    }
-  };
-  function MonotoneY(context) {
-    this._context = new ReflectContext(context);
-  }
-  (MonotoneY.prototype = Object.create(MonotoneX.prototype)).point = function(x2, y2) {
-    MonotoneX.prototype.point.call(this, y2, x2);
-  };
-  function ReflectContext(context) {
-    this._context = context;
-  }
-  ReflectContext.prototype = {
-    moveTo: function(x2, y2) {
-      this._context.moveTo(y2, x2);
-    },
-    closePath: function() {
-      this._context.closePath();
-    },
-    lineTo: function(x2, y2) {
-      this._context.lineTo(y2, x2);
-    },
-    bezierCurveTo: function(x1, y1, x2, y2, x3, y3) {
-      this._context.bezierCurveTo(y1, x1, y2, x2, y3, x3);
-    }
-  };
-  function monotoneX(context) {
-    return new MonotoneX(context);
-  }
-  function monotoneY(context) {
-    return new MonotoneY(context);
-  }
-
-  // node_modules/d3-shape/src/curve/natural.js
-  function Natural(context) {
-    this._context = context;
-  }
-  Natural.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x = [];
-      this._y = [];
-    },
-    lineEnd: function() {
-      var x2 = this._x, y2 = this._y, n = x2.length;
-      if (n) {
-        this._line ? this._context.lineTo(x2[0], y2[0]) : this._context.moveTo(x2[0], y2[0]);
-        if (n === 2) {
-          this._context.lineTo(x2[1], y2[1]);
-        } else {
-          var px = controlPoints(x2), py = controlPoints(y2);
-          for (var i0 = 0, i1 = 1; i1 < n; ++i0, ++i1) {
-            this._context.bezierCurveTo(px[0][i0], py[0][i0], px[1][i0], py[1][i0], x2[i1], y2[i1]);
-          }
-        }
-      }
-      if (this._line || this._line !== 0 && n === 1) this._context.closePath();
-      this._line = 1 - this._line;
-      this._x = this._y = null;
-    },
-    point: function(x2, y2) {
-      this._x.push(+x2);
-      this._y.push(+y2);
-    }
-  };
-  function controlPoints(x2) {
-    var i, n = x2.length - 1, m, a = new Array(n), b = new Array(n), r = new Array(n);
-    a[0] = 0, b[0] = 2, r[0] = x2[0] + 2 * x2[1];
-    for (i = 1; i < n - 1; ++i) a[i] = 1, b[i] = 4, r[i] = 4 * x2[i] + 2 * x2[i + 1];
-    a[n - 1] = 2, b[n - 1] = 7, r[n - 1] = 8 * x2[n - 1] + x2[n];
-    for (i = 1; i < n; ++i) m = a[i] / b[i - 1], b[i] -= m, r[i] -= m * r[i - 1];
-    a[n - 1] = r[n - 1] / b[n - 1];
-    for (i = n - 2; i >= 0; --i) a[i] = (r[i] - a[i + 1]) / b[i];
-    b[n - 1] = (x2[n] + a[n - 1]) / 2;
-    for (i = 0; i < n - 1; ++i) b[i] = 2 * x2[i + 1] - a[i + 1];
-    return [a, b];
-  }
-  function natural_default(context) {
-    return new Natural(context);
-  }
-
-  // node_modules/d3-shape/src/curve/step.js
-  function Step(context, t) {
-    this._context = context;
-    this._t = t;
-  }
-  Step.prototype = {
-    areaStart: function() {
-      this._line = 0;
-    },
-    areaEnd: function() {
-      this._line = NaN;
-    },
-    lineStart: function() {
-      this._x = this._y = NaN;
-      this._point = 0;
-    },
-    lineEnd: function() {
-      if (0 < this._t && this._t < 1 && this._point === 2) this._context.lineTo(this._x, this._y);
-      if (this._line || this._line !== 0 && this._point === 1) this._context.closePath();
-      if (this._line >= 0) this._t = 1 - this._t, this._line = 1 - this._line;
-    },
-    point: function(x2, y2) {
-      x2 = +x2, y2 = +y2;
-      switch (this._point) {
-        case 0:
-          this._point = 1;
-          this._line ? this._context.lineTo(x2, y2) : this._context.moveTo(x2, y2);
-          break;
-        case 1:
-          this._point = 2;
-        // falls through
-        default: {
-          if (this._t <= 0) {
-            this._context.lineTo(this._x, y2);
-            this._context.lineTo(x2, y2);
-          } else {
-            var x1 = this._x * (1 - this._t) + x2 * this._t;
-            this._context.lineTo(x1, this._y);
-            this._context.lineTo(x1, y2);
-          }
-          break;
-        }
-      }
-      this._x = x2, this._y = y2;
-    }
-  };
-  function step_default(context) {
-    return new Step(context, 0.5);
-  }
-  function stepAfter(context) {
-    return new Step(context, 1);
-  }
-
-  // src/core/shapes.js
-  function CatmullLimitada(contexto) {
-    this._context = contexto;
-  }
-  CatmullLimitada.prototype = {
-    areaStart() {
-      this._line = 0;
-    },
-    areaEnd() {
-      this._line = NaN;
-    },
-    lineStart() {
-      this._pontos = [];
-    },
-    point(x2, y2) {
-      this._pontos.push([+x2, +y2]);
-    },
-    lineEnd() {
-      const p = this._pontos;
-      const n = p.length;
-      const c = this._context;
-      if (n) {
-        if (this._line) c.lineTo(p[0][0], p[0][1]);
-        else c.moveTo(p[0][0], p[0][1]);
-        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
-        for (let i = 0; i < n - 1; i++) {
-          const p0 = p[i - 1] || p[i];
-          const p1 = p[i];
-          const p2 = p[i + 1];
-          const p3 = p[i + 2] || p2;
-          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
-          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
-          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
-          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
-          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
-        }
-      }
-      if (this._line || this._line !== 0 && n === 1) c.closePath();
-      this._line = 1 - this._line;
-    }
-  };
-  function curvaCatmullLimitada(contexto) {
-    return new CatmullLimitada(contexto);
-  }
-  var CURVAS = {
-    linear: linear_default,
-    monotone: monotoneX,
-    monotoneY,
-    basis: basis_default2,
-    catmull: curvaCatmullLimitada,
-    // "bump" (v3, 5.6): tangente horizontal nas duas pontas, sem overshoot.
-    bump: bumpX,
-    cardinal: cardinal_default,
-    natural: natural_default,
-    step: step_default,
-    stepAfter
-  };
-  function curvaPorNome(nome) {
-    return CURVAS[nome] || monotoneX;
-  }
-  function geradorDeLinha({ x: x2, y: y2, curva = "monotone", definido = null }) {
-    const g = line_default().x(x2).y(y2).curve(curvaPorNome(curva));
-    if (definido) g.defined(definido);
-    return g;
-  }
-  function caminhoDoSimbolo(forma, tamanho) {
-    const r = Math.max(0.5, tamanho / 2);
-    switch (forma) {
-      case "quadrado":
-        return `M${-r},${-r}h${r * 2}v${r * 2}h${-r * 2}Z`;
-      case "triangulo": {
-        const h = r * 1.6;
-        return `M0,${-h}L${r * 1.4},${h * 0.7}L${-r * 1.4},${h * 0.7}Z`;
-      }
-      case "losango":
-        return `M0,${-r * 1.3}L${r * 1},0L0,${r * 1.3}L${-r * 1},0Z`;
-      case "cruz": {
-        const b = r * 0.42;
-        return `M${-b},${-r}h${b * 2}v${r - b}h${r - b}v${b * 2}h${-(r - b)}v${r - b}h${-b * 2}v${-(r - b)}h${-(r - b)}v${-b * 2}h${r - b}Z`;
-      }
-      case "estrela": {
-        const pontas = 5;
-        const rExterno = r * 1.25;
-        const rInterno = r * 0.5;
-        let d = "";
-        for (let i = 0; i < pontas * 2; i++) {
-          const raio = i % 2 === 0 ? rExterno : rInterno;
-          const ang = Math.PI / pontas * i - Math.PI / 2;
-          const x2 = Math.cos(ang) * raio;
-          const y2 = Math.sin(ang) * raio;
-          d += `${i === 0 ? "M" : "L"}${x2.toFixed(2)},${y2.toFixed(2)}`;
-        }
-        return `${d}Z`;
-      }
-      case "wye":
-        return pontosDoWye(r).map(([x2, y2], i) => `${i ? "L" : "M"}${x2.toFixed(2)},${y2.toFixed(2)}`).join("") + "Z";
-      case "circulo":
-      default:
-        return `M${-r},0a${r},${r} 0 1,0 ${r * 2},0a${r},${r} 0 1,0 ${-r * 2},0Z`;
-    }
-  }
-  function pontosDoWye(r) {
-    const b = r * 0.38;
-    const pontos = [];
-    for (let k = 0; k < 3; k++) {
-      const ang = -Math.PI / 2 + k * 2 * Math.PI / 3;
-      const cx = Math.cos(ang);
-      const cy = Math.sin(ang);
-      const px = -cy;
-      const py = cx;
-      const centro = b / Math.sqrt(3);
-      pontos.push([cx * r * 1.15 - px * b, cy * r * 1.15 - py * b]);
-      pontos.push([cx * r * 1.15 + px * b, cy * r * 1.15 + py * b]);
-      const prox = ang + Math.PI / 3;
-      pontos.push([Math.cos(prox) * centro * 2, Math.sin(prox) * centro * 2]);
-    }
-    return pontos;
-  }
-  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
-  function formaDoMarcador(nome) {
-    const mapa = { circle: "circulo", square: "quadrado", triangle: "triangulo", diamond: "losango", cross: "cruz", star: "estrela", y: "wye" };
-    const n = String(nome || "").trim().toLowerCase();
-    if (FORMAS_DE_MARCADOR.includes(n)) return n;
-    return mapa[n] || "circulo";
-  }
-  function criarMarcadorSvg(pai, forma, x2, y2, diametro, atributos = {}) {
-    const f = formaDoMarcador(forma);
-    const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    el.setAttribute("d", caminhoDoSimbolo(f, Math.max(1, Number(diametro) || 1)));
-    el.setAttribute("transform", `translate(${Number(x2) || 0},${Number(y2) || 0})`);
-    el.setAttribute("class", "bl-marcador");
-    el.setAttribute("data-forma", f);
-    for (const [k, v] of Object.entries(atributos)) {
-      if (v === void 0 || v === null) continue;
-      if (k === "classe") el.setAttribute("class", `bl-marcador ${v}`);
-      else el.setAttribute(k, String(v));
-    }
-    if (pai) pai.appendChild(el);
-    return el;
-  }
-  function tracejadoPorEstilo(estilo, espessura = 1) {
-    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
-    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
-    return null;
   }
 
   // src/core/series.js

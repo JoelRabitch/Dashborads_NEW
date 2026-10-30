@@ -156,13 +156,13 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] 5.14 Cartão Multi-Valores
 
 ### FASE 5b — pacotes temáticos
-- [ ] 5.14b Infraestrutura de pacotes
-- [ ] 5.14c Pacote Café: regras de conteúdo
-- [ ] 5.14d Ícones do pacote Café
-- [ ] 5.14e Paletas
-- [ ] 5.14f Ícone por valor
-- [ ] 5.14g Progresso em xícara
-- [ ] 5.14h Formas de marcador do pacote
+- [x] 5.14b Infraestrutura de pacotes
+- [x] 5.14c Pacote Café: regras de conteúdo
+- [x] 5.14d Ícones do pacote Café
+- [x] 5.14e Paletas
+- [x] 5.14f Ícone por valor
+- [x] 5.14g Progresso em xícara
+- [x] 5.14h Formas de marcador do pacote
 - [ ] 5.14i (opcional) Cardápio, Comanda, vapor
 
 ### FASE 6 — fechamento

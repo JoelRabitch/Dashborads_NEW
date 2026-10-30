@@ -20,6 +20,7 @@ import { criarMarcadorSvg, formaDoMarcador } from '../../core/shapes.js';
 import { listaDeValores } from '../../core/options-kit.js';
 import { tree as d3Tree, cluster as d3Cluster } from 'd3-hierarchy';
 import { lerTextoLongo, ajustarRotulo } from '../../core/texto-longo.js';
+import { criarIconePorValor, desenharIconePorValor } from '../../core/icone-por-valor.js';
 
 export const CSS_ARVORE = `
 .av-area{position:relative;width:100%;height:100%;overflow:hidden;}
@@ -373,6 +374,7 @@ export function desenharArvore({
   // horizontal usa o "Texto longo" (5.11).
   const limiteDoNome = rot.truncar > 0 ? rot.truncar : compacto ? 14 : 24;
   const tl = lerTextoLongo(config);
+  const iconePorValor = criarIconePorValor(config);
   const total = totalGeral || raiz.value || 0;
   const saida = [];
   const caixasDeRotulo = [];
@@ -400,6 +402,16 @@ export function desenharArvore({
       });
       aplicarPreenchimento(elemento, cores(no), config);
       aplicarContorno(elemento, contorno);
+      // Ícone por valor (5.14f): ícone do nome do nó, sobre o marcador.
+      if (iconePorValor && modo !== 'radial') {
+        const ic = desenharIconePorValor(iconePorValor, { pai: grupoDoNo, valor: no.data.rotulo, lado: Math.max(12, raioDoNo * 2 + 6), corPadrao: cores(no), estilo: config.estiloDoIcone });
+        if (ic) {
+          const lado = Number(ic.getAttribute('width'));
+          ic.setAttribute('x', String(x - lado / 2));
+          ic.setAttribute('y', String(y - lado / 2));
+          ic.style.pointerEvents = 'none';
+        }
+      }
       saida.push({ no, elemento });
       if (typeof aoInteragir === 'function') aoInteragir(elemento, no);
     }

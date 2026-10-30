@@ -117,6 +117,15 @@
     "dinamica": false
   },
   {
+    "id": "progressoEmXicara",
+    "label": "KPI · Meta em xícara",
+    "rotuloCompleto": "KPI · Meta em xícara (pacote Café)",
+    "section": "Dados",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
     "id": "colunasDoKpi",
     "label": "KPI · Colunas da grade (0 = automático)",
     "rotuloCompleto": "KPI · Colunas da grade (0 = automático)",
@@ -267,6 +276,24 @@
     "section": "Estilo",
     "type": "boolean",
     "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
+    "dinamica": false
+  },
+  {
+    "id": "estiloDoIcone",
+    "label": "Tema · Estilo do ícone",
+    "rotuloCompleto": "Tema · Estilo do ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "contorno",
     "dinamica": false
   },
   {

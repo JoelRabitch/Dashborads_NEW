@@ -3465,3 +3465,40 @@ PRÓXIMA AÇÃO: FASE 5 — 5.14 cartao_multivalor.
 - `test/cartao_multivalor.test.mjs` (10). 920/920.
 
 PRÓXIMA AÇÃO: FASE 5b — 5.14b (infraestrutura de pacotes).
+
+## Sessão retomada em 2026-10-30
+- Encontrado sem commit: a FASE 5b inteira (núcleo, pacote, testes) da
+  sessão anterior, faltando só generalizar o "progresso" de pacote no
+  cartão e na tabela (script pronto). Aplicado, testado e commitado.
+
+### 5.14b–5.14h Pacotes temáticos e pacote Café (concluído; conferir no Looker real)
+- `src/core/pacotes.js` (registro; `PACOTE_PADRAO = 'cafe'`), registros
+  centrais estendidos: `icones.js`, `shapes.js` (`registrarForma`,
+  `listaDeFormas`), `theme.js` (`registrarPaletaCategorica`,
+  `registrarEscalaContinua`), progressos (no próprio pacotes.js).
+- `src/packs/cafe/index.js`: 15 ícones desenhados do zero (contorno +
+  preenchido), formas cafe_xicara/cafe_grao/cafe_copo, 5 paletas (8+
+  cores distintas), escalas Torra e Torra divergente, "Progresso em
+  xícara". Tudo genérico (5.14c): sem marcas, sem nomes de níveis.
+- Build: `src/packs/index.js` é trocado pela lista das PASTAS em
+  src/packs/ (pacote novo = pasta nova); `BL_SEM_PACOTES=1` gera sem
+  pacotes; `BL_SAIDA` gera em outra pasta. `npm run testar-sem-pacotes`:
+  build sem pacotes em tmp/ + suíte inteira — 921 ok, 6 pulados (os do
+  Café); com pacote: 926 ok.
+- Opção "Pacote temático" (`pacoteTematico`, aba Estilo) só nos gráficos
+  com listas que contêm itens de pacote. DECISÃO: trocar o pacote
+  registra o painel de novo UMA vez (só nessa troca; assinatura do
+  `registrarOpcoes` ganhou um "extra") — é a única forma de as listas
+  esconderem os itens. Valor salvo de pacote desligado continua desenhado.
+- "Estilo do ícone" (`estiloDoIcone`) injetado nos gráficos com lista de
+  ícones (kpi_vivo) e declarado no cartão. kpi_vivo: os 9 ícones e o
+  valor salvo permanecem; ícones do registro entram na lista; nova opção
+  `progressoEmXicara`. Ícone por valor (`core/icone-por-valor.js`:
+  `mapaDeIconesPorValor`, `iconePadraoPorValor`, `coresPorValor`,
+  `campoDoIconePorValor`) no cartão, na tabela (tipo de célula "Ícone por
+  valor"), nas árvores e no organograma (valor = nome do nó). Progresso
+  de pacote como tipo no cartão e na tabela (sem animar na tabela).
+- 5.14i (opcional) NÃO feito: fica `[ ]`.
+
+PRÓXIMA AÇÃO: FASE 6 — 5.15b portabilidade (config/repo.json, varredura,
+MIGRACAO.md) e depois 5.15 (build duplo, tag v3.N, URLs, relatório).

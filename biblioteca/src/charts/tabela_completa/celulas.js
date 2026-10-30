@@ -15,6 +15,8 @@ import { criarEl, criarSvgEl, definirTexto, urlDeImagemSegura } from '../../core
 import { comOpacidade, textoLegivelSobre } from '../../core/theme.js';
 import { formatarData } from '../../core/format.js';
 import { posicaoNaColuna } from './regras.js';
+import { criarIconePorValor, desenharIconePorValor } from '../../core/icone-por-valor.js';
+import { desenharProgresso, existeProgresso } from '../../core/pacotes.js';
 
 const CSS = `
 .tc-barra-fundo{position:relative;display:block;width:100%;height:60%;border-radius:3px;overflow:hidden;}
@@ -417,9 +419,44 @@ function corEstavel(texto) {
   return CORES_DE_AVATAR[soma % CORES_DE_AVATAR.length];
 }
 
+/**
+ * "Ícone por valor" (5.14f, v3): o ícone do valor da célula, pelo mapa da
+ * tabela ("Ícone por valor · Mapa"), seguido do texto.
+ */
+DESENHISTAS.icone = (ctx) => {
+  const { td, coluna, linha, config } = ctx;
+  const resolver = criarIconePorValor(config);
+  const celula = coluna.celula(linha);
+  const valor = celula ? celula.value : ctx.texto;
+  const caixa = pilha(td, 'left');
+  desenharIconePorValor(resolver, { pai: caixa, valor, lado: 16, corPadrao: coluna.corDaBarra, estilo: config.estiloDoIcone });
+  criarEl('span', { pai: caixa, texto: ctx.texto });
+  return ctx.texto;
+};
+
+/**
+ * Progresso de pacote temático (5.14g, v3): ex.: xícara que enche. O valor
+ * é a fração (0–1, ou 0–100 quando passa de 1,5). Sem animação na rolagem:
+ * a tabela não anima linhas que entram por rolagem (5.2) e a xícara não
+ * anima nunca aqui.
+ */
+function desenharProgressoDePacote(tipo, ctx) {
+  const { td, coluna, linha, visual } = ctx;
+  const valor = coluna.valorNumerico(linha);
+  if (valor === null) return ctx.comoTexto();
+  const fracao = Math.max(0, Math.min(1, valor > 1.5 ? valor / 100 : valor));
+  const caixa = pilha(td, 'left');
+  desenharProgresso(tipo, caixa, fracao, { lado: Math.max(16, Math.round(visual.alturaLinha * 0.8)), cor: coluna.corDaBarra, contornoCor: visual.texto });
+  criarEl('span', { pai: caixa, texto: `${Math.round(fracao * 100)}%` });
+  return ctx.texto;
+};
+
 /** Decide qual desenhista usar; `null` significa "texto normal". */
 export function desenhistaDoTipo(tipo) {
-  return DESENHISTAS[tipo] || null;
+  if (DESENHISTAS[tipo]) return DESENHISTAS[tipo];
+  // Progresso registrado por um pacote temático (5.14g): ex.: xícara.
+  if (existeProgresso(tipo)) return (ctx) => desenharProgressoDePacote(tipo, ctx);
+  return null;
 }
 
 /**

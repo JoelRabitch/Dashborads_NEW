@@ -13,6 +13,7 @@
  */
 
 import { opcoesDePaleta, opcoesDeEscalaContinua } from './theme.js';
+import { listaDeFormas } from './shapes.js';
 import { montarRotulo, limiteDoRotulo } from './rotulos-do-painel.js';
 
 /**
@@ -332,15 +333,8 @@ export function blocoDePontosELinhas(opcoes = {}) {
       section: secao,
       display: 'select',
       default: 'circulo',
-      values: listaDeValores([
-        { rotulo: 'Círculo', valor: 'circulo' },
-        { rotulo: 'Quadrado', valor: 'quadrado' },
-        { rotulo: 'Triângulo', valor: 'triangulo' },
-        { rotulo: 'Losango', valor: 'losango' },
-        { rotulo: 'Cruz', valor: 'cruz' },
-        { rotulo: 'Estrela', valor: 'estrela' },
-        { rotulo: 'Wye (Y)', valor: 'wye' },
-      ]),
+      // Base + formas de pacotes temáticos (5.14b/5.14h, v3).
+      values: listaDeValores(listaDeFormas()),
     };
     bloco.tamanhoDoPonto = {
       type: 'number',

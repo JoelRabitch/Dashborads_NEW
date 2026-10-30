@@ -57,6 +57,7 @@ import { lerRotulos, textoDoRotulo, estilizarRotulo } from '../../core/rotulos.j
 import { paletaDoConfig, corDoItem, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
 import { larguraDoTexto } from '../../core/medida-texto.js';
 import { lerTextoLongo, ajustarRotulo } from '../../core/texto-longo.js';
+import { criarIconePorValor, desenharIconePorValor } from '../../core/icone-por-valor.js';
 import { hierarchy as d3Hierarchy, tree as d3Tree } from 'd3-hierarchy';
 import {
   construirHierarquia,
@@ -545,6 +546,7 @@ export default defineViz({
 
     // ---------- Cartões ----------
     const tooltip = ctx.tooltip();
+    const iconePorValor = criarIconePorValor(config);
     const grupoDosCartoes = criarSvgEl('g', { pai: conteudo });
     const atuais = [];
     nos.forEach((no, indice) => {
@@ -575,6 +577,13 @@ export default defineViz({
       if (config.sombraDoCartao === true) caixa.setAttribute('filter', 'url(#oc-sombra)');
 
       desenharLinhasDoCartao({ grupo, linhas, x, y, rot, tema, cor, preenchido, larguraDoCartao, alturaDoCartao, config, fonte, margemInterna });
+
+      // Ícone por valor (5.14f): no canto esquerdo do cartão.
+      const ic = desenharIconePorValor(iconePorValor, { pai: grupo, valor: no.data.rotulo, lado: 16, corPadrao: cor, estilo: config.estiloDoIcone });
+      if (ic) {
+        ic.setAttribute('x', String(x - larguraDoCartao / 2 + 4));
+        ic.setAttribute('y', String(y - alturaDoCartao / 2 + 4));
+      }
 
       // Botão de recolher / contador: só em quem tem filhos.
       if (config.permitirRecolher !== false && completo.filhos > 0 && config.estiloDoContador !== 'oculto') {

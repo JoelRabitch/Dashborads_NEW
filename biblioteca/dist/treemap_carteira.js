@@ -95,7 +95,7 @@
        * @param {object} opcoesDinamicas opções novas (serão mescladas às estáticas)
        * @returns {boolean} true se chegou a registrar agora
        */
-      registrarOpcoes(opcoesDinamicas) {
+      registrarOpcoes(opcoesDinamicas, extra = "") {
         if (!instancia || typeof instancia.trigger !== "function") {
           avisarUmaVez(
             "sem-trigger",
@@ -104,7 +104,7 @@
           return false;
         }
         const dinamicas = opcoesDinamicas || {};
-        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas);
+        const assinatura = JSON.stringify(Object.keys(dinamicas).sort()) + "|" + JSON.stringify(dinamicas) + "|" + extra;
         if (assinatura === instancia._blAssinaturaDasOpcoes) return false;
         instancia._blAssinaturaDasOpcoes = assinatura;
         const juntas = Object.assign({}, opcoesEstaticas || {}, dinamicas);
@@ -912,31 +912,6 @@
     return null;
   }
 
-  // node_modules/d3-scale-chromatic/src/colors.js
-  function colors_default(specifier) {
-    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
-    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
-    return colors;
-  }
-
-  // node_modules/d3-scale-chromatic/src/categorical/category10.js
-  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
-  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
-
-  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
-  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
-  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
-  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
-
-  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
-  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
-
   // node_modules/d3-color/src/define.js
   function define_default(constructor, factory, prototype) {
     constructor.prototype = factory.prototype = prototype;
@@ -1371,6 +1346,31 @@
   var rgbBasis = rgbSpline(basis_default);
   var rgbBasisClosed = rgbSpline(basisClosed_default);
 
+  // node_modules/d3-scale-chromatic/src/colors.js
+  function colors_default(specifier) {
+    var n = specifier.length / 6 | 0, colors = new Array(n), i = 0;
+    while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
+    return colors;
+  }
+
+  // node_modules/d3-scale-chromatic/src/categorical/category10.js
+  var category10_default = colors_default("1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Dark2.js
+  var Dark2_default = colors_default("1b9e77d95f027570b3e7298a66a61ee6ab02a6761d666666");
+
+  // node_modules/d3-scale-chromatic/src/categorical/observable10.js
+  var observable10_default = colors_default("4269d0efb118ff725c6cc5b03ca951ff8ab7a463f297bbf59c6b4e9498a0");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Paired.js
+  var Paired_default = colors_default("a6cee31f78b4b2df8a33a02cfb9a99e31a1cfdbf6fff7f00cab2d66a3d9affff99b15928");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Set2.js
+  var Set2_default = colors_default("66c2a5fc8d628da0cbe78ac3a6d854ffd92fe5c494b3b3b3");
+
+  // node_modules/d3-scale-chromatic/src/categorical/Tableau10.js
+  var Tableau10_default = colors_default("4e79a7f28e2ce1575976b7b259a14fedc949af7aa1ff9da79c755fbab0ab");
+
   // node_modules/d3-scale-chromatic/src/ramp.js
   var ramp_default = (scheme8) => rgbBasis(scheme8[scheme8.length - 1]);
 
@@ -1634,6 +1634,18 @@
     tema.metricas = METRICAS;
     return tema;
   }
+  function registrarPaletaCategorica(id, { rotulo, cores, pacote = null }) {
+    PALETAS_CATEGORICAS[id] = { rotulo, cores: cores.slice(), pacote };
+  }
+  function registrarEscalaContinua(id, { rotulo, cores, tipo = "sequencial", pacote = null }) {
+    const paradas = cores.slice();
+    const interpolador = (t) => {
+      const x = Math.max(0, Math.min(1, Number(t) || 0)) * (paradas.length - 1);
+      const i = Math.min(paradas.length - 2, Math.floor(x));
+      return rgb_default(paradas[i], paradas[i + 1])(x - i);
+    };
+    ESCALAS_CONTINUAS[id] = { rotulo, interpolador, tipo, pacote };
+  }
   function coresDaPaleta(nomeDaPaleta) {
     const p = PALETAS_CATEGORICAS[nomeDaPaleta] || PALETAS_CATEGORICAS.looker;
     return p.cores;
@@ -1673,6 +1685,69 @@
     }
     m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(t);
     if (m) return [Number(m[1]), Number(m[2]), Number(m[3])];
+    return null;
+  }
+
+  // src/core/shapes.js
+  function CatmullLimitada(contexto) {
+    this._context = contexto;
+  }
+  CatmullLimitada.prototype = {
+    areaStart() {
+      this._line = 0;
+    },
+    areaEnd() {
+      this._line = NaN;
+    },
+    lineStart() {
+      this._pontos = [];
+    },
+    point(x, y) {
+      this._pontos.push([+x, +y]);
+    },
+    lineEnd() {
+      const p = this._pontos;
+      const n = p.length;
+      const c = this._context;
+      if (n) {
+        if (this._line) c.lineTo(p[0][0], p[0][1]);
+        else c.moveTo(p[0][0], p[0][1]);
+        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
+        for (let i = 0; i < n - 1; i++) {
+          const p0 = p[i - 1] || p[i];
+          const p1 = p[i];
+          const p2 = p[i + 1];
+          const p3 = p[i + 2] || p2;
+          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
+          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
+          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
+          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
+          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
+        }
+      }
+      if (this._line || this._line !== 0 && n === 1) c.closePath();
+      this._line = 1 - this._line;
+    }
+  };
+  var FORMAS_DE_MARCADOR = ["circulo", "quadrado", "triangulo", "losango", "cruz", "estrela", "wye"];
+  var ROTULOS_DAS_FORMAS = {
+    circulo: "C\xEDrculo",
+    quadrado: "Quadrado",
+    triangulo: "Tri\xE2ngulo",
+    losango: "Losango",
+    cruz: "Cruz",
+    estrela: "Estrela",
+    wye: "Wye (Y)"
+  };
+  var FORMAS_EXTRAS = {};
+  function registrarForma(id, { rotulo, caminho, pacote = null }) {
+    FORMAS_EXTRAS[id] = { rotulo: rotulo || id, caminho, pacote };
+    if (!FORMAS_DE_MARCADOR.includes(id)) FORMAS_DE_MARCADOR.push(id);
+    ROTULOS_DAS_FORMAS[id] = rotulo || id;
+  }
+  function tracejadoPorEstilo(estilo, espessura = 1) {
+    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
+    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
     return null;
   }
 
@@ -2860,6 +2935,209 @@
     return marcas.length;
   }
 
+  // src/core/icones.js
+  var registro = /* @__PURE__ */ new Map();
+  function registrarIcone(id, def) {
+    registro.set(id, { rotulo: def.rotulo || id, pacote: def.pacote || null, contorno: def.contorno, preenchido: def.preenchido || null });
+  }
+  function existeIcone(id) {
+    return registro.has(id);
+  }
+  var BASE = {
+    seta: ["Seta", "M5 12h14M13 6l6 6-6 6"],
+    estrela: ["Estrela", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z", "M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"],
+    carrinho: ["Carrinho", "M3 4h2l2.4 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2M9 20h.01M17 20h.01"],
+    pessoa: ["Pessoa", "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7"],
+    moeda: ["Moeda", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"],
+    grafico: ["Gr\xE1fico", "M4 20V10M10 20V4M16 20v-7M22 20H2"],
+    relogio: ["Rel\xF3gio", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2"],
+    alerta: ["Alerta", "M12 3l10 18H2zM12 10v5M12 18v.01", "M12 2.5L22.5 21h-21zM11 10h2v5h-2zM11 17h2v2h-2z"],
+    alvo: ["Alvo", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"],
+    check: ["Confirmado", "M4 12l5 5L20 6"],
+    xis: ["Recusado", "M6 6l12 12M18 6L6 18"],
+    coracao: ["Cora\xE7\xE3o", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z", "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"],
+    casa: ["Casa", "M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"],
+    sobe: ["Sobe", "M12 19V5M6 11l6-6 6 6"],
+    desce: ["Desce", "M12 5v14M6 13l6 6 6-6"]
+  };
+  for (const [id, [rotulo, contorno, preenchido]] of Object.entries(BASE)) registrarIcone(id, { rotulo, contorno, preenchido });
+
+  // src/core/pacotes.js
+  var PACOTE_PADRAO = "cafe";
+  var pacotes = /* @__PURE__ */ new Map();
+  var progressos = /* @__PURE__ */ new Map();
+  var presets = /* @__PURE__ */ new Map();
+  function registrarPacote({ id, nome, icones = {}, formas = {}, paletas = {}, escalas = {}, progressos: prog = {}, presets: pre = {} }) {
+    const prefixo = `${id}_`;
+    const conferir = (chave) => {
+      if (!chave.startsWith(prefixo)) throw new Error(`pacote ${id}: o id "${chave}" precisa come\xE7ar com "${prefixo}"`);
+    };
+    pacotes.set(id, { id, nome });
+    for (const [k, def] of Object.entries(icones)) {
+      conferir(k);
+      registrarIcone(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(formas)) {
+      conferir(k);
+      registrarForma(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(paletas)) {
+      conferir(k);
+      registrarPaletaCategorica(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(escalas)) {
+      conferir(k);
+      registrarEscalaContinua(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(prog)) {
+      conferir(k);
+      progressos.set(k, { ...def, pacote: id });
+    }
+    for (const [k, def] of Object.entries(pre)) {
+      conferir(k);
+      presets.set(k, { ...def, pacote: id });
+    }
+  }
+  function listarPacotes() {
+    return Array.from(pacotes.values());
+  }
+  function pacotesLigados(config = {}) {
+    const escolhido = config.pacoteTematico;
+    if (escolhido === "nenhum") return [];
+    if (escolhido && pacotes.has(escolhido)) return [escolhido];
+    return pacotes.has(PACOTE_PADRAO) ? [PACOTE_PADRAO] : [];
+  }
+  function prefixosDesligados(config = {}) {
+    const ligados = pacotesLigados(config);
+    return listarPacotes().map((p) => p.id).filter((id) => !ligados.includes(id)).map((id) => `${id}_`);
+  }
+  function usaItensDePacote(opcoes) {
+    const prefixos = listarPacotes().map((p) => `${p.id}_`);
+    if (!prefixos.length) return false;
+    return Object.values(opcoes || {}).some(
+      (o) => o && Array.isArray(o.values) && o.values.some((v) => prefixos.some((p) => String(Object.values(v)[0]).startsWith(p)))
+    );
+  }
+  function filtrarOpcoesPorPacote(opcoes, config) {
+    const prefixos = prefixosDesligados(config);
+    if (!prefixos.length) return opcoes;
+    const saida = {};
+    for (const [id, o] of Object.entries(opcoes || {})) {
+      if (o && Array.isArray(o.values)) {
+        const copia = { ...o, values: o.values.filter((v) => !prefixos.some((p) => String(Object.values(v)[0]).startsWith(p))) };
+        if (o._organizada) Object.defineProperty(copia, "_organizada", { value: true, enumerable: false });
+        saida[id] = copia;
+      } else saida[id] = o;
+    }
+    return saida;
+  }
+  function opcaoDePacoteTematico() {
+    const lista = [{ "Nenhum": "nenhum" }].concat(listarPacotes().map((p) => ({ [p.nome]: p.id })));
+    return {
+      pacoteTematico: {
+        type: "string",
+        label: "Pacote tem\xE1tico",
+        section: "Tema",
+        display: "select",
+        default: pacotes.has(PACOTE_PADRAO) ? PACOTE_PADRAO : "nenhum",
+        values: lista
+      }
+    };
+  }
+
+  // src/packs/cafe/index.js
+  var ICONES = {
+    cafe_xicara: ["X\xEDcara", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M7 3.5v3M10 3.5v3M13 3.5v3M3 21h15", "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h1.5a3 3 0 0 1 0 6H16v-1.5h1.5a1.5 1.5 0 0 0 0-3H16zM3 20h15v1.5H3z"],
+    cafe_copo: ["Copo de viagem", "M7 6h10l-1.3 14.5H8.3zM6 6h12M8.5 2.5h7L16 6H8zM7.6 11h8.8", "M6 5.2h12V7H6zM8.4 2.2h7.2L16.4 5H7.6zM7.1 7.6h9.8l-1.2 13H8.3z"],
+    cafe_grao: ["Gr\xE3o", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9zM12.5 3.2c-2.2 3-2.2 6 0 8.8s2.2 5.8 0 8.8", "M12 3c4.4 0 7 4 7 9s-2.6 9-7 9-7-4-7-9 2.6-9 7-9z"],
+    cafe_prensa: ["Prensa francesa", "M7 7h9v13H7zM5.5 20.5h12M11.5 2.5v9M9 2.5h5M7 11.5h9M16 9.5h2.5v8H16", "M7 7h9v13H7zM5.5 19.8h12v1.5h-12zM10.8 2h1.4v5h-1.4zM16 9h3v9h-3v-1.5h1.5v-6H16z"],
+    cafe_moedor: ["Moedor", "M6 10h12l-1.2 11H7.2zM8 10V7h8v3M12 7V4.5M12 4.5h4.5M10 15h4", "M6 10h12l-1.2 11H7.2zM8 6.5h8V10H8zM11.3 4h1.4v2.5h-1.4zM11.3 3.8h5.4v1.4h-5.4z"],
+    cafe_espresso: ["M\xE1quina de espresso", "M5 3h14v6H5zM7 9v4h10V9M9.5 13v2M14.5 13v2M8.5 17h7v4h-7zM4 21h16M8 6h3", "M5 3h14v6H5zM7 9h10v4H7zM8.5 16.5h7V21h-7zM4 20.2h16v1.5H4z"],
+    cafe_croissant: ["Croissant", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1zM12 5.5V11M7.5 8l1.5 5M16.5 8L15 13", "M3 14c2-5.5 6.5-8.5 9-8.5s7 3 9 8.5c-1.8 1.8-3.8 2-5.6 1L12 11l-3.4 4c-1.8 1-3.8.8-5.6-1z"],
+    cafe_bolo: ["Bolo", "M4 12h16v8H4zM4 15c2 1.2 4-1 6 0s4 1.2 6 0 3-1 4 0M12 4.5v4M10.5 6.5h3M8 12V9.5h8V12", "M4 12h16v8H4zM8 9h8v3H8zM11.3 4h1.4v5h-1.4z"],
+    cafe_loja: ["Loja", "M3.5 9L5.5 4h13l2 5M3.5 9h17M5 9v11h14V9M10 20v-5.5h4V20M3.5 9a2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0", "M5.5 4h13l2 5h-17zM5 10.5h14V20h-5v-5.5h-4V20H5z"],
+    cafe_quiosque: ["Quiosque", "M4 10h16M6 10v10M18 10v10M4 20h16M4 10l2-6h12l2 6M9 14h6v6H9z", "M6 4h12l2 6H4zM6 11h12v9H6z"],
+    cafe_caminhao: ["Caminh\xE3o de entrega", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7M6 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", "M2.5 6h11v10h-11zM13.5 9h4l3 3v4h-7zM6 20a2.3 2.3 0 1 0 0-4.6A2.3 2.3 0 0 0 6 20zM17 20a2.3 2.3 0 1 0 0-4.6 2.3 2.3 0 0 0 0 4.6z"],
+    cafe_cupom: ["Cupom", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM9 7v10M13 10.5h.01M17 13.5h.01M17.5 10l-5 4", "M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"],
+    cafe_fidelidade: ["Estrela de fidelidade", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19zM12 6.5l1.7 3.5 3.8.6-2.7 2.6.6 3.8L12 15.2 8.6 17l.6-3.8-2.7-2.6 3.8-.6z", "M12 2.5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19z"],
+    cafe_coroa: ["Coroa", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 21h14", "M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5zM5 20.2h14v1.5H5z"],
+    cafe_cartao: ["Cart\xE3o", "M3 6h18v12H3zM3 10h18M6 14.5h4", "M3 6h18v3.2H3zM3 10.8h18V18H3z"]
+  };
+  var FORMAS = {
+    cafe_xicara: {
+      rotulo: "X\xEDcara",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.85)},${f(-0.55)}h${f(1.35)}v${f(0.6)}a${f(0.675)},${f(0.6)} 0 0 1 ${f(-1.35)},0zM${f(0.5)},${f(-0.4)}h${f(0.25)}a${f(0.3)},${f(0.3)} 0 0 1 0,${f(0.6)}h${f(-0.25)}z`;
+      }
+    },
+    cafe_grao: {
+      rotulo: "Gr\xE3o",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        return `M${(-0.72 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(1.44 * r).toFixed(2)},0a${(0.72 * r).toFixed(2)},${r.toFixed(2)} 0 1,0 ${(-1.44 * r).toFixed(2)},0z`;
+      }
+    },
+    cafe_copo: {
+      rotulo: "Copo",
+      caminho: (t) => {
+        const r = Math.max(0.5, t / 2);
+        const f = (v) => (v * r).toFixed(2);
+        return `M${f(-0.65)},${f(-1)}h${f(1.3)}l${f(-0.22)},${f(2)}h${f(-0.86)}z`;
+      }
+    }
+  };
+  var PALETAS = {
+    cafe_espresso: { rotulo: "Caf\xE9 \xB7 Espresso", cores: ["#3B2416", "#6F4E37", "#A0522D", "#C8A27A", "#E6CCB2", "#7F5539", "#B08968", "#DDB892", "#4A3728"] },
+    cafe_latte: { rotulo: "Caf\xE9 \xB7 Latte", cores: ["#C8A27A", "#E3C9A8", "#8B5E3C", "#F2E6D8", "#A47551", "#D6B48C", "#6B4F3A", "#BFA58A"] },
+    cafe_caramelo: { rotulo: "Caf\xE9 \xB7 Caramelo", cores: ["#AF6E4D", "#D4A373", "#E9C46A", "#F4A261", "#8D5524", "#C68B59", "#FFD8A9", "#7B3F00"] },
+    cafe_crema: { rotulo: "Caf\xE9 \xB7 Crema", cores: ["#FFF1D6", "#F3D9B1", "#E8C39E", "#D9A86C", "#C08552", "#A0673D", "#7A4E2D", "#5C3A21"] },
+    cafe_mocha: { rotulo: "Caf\xE9 \xB7 Mocha", cores: ["#4B3832", "#854442", "#BE9B7B", "#FFF4E6", "#3C2F2F", "#A47148", "#D4A574", "#6E4C3A"] }
+  };
+  var ESCALAS = {
+    cafe_torra: { rotulo: "Caf\xE9 \xB7 Torra (clara \u2192 escura)", cores: ["#F5E6D3", "#D9B48F", "#A9744F", "#6F4E37", "#3B2416"], tipo: "sequencial" },
+    cafe_torra_divergente: { rotulo: "Caf\xE9 \xB7 Torra divergente", cores: ["#3B2416", "#A9744F", "#F5F0E8", "#7FA7A0", "#2F5D57"], tipo: "divergente" }
+  };
+  var contador = 0;
+  function desenharXicara(pai, fracao, { lado = 40, cor = "#6F4E37", contornoCor = "currentColor", animar = false, duracao = 600, curva = "ease-out", agendarQuadro = null } = {}) {
+    const id = `cafe-xic-${contador += 1}`;
+    const svg = criarSvgEl("svg", {
+      pai,
+      classe: "cafe-xicara",
+      atributos: { width: lado, height: lado, viewBox: "0 0 24 24", "data-fracao": fracao.toFixed(3), role: "img", "aria-label": `${Math.round(fracao * 100)}%` }
+    });
+    const defs = criarSvgEl("defs", { pai: svg });
+    const clip = criarSvgEl("clipPath", { pai: defs, atributos: { id } });
+    criarSvgEl("path", { pai: clip, atributos: { d: "M4.6 9.6h10.8v4.4a4.4 4.4 0 0 1-4.4 4.4H9a4.4 4.4 0 0 1-4.4-4.4z" } });
+    const g = criarSvgEl("g", { pai: svg, atributos: { "clip-path": `url(#${id})` } });
+    const liquido = criarSvgEl("rect", { pai: g, classe: "cafe-liquido", atributos: { x: 4, y: 9.6, width: 12, height: 8.8, fill: cor } });
+    liquido.style.transformBox = "fill-box";
+    liquido.style.transformOrigin = "50% 100%";
+    const final = `scaleY(${fracao})`;
+    if (animar && agendarQuadro) {
+      liquido.style.transform = "scaleY(0)";
+      liquido.style.transition = `transform ${duracao}ms ${curva}`;
+      agendarQuadro(() => {
+        liquido.style.transform = final;
+      });
+    } else liquido.style.transform = final;
+    criarSvgEl("path", {
+      pai: svg,
+      atributos: { d: ICONES.cafe_xicara[1], fill: "none", stroke: contornoCor, "stroke-width": 1.6, "stroke-linecap": "round", "stroke-linejoin": "round" }
+    });
+    return svg;
+  }
+  registrarPacote({
+    id: "cafe",
+    nome: "Caf\xE9",
+    icones: Object.fromEntries(Object.entries(ICONES).map(([k, [rotulo, contorno, preenchido]]) => [k, { rotulo: `Caf\xE9 \xB7 ${rotulo}`, contorno, preenchido }])),
+    formas: FORMAS,
+    paletas: PALETAS,
+    escalas: ESCALAS,
+    progressos: { cafe_xicara: { rotulo: "Progresso em x\xEDcara", desenhar: desenharXicara } }
+  });
+
   // src/core/medida-texto.js
   var ESTREITOS = /* @__PURE__ */ new Set([...`iljtf.,:;|!'"()[]{} `]);
   var LARGOS = /* @__PURE__ */ new Set([..."mwMWQGOD@%"]);
@@ -3220,7 +3498,7 @@
 .bl-tooltip-chip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
 .bl-tooltip-dica{opacity:.6;font-size:.9em;margin-top:3px;}
 `;
-  var registro = /* @__PURE__ */ new WeakMap();
+  var registro2 = /* @__PURE__ */ new WeakMap();
   var contextos = /* @__PURE__ */ new WeakMap();
   var TAGS_DO_MODELO = /* @__PURE__ */ new Set(["b", "i", "br", "span"]);
   var TAGS_DO_HTML_DO_LOOKER = /* @__PURE__ */ new Set(["b", "i", "br", "span", "strong", "em", "p", "div", "u", "small"]);
@@ -3233,28 +3511,28 @@
     const r = raizDe(raiz);
     if (!r) return;
     contextos.set(r, { config: config || {}, ponte: ponte || null });
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.aplicarEstilo();
   }
   function esconderTooltipsDe(raiz) {
-    const t = registro.get(raizDe(raiz));
+    const t = registro2.get(raizDe(raiz));
     if (t) t.soltarEEsconder();
   }
   function destruirTooltipsDe(raiz) {
     const r = raizDe(raiz);
-    const t = registro.get(r);
+    const t = registro2.get(r);
     if (t) t.destruir();
     contextos.delete(r);
   }
   function criarTooltip(hospedeiro, tema) {
     const raiz = raizDe(hospedeiro);
-    const existente = registro.get(raiz);
+    const existente = registro2.get(raiz);
     if (existente && existente.elemento.isConnected) {
       existente.definirTema(tema);
       return existente;
     }
     const t = construirTooltip(raiz, tema);
-    registro.set(raiz, t);
+    registro2.set(raiz, t);
     return t;
   }
   function construirTooltip(raiz, temaInicial) {
@@ -3416,7 +3694,7 @@
           if (el.parentNode) el.parentNode.removeChild(el);
         } catch (_) {
         }
-        if (registro.get(raiz) === api) registro.delete(raiz);
+        if (registro2.get(raiz) === api) registro2.delete(raiz);
         visivel = false;
         fixo = false;
       }
@@ -3603,9 +3881,10 @@
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
     }
-    const opcoes = organizarAbas(
-      Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho())
-    );
+    const juntas = Object.assign({}, opcoesDeAnimacaoPadrao(), opcoesDeclaradas, OPCOES_DE_AVISO, opcoesDoCabecalho());
+    if (usaItensDePacote(juntas)) Object.assign(juntas, opcaoDePacoteTematico());
+    if (!juntas.estiloDoIcone && temListaDeIcones(juntas)) Object.assign(juntas, OPCAO_ESTILO_DO_ICONE);
+    const opcoes = organizarAbas(juntas);
     const definicao = {
       id,
       label,
@@ -3691,7 +3970,7 @@
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
     const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
-    const ponte = criarPonte(this, opcoes);
+    const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
     ponte.limparErros();
     if (!this._bl) {
       definicaoCreateManual.call(this, element);
@@ -3708,10 +3987,18 @@
     let configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
     const tema = resolverTema(configFinal);
     const modelo = construirModelo(data, queryResponse, configFinal, ponte);
+    const pacoteAgora = pacotesLigados(configFinal).join(",") || "nenhum";
+    const pacoteAntes = bl.pacoteRegistrado === void 0 ? PACOTE_PADRAO : bl.pacoteRegistrado;
+    const trocouPacote = "pacoteTematico" in opcoes && pacoteAgora !== pacoteAntes;
+    bl.pacoteRegistrado = pacoteAgora;
+    if (trocouPacote && typeof opcoesDinamicas !== "function") {
+      ponte.registrarOpcoes({}, pacoteAgora);
+    }
     if (typeof opcoesDinamicas === "function") {
       try {
         const dinamicas = opcoesDinamicas({ modelo, config: configFinal, tema });
-        if (dinamicas && Object.keys(dinamicas).length && ponte.registrarOpcoes(organizarAbas(dinamicas))) {
+        const extra = trocouPacote || bl.pacoteRegistrado !== PACOTE_PADRAO ? pacoteAgora : "";
+        if (dinamicas && (Object.keys(dinamicas).length || trocouPacote) && ponte.registrarOpcoes(filtrarOpcoesPorPacote(organizarAbas(dinamicas), configFinal), extra)) {
           configFinal = aplicarConfiguracaoJson(normalizarConfig(config, ponte.opcoesAtuais()));
         }
       } catch (e) {
@@ -3955,6 +4242,21 @@
     bl.avisoEl.style.display = bl.posicaoDoAviso === "oculto" || fechadoPeloUsuario ? "none" : "flex";
     bl.avisoEl.style.background = tema.nome === "escuro" ? "rgba(251,191,36,.18)" : "rgba(253,230,138,.85)";
     bl.avisoEl.style.color = tema.nome === "escuro" ? "#FDE68A" : "#92400E";
+  }
+  var OPCAO_ESTILO_DO_ICONE = {
+    estiloDoIcone: {
+      type: "string",
+      label: "Estilo do \xEDcone",
+      section: "Tema",
+      display: "select",
+      default: "contorno",
+      values: [{ Contorno: "contorno" }, { Preenchido: "preenchido" }]
+    }
+  };
+  function temListaDeIcones(opcoes) {
+    return Object.values(opcoes || {}).some(
+      (o) => o && Array.isArray(o.values) && /[íi]cone/i.test(o.label || "") && o.values.some((v) => existeIcone(String(Object.values(v)[0])))
+    );
   }
   var OPCOES_DE_AVISO = {
     mostrarAvisos: {
@@ -4772,53 +5074,6 @@
     }
     el.setAttribute("data-rotulo", "1");
     return el;
-  }
-
-  // src/core/shapes.js
-  function CatmullLimitada(contexto) {
-    this._context = contexto;
-  }
-  CatmullLimitada.prototype = {
-    areaStart() {
-      this._line = 0;
-    },
-    areaEnd() {
-      this._line = NaN;
-    },
-    lineStart() {
-      this._pontos = [];
-    },
-    point(x, y) {
-      this._pontos.push([+x, +y]);
-    },
-    lineEnd() {
-      const p = this._pontos;
-      const n = p.length;
-      const c = this._context;
-      if (n) {
-        if (this._line) c.lineTo(p[0][0], p[0][1]);
-        else c.moveTo(p[0][0], p[0][1]);
-        const limitar = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
-        for (let i = 0; i < n - 1; i++) {
-          const p0 = p[i - 1] || p[i];
-          const p1 = p[i];
-          const p2 = p[i + 1];
-          const p3 = p[i + 2] || p2;
-          const c1x = limitar(p1[0] + (p2[0] - p0[0]) / 6, p1[0], p2[0]);
-          const c1y = limitar(p1[1] + (p2[1] - p0[1]) / 6, p1[1], p2[1]);
-          const c2x = limitar(p2[0] - (p3[0] - p1[0]) / 6, p1[0], p2[0]);
-          const c2y = limitar(p2[1] - (p3[1] - p1[1]) / 6, p1[1], p2[1]);
-          c.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
-        }
-      }
-      if (this._line || this._line !== 0 && n === 1) c.closePath();
-      this._line = 1 - this._line;
-    }
-  };
-  function tracejadoPorEstilo(estilo, espessura = 1) {
-    if (estilo === "tracejado") return `${espessura * 4},${espessura * 3}`;
-    if (estilo === "pontilhado") return `${espessura},${espessura * 2}`;
-    return null;
   }
 
   // src/core/cores.js

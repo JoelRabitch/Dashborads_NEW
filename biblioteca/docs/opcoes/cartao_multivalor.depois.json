@@ -135,6 +135,15 @@
     "dinamica": false
   },
   {
+    "id": "estiloDoIcone",
+    "label": "Tema · Estilo do ícone",
+    "rotuloCompleto": "Tema · Estilo do ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "contorno",
+    "dinamica": false
+  },
+  {
     "id": "modoDoCartao",
     "label": "Cartão · Modo",
     "rotuloCompleto": "Cartão · Modo",
@@ -294,6 +303,51 @@
     "section": "Estilo",
     "type": "boolean",
     "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "mapaDeIconesPorValor",
+    "label": "Cartão · Mapa (valor=ícone; …)",
+    "rotuloCompleto": "Cartão · Mapa (valor=ícone; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "iconePadraoPorValor",
+    "label": "Cartão · Ícone padrão",
+    "rotuloCompleto": "Cartão · Ícone padrão",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": false
+  },
+  {
+    "id": "coresPorValor",
+    "label": "Cartão · Cores (valor=#cor; …)",
+    "rotuloCompleto": "Cartão · Cores (valor=#cor; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "campoDoIconePorValor",
+    "label": "Cartão · Campo (nome ou rótulo)",
+    "rotuloCompleto": "Cartão · Campo (nome ou rótulo)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
     "dinamica": false
   },
   {

@@ -22,6 +22,7 @@
 import { criarEl } from '../../core/dom.js';
 import { listaDeValores } from '../../core/options-kit.js';
 import { opcoesDeTextoLongo } from '../../core/texto-longo.js';
+import { opcoesDeIconePorValor } from '../../core/icone-por-valor.js';
 
 export const CURVAS_CSS = {
   linear: 'linear',
@@ -94,6 +95,8 @@ export function opcoesComunsDasArvores({ comCadaArvore = false } = {}) {
     },
     // 5.11 — texto longo
     ...opcoesDeTextoLongo({ secao: 'Texto longo' }),
+    // 5.14f — ícone por valor (o valor é o nome do nó)
+    ...opcoesDeIconePorValor({ secao: 'Ícone por valor', comCampo: false }),
   };
   if (comCadaArvore) saida.centralizarCadaArvore = cen('boolean', 'Cada árvore na célula', true);
   return saida;

@@ -900,6 +900,33 @@
     "dinamica": false
   },
   {
+    "id": "mapaDeIconesPorValor",
+    "label": "Mapa (valor=ícone; …)",
+    "rotuloCompleto": "Mapa (valor=ícone; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "iconePadraoPorValor",
+    "label": "Ícone padrão",
+    "rotuloCompleto": "Ícone padrão",
+    "section": "Estilo",
+    "type": "string",
+    "default": "nenhum",
+    "dinamica": false
+  },
+  {
+    "id": "coresPorValor",
+    "label": "Cores (valor=#cor; …)",
+    "rotuloCompleto": "Cores (valor=#cor; …)",
+    "section": "Estilo",
+    "type": "string",
+    "default": "",
+    "dinamica": false
+  },
+  {
     "id": "layoutDaTabela",
     "label": "Layout",
     "rotuloCompleto": "Layout",
@@ -1185,6 +1212,24 @@
     "section": "Estilo",
     "type": "number",
     "default": 0,
+    "dinamica": false
+  },
+  {
+    "id": "pacoteTematico",
+    "label": "Tema · Pacote temático",
+    "rotuloCompleto": "Tema · Pacote temático",
+    "section": "Estilo",
+    "type": "string",
+    "default": "cafe",
+    "dinamica": false
+  },
+  {
+    "id": "estiloDoIcone",
+    "label": "Tema · Estilo do ícone",
+    "rotuloCompleto": "Tema · Estilo do ícone",
+    "section": "Estilo",
+    "type": "string",
+    "default": "contorno",
     "dinamica": false
   },
   {
