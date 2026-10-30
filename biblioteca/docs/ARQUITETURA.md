@@ -144,3 +144,23 @@ canvas ou virtualização são obrigatórios para o arraste continuar suave.
 vezes na mesma instância. Rolagem, ordenação, filtros, seleção e página
 precisam sobreviver entre atualizações — e o `define-viz` preserva esse
 objeto, limpando só o que é descartável (listeners, timers, quadros).
+
+## Melhorias v3 — módulos novos
+
+| Módulo | Para quê |
+|---|---|
+| `src/core/cabecalho.js` + `medida-texto.js` | Título, subtítulo e nota em faixas próprias; largura estimada de texto (função única, usada também pelos testes de geometria) |
+| `src/core/rotulos-do-painel.js` | Rótulos curtos do painel (30/40 caracteres); 4 abas em `ABAS` (`options-kit.js`) |
+| `src/core/formulas.js` | Interpretador próprio de fórmulas (sem eval) — tabela e cartão |
+| `src/core/texto-longo.js` | "Texto longo" (7 modos) — árvores, organograma, dot plot |
+| `src/core/rotulo-na-borda.js` | Margem/inversão do rótulo do valor extremo |
+| `src/core/icones.js`, `icone-por-valor.js` | Registro único de ícones; ícone por valor |
+| `src/core/pacotes.js` + `src/packs/<nome>/` | Pacotes temáticos (registram ícones, formas, paletas, progressos com prefixo); o build descobre as pastas; `BL_SEM_PACOTES=1` |
+| `src/charts/_arvore/comum.js` | Botões, abrir/fechar animado, centralizar — árvores e organograma |
+| `src/charts/tabela_completa/{busca,calculadas,layouts}.js` | Busca "contém", colunas calculadas, 9 layouts |
+| `src/charts/diagrama_venn/moderno.js` | Layout Moderno do Venn |
+| `config/repo.json` | Único lugar com dono/repositório/hospedagem (URLs) |
+
+O `define-viz` passou a: injetar as opções do cabeçalho/nota, "Pacote
+temático" e "Estilo do ícone" quando cabem; esconder o tooltip antes de
+qualquer drill; registrar o painel de novo só quando o pacote temático muda.

@@ -213,3 +213,11 @@ pelo caminho `/gh/`, as saídas são:
 | Drill não abre | `looker-adapter.js` | `abrirDrill` → `openDrillMenu` existe? |
 | Arraste/zoom travando | `interaction.js` | Pointer capture (ver 4.2) |
 | Campo oculto aparecendo | `data-model.js` | `descobrirCamposOcultos` |
+
+## Melhorias v3 — suposições novas (CONFERIR NO LOOKER REAL)
+
+- Abas ordenadas pelo NOME pelo Looker (por isso Dados · Estilo · Mais · Texto).
+- Sem campo de "ajuda" por opção na API de opções: explicações em `docs/opcoes/ABAS.md`.
+- Re-registrar o painel ao trocar o "Pacote temático" (uma vez por troca).
+- `trigger('updateConfig')` não confirmado: arrastar bordas da grade de árvores não foi feito.
+- Tooltip: o menu de drill do Looker fica fora do iframe; usamos `blur`/`focus` da janela e `mouseout` sem relatedTarget.

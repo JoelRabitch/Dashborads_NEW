@@ -3521,3 +3521,12 @@ MIGRACAO.md) e depois 5.15 (build duplo, tag v3.N, URLs, relatório).
 
 PRÓXIMA AÇÃO: 5.15 — build duplo, testes, commit, tag v3.N, URLs,
 relatório.
+
+### 5.15 Fechamento
+- Build duplo: `git status` limpo. `npm test` 927 ok (1 pulado),
+  `testar-sem-pacotes` 921 ok (6 pulados), segurança sem violação.
+- Docs: ARQUITETURA e COMPAT (módulos e suposições da v3),
+  `docs/RELATORIO_MELHORIAS.md` (feito × testado × conferir no Looker,
+  tabela de opções salvas, ids novos, o que não foi possível).
+- Tag: nenhuma `v3.*` existia → `v3.1` no último commit que alterou
+  `biblioteca/dist` (4a715c1); URLs geradas depois, em commit separado.
