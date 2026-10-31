@@ -3670,3 +3670,15 @@ PRÓXIMA AÇÃO: org_chart (cartão cresce até o maior nome; fonte, quebra, esc
 - `npm test`: 957 testes, 956 ok, 1 pulado.
 PRÓXIMA AÇÃO: S2 (test/arvores_visual.html), docs (COMPAT, TESTE_NO_LOOKER,
 RELATORIO_MELHORIAS), npm run opcoes, testar-sem-pacotes, tag v3.3, urls.
+
+### Fechamento v3.3
+- Docs: TESTE_NO_LOOKER (seção v3.3), COMPAT (suposições do contêiner),
+  RELATORIO_MELHORIAS §8; página visual `test/arvores_visual.html`.
+- `npm run opcoes`: 4 abas; só ids novos (`layout*`), nenhum id removido
+  ou alterado. `npm test`: 957 (956 ok, 1 pulado). Sem pacotes: 957 (951 ok,
+  6 pulados). Segurança: sem violação. Build determinístico (sem diff).
+- Tag NOVA `v3.3` (anotada) em d4ff048 (último commit que alterou
+  biblioteca/dist), enviada; `git ls-remote` confirma refs/tags/v3.3^{} →
+  d4ff048540cc946c8fba7cd576bc85c1b446e96d. v3.1 e v3.2 intocadas.
+  `npm run urls -- v3.3` em commit separado.
+PRÓXIMA AÇÃO: nenhuma no agente; o usuário confere TESTE_NO_LOOKER.md (v3.3).

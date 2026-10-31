@@ -173,4 +173,4 @@ arquivados em `_arquivados/` e não devem ser retomados:
 - [x] v3.2 Espaçamento dos níveis e tamanho do ícone nas árvores (arvores_multiplas, _arvore, org_chart); tag v3.2
 
 ### v3.3 — tarefa avulsa
-- [~] v3.3 Árvores se ajustam ao limite da célula (arvores_multiplas, _arvore, org_chart); tag v3.3
+- [x] v3.3 Árvores se ajustam ao limite da célula (arvores_multiplas, _arvore, org_chart); tag v3.3
