@@ -37,6 +37,23 @@
  * novas: "Tamanho do ícone" (`tamanhoDoIcone`, 0 = automático) e "Ajuste
  * de escala" (`ajusteDeEscala`: real com rolagem, padrão, ou ajustar à
  * área com a fonte mínima do "Texto longo").
+ *
+ * Quando não couber (v3.3, `_arvore/ajuste.js`): `layoutQuandoNaoCouber` =
+ * "Ajustar automaticamente" (padrão) ou "Rolar em tamanho real" (= v3.2).
+ * No automático, e só com "Texto longo" = Mostrar inteiro: fonte (até
+ * `layoutFonteMinima`, 9 px) → linhas ("Máximo de linhas") → menos colunas
+ * → escala (até 0,6) → rolagem (`layoutAjusteRolagem`, desligada) ou corte
+ * com reticências e tooltip. Precedência com as opções que já existiam:
+ *   - `ajusteDeEscala` só vale em "Rolar em tamanho real"; no automático é
+ *     ignorado;
+ *   - `colunasDaGrade` vira o MÁXIMO de colunas;
+ *   - `larguraMinimaDaArvore`, `alturaDaArvore` e largura/altura por árvore
+ *     não forçam célula maior que a área no automático (valem inteiros só
+ *     em "Rolar em tamanho real");
+ *   - `truncarRotulo` e os outros modos do "Texto longo" seguem como antes;
+ *   - na impressão (matchMedia print) vale sempre o automático, sem rolagem.
+ * O ajuste aplicado vai para a nota (`layoutAjusteNaNota`) e, com
+ * `layoutDiagnostico`, numa linha de diagnóstico.
  */
 
 import { defineViz } from '../../core/define-viz.js';

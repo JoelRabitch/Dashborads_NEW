@@ -6213,12 +6213,12 @@
       const fonteEm = (s) => Math.max(tam, Math.ceil(aj.fonteMinima / s * 4) / 4);
       const tentar = (s) => {
         const t = fonteEm(s);
-        const m2 = medir2({ tamanho: t, limite: Infinity, quebrar: false });
+        const m2 = medir2({ tamanho: t, limite: Infinity, quebrar: false, escala: s });
         if (s * m2.largura <= d) return { cabe: true, tamanho: t, limite: Infinity, quebrar: false, largura: s * m2.largura };
         if (aj.linhas && linhas > 1 && m2.colunas > 0) {
           const limite2 = Math.floor((d / s - m2.fixo) / m2.colunas);
           if (limite2 >= LIMITE_MINIMO) {
-            const q2 = medir2({ tamanho: t, limite: limite2, quebrar: true });
+            const q2 = medir2({ tamanho: t, limite: limite2, quebrar: true, escala: s });
             if (s * q2.largura <= d + 0.01 && !q2.cortado) return { cabe: true, tamanho: t, limite: limite2, quebrar: true, largura: s * q2.largura };
           }
         }
@@ -6243,10 +6243,10 @@
       escala = ESCALA_MINIMA;
       tam = fonteEm(escala);
     }
-    const m = medir2({ tamanho: tam, limite: Infinity, quebrar: false });
+    const m = medir2({ tamanho: tam, limite: Infinity, quebrar: false, escala });
     if (aj.rolagem) return { cabe: false, passo: "rolagem", escala, tamanho: tam, limite: Infinity, quebrar: false, largura: m.largura * escala };
     const limite = Math.max(LIMITE_MINIMO, Math.floor((d / escala - m.fixo) / Math.max(1, m.colunas)));
-    const q = medir2({ tamanho: tam, limite, quebrar: true });
+    const q = medir2({ tamanho: tam, limite, quebrar: true, escala });
     return { cabe: q.largura * escala <= d + 0.01, passo: "corte", escala, tamanho: tam, limite, quebrar: true, largura: q.largura * escala };
   }
   function larguraDaBarraDeRolagem(pai) {

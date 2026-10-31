@@ -600,3 +600,83 @@ test('v3.3 — opções novas: ids, padrões, abas e rótulos curtos; ids antigo
     }
   }
 });
+
+/* ------------------------------------------------------------------ */
+/* org_chart                                                            */
+/* ------------------------------------------------------------------ */
+
+/** Escala e deslocamento do conteúdo do organograma. */
+function transformacaoDoOrg(palco) {
+  const g = palco.querySelector('.oc-area > svg > g');
+  const t = g.getAttribute('transform') || '';
+  const s = /scale\(([-\d.e]+)\)/.exec(t);
+  return { escala: s ? Number(s[1]) : 1 };
+}
+
+/** Cartões em coordenadas do desenho, com os textos medidos pela função única. */
+function cartoesDoOrg(palco) {
+  return Array.from(palco.querySelectorAll('.oc-cartao')).map((g) => {
+    const caixa = g.querySelector('.oc-caixa');
+    const x0 = num(caixa, 'x');
+    const textos = Array.from(g.querySelectorAll('.oc-texto')).filter((t) => !t.closest('.oc-botao')).map((t) => {
+      const tam = Number(t.getAttribute('font-size'));
+      const negrito = t.classList.contains('oc-nome');
+      const w = larguraDoTexto(t.textContent, tam, { negrito });
+      const x = num(t, 'x');
+      const a = t.getAttribute('text-anchor');
+      const ini = a === 'end' ? x - w : a === 'middle' ? x - w / 2 : x;
+      return { texto: t.textContent, x0: ini, x1: ini + w, tamanho: tam, el: t };
+    });
+    return { x0, x1: x0 + num(caixa, 'width'), largura: num(caixa, 'width'), textos };
+  });
+}
+
+test('v3.3 — org_chart (esquerda→direita) em área de 385 px: o desenho cabe e nenhum texto sai do cartão', () => {
+  const antes = abrir('org_chart', { orientacao: 'esquerda', iconePadraoPorValor: 'estrela', layoutQuandoNaoCouber: 'rolar' }, { largura: 385 });
+  const depois = abrir('org_chart', { orientacao: 'esquerda', iconePadraoPorValor: 'estrela' }, { largura: 385 });
+  try {
+    assert.ok(num(antes.palco.querySelector('.oc-area > svg'), 'width') > 385, 'em tamanho real o organograma passa da área (o defeito)');
+    const svg = depois.palco.querySelector('.oc-area > svg');
+    assert.ok(num(svg, 'width') <= 385 + 0.5, `o desenho (${num(svg, 'width')} px) deveria caber na área de 385 px`);
+    const { escala } = transformacaoDoOrg(depois.palco);
+    for (const c of cartoesDoOrg(depois.palco)) {
+      for (const t of c.textos) {
+        assert.ok(t.x0 >= c.x0 - 0.5 && t.x1 <= c.x1 + 0.5, `"${t.texto}" sai do cartão`);
+        assert.ok(t.tamanho * escala >= 9 - 0.05, `fonte na tela ${(t.tamanho * escala).toFixed(2)} abaixo da mínima`);
+        if (/…/.test(t.texto)) assert.ok(t.el.getAttribute('data-completo'), 'texto cortado sem o completo');
+      }
+    }
+    assert.ok(depois.palco.querySelector('.oc-area').getAttribute('data-ajuste'));
+  } finally {
+    antes.fim();
+    depois.fim();
+  }
+});
+
+test('v3.3 — org_chart (cima→baixo): o cartão cabe na área; nunca fica menor que o texto; só a escala reduz', () => {
+  for (const largura of [900, 240, 150]) {
+    const r = abrir('org_chart', { iconePadraoPorValor: 'estrela', larguraDoCartao: 150 }, { largura });
+    try {
+      const { escala } = transformacaoDoOrg(r.palco);
+      for (const c of cartoesDoOrg(r.palco)) {
+        // larguraDoCartao é o mínimo enquanto cabe (198 px com as margens).
+        if (largura - 18 >= 150 + 48) assert.ok(c.largura >= 150, 'larguraDoCartao continua sendo o mínimo');
+        assert.ok(c.largura * escala <= largura - 18 + 0.5, `área ${largura}: cartão de ${(c.largura * escala).toFixed(0)} px na tela não cabe`);
+        for (const t of c.textos) assert.ok(t.x1 <= c.x1 + 0.5 && t.x0 >= c.x0 - 0.5, `área ${largura}: "${t.texto}" maior que o cartão`);
+        for (const t of c.textos) assert.ok(t.tamanho * escala >= 9 - 0.05, `área ${largura}: fonte abaixo da mínima`);
+      }
+    } finally {
+      r.fim();
+    }
+  }
+});
+
+test('v3.3 — org_chart: "Rolar em tamanho real" e "Ajuste de escala" da v3.2 continuam valendo', () => {
+  const r = abrir('org_chart', { orientacao: 'esquerda', layoutQuandoNaoCouber: 'rolar', ajusteDeEscala: 'ajustar' }, { largura: 385 });
+  try {
+    assert.equal(r.palco.querySelector('.oc-area').getAttribute('data-ajuste'), null);
+    assert.ok(transformacaoDoOrg(r.palco).escala < 1, 'o "Ajustar à área" da v3.2 reduz o desenho');
+  } finally {
+    r.fim();
+  }
+});

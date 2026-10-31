@@ -53,6 +53,14 @@
  * dos níveis vêm da árvore COMPLETA, então abrir um nó não move os níveis
  * visíveis; "Ajuste de escala" = Ajustar à área reduz o desenho para caber
  * (fonte na tela ≥ "Fonte mínima").
+ *
+ * v3.3 (`_arvore/ajuste.js`): "Quando não couber" = Ajustar
+ * automaticamente (padrão) — o cartão cresce até o maior nome e, se o
+ * desenho passar da área no eixo dos níveis (esquerda→direita) ou o cartão
+ * passar da largura da área (cima→baixo): fonte, quebra, escala, rolagem
+ * (ou corte com tooltip). Só com "Mostrar inteiro" e `cartaoAjustavel`.
+ * `larguraDoCartao` é o mínimo enquanto cabe; o cartão nunca fica menor
+ * que o texto. `ajusteDeEscala` só vale em "Rolar em tamanho real".
  */
 
 import { defineViz } from '../../core/define-viz.js';
@@ -61,7 +69,7 @@ import { formatadorDeValueFormat } from '../../core/format.js';
 import { textoLegivelSobre } from '../../core/theme.js';
 import { lerRotulos, textoDoRotulo, estilizarRotulo } from '../../core/rotulos.js';
 import { paletaDoConfig, corDoItem, lerContorno, aplicarContorno, aplicarPreenchimento } from '../../core/cores.js';
-import { larguraDoTexto } from '../../core/medida-texto.js';
+import { larguraDoTexto, criarMedidor, medicaoDoNavegador } from '../../core/medida-texto.js';
 import { lerTextoLongo, ajustarRotulo } from '../../core/texto-longo.js';
 import { criarIconePorValor, desenharIconePorValor } from '../../core/icone-por-valor.js';
 import { hierarchy as d3Hierarchy, tree as d3Tree } from 'd3-hierarchy';
@@ -92,6 +100,18 @@ import {
   CSS_ANIMACAO_ARVORE,
 } from '../_arvore/comum.js';
 import { escalaDeAjuste, LADO_MINIMO_DO_ICONE } from '../_arvore/index.js';
+import {
+  lerAjuste,
+  emImpressao,
+  tamanhoSeguro,
+  ajustarPorTexto,
+  ajustarPorEscala,
+  larguraDaBarraDeRolagem,
+  textoDoAjuste,
+  textoDoDiagnostico,
+  LARGURA_PADRAO,
+  ALTURA_PADRAO,
+} from '../_arvore/ajuste.js';
 
 /** Default declarado de "Cor do contorno" (blocoDeCores): tratado como "automática". */
 const COR_PADRAO_DO_CONTORNO = '#FFFFFF';
@@ -404,6 +424,7 @@ export default defineViz({
       dica.style.color = tema.textoSuave;
       definirTexto(dica, `${recolhidos.size} área(s) recolhida(s) — clique no + para abrir`);
     }
+    const diagnosticoEl = config.layoutDiagnostico === true ? criarEl('div', { classe: 'am-diagnostico', pai: caixaRaiz }) : null;
     const area = criarEl('div', { classe: 'oc-area', pai: caixaRaiz });
 
     // ---------- Textos de cada cartão (antes do layout: definem o tamanho) ----------
@@ -427,7 +448,32 @@ export default defineViz({
     const algumIcone = !!iconePorValor && raiz.descendants().some((n) => iconePorValor(n.data.rotulo));
     const ladoPedido = Number(config.tamanhoDoIcone) > 0 ? Number(config.tamanhoDoIcone) : 16;
     const recuoDoIcone = (lado) => (algumIcone ? 4 + lado + 4 : margemInterna);
-    const textosDe = (no, larguraUtil) => {
+    const entreNiveis = Number(config.espacoEntreNiveis) || 60;
+    const entreIrmaos = Number(config.espacoEntreIrmaos) || 16;
+    const deCimaParaBaixo = (config.orientacao || 'cima') === 'cima';
+    const margem = 24;
+
+    // ---------- Quando não couber (v3.3) ----------
+    // "Ajustar automaticamente" (padrão): o cartão cresce até o maior nome;
+    // se o desenho passar da área no eixo dos níveis (esquerda→direita) ou
+    // o cartão passar da largura da área (cima→baixo): fonte, quebra,
+    // escala, rolagem. Conta feita na árvore COMPLETA (estável ao abrir).
+    // O cartão nunca fica menor que o texto (`larguraDoCartao` é o mínimo);
+    // só a escala o reduz. Só age em "Mostrar inteiro" com "Cartão cresce
+    // com o texto"; nesse modo o "Ajuste de escala" da v3.2 é ignorado.
+    const aj = lerAjuste(config, { impressao: emImpressao() });
+    const ajustaTexto = aj.automatico && tl.modo === 'inteiro' && ajustavel;
+    const chaveDoMedidor = `${aj.folga}|${fonte}`;
+    if (ajustaTexto && (!estado.medidor || estado.chaveDoMedidor !== chaveDoMedidor)) {
+      estado.medidor = criarMedidor({ folga: aj.folga, real: medicaoDoNavegador(fonte) });
+      estado.chaveDoMedidor = chaveDoMedidor;
+    }
+    const medidor = ajustaTexto ? estado.medidor : larguraDoTexto;
+    if (aj.automatico && estado.larguraDaBarra === undefined) estado.larguraDaBarra = larguraDaBarraDeRolagem(caixaRaiz);
+    const reservaDaBarra = aj.automatico ? estado.larguraDaBarra : 0;
+    area.classList.toggle('am-ajustada', aj.automatico);
+
+    const textosDe = (no, larguraUtil, ajuste = null) => {
       const caminho = caminhoPorDados.get(no.data) || caminhoDoNo(no);
       const completo = completosPorCaminho.get(caminho) || { valor: no.value || 0, descendentes: 0, filhos: 0 };
       const cargo =
@@ -435,29 +481,71 @@ export default defineViz({
           ? modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, undefined, '')
           : '';
       const linhas = rot.mostrar
-        ? linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor: !!campoDoValor, larguraUtil })
+        ? linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor: !!campoDoValor, larguraUtil, ajuste })
         : [];
       return { linhas, completo, caminho };
     };
     // Tamanho do cartão medido na árvore COMPLETA (v3.2): abrir ou fechar
     // um nó não muda o cartão nem a distância entre os níveis.
-    const larguraUtilDoTexto = ajustavel && tl.modo === 'inteiro' ? Infinity : larguraBase - recuoDoIcone(ladoPedido) - margemInterna;
-    let larguraNecessaria = 0;
-    let alturaNecessaria = 0;
-    for (const no of raiz.descendants()) {
-      const { linhas } = textosDe(no, larguraUtilDoTexto);
-      larguraNecessaria = Math.max(larguraNecessaria, ...linhas.map((l) => l.largura + recuoDoIcone(ladoPedido) + margemInterna + tl.margemExtra));
-      alturaNecessaria = Math.max(alturaNecessaria, linhas.reduce((a, l) => a + l.tamanho * 1.25, 0) + 12);
+    const todos = raiz.descendants();
+    const extrasDoCartao = recuoDoIcone(ladoPedido) + margemInterna + tl.margemExtra;
+    const medirCartoes = (larguraUtil, ajuste = null) => {
+      let texto = 0;
+      let altura = 0;
+      let cortado = false;
+      for (const no of todos) {
+        const { linhas } = textosDe(no, larguraUtil, ajuste);
+        for (const l of linhas) {
+          texto = Math.max(texto, l.largura);
+          if (l.cortado) cortado = true;
+        }
+        altura = Math.max(altura, linhas.reduce((a, l) => a + l.tamanho * 1.25, 0) + 12);
+      }
+      return { texto, altura, cortado };
+    };
+    // `medir` do ajuste: largura do desenho no eixo que tem de caber.
+    const niveis = raiz.height + 1;
+    const extensao = (w) => (deCimaParaBaixo ? w + 2 * margem : niveis * w + (niveis - 1) * entreNiveis + 2 * margem);
+    // `larguraDoCartao` é o mínimo enquanto ele cabe; se nem ele cabe, o
+    // cartão pode encolher, mas nunca abaixo do texto.
+    let minimoDoCartao = larguraBase;
+    const medirOrg = ({ tamanho = rot.tamanho, limite = Infinity, quebrar = false, escala = 1 } = {}) => {
+      const c = medirCartoes(limite, { tamanho, quebrar, piso: aj.fonteMinima / escala, medir: medidor });
+      const w = Math.max(minimoDoCartao, Math.ceil(c.texto + extrasDoCartao));
+      const largura = extensao(w);
+      const colunas = deCimaParaBaixo ? 1 : niveis;
+      return { largura, fixo: largura - colunas * c.texto, colunas, cortado: c.cortado, cartao: w, altura: c.altura };
+    };
+    const alturaDaBarra = barra ? 28 : 0;
+    const visivelNaArea = {
+      largura: Math.max(80, area.clientWidth || tamanhoSeguro(largura, LARGURA_PADRAO)),
+      altura: Math.max(80, (area.clientHeight || tamanhoSeguro(altura, ALTURA_PADRAO)) - (area.clientHeight ? 0 : alturaDaBarra)),
+    };
+    let plan = null;
+    let ajusteDoTexto = null;
+    let larguraDoCartao;
+    let alturaDoCartao;
+    if (ajustaTexto) {
+      const disponivel = visivelNaArea.largura - reservaDaBarra;
+      if (extensao(larguraBase) > disponivel) minimoDoCartao = 0;
+      const porTexto = ajustarPorTexto({ disponivel, fonte: rot.tamanho, aj, linhas: tl.linhas, medir: medirOrg });
+      const f = ajustarPorEscala({ disponivel, texto: porTexto, aj, linhas: tl.linhas, medir: medirOrg });
+      const m = medirOrg({ tamanho: f.tamanho, limite: f.limite, quebrar: f.quebrar, escala: f.escala });
+      plan = { ...f, fonteOriginal: rot.tamanho, tamanhoNaTela: f.tamanho * f.escala, larguraOriginal: medirOrg({}).largura };
+      ajusteDoTexto = { tamanho: f.tamanho, quebrar: f.quebrar, piso: aj.fonteMinima / f.escala, medir: medidor };
+      larguraDoCartao = m.cartao;
+      alturaDoCartao = Math.max(alturaBase, Math.ceil(m.altura));
+      for (const no of nos) textos.set(no, textosDe(no, f.limite, ajusteDoTexto));
+    } else {
+      const larguraUtilDoTexto = ajustavel && tl.modo === 'inteiro' ? Infinity : larguraBase - recuoDoIcone(ladoPedido) - margemInterna;
+      const c = medirCartoes(larguraUtilDoTexto);
+      for (const no of nos) textos.set(no, textosDe(no, larguraUtilDoTexto));
+      // Balão que se ajusta ao conteúdo (uniforme, para o layout em grade do d3).
+      larguraDoCartao = ajustavel ? Math.max(larguraBase, Math.ceil(c.texto + extrasDoCartao)) : larguraBase;
+      alturaDoCartao = ajustavel ? Math.max(alturaBase, Math.ceil(c.altura)) : alturaBase;
     }
-    for (const no of nos) textos.set(no, textosDe(no, larguraUtilDoTexto));
-    // Balão que se ajusta ao conteúdo (uniforme, para o layout em grade do d3).
-    const larguraDoCartao = ajustavel ? Math.max(larguraBase, Math.ceil(larguraNecessaria)) : larguraBase;
-    const alturaDoCartao = ajustavel ? Math.max(alturaBase, Math.ceil(alturaNecessaria)) : alturaBase;
     const ladoDoIcone = Math.max(LADO_MINIMO_DO_ICONE, Math.min(ladoPedido, alturaDoCartao - 8));
     const recuoEsquerdo = recuoDoIcone(ladoDoIcone);
-    const entreNiveis = Number(config.espacoEntreNiveis) || 60;
-    const entreIrmaos = Number(config.espacoEntreIrmaos) || 16;
-    const deCimaParaBaixo = (config.orientacao || 'cima') === 'cima';
 
     // `nodeSize`: o organograma não é espremido; cresce e a área rola.
     d3Tree().nodeSize(
@@ -469,7 +557,6 @@ export default defineViz({
     const posicaoDe = (no) => (deCimaParaBaixo ? { x: no.x, y: no.y } : { x: no.y, y: no.x });
     const xs = nos.map((n) => posicaoDe(n).x);
     const ys = nos.map((n) => posicaoDe(n).y);
-    const margem = 24;
     // No eixo dos níveis, a extensão vem da profundidade da árvore
     // COMPLETA (v3.2): abrir um nível não muda o tamanho do desenho nesse
     // eixo, então a centralização não empurra os níveis já visíveis.
@@ -482,18 +569,18 @@ export default defineViz({
     const maxY = Math.max(...ys) + alturaDoCartao / 2 + margem;
 
     // ---------- Centralizar (5.10) e rolagem só quando precisa ----------
-    const alturaDaBarra = barra ? 28 : 0;
-    const visivelNaArea = {
-      largura: Math.max(80, area.clientWidth || largura),
-      altura: Math.max(80, (area.clientHeight || altura) - (area.clientHeight ? 0 : alturaDaBarra)),
-    };
-    // "Ajuste de escala" (v3.2): real com rolagem (padrão) ou reduzido
-    // para caber, sem a fonte passar da mínima.
-    const escala = escalaDeAjuste(config, {
-      area: visivelNaArea,
-      desenho: { largura: maxX - minX, altura: maxY - minY },
-      fonte: rot.tamanho,
-    });
+    // Escala: a do ajuste automático; em "Rolar em tamanho real", o
+    // "Ajuste de escala" da v3.2 (real com rolagem, ou ajustar à área).
+    const escala = plan
+      ? plan.escala
+      : aj.automatico
+        ? 1
+        : escalaDeAjuste(config, {
+            area: visivelNaArea,
+            desenho: { largura: maxX - minX, altura: maxY - minY },
+            fonte: rot.tamanho,
+          });
+    if (aj.automatico) visivelNaArea.largura = Math.max(80, visivelNaArea.largura - reservaDaBarra);
     const desenho = { largura: (maxX - minX) * escala, altura: (maxY - minY) * escala };
     const alvoNo =
       config.oQueCentralizar === 'raiz'
@@ -677,6 +764,18 @@ export default defineViz({
         grupoDeLigacoes.style.opacity = '';
       });
     }
+
+    // ---------- Nota e diagnóstico do ajuste (v3.3) ----------
+    const textoDaNota = plan ? textoDoAjuste([plan], { linhas: tl.linhas }) : '';
+    if (aj.naNota && textoDaNota && ctx.nota) definirTexto(ctx.nota, textoDaNota);
+    if (diagnosticoEl || config.modoDebug) {
+      const linha = plan
+        ? textoDoDiagnostico({ larguraDaCelula: visivelNaArea.largura + reservaDaBarra, planos: [plan], colunas: 1 })
+        : `área ${Math.round(visivelNaArea.largura)} px · ajuste automático inativo (${aj.automatico ? `Texto longo: ${tl.modo}${ajustavel ? '' : ', cartão fixo'}` : 'rolar em tamanho real'})`;
+      if (diagnosticoEl) definirTexto(diagnosticoEl, linha);
+      if (config.modoDebug && typeof console !== 'undefined' && console.log) console.log('[org_chart] layout:', linha);
+    }
+    if (plan) area.setAttribute('data-ajuste', plan.passo);
   },
 });
 
@@ -690,21 +789,26 @@ export default defineViz({
  * nome e 2 px a menos nas outras linhas; conteúdo "nomeValor" põe o valor
  * junto do nome; "percentual"/"valorPercentual" mostram o % do total.
  */
-function linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor, larguraUtil }) {
+function linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor, larguraUtil, ajuste = null }) {
   const semCorte = Object.assign({}, rot, { truncar: 0 });
-  const tamanhoMenor = Math.max(6, rot.tamanho - 2);
+  // v3.3: com o ajuste automático, fonte e quebra vêm do plano, e a linha
+  // menor nunca fica abaixo da fonte mínima NA TELA (`piso` = mínima ÷ escala).
+  const tamanhoDoNome = ajuste ? ajuste.tamanho : rot.tamanho;
+  const tamanhoMenor = ajuste ? Math.max(ajuste.tamanho - 2, Math.min(ajuste.tamanho, ajuste.piso)) : Math.max(6, rot.tamanho - 2);
+  const tlBase = ajuste && ajuste.quebrar ? { ...tl, modo: 'quebrar' } : tl;
+  const mede = ajuste && ajuste.medir ? ajuste.medir : larguraDoTexto;
   const mostrarValor = config.mostrarValorNoCartao !== false && temValor;
   const saida = [];
   const ajustar = (texto, tamanho, extra = {}) => {
-    const aj = ajustarRotulo({ nome: texto, tamanho, largura: larguraUtil, tl: extra.semCorteDeModo ? { ...tl, modo: tl.modo === 'soNome' ? 'inteiro' : tl.modo } : tl, estilo: { negrito: !!extra.nome } });
-    return aj.linhas.map((l) => ({ texto: l, tamanho: aj.tamanho, largura: larguraDoTexto(l, aj.tamanho, { negrito: !!extra.nome }), ...extra, completo: aj.completo, cortado: aj.cortado }));
+    const aj = ajustarRotulo({ nome: texto, tamanho, largura: larguraUtil, tl: extra.semCorteDeModo ? { ...tlBase, modo: tlBase.modo === 'soNome' ? 'inteiro' : tlBase.modo } : tlBase, estilo: { negrito: !!extra.nome }, medir: mede });
+    return aj.linhas.map((l) => ({ texto: l, tamanho: aj.tamanho, largura: mede(l, aj.tamanho, { negrito: !!extra.nome }), ...extra, completo: aj.completo, cortado: aj.cortado }));
   };
 
   let nome = String(no.data.rotulo || '');
   if (mostrarValor && rot.conteudo === 'nomeValor' && tl.modo !== 'soNome') {
     nome = textoDoRotulo(semCorte, { valor: completo.valor, nome, valueFormat });
   }
-  if (config.mostrarNomeNoCartao !== false) saida.push(...ajustar(nome, rot.tamanho, { nome: true }));
+  if (config.mostrarNomeNoCartao !== false) saida.push(...ajustar(nome, tamanhoDoNome, { nome: true }));
   if (cargo) saida.push(...ajustar(cargo, tamanhoMenor, {}));
 
   if (tl.modo !== 'soNome') {
@@ -719,8 +823,8 @@ function linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo,
     if (config.mostrarContagemDeEquipe !== false && completo.descendentes > 0) extras.push(`${completo.descendentes} abaixo`);
     if (extras.length) {
       const juntas = extras.join(' · ');
-      const aj = ajustarRotulo({ nome: '', extras: [juntas], formatar: (_, e) => e.join(''), tamanho: tamanhoMenor, largura: larguraUtil, tl: tl.modo === 'abreviar' ? tl : { ...tl, modo: tl.modo === 'quebrar' ? 'quebrar' : tl.modo }, estilo: {} });
-      for (const l of aj.linhas) saida.push({ texto: l, tamanho: aj.tamanho, largura: larguraDoTexto(l, aj.tamanho), suave: true });
+      const aj = ajustarRotulo({ nome: '', extras: [juntas], formatar: (_, e) => e.join(''), tamanho: tamanhoMenor, largura: larguraUtil, tl: tlBase, estilo: {}, medir: mede });
+      for (const l of aj.linhas) saida.push({ texto: l, tamanho: aj.tamanho, largura: mede(l, aj.tamanho), suave: true, completo: aj.completo, cortado: aj.cortado });
     }
   }
   return saida;

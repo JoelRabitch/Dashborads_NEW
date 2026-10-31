@@ -3653,3 +3653,20 @@ PRÓXIMA AÇÃO: testes P1–P12 e S1; redimensionamento com debounce (define-vi
 - Testes P1–P11, S1 e opções em `test/arvores_ajuste_v33.test.mjs`;
   P12 = suíte inteira: 954 testes, 953 ok, 1 pulado, 0 falhas.
 PRÓXIMA AÇÃO: org_chart (cartão cresce até o maior nome; fonte, quebra, escala, rolagem).
+
+### Etapa 3 (org_chart) — feita
+- O cartão cresce até o maior nome; o ajuste mede a árvore COMPLETA:
+  esquerda→direita = extensão dos níveis na largura da área; cima→baixo =
+  o cartão na largura da área (a largura do conjunto, irmãos lado a lado,
+  rola como antes). Fonte → quebra → escala → rolagem/corte, pelo mesmo
+  motor. A linha menor do cartão nunca fica abaixo da fonte mínima na tela.
+- Decisão: `larguraDoCartao` é o mínimo enquanto cabe; se nem ele cabe, o
+  cartão encolhe até o texto (nunca abaixo). Só age com "Mostrar inteiro"
+  e "Cartão cresce com o texto".
+- Corte final que ainda não cabe (mínimo 40 px por rótulo): fica o corte
+  (desenho mais perto de caber) e o resto rola.
+- Teste antigo `5.10 organograma` ajustado: no automático o svg ocupa a
+  área menos a barra reservada (882 = 900 − 18 no jsdom).
+- `npm test`: 957 testes, 956 ok, 1 pulado.
+PRÓXIMA AÇÃO: S2 (test/arvores_visual.html), docs (COMPAT, TESTE_NO_LOOKER,
+RELATORIO_MELHORIAS), npm run opcoes, testar-sem-pacotes, tag v3.3, urls.

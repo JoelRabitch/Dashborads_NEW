@@ -3,9 +3,10 @@
  * célula e só rola em último caso.
  *
  * Motor GENÉRICO: não sabe desenhar nada. Quem desenha (arvores_multiplas,
- * org_chart) passa uma função `medir({tamanho, limite, quebrar})` que
- * devolve a largura que o desenho COMPLETO (todos os nós, abertos ou não)
- * ocuparia com aquela fonte e aquele limite por rótulo. Como a conta usa o
+ * org_chart) passa uma função `medir({tamanho, limite, quebrar, escala})`
+ * (`escala` = a escala em teste no passo d) que devolve a largura que o
+ * desenho COMPLETO (todos os nós, abertos ou não) ocuparia com aquela fonte
+ * e aquele limite por rótulo. Como a conta usa o
  * ramo completo, abrir ou fechar um nó não muda o ajuste (layout estável
  * da v3.2).
  *
@@ -21,7 +22,8 @@
  *                 mínima (a fonte no desenho sobe na mesma proporção);
  *   (e) rolagem — desenho em tamanho final com rolagem, sem cortar texto.
  * Com a rolagem desligada e nada resolvido, o último recurso é quebrar e
- * cortar com reticências (texto completo no tooltip).
+ * cortar com reticências (texto completo no tooltip); se nem assim couber,
+ * o que sobra rola.
  *
  * Determinístico: sem aleatoriedade nem medida do DOM (só `medir`), com
  * número de iterações limitado — mesma entrada, mesmo resultado.
@@ -158,12 +160,12 @@ export function ajustarPorEscala({ disponivel, texto, aj, linhas = 2, medir }) {
     // quebrando em até "Máximo de linhas" sem cortar nada?
     const tentar = (s) => {
       const t = fonteEm(s);
-      const m = medir({ tamanho: t, limite: Infinity, quebrar: false });
+      const m = medir({ tamanho: t, limite: Infinity, quebrar: false, escala: s });
       if (s * m.largura <= d) return { cabe: true, tamanho: t, limite: Infinity, quebrar: false, largura: s * m.largura };
       if (aj.linhas && linhas > 1 && m.colunas > 0) {
         const limite = Math.floor((d / s - m.fixo) / m.colunas);
         if (limite >= LIMITE_MINIMO) {
-          const q = medir({ tamanho: t, limite, quebrar: true });
+          const q = medir({ tamanho: t, limite, quebrar: true, escala: s });
           if (s * q.largura <= d + 0.01 && !q.cortado) return { cabe: true, tamanho: t, limite, quebrar: true, largura: s * q.largura };
         }
       }
@@ -189,11 +191,13 @@ export function ajustarPorEscala({ disponivel, texto, aj, linhas = 2, medir }) {
     escala = ESCALA_MINIMA;
     tam = fonteEm(escala);
   }
-  const m = medir({ tamanho: tam, limite: Infinity, quebrar: false });
+  const m = medir({ tamanho: tam, limite: Infinity, quebrar: false, escala });
   if (aj.rolagem) return { cabe: false, passo: 'rolagem', escala, tamanho: tam, limite: Infinity, quebrar: false, largura: m.largura * escala };
   // Último recurso: quebra e corta com reticências (tooltip com o texto todo).
   const limite = Math.max(LIMITE_MINIMO, Math.floor((d / escala - m.fixo) / Math.max(1, m.colunas)));
-  const q = medir({ tamanho: tam, limite, quebrar: true });
+  const q = medir({ tamanho: tam, limite, quebrar: true, escala });
+  // Se nem cortando couber (mínimo de 40 px por rótulo), o corte ainda é o
+  // desenho mais perto de caber: o resto rola.
   return { cabe: q.largura * escala <= d + 0.01, passo: 'corte', escala, tamanho: tam, limite, quebrar: true, largura: q.largura * escala };
 }
 

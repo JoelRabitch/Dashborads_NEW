@@ -3221,6 +3221,57 @@
     }
     return linhas;
   }
+  var LIMITE_DO_CACHE = 5e4;
+  function criarMedidor({ folga = 0, real = null } = {}) {
+    const cache = /* @__PURE__ */ new Map();
+    const fator = 1 + Math.max(0, Number(folga) || 0) / 100;
+    const estatisticas = { medicoes: 0, consultas: 0 };
+    const medir2 = (texto, tamanho = 12, opcoes = {}) => {
+      const s = String(texto != null ? texto : "");
+      const negrito = !!(opcoes && opcoes.negrito);
+      const mono = !!(opcoes && opcoes.mono);
+      const chave = `${tamanho}|${negrito ? 1 : 0}${mono ? 1 : 0}|${s}`;
+      estatisticas.consultas += 1;
+      let w = cache.get(chave);
+      if (w === void 0) {
+        estatisticas.medicoes += 1;
+        let base = null;
+        if (real && s) {
+          try {
+            base = real(s, tamanho, { negrito, mono });
+          } catch (_) {
+            base = null;
+          }
+        }
+        if (!(Number.isFinite(base) && base >= 0)) base = larguraDoTexto(s, tamanho, { negrito, mono });
+        w = base * fator;
+        if (cache.size >= LIMITE_DO_CACHE) cache.clear();
+        cache.set(chave, w);
+      }
+      return w;
+    };
+    medir2.estatisticas = estatisticas;
+    return medir2;
+  }
+  function medicaoDoNavegador(familia2) {
+    if (typeof document === "undefined") return null;
+    const janela = document.defaultView || (typeof window !== "undefined" ? window : null);
+    const nav = janela && janela.navigator || (typeof navigator !== "undefined" ? navigator : null);
+    if (!nav || /jsdom/i.test(nav.userAgent || "")) return null;
+    let c2d = null;
+    try {
+      const canvas = document.createElement("canvas");
+      c2d = canvas.getContext ? canvas.getContext("2d") : null;
+    } catch (_) {
+      c2d = null;
+    }
+    if (!c2d || typeof c2d.measureText !== "function") return null;
+    const fam = familia2 || "sans-serif";
+    return (texto, tamanho, { negrito = false, mono = false } = {}) => {
+      c2d.font = `${negrito ? "700 " : ""}${tamanho}px ${mono ? "monospace" : fam}`;
+      return c2d.measureText(texto).width;
+    };
+  }
 
   // src/core/cabecalho.js
   var valores = (pares) => pares.map(([rotulo, valor]) => ({ [rotulo]: valor }));
@@ -5397,6 +5448,12 @@
   }
 
   // src/charts/_arvore/ajuste.js
+  var ESCALA_MINIMA = 0.6;
+  var LARGURA_PADRAO = 600;
+  var ALTURA_PADRAO = 400;
+  var RESERVA_DA_BARRA = 18;
+  var LIMITE_MINIMO = 40;
+  var ITERACOES = 24;
   function opcoesDeAjuste({ secao = "\xC1rvore", comColunas = false } = {}) {
     const b = (label, def) => ({ type: "boolean", label, section: secao, default: def });
     const saida = {
@@ -5424,6 +5481,141 @@
       layoutDiagnostico: b("Diagn\xF3stico do layout", false)
     });
     return saida;
+  }
+  function emImpressao() {
+    try {
+      return typeof window !== "undefined" && typeof window.matchMedia === "function" && !!window.matchMedia("print").matches;
+    } catch (_) {
+      return false;
+    }
+  }
+  function lerAjuste(config = {}, { impressao = false } = {}) {
+    const n = (v, d) => Number.isFinite(Number(v)) && v !== "" && v !== null ? Number(v) : d;
+    return {
+      automatico: impressao || config.layoutQuandoNaoCouber !== "rolar",
+      impressao,
+      fonte: config.layoutAjusteFonte !== false,
+      linhas: config.layoutAjusteLinhas !== false,
+      colunas: config.layoutAjusteColunas !== false,
+      escala: config.layoutAjusteEscala !== false,
+      rolagem: !impressao && config.layoutAjusteRolagem === true,
+      fonteMinima: Math.max(5, n(config.layoutFonteMinima, 9)),
+      folga: Math.max(0, Math.min(100, n(config.layoutFolgaDoTexto, 10))),
+      naNota: config.layoutAjusteNaNota !== false,
+      diagnostico: config.layoutDiagnostico === true
+    };
+  }
+  function tamanhoSeguro(v, padrao) {
+    const x = Number(v);
+    return Number.isFinite(x) && x > 1 ? x : padrao;
+  }
+  function ajustarPorTexto({ disponivel, fonte, aj, linhas = 2, medir: medir2 }) {
+    const d = tamanhoSeguro(disponivel, LARGURA_PADRAO);
+    const pronto = (passo, tamanho, m2, limite = Infinity, quebrar = false) => ({ cabe: true, passo, tamanho, limite, quebrar, largura: m2.largura });
+    let tam = fonte;
+    let m = medir2({ tamanho: tam, limite: Infinity, quebrar: false });
+    if (m.largura <= d) return pronto("nenhum", tam, m);
+    if (aj.fonte && fonte > aj.fonteMinima) {
+      for (let i = 1; i <= ITERACOES * 4; i++) {
+        tam = Math.max(aj.fonteMinima, fonte - 0.5 * i);
+        m = medir2({ tamanho: tam, limite: Infinity, quebrar: false });
+        if (m.largura <= d) return pronto("fonte", tam, m);
+        if (tam <= aj.fonteMinima) break;
+      }
+    }
+    if (aj.linhas && linhas > 1 && m.colunas > 0) {
+      const limite = Math.floor((d - m.fixo) / m.colunas);
+      if (limite >= LIMITE_MINIMO) {
+        const q = medir2({ tamanho: tam, limite, quebrar: true });
+        if (q.largura <= d + 0.01 && !q.cortado) return pronto("linhas", tam, q, limite, true);
+      }
+    }
+    return { cabe: false, passo: null, tamanho: tam, limite: Infinity, quebrar: false, largura: m.largura };
+  }
+  function ajustarPorEscala({ disponivel, texto, aj, linhas = 2, medir: medir2 }) {
+    const d = tamanhoSeguro(disponivel, LARGURA_PADRAO);
+    if (texto.cabe) return { ...texto, escala: 1 };
+    let escala = 1;
+    let tam = texto.tamanho;
+    if (aj.escala) {
+      const fonteEm = (s) => Math.max(tam, Math.ceil(aj.fonteMinima / s * 4) / 4);
+      const tentar = (s) => {
+        const t = fonteEm(s);
+        const m2 = medir2({ tamanho: t, limite: Infinity, quebrar: false, escala: s });
+        if (s * m2.largura <= d) return { cabe: true, tamanho: t, limite: Infinity, quebrar: false, largura: s * m2.largura };
+        if (aj.linhas && linhas > 1 && m2.colunas > 0) {
+          const limite2 = Math.floor((d / s - m2.fixo) / m2.colunas);
+          if (limite2 >= LIMITE_MINIMO) {
+            const q2 = medir2({ tamanho: t, limite: limite2, quebrar: true, escala: s });
+            if (s * q2.largura <= d + 0.01 && !q2.cortado) return { cabe: true, tamanho: t, limite: limite2, quebrar: true, largura: s * q2.largura };
+          }
+        }
+        return { cabe: false };
+      };
+      if (tentar(ESCALA_MINIMA).cabe) {
+        let lo = ESCALA_MINIMA;
+        let hi = 1;
+        for (let i = 0; i < ITERACOES; i++) {
+          const meio = (lo + hi) / 2;
+          if (tentar(meio).cabe) lo = meio;
+          else hi = meio;
+        }
+        escala = Math.floor(lo * 1e3) / 1e3;
+        let r = tentar(escala);
+        if (!r.cabe) {
+          escala = ESCALA_MINIMA;
+          r = tentar(escala);
+        }
+        return { ...r, cabe: true, passo: "escala", escala };
+      }
+      escala = ESCALA_MINIMA;
+      tam = fonteEm(escala);
+    }
+    const m = medir2({ tamanho: tam, limite: Infinity, quebrar: false, escala });
+    if (aj.rolagem) return { cabe: false, passo: "rolagem", escala, tamanho: tam, limite: Infinity, quebrar: false, largura: m.largura * escala };
+    const limite = Math.max(LIMITE_MINIMO, Math.floor((d / escala - m.fixo) / Math.max(1, m.colunas)));
+    const q = medir2({ tamanho: tam, limite, quebrar: true, escala });
+    return { cabe: q.largura * escala <= d + 0.01, passo: "corte", escala, tamanho: tam, limite, quebrar: true, largura: q.largura * escala };
+  }
+  function larguraDaBarraDeRolagem(pai) {
+    try {
+      const prova = document.createElement("div");
+      prova.style.cssText = "position:absolute;visibility:hidden;width:100px;height:100px;overflow:scroll;top:-200px;";
+      pai.appendChild(prova);
+      const w = prova.offsetWidth - prova.clientWidth;
+      pai.removeChild(prova);
+      return Number.isFinite(w) && w >= 0 && w <= 40 && prova.offsetWidth === 100 ? w : RESERVA_DA_BARRA;
+    } catch (_) {
+      return RESERVA_DA_BARRA;
+    }
+  }
+  function textoDoAjuste(planos, { linhas = 2, colunas = null } = {}) {
+    const partes = [];
+    const usados = planos.filter(Boolean);
+    const fontes = usados.filter((p) => p.passo !== "nenhum").map((p) => p.tamanho);
+    if (usados.some((p) => p.passo !== "nenhum" && p.passo !== null) && fontes.length) {
+      const menor = Math.min(...usados.map((p) => p.tamanhoNaTela || p.tamanho));
+      const original = Math.max(...usados.map((p) => p.fonteOriginal || 0));
+      if (menor < original - 0.01) partes.push(`fonte reduzida para ${arredondar(menor)} px`);
+    }
+    if (usados.some((p) => p.quebrar)) partes.push(`${linhas} linhas por r\xF3tulo`);
+    if (colunas && colunas.para < colunas.de) partes.push(`${colunas.para} ${colunas.para === 1 ? "coluna" : "colunas"}`);
+    const escalas = usados.filter((p) => p.escala < 1).map((p) => p.escala);
+    if (escalas.length) partes.push(`escala ${Math.round(Math.min(...escalas) * 100)}%`);
+    if (usados.some((p) => p.passo === "rolagem")) partes.push("com rolagem");
+    if (usados.some((p) => p.passo === "corte")) partes.push("r\xF3tulos cortados (texto completo no tooltip)");
+    return partes.length ? `Ajuste: ${partes.join(" \xB7 ")}` : "";
+  }
+  function textoDoDiagnostico({ larguraDaCelula, planos, colunas }) {
+    const usados = planos.filter(Boolean);
+    const necessaria = Math.max(0, ...usados.map((p) => p.larguraOriginal || 0));
+    const passos = [...new Set(usados.map((p) => p.passo || "nenhum"))].join("+");
+    const fonte = usados.length ? Math.min(...usados.map((p) => p.tamanhoNaTela || p.tamanho)) : 0;
+    const escala = usados.length ? Math.min(...usados.map((p) => p.escala || 1)) : 1;
+    return `c\xE9lula ${Math.round(larguraDaCelula)} px \xB7 necess\xE1ria ${Math.round(necessaria)} px \xB7 passo ${passos} \xB7 fonte ${arredondar(fonte)} px \xB7 colunas ${colunas} \xB7 escala ${escala.toFixed(2)}`;
+  }
+  function arredondar(v) {
+    return String(Math.round(v * 100) / 100).replace(".", ",");
   }
 
   // src/charts/_arvore/comum.js
@@ -5945,6 +6137,7 @@
         dica.style.color = tema.textoSuave;
         definirTexto(dica, `${recolhidos.size} \xE1rea(s) recolhida(s) \u2014 clique no + para abrir`);
       }
+      const diagnosticoEl = config.layoutDiagnostico === true ? criarEl("div", { classe: "am-diagnostico", pai: caixaRaiz }) : null;
       const area = criarEl("div", { classe: "oc-area", pai: caixaRaiz });
       const rot = lerRotulos(config, tema);
       const valueFormat = campoDoValor ? campoDoValor.valueFormat : void 0;
@@ -5962,36 +6155,89 @@
       const algumIcone = !!iconePorValor && raiz.descendants().some((n) => iconePorValor(n.data.rotulo));
       const ladoPedido = Number(config.tamanhoDoIcone) > 0 ? Number(config.tamanhoDoIcone) : 16;
       const recuoDoIcone = (lado) => algumIcone ? 4 + lado + 4 : margemInterna;
-      const textosDe = (no, larguraUtil) => {
-        const caminho = caminhoPorDados.get(no.data) || caminhoDoNo(no);
-        const completo = completosPorCaminho.get(caminho) || { valor: no.value || 0, descendentes: 0, filhos: 0 };
-        const cargo = campoDoCargo && no.data.indiceDaLinha >= 0 ? modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, void 0, "") : "";
-        const linhas = rot.mostrar ? linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor: !!campoDoValor, larguraUtil }) : [];
-        return { linhas, completo, caminho };
-      };
-      const larguraUtilDoTexto = ajustavel && tl.modo === "inteiro" ? Infinity : larguraBase - recuoDoIcone(ladoPedido) - margemInterna;
-      let larguraNecessaria = 0;
-      let alturaNecessaria = 0;
-      for (const no of raiz.descendants()) {
-        const { linhas } = textosDe(no, larguraUtilDoTexto);
-        larguraNecessaria = Math.max(larguraNecessaria, ...linhas.map((l) => l.largura + recuoDoIcone(ladoPedido) + margemInterna + tl.margemExtra));
-        alturaNecessaria = Math.max(alturaNecessaria, linhas.reduce((a, l) => a + l.tamanho * 1.25, 0) + 12);
-      }
-      for (const no of nos) textos.set(no, textosDe(no, larguraUtilDoTexto));
-      const larguraDoCartao = ajustavel ? Math.max(larguraBase, Math.ceil(larguraNecessaria)) : larguraBase;
-      const alturaDoCartao = ajustavel ? Math.max(alturaBase, Math.ceil(alturaNecessaria)) : alturaBase;
-      const ladoDoIcone = Math.max(LADO_MINIMO_DO_ICONE, Math.min(ladoPedido, alturaDoCartao - 8));
-      const recuoEsquerdo = recuoDoIcone(ladoDoIcone);
       const entreNiveis = Number(config.espacoEntreNiveis) || 60;
       const entreIrmaos = Number(config.espacoEntreIrmaos) || 16;
       const deCimaParaBaixo = (config.orientacao || "cima") === "cima";
+      const margem = 24;
+      const aj = lerAjuste(config, { impressao: emImpressao() });
+      const ajustaTexto = aj.automatico && tl.modo === "inteiro" && ajustavel;
+      const chaveDoMedidor = `${aj.folga}|${fonte}`;
+      if (ajustaTexto && (!estado.medidor || estado.chaveDoMedidor !== chaveDoMedidor)) {
+        estado.medidor = criarMedidor({ folga: aj.folga, real: medicaoDoNavegador(fonte) });
+        estado.chaveDoMedidor = chaveDoMedidor;
+      }
+      const medidor = ajustaTexto ? estado.medidor : larguraDoTexto;
+      if (aj.automatico && estado.larguraDaBarra === void 0) estado.larguraDaBarra = larguraDaBarraDeRolagem(caixaRaiz);
+      const reservaDaBarra = aj.automatico ? estado.larguraDaBarra : 0;
+      area.classList.toggle("am-ajustada", aj.automatico);
+      const textosDe = (no, larguraUtil, ajuste = null) => {
+        const caminho = caminhoPorDados.get(no.data) || caminhoDoNo(no);
+        const completo = completosPorCaminho.get(caminho) || { valor: no.value || 0, descendentes: 0, filhos: 0 };
+        const cargo = campoDoCargo && no.data.indiceDaLinha >= 0 ? modelo.texto(modelo.linhas[no.data.indiceDaLinha], campoDoCargo.nome, void 0, "") : "";
+        const linhas = rot.mostrar ? linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor: !!campoDoValor, larguraUtil, ajuste }) : [];
+        return { linhas, completo, caminho };
+      };
+      const todos = raiz.descendants();
+      const extrasDoCartao = recuoDoIcone(ladoPedido) + margemInterna + tl.margemExtra;
+      const medirCartoes = (larguraUtil, ajuste = null) => {
+        let texto = 0;
+        let altura2 = 0;
+        let cortado = false;
+        for (const no of todos) {
+          const { linhas } = textosDe(no, larguraUtil, ajuste);
+          for (const l of linhas) {
+            texto = Math.max(texto, l.largura);
+            if (l.cortado) cortado = true;
+          }
+          altura2 = Math.max(altura2, linhas.reduce((a, l) => a + l.tamanho * 1.25, 0) + 12);
+        }
+        return { texto, altura: altura2, cortado };
+      };
+      const niveis = raiz.height + 1;
+      const extensao = (w) => deCimaParaBaixo ? w + 2 * margem : niveis * w + (niveis - 1) * entreNiveis + 2 * margem;
+      let minimoDoCartao = larguraBase;
+      const medirOrg = ({ tamanho = rot.tamanho, limite = Infinity, quebrar = false, escala: escala2 = 1 } = {}) => {
+        const c = medirCartoes(limite, { tamanho, quebrar, piso: aj.fonteMinima / escala2, medir: medidor });
+        const w = Math.max(minimoDoCartao, Math.ceil(c.texto + extrasDoCartao));
+        const largura2 = extensao(w);
+        const colunas = deCimaParaBaixo ? 1 : niveis;
+        return { largura: largura2, fixo: largura2 - colunas * c.texto, colunas, cortado: c.cortado, cartao: w, altura: c.altura };
+      };
+      const alturaDaBarra = barra ? 28 : 0;
+      const visivelNaArea = {
+        largura: Math.max(80, area.clientWidth || tamanhoSeguro(largura, LARGURA_PADRAO)),
+        altura: Math.max(80, (area.clientHeight || tamanhoSeguro(altura, ALTURA_PADRAO)) - (area.clientHeight ? 0 : alturaDaBarra))
+      };
+      let plan = null;
+      let ajusteDoTexto = null;
+      let larguraDoCartao;
+      let alturaDoCartao;
+      if (ajustaTexto) {
+        const disponivel = visivelNaArea.largura - reservaDaBarra;
+        if (extensao(larguraBase) > disponivel) minimoDoCartao = 0;
+        const porTexto = ajustarPorTexto({ disponivel, fonte: rot.tamanho, aj, linhas: tl.linhas, medir: medirOrg });
+        const f = ajustarPorEscala({ disponivel, texto: porTexto, aj, linhas: tl.linhas, medir: medirOrg });
+        const m = medirOrg({ tamanho: f.tamanho, limite: f.limite, quebrar: f.quebrar, escala: f.escala });
+        plan = { ...f, fonteOriginal: rot.tamanho, tamanhoNaTela: f.tamanho * f.escala, larguraOriginal: medirOrg({}).largura };
+        ajusteDoTexto = { tamanho: f.tamanho, quebrar: f.quebrar, piso: aj.fonteMinima / f.escala, medir: medidor };
+        larguraDoCartao = m.cartao;
+        alturaDoCartao = Math.max(alturaBase, Math.ceil(m.altura));
+        for (const no of nos) textos.set(no, textosDe(no, f.limite, ajusteDoTexto));
+      } else {
+        const larguraUtilDoTexto = ajustavel && tl.modo === "inteiro" ? Infinity : larguraBase - recuoDoIcone(ladoPedido) - margemInterna;
+        const c = medirCartoes(larguraUtilDoTexto);
+        for (const no of nos) textos.set(no, textosDe(no, larguraUtilDoTexto));
+        larguraDoCartao = ajustavel ? Math.max(larguraBase, Math.ceil(c.texto + extrasDoCartao)) : larguraBase;
+        alturaDoCartao = ajustavel ? Math.max(alturaBase, Math.ceil(c.altura)) : alturaBase;
+      }
+      const ladoDoIcone = Math.max(LADO_MINIMO_DO_ICONE, Math.min(ladoPedido, alturaDoCartao - 8));
+      const recuoEsquerdo = recuoDoIcone(ladoDoIcone);
       tree_default().nodeSize(
         deCimaParaBaixo ? [larguraDoCartao + entreIrmaos, alturaDoCartao + entreNiveis] : [alturaDoCartao + entreIrmaos, larguraDoCartao + entreNiveis]
       )(visivel);
       const posicaoDe = (no) => deCimaParaBaixo ? { x: no.x, y: no.y } : { x: no.y, y: no.x };
       const xs = nos.map((n) => posicaoDe(n).x);
       const ys = nos.map((n) => posicaoDe(n).y);
-      const margem = 24;
       const ultimoNivel = raiz.height * ((deCimaParaBaixo ? alturaDoCartao : larguraDoCartao) + entreNiveis);
       if (deCimaParaBaixo) ys.push(0, ultimoNivel);
       else xs.push(0, ultimoNivel);
@@ -5999,16 +6245,12 @@
       const maxX = Math.max(...xs) + larguraDoCartao / 2 + margem;
       const minY = Math.min(...ys) - alturaDoCartao / 2 - margem;
       const maxY = Math.max(...ys) + alturaDoCartao / 2 + margem;
-      const alturaDaBarra = barra ? 28 : 0;
-      const visivelNaArea = {
-        largura: Math.max(80, area.clientWidth || largura),
-        altura: Math.max(80, (area.clientHeight || altura) - (area.clientHeight ? 0 : alturaDaBarra))
-      };
-      const escala = escalaDeAjuste(config, {
+      const escala = plan ? plan.escala : aj.automatico ? 1 : escalaDeAjuste(config, {
         area: visivelNaArea,
         desenho: { largura: maxX - minX, altura: maxY - minY },
         fonte: rot.tamanho
       });
+      if (aj.automatico) visivelNaArea.largura = Math.max(80, visivelNaArea.largura - reservaDaBarra);
       const desenho = { largura: (maxX - minX) * escala, altura: (maxY - minY) * escala };
       const alvoNo = config.oQueCentralizar === "raiz" ? visivel : config.oQueCentralizar === "selecionado" ? nos.find((n) => caminhoPorDados.get(n.data) === estado.selecionado) || null : null;
       const plano = planoDeCentralizacao({
@@ -6160,22 +6402,33 @@
           grupoDeLigacoes.style.opacity = "";
         });
       }
+      const textoDaNota = plan ? textoDoAjuste([plan], { linhas: tl.linhas }) : "";
+      if (aj.naNota && textoDaNota && ctx.nota) definirTexto(ctx.nota, textoDaNota);
+      if (diagnosticoEl || config.modoDebug) {
+        const linha = plan ? textoDoDiagnostico({ larguraDaCelula: visivelNaArea.largura + reservaDaBarra, planos: [plan], colunas: 1 }) : `\xE1rea ${Math.round(visivelNaArea.largura)} px \xB7 ajuste autom\xE1tico inativo (${aj.automatico ? `Texto longo: ${tl.modo}${ajustavel ? "" : ", cart\xE3o fixo"}` : "rolar em tamanho real"})`;
+        if (diagnosticoEl) definirTexto(diagnosticoEl, linha);
+        if (config.modoDebug && typeof console !== "undefined" && console.log) console.log("[org_chart] layout:", linha);
+      }
+      if (plan) area.setAttribute("data-ajuste", plan.passo);
     }
   });
-  function linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor, larguraUtil }) {
+  function linhasDoCartao({ no, rot, tl, completo, valueFormat, totalGeral, cargo, config, temValor, larguraUtil, ajuste = null }) {
     const semCorte = Object.assign({}, rot, { truncar: 0 });
-    const tamanhoMenor = Math.max(6, rot.tamanho - 2);
+    const tamanhoDoNome = ajuste ? ajuste.tamanho : rot.tamanho;
+    const tamanhoMenor = ajuste ? Math.max(ajuste.tamanho - 2, Math.min(ajuste.tamanho, ajuste.piso)) : Math.max(6, rot.tamanho - 2);
+    const tlBase = ajuste && ajuste.quebrar ? { ...tl, modo: "quebrar" } : tl;
+    const mede = ajuste && ajuste.medir ? ajuste.medir : larguraDoTexto;
     const mostrarValor = config.mostrarValorNoCartao !== false && temValor;
     const saida = [];
     const ajustar = (texto, tamanho, extra = {}) => {
-      const aj = ajustarRotulo({ nome: texto, tamanho, largura: larguraUtil, tl: extra.semCorteDeModo ? { ...tl, modo: tl.modo === "soNome" ? "inteiro" : tl.modo } : tl, estilo: { negrito: !!extra.nome } });
-      return aj.linhas.map((l) => ({ texto: l, tamanho: aj.tamanho, largura: larguraDoTexto(l, aj.tamanho, { negrito: !!extra.nome }), ...extra, completo: aj.completo, cortado: aj.cortado }));
+      const aj = ajustarRotulo({ nome: texto, tamanho, largura: larguraUtil, tl: extra.semCorteDeModo ? { ...tlBase, modo: tlBase.modo === "soNome" ? "inteiro" : tlBase.modo } : tlBase, estilo: { negrito: !!extra.nome }, medir: mede });
+      return aj.linhas.map((l) => ({ texto: l, tamanho: aj.tamanho, largura: mede(l, aj.tamanho, { negrito: !!extra.nome }), ...extra, completo: aj.completo, cortado: aj.cortado }));
     };
     let nome = String(no.data.rotulo || "");
     if (mostrarValor && rot.conteudo === "nomeValor" && tl.modo !== "soNome") {
       nome = textoDoRotulo(semCorte, { valor: completo.valor, nome, valueFormat });
     }
-    if (config.mostrarNomeNoCartao !== false) saida.push(...ajustar(nome, rot.tamanho, { nome: true }));
+    if (config.mostrarNomeNoCartao !== false) saida.push(...ajustar(nome, tamanhoDoNome, { nome: true }));
     if (cargo) saida.push(...ajustar(cargo, tamanhoMenor, {}));
     if (tl.modo !== "soNome") {
       const extras = [];
@@ -6189,8 +6442,8 @@
       if (config.mostrarContagemDeEquipe !== false && completo.descendentes > 0) extras.push(`${completo.descendentes} abaixo`);
       if (extras.length) {
         const juntas = extras.join(" \xB7 ");
-        const aj = ajustarRotulo({ nome: "", extras: [juntas], formatar: (_, e) => e.join(""), tamanho: tamanhoMenor, largura: larguraUtil, tl: tl.modo === "abreviar" ? tl : { ...tl, modo: tl.modo === "quebrar" ? "quebrar" : tl.modo }, estilo: {} });
-        for (const l of aj.linhas) saida.push({ texto: l, tamanho: aj.tamanho, largura: larguraDoTexto(l, aj.tamanho), suave: true });
+        const aj = ajustarRotulo({ nome: "", extras: [juntas], formatar: (_, e) => e.join(""), tamanho: tamanhoMenor, largura: larguraUtil, tl: tlBase, estilo: {}, medir: mede });
+        for (const l of aj.linhas) saida.push({ texto: l, tamanho: aj.tamanho, largura: mede(l, aj.tamanho), suave: true, completo: aj.completo, cortado: aj.cortado });
       }
     }
     return saida;
