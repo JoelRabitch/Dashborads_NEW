@@ -3606,3 +3606,10 @@ Tarefa avulsa (a v3 segue concluída; nenhuma fase retomada). Branch
   existente foi mexida. `npm run urls -- v3.2` gerou URLS.md/URLS.csv em
   commit separado. Os outros 21 bundles não mudaram desde a v3.1.
 PRÓXIMA AÇÃO: nenhuma no agente; o usuário confere TESTE_NO_LOOKER.md (v3.2).
+
+## v3.3 — árvores se ajustam ao limite da célula (início 2026-10-30)
+Tarefa avulsa (v3 e v3.2 concluídas; nenhuma fase retomada). `git pull`
+sem novidades; a `main` tinha avançado (merge do PR #2) e foi mesclada no
+branch sem conflito (fe503a4), enviado.
+PRÓXIMA AÇÃO: ler _arvore, arvores_multiplas, org_chart, texto-longo e
+medida-texto; escrever o teste de geometria que reproduz o corte (380 px).
