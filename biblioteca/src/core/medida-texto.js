@@ -71,3 +71,78 @@ export function linhasDoTexto(texto, larguraDisponivel, tamanho = 12, opcoes = {
   }
   return linhas;
 }
+
+/* ------------------------------------------------------------------ */
+/* Medidor com cache e folga (v3.3)                                     */
+/* ------------------------------------------------------------------ */
+
+/** Acima disso o cache é esvaziado (protege a memória com dados enormes). */
+const LIMITE_DO_CACHE = 50000;
+
+/**
+ * Medidor de texto com cache por (texto, fonte, negrito) e folga em %.
+ *
+ * Usado pelo ajuste automático das árvores (v3.3): o mesmo rótulo é medido
+ * em vários tamanhos de fonte e várias vezes por passo; com o cache, cada
+ * combinação é medida UMA vez. `real` é uma medição do navegador
+ * (`medicaoDoNavegador`); sem ela (ou se falhar), vale a estimativa
+ * `larguraDoTexto` — a mesma dos testes. A folga cobre a diferença entre a
+ * fonte real e a estimada.
+ *
+ * @param {{folga?:number, real?:((texto:string, tamanho:number, o:object)=>number)|null}} [o]
+ * @returns {((texto:string, tamanho?:number, opcoes?:object)=>number) & {estatisticas:{medicoes:number, consultas:number}}}
+ */
+export function criarMedidor({ folga = 0, real = null } = {}) {
+  const cache = new Map();
+  const fator = 1 + Math.max(0, Number(folga) || 0) / 100;
+  const estatisticas = { medicoes: 0, consultas: 0 };
+  const medir = (texto, tamanho = 12, opcoes = {}) => {
+    const s = String(texto ?? '');
+    const negrito = !!(opcoes && opcoes.negrito);
+    const mono = !!(opcoes && opcoes.mono);
+    const chave = `${tamanho}|${negrito ? 1 : 0}${mono ? 1 : 0}|${s}`;
+    estatisticas.consultas += 1;
+    let w = cache.get(chave);
+    if (w === undefined) {
+      estatisticas.medicoes += 1;
+      let base = null;
+      if (real && s) {
+        try {
+          base = real(s, tamanho, { negrito, mono });
+        } catch (_) {
+          base = null;
+        }
+      }
+      if (!(Number.isFinite(base) && base >= 0)) base = larguraDoTexto(s, tamanho, { negrito, mono });
+      w = base * fator;
+      if (cache.size >= LIMITE_DO_CACHE) cache.clear();
+      cache.set(chave, w);
+    }
+    return w;
+  };
+  medir.estatisticas = estatisticas;
+  return medir;
+}
+
+/**
+ * Medição real do navegador (`canvas.measureText`), ou null quando não há
+ * (jsdom dos testes, canvas indisponível). Os testes continuam na estimativa.
+ * @param {string} [familia] família da fonte (a do tema)
+ */
+export function medicaoDoNavegador(familia) {
+  if (typeof document === 'undefined' || typeof navigator === 'undefined') return null;
+  if (/jsdom/i.test(navigator.userAgent || '')) return null;
+  let c2d = null;
+  try {
+    const canvas = document.createElement('canvas');
+    c2d = canvas.getContext ? canvas.getContext('2d') : null;
+  } catch (_) {
+    c2d = null;
+  }
+  if (!c2d || typeof c2d.measureText !== 'function') return null;
+  const fam = familia || 'sans-serif';
+  return (texto, tamanho, { negrito = false, mono = false } = {}) => {
+    c2d.font = `${negrito ? '700 ' : ''}${tamanho}px ${mono ? 'monospace' : fam}`;
+    return c2d.measureText(texto).width;
+  };
+}

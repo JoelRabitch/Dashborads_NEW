@@ -76,7 +76,8 @@ const visiveis = (els) => els.filter((e) => e.getAttribute('display') !== 'none'
 const AM = (ajustes, extra) => renderizar('arvores_multiplas', 'hierarquia', ajustes, extra);
 
 test('arvores_multiplas — tamanho, cor, negrito e rotação do rótulo têm efeito', () => {
-  const r = AM({ tamanhoDoRotulo: 20, corDoRotulo: '#FF0000', negritoNoRotulo: true, rotacaoDoRotulo: 30 });
+  // v3.3: em tamanho real (no ajuste automático a fonte pode ser reduzida para caber).
+  const r = AM({ tamanhoDoRotulo: 20, corDoRotulo: '#FF0000', negritoNoRotulo: true, rotacaoDoRotulo: 30, layoutQuandoNaoCouber: 'rolar' });
   try {
     const rot = r.todos('.av-rotulo');
     assert.ok(rot.length > 0, 'precisa haver rótulos de folha');

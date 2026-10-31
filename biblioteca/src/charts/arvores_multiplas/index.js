@@ -64,6 +64,7 @@ import {
   CSS_ARVORE,
   opcoesDeArvore,
   layoutHorizontalEstavel,
+  prepararMedidaDosNiveis,
   escalaDeAjuste,
   desenharArvore,
   criarCoresDaArvore,
@@ -81,6 +82,19 @@ import {
   CSS_BARRA,
   CSS_ANIMACAO_ARVORE,
 } from '../_arvore/comum.js';
+import {
+  lerAjuste,
+  emImpressao,
+  tamanhoSeguro,
+  ajustarPorTexto,
+  ajustarPorEscala,
+  larguraDaBarraDeRolagem,
+  textoDoAjuste,
+  textoDoDiagnostico,
+  LARGURA_PADRAO,
+  ALTURA_PADRAO,
+} from '../_arvore/ajuste.js';
+import { criarMedidor, medicaoDoNavegador } from '../../core/medida-texto.js';
 
 /** Acima disso cada árvore fica pequena demais para dizer alguma coisa. */
 const MAXIMO_DE_ARVORES = 24;
@@ -230,7 +244,7 @@ export default defineViz({
     if (!estado.posicoesPorArvore) estado.posicoesPorArvore = new Map();
     if (!estado.rolagemDasCelulas) estado.rolagemDasCelulas = new Map();
 
-    criarBarraDaArvore({
+    const barra = criarBarraDaArvore({
       ctx,
       pai: elementoRaiz,
       config,
@@ -251,6 +265,39 @@ export default defineViz({
         ctx.redesenhar();
       },
     });
+
+    // ---------- Dados que mudam (filtro) ----------
+    // Nós que continuam mantêm o estado (chave = caminho de rótulos); os
+    // que sumiram são descartados.
+    const chavesAtuais = new Set();
+    for (const ramo of ramos) for (const n of ramo.descendants()) chavesAtuais.add(chaveDoNo(n));
+    for (const k of [...recolhidos]) if (!chavesAtuais.has(k)) recolhidos.delete(k);
+    for (const mapa of [estado.posicoesPorArvore, estado.rolagemDasCelulas]) {
+      for (const k of [...mapa.keys()]) if (!chavesAtuais.has(k)) mapa.delete(k);
+    }
+    if (estado.selecionado && !chavesAtuais.has(estado.selecionado)) estado.selecionado = null;
+
+    // ---------- Quando não couber (v3.3) ----------
+    // "Ajustar automaticamente" (padrão): fonte → linhas → colunas → escala
+    // → rolagem (ou corte), calculado sobre o ramo COMPLETO. Nesse modo o
+    // "Ajuste de escala" da v3.2 é ignorado e nem `colunasDaGrade`,
+    // `larguraMinimaDaArvore` ou `alturaDaArvore` forçam uma célula maior
+    // que a área. "Rolar em tamanho real" = exatamente a v3.2.
+    const aj = lerAjuste(config, { impressao: emImpressao() });
+    const automatico = aj.automatico;
+    // Só age em "Mostrar inteiro": nos outros modos, o próprio modo manda.
+    const ajustaTexto = automatico && tl.modo === 'inteiro';
+    const larguraTotal = tamanhoSeguro(largura, LARGURA_PADRAO);
+    const alturaTotal = tamanhoSeguro(ctx.altura, ALTURA_PADRAO);
+    if (automatico && estado.larguraDaBarra === undefined) estado.larguraDaBarra = larguraDaBarraDeRolagem(elementoRaiz);
+    const reservaDaBarra = automatico ? estado.larguraDaBarra : 0;
+    const chaveDoMedidor = `${aj.folga}|${tema.fonte}`;
+    if (ajustaTexto && (!estado.medidor || estado.chaveDoMedidor !== chaveDoMedidor)) {
+      estado.medidor = criarMedidor({ folga: aj.folga, real: medicaoDoNavegador(tema.fonte) });
+      estado.chaveDoMedidor = chaveDoMedidor;
+    }
+    const medidor = ajustaTexto ? estado.medidor : null;
+    const diagnostico = aj.diagnostico ? criarEl('div', { classe: 'am-diagnostico', pai: elementoRaiz }) : null;
 
     // ---------- Grade (5.12) ----------
     const espacoH = Math.max(0, Number(config.espacoHorizontalDaGrade) || 0);
@@ -273,12 +320,15 @@ export default defineViz({
 
     const larguraMinima = Number(config.larguraMinimaDaArvore) || 260;
     const colunasPedidas = Number(config.colunasDaGrade) || 0;
-    const colunas =
-      colunasPedidas > 0
-        ? colunasPedidas
-        : Math.max(1, Math.min(ramos.length, Math.floor((largura + espacoH) / (larguraMinima + espacoH)) || 1));
-    const larguraPadrao = Math.max(120, Math.floor((largura - espacoH * (colunas - 1)) / colunas));
+    const colunasPeloTamanho = Math.max(1, Math.min(ramos.length, Math.floor((larguraTotal + espacoH) / (larguraMinima + espacoH)) || 1));
+    // Automático: `colunasDaGrade` é o MÁXIMO de colunas (passo c).
+    const colunasMaximas = colunasPedidas > 0 ? (automatico ? Math.min(colunasPedidas, ramos.length) : colunasPedidas) : colunasPeloTamanho;
+    const larguraDaColuna = (c) => {
+      const w = Math.floor((larguraTotal - espacoH * (c - 1)) / c);
+      return automatico ? Math.max(1, w) : Math.max(120, w);
+    };
     const alturaPadrao = Number(config.alturaDaArvore) || 200;
+    const alturaMaxima = Math.max(80, alturaTotal - (barra ? 30 : 0) - (diagnostico ? 16 : 0));
 
     // A cor sai da árvore INTEIRA, não de cada ramo: assim um ramo tem a
     // mesma cor aqui e na árvore radial do mesmo dado.
@@ -297,22 +347,13 @@ export default defineViz({
     const maiorGlobal = raiz.value || 1;
     const espacoDoTitulo = 18;
     const semRotulos = config.mostrarRotulos === false || config.mostrarRotulosDeFolha === false;
+    const margemDireita = semRotulos ? 0 : tl.margemExtra;
     const iconePorValor = criarIconePorValor(config);
+    const rot = lerRotulos(config, tema);
 
-    for (const ramo of ramos) {
-      const chaveDoRamo = chaveDoNo(ramo);
-      // Largura e altura por árvore (opções dinâmicas; 0 = a padrão).
-      const larguraDaCelula = Number(config[`largura_${sanitizarChave(ramo.data.rotulo)}`]) || larguraPadrao;
-      const alturaDaCelula = Number(config[`altura_${sanitizarChave(ramo.data.rotulo)}`]) || alturaPadrao;
-
-      const celula = criarEl('div', { pai: grade, classe: 'am-celula' });
-      celula.style.width = `${larguraDaCelula}px`;
-      celula.style.height = `${alturaDaCelula}px`;
-      celula.style.flex = '0 0 auto';
-      celula.style.display = 'flex';
-      celula.setAttribute('data-arvore', chaveDoRamo);
-      if (config.linhasGuiaDaGrade === true) celula.style.outline = `1px dashed ${tema.borda}`;
-
+    // ---------- Cada árvore, antes de desenhar ----------
+    const arvores = ramos.map((ramo) => {
+      const k = sanitizarChave(ramo.data.rotulo);
       // Cada ramo vira a raiz de uma árvore própria, senão o layout do d3
       // reserva espaço para os irmãos que não estão nesta célula.
       // Cor de cada nó vem do nó equivalente na árvore INTEIRA: assim "Cor
@@ -321,7 +362,6 @@ export default defineViz({
       const globalPorDados = new Map(ramo.descendants().map((n) => [n.data, n]));
       const chavePorDados = new Map(ramo.descendants().map((n) => [n.data, chaveDoNo(n)]));
       const estaRecolhido = (dados) => recolhidos.has(chavePorDados.get(dados));
-
       // Nó colapsado vira folha com o TOTAL do ramo dele (vem da árvore
       // inteira), para o tamanho continuar comparável.
       const subRaiz = d3Hierarchy(ramo.data, (no) => (estaRecolhido(no) ? null : no.filhos))
@@ -333,16 +373,7 @@ export default defineViz({
           return no.filhos && no.filhos.length ? 0 : no.valor || 0;
         })
         .sort((a, b) => (b.value || 0) - (a.value || 0));
-      const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
-
-      // ---------- Layout estável (v3.2) ----------
-      // Os níveis ficam a uma distância que cabe o maior rótulo + ícone +
-      // folga, calculada sobre o ramo COMPLETO: abrir ou fechar um nó não
-      // move os níveis já visíveis. Se não couber na célula, vale o modo do
-      // "Texto longo" (5.11): "Mostrar inteiro" cresce com rolagem; os
-      // outros modos ajustam o rótulo à largura disponível.
-      const margemDireita = semRotulos ? 0 : tl.margemExtra;
-      const plano = layoutHorizontalEstavel({
+      const params = {
         visivel: subRaiz,
         completa: ramo,
         config,
@@ -350,27 +381,109 @@ export default defineViz({
         valueFormat,
         total: maiorGlobal,
         maiorValor: config.escalaPorArvore ? ramo.value || 1 : maiorGlobal,
-        larguraUtil: larguraDaCelula - margemDireita,
-        alturaUtil: alturaDaCelula - espacoDoTitulo - 12,
         temFilhos: (n) => temFilhos(n.data),
         temIcone: (n) => !!(iconePorValor && iconePorValor(n.data.rotulo)),
+        medidor,
+      };
+      return {
+        ramo,
+        chaveDoRamo: chaveDoNo(ramo),
+        larguraPropria: Number(config[`largura_${k}`]) || 0,
+        alturaPropria: Number(config[`altura_${k}`]) || 0,
+        globalPorDados,
+        chavePorDados,
+        estaRecolhido,
+        subRaiz,
+        params,
+        preparo: ajustaTexto ? prepararMedidaDosNiveis(params) : null,
+      };
+    });
+    // Largura e altura por árvore (opções dinâmicas; 0 = a padrão).
+    const larguraDaCelulaDe = (a, c) =>
+      a.larguraPropria ? (automatico ? Math.min(a.larguraPropria, larguraTotal) : a.larguraPropria) : larguraDaColuna(c);
+    const alturaDaCelulaDe = (a) => {
+      const h = a.alturaPropria || alturaPadrao;
+      return automatico ? Math.min(h, alturaMaxima) : h;
+    };
+    const disponivelDe = (a, c) => larguraDaCelulaDe(a, c) - margemDireita - reservaDaBarra;
+
+    // ---------- Plano do ajuste (a, b, c, d, e) ----------
+    let colunas = colunasMaximas;
+    let planos = null;
+    if (ajustaTexto) {
+      const porTexto = (c) =>
+        arvores.map((a) => ajustarPorTexto({ disponivel: disponivelDe(a, c), fonte: rot.tamanho, aj, linhas: tl.linhas, medir: a.preparo.medir }));
+      let textos = porTexto(colunas);
+      // (c) menos colunas: a primeira quantidade em que TODAS cabem.
+      if (aj.colunas && !textos.every((p) => p.cabe)) {
+        for (let c = colunas - 1; c >= 1; c--) {
+          colunas = c;
+          textos = porTexto(c);
+          if (textos.every((p) => p.cabe)) break;
+        }
+      }
+      planos = textos.map((t, i) => {
+        const a = arvores[i];
+        const f = ajustarPorEscala({ disponivel: disponivelDe(a, colunas), texto: t, aj, linhas: tl.linhas, medir: a.preparo.medir });
+        return {
+          ...f,
+          fonteOriginal: rot.tamanho,
+          tamanhoNaTela: f.tamanho * f.escala,
+          larguraOriginal: a.preparo.medir({}).largura,
+        };
+      });
+    }
+
+    arvores.forEach((a, i) => {
+      const { ramo, chaveDoRamo, chavePorDados, estaRecolhido, subRaiz } = a;
+      const plan = planos ? planos[i] : null;
+      const ajuste = plan ? { tamanho: plan.tamanho, limite: plan.limite, quebrar: plan.quebrar, medir: medidor } : null;
+      const escalaAuto = plan ? plan.escala : 1;
+      const larguraDaCelula = larguraDaCelulaDe(a, colunas);
+      const alturaDaCelula = alturaDaCelulaDe(a);
+
+      const celula = criarEl('div', { pai: grade, classe: automatico ? 'am-celula am-ajustada' : 'am-celula' });
+      celula.style.width = `${larguraDaCelula}px`;
+      celula.style.height = `${alturaDaCelula}px`;
+      celula.style.flex = '0 0 auto';
+      celula.style.display = 'flex';
+      celula.setAttribute('data-arvore', chaveDoRamo);
+      if (plan) celula.setAttribute('data-ajuste', plan.passo);
+      if (config.linhasGuiaDaGrade === true) celula.style.outline = `1px dashed ${tema.borda}`;
+      const corDoNo = (no) => cores(a.globalPorDados.get(no.data) || ramo);
+
+      // ---------- Layout estável (v3.2) ----------
+      // Os níveis ficam a uma distância que cabe o maior rótulo + ícone +
+      // folga, calculada sobre o ramo COMPLETO: abrir ou fechar um nó não
+      // move os níveis já visíveis. Automático (v3.3): a área útil é a da
+      // célula sem a barra de rolagem, em unidades do desenho (÷ escala).
+      const areaL = automatico ? (larguraDaCelula - reservaDaBarra) / escalaAuto : larguraDaCelula;
+      const areaA = automatico ? alturaDaCelula / escalaAuto : alturaDaCelula;
+      const plano = layoutHorizontalEstavel({
+        ...a.params,
+        preparo: a.preparo,
+        ajuste,
+        larguraUtil: areaL - margemDireita,
+        alturaUtil: areaA - espacoDoTitulo - 12,
       });
       const limite = plano.limiteDoRotulo;
       // Centralizar (5.10) pela largura do ramo COMPLETO, que não muda ao
       // abrir/fechar: assim a árvore não "pula" para o lado.
       const larguraCompleta = plano.largura + margemDireita;
-      const sobra = Math.max(0, larguraDaCelula - larguraCompleta);
+      const sobra = Math.max(0, areaL - larguraCompleta);
       const deslocX =
         config.centralizarCadaArvore === false || alinhH === 'esquerda' ? 0 : alinhH === 'direita' ? sobra : sobra / 2;
-      let larguraDoSvg = Math.max(larguraDaCelula, deslocX + plano.larguraVisivel + margemDireita);
-      let alturaDoSvg = Math.max(alturaDaCelula, espacoDoTitulo + plano.altura + 12);
-      // "Ajuste de escala" (v3.2): tamanho real com rolagem (padrão) ou
-      // reduzido para caber, sem a fonte passar da mínima.
-      const escala = escalaDeAjuste(config, {
-        area: { largura: larguraDaCelula, altura: alturaDaCelula },
-        desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
-        fonte: lerRotulos(config, tema).tamanho,
-      });
+      let larguraDoSvg = Math.max(areaL, deslocX + plano.larguraVisivel + margemDireita);
+      let alturaDoSvg = Math.max(areaA, espacoDoTitulo + plano.altura + 12);
+      // Escala: a do ajuste automático; em "Rolar em tamanho real", o
+      // "Ajuste de escala" da v3.2 (real com rolagem, ou ajustar à área).
+      const escala = automatico
+        ? escalaAuto
+        : escalaDeAjuste(config, {
+            area: { largura: larguraDaCelula, altura: alturaDaCelula },
+            desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
+            fonte: rot.tamanho,
+          });
       const viewBox = `0 0 ${larguraDoSvg} ${alturaDoSvg}`;
       larguraDoSvg *= escala;
       alturaDoSvg *= escala;
@@ -412,6 +525,7 @@ export default defineViz({
         compacto: true,
         chaveDe: (n) => chavePorDados.get(n.data),
         limiteDoRotulo: limite,
+        ajuste,
         geometria: { ladoDoIcone: plano.ladoDoIcone, comIndicador: (n) => temFilhos(n.data) },
         aoInteragir(elemento, no) {
           const conteudo = () => ({
@@ -475,6 +589,7 @@ export default defineViz({
       );
 
       // ---------- Centralizar na célula (5.10) ----------
+      // O alvo vai para coordenadas da TELA (× escala): é o que a rolagem usa.
       const rolagemGuardada = estado.rolagemDasCelulas.get(chaveDoRamo);
       if (centralizarAgora && (larguraDoSvg > larguraDaCelula || alturaDoSvg > alturaDaCelula)) {
         const alvoNo =
@@ -496,8 +611,20 @@ export default defineViz({
         celula.scrollTop = rolagemGuardada.y;
       }
       ctx.eventos.on(celula, 'scroll', () => estado.rolagemDasCelulas.set(chaveDoRamo, { x: celula.scrollLeft, y: celula.scrollTop }));
-    }
+    });
     if (centralizarAgora) estado.jaCentralizou = true;
+
+    // ---------- Nota e diagnóstico do ajuste (v3.3) ----------
+    const textoDaNota = planos ? textoDoAjuste(planos, { linhas: tl.linhas, colunas: { de: colunasMaximas, para: colunas } }) : '';
+    if (aj.naNota && textoDaNota && ctx.nota) definirTexto(ctx.nota, textoDaNota);
+    if (aj.diagnostico || config.modoDebug) {
+      const larguraDaCelula = arvores.length ? larguraDaCelulaDe(arvores[0], colunas) : larguraTotal;
+      const linha = planos
+        ? textoDoDiagnostico({ larguraDaCelula, planos, colunas })
+        : `célula ${Math.round(larguraDaCelula)} px · ajuste automático inativo (${automatico ? `Texto longo: ${tl.modo}` : 'rolar em tamanho real'}) · colunas ${colunas}`;
+      if (diagnostico) definirTexto(diagnostico, linha);
+      if (config.modoDebug && typeof console !== 'undefined' && console.log) console.log('[arvores_multiplas] layout:', linha);
+    }
   },
 });
 

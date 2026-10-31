@@ -4707,40 +4707,40 @@
       return `${Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1).replace(/\.0$/, "")}${suf}`;
     });
   }
-  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias) {
-    if (larguraDoTexto(texto, tamanho, opcoes) <= largura) return texto;
+  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias, mede = larguraDoTexto) {
+    if (mede(texto, tamanho, opcoes) <= largura) return texto;
     const sufixo = comReticencias ? "\u2026" : "";
     let ini = 0;
     let fim = texto.length;
     while (ini < fim) {
       const meio = Math.ceil((ini + fim) / 2);
-      if (larguraDoTexto(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
+      if (mede(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
       else fim = meio - 1;
     }
     return texto.slice(0, Math.max(1, ini)).trimEnd() + sufixo;
   }
-  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo) {
+  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo, mede = larguraDoTexto) {
     const palavras = String(texto).split(/\s+/).filter(Boolean);
     const linhas = [];
     let atual = "";
     for (const p of palavras) {
       const t = atual ? `${atual} ${p}` : p;
-      if (!atual || larguraDoTexto(t, tamanho, opcoes) <= largura) atual = t;
+      if (!atual || mede(t, tamanho, opcoes) <= largura) atual = t;
       else {
         linhas.push(atual);
         atual = p;
       }
     }
     if (atual) linhas.push(atual);
-    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true));
+    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true, mede));
     if (saida.length > maximo) {
       const resto = saida.slice(maximo - 1).join(" ");
       saida.length = maximo - 1;
-      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true));
+      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true, mede));
     }
     return saida;
   }
-  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null }) {
+  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null, medir: medir2 = larguraDoTexto }) {
     const sep = tl.separador;
     const juntar = formatar || ((n, e) => [n, ...e].join(sep));
     const limpos = extras.filter(Boolean).map((e) => trocarMoeda(e, tl));
@@ -4748,34 +4748,34 @@
     let texto = tl.modo === "soNome" ? String(nome) : completo;
     if (tl.modo === "abreviar") texto = juntar(String(nome), limpos.map(abreviarNumeros));
     const limite = tl.larguraMaxima > 0 ? Math.min(tl.larguraMaxima, largura > 0 ? largura : Infinity) : largura > 0 ? largura : Infinity;
-    const mede = (t, tam2) => larguraDoTexto(t, tam2, estilo);
+    const mede = (t, tam2) => medir2(t, tam2, estilo);
     let linhas = [texto];
     let tam = tamanho;
     switch (tl.modo) {
       case "quebrar":
-        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas);
+        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas, medir2);
         break;
       case "reduzir":
         while (Number.isFinite(limite) && mede(texto, tam) > limite && tam > tl.fonteMinima) tam -= 0.5;
-        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true)];
+        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true, medir2)];
         break;
       case "reticencias": {
         let t = texto;
         if (tl.truncarEmCaracteres > 0 && t.length > tl.truncarEmCaracteres) {
           t = `${t.slice(0, Math.max(1, tl.truncarEmCaracteres - 1)).trimEnd()}\u2026`;
         }
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true) : t];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true, medir2) : t];
         break;
       }
       case "cortar":
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false) : texto];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false, medir2) : texto];
         break;
       case "abreviar":
       case "soNome":
       case "inteiro":
       default:
         if (tl.larguraMaxima > 0 && mede(texto, tam) > tl.larguraMaxima) {
-          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99);
+          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99, medir2);
         }
         break;
     }

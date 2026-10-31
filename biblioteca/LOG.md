@@ -3613,3 +3613,30 @@ sem novidades; a `main` tinha avançado (merge do PR #2) e foi mesclada no
 branch sem conflito (fe503a4), enviado.
 PRÓXIMA AÇÃO: ler _arvore, arvores_multiplas, org_chart, texto-longo e
 medida-texto; escrever o teste de geometria que reproduz o corte (380 px).
+
+### Etapa 1 (arvores_multiplas + motor) — feita
+- Reprodução: `test/arvores_ajuste_v33.test.mjs` falhou antes (desenho de
+  2413 px numa célula de 380 px) e passa depois.
+- Motor `_arvore/ajuste.js` (genérico, recebe `medir`): (a) fonte de 0,5 em
+  0,5 px até a mínima; (b) quebra em até "Máximo de linhas" SEM corte;
+  (c) menos colunas (feito na grade: repete a e b); (d) escala com a fonte
+  na tela ≥ mínima (no desenho a fonte sobe ÷ escala), tentando sem e com
+  quebra; (e) rolagem; rolagem desligada → quebra + reticências + tooltip.
+- `_arvore/index.js`: `prepararMedidaDosNiveis` (medida do ramo completo,
+  partes do rótulo calculadas uma vez) separada do posicionamento;
+  `ajustarRotuloDaArvore` usado no layout e no desenho (mesma conta).
+- `medida-texto.js`: `criarMedidor` (cache por texto+fonte+negrito, folga
+  %) e `medicaoDoNavegador` (canvas.measureText; null no jsdom).
+  `texto-longo.js`: `ajustarRotulo` aceita `medir` (padrão = estimativa:
+  dot_plot_denso inalterado).
+- Decisões: ids novos começam com `layout` (caem na aba Estilo pelo
+  `abaPeloId`). "Fonte mínima 9 px": NOVA opção `layoutFonteMinima`
+  (padrão 9), porque a regra proíbe mudar o padrão de `fonteMinimaDoRotulo`
+  (8). Escala mínima legível 0,6. Ajuste pelo eixo dos níveis (largura);
+  linhas a mais na vertical rolam na célula (não cortam texto). Cada árvore
+  tem o próprio plano; a quantidade de colunas é a mesma para todas.
+  Barra de rolagem: medida uma vez por div de prova (fallback 18 px) e
+  reservada sempre, com `scrollbar-gutter: stable`.
+- Testes antigos da v3.2 que verificam o tamanho real passaram a fixar
+  `layoutQuandoNaoCouber: 'rolar'` (o padrão mudou por pedido da tarefa).
+PRÓXIMA AÇÃO: testes P1–P12 e S1; redimensionamento com debounce (define-viz opt-in); org_chart.

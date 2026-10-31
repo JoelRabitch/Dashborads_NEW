@@ -4557,40 +4557,40 @@
       return `${Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1).replace(/\.0$/, "")}${suf}`;
     });
   }
-  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias) {
-    if (larguraDoTexto(texto, tamanho, opcoes) <= largura) return texto;
+  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias, mede = larguraDoTexto) {
+    if (mede(texto, tamanho, opcoes) <= largura) return texto;
     const sufixo = comReticencias ? "\u2026" : "";
     let ini = 0;
     let fim = texto.length;
     while (ini < fim) {
       const meio = Math.ceil((ini + fim) / 2);
-      if (larguraDoTexto(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
+      if (mede(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
       else fim = meio - 1;
     }
     return texto.slice(0, Math.max(1, ini)).trimEnd() + sufixo;
   }
-  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo) {
+  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo, mede = larguraDoTexto) {
     const palavras = String(texto).split(/\s+/).filter(Boolean);
     const linhas = [];
     let atual = "";
     for (const p of palavras) {
       const t = atual ? `${atual} ${p}` : p;
-      if (!atual || larguraDoTexto(t, tamanho, opcoes) <= largura) atual = t;
+      if (!atual || mede(t, tamanho, opcoes) <= largura) atual = t;
       else {
         linhas.push(atual);
         atual = p;
       }
     }
     if (atual) linhas.push(atual);
-    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true));
+    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true, mede));
     if (saida.length > maximo) {
       const resto = saida.slice(maximo - 1).join(" ");
       saida.length = maximo - 1;
-      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true));
+      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true, mede));
     }
     return saida;
   }
-  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null }) {
+  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null, medir: medir2 = larguraDoTexto }) {
     const sep = tl.separador;
     const juntar = formatar || ((n, e) => [n, ...e].join(sep));
     const limpos = extras.filter(Boolean).map((e) => trocarMoeda(e, tl));
@@ -4598,34 +4598,34 @@
     let texto = tl.modo === "soNome" ? String(nome) : completo;
     if (tl.modo === "abreviar") texto = juntar(String(nome), limpos.map(abreviarNumeros));
     const limite = tl.larguraMaxima > 0 ? Math.min(tl.larguraMaxima, largura > 0 ? largura : Infinity) : largura > 0 ? largura : Infinity;
-    const mede = (t, tam2) => larguraDoTexto(t, tam2, estilo);
+    const mede = (t, tam2) => medir2(t, tam2, estilo);
     let linhas = [texto];
     let tam = tamanho;
     switch (tl.modo) {
       case "quebrar":
-        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas);
+        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas, medir2);
         break;
       case "reduzir":
         while (Number.isFinite(limite) && mede(texto, tam) > limite && tam > tl.fonteMinima) tam -= 0.5;
-        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true)];
+        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true, medir2)];
         break;
       case "reticencias": {
         let t = texto;
         if (tl.truncarEmCaracteres > 0 && t.length > tl.truncarEmCaracteres) {
           t = `${t.slice(0, Math.max(1, tl.truncarEmCaracteres - 1)).trimEnd()}\u2026`;
         }
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true) : t];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true, medir2) : t];
         break;
       }
       case "cortar":
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false) : texto];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false, medir2) : texto];
         break;
       case "abreviar":
       case "soNome":
       case "inteiro":
       default:
         if (tl.larguraMaxima > 0 && mede(texto, tam) > tl.larguraMaxima) {
-          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99);
+          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99, medir2);
         }
         break;
     }
@@ -5341,6 +5341,36 @@
     return Math.max(minima, s);
   }
 
+  // src/charts/_arvore/ajuste.js
+  function opcoesDeAjuste({ secao = "\xC1rvore", comColunas = false } = {}) {
+    const b = (label, def) => ({ type: "boolean", label, section: secao, default: def });
+    const saida = {
+      layoutQuandoNaoCouber: {
+        type: "string",
+        label: "Quando n\xE3o couber",
+        section: secao,
+        display: "select",
+        default: "ajustar",
+        values: listaDeValores([
+          { rotulo: "Ajustar automaticamente", valor: "ajustar" },
+          { rotulo: "Rolar em tamanho real", valor: "rolar" }
+        ])
+      },
+      layoutAjusteFonte: b("Ajuste: fonte", true),
+      layoutAjusteLinhas: b("Ajuste: linhas", true)
+    };
+    if (comColunas) saida.layoutAjusteColunas = b("Ajuste: colunas", true);
+    Object.assign(saida, {
+      layoutAjusteEscala: b("Ajuste: escala", true),
+      layoutAjusteRolagem: b("Ajuste: rolagem", false),
+      layoutFonteMinima: { type: "number", label: "Ajuste: fonte m\xEDnima (px)", section: secao, default: 9 },
+      layoutFolgaDoTexto: { type: "number", label: "Folga do texto (%)", section: secao, default: 10 },
+      layoutAjusteNaNota: b("Ajuste na nota", true),
+      layoutDiagnostico: b("Diagn\xF3stico do layout", false)
+    });
+    return saida;
+  }
+
   // src/charts/_arvore/comum.js
   var CURVAS_CSS2 = {
     linear: "linear",
@@ -5414,7 +5444,9 @@
       // 5.14f — ícone por valor (o valor é o nome do nó)
       ...opcoesDeIconePorValor({ secao: "\xCDcone por valor", comCampo: false }),
       // v3.2 — tamanho do ícone e ajuste de escala
-      ...opcoesDeEspacamento({ secao: "\xC1rvore" })
+      ...opcoesDeEspacamento({ secao: "\xC1rvore" }),
+      // v3.3 — quando não couber: ajustar à célula (padrão) ou rolar
+      ...opcoesDeAjuste({ secao: "\xC1rvore", comColunas: comCadaArvore })
     };
     if (comCadaArvore) saida.centralizarCadaArvore = cen("boolean", "Cada \xE1rvore na c\xE9lula", true);
     return saida;
@@ -5563,6 +5595,8 @@
   var CSS_ANIMACAO_ARVORE = `
 .bl-entrando,.bl-movendo,.bl-saindo{will-change:transform,opacity;}
 .am-celula{box-sizing:border-box;overflow:auto;}
+.am-celula.am-ajustada{scrollbar-gutter:stable;}
+.am-diagnostico{flex:0 0 auto;font-size:10px;opacity:.7;padding:2px 8px;}
 .am-sem-selecao,.am-sem-selecao *{-webkit-user-select:none;user-select:none;}
 `;
 

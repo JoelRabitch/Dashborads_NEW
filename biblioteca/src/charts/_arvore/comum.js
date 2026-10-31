@@ -17,6 +17,7 @@
  *     que a área: rola nas duas direções, sem cortar o lado esquerdo.
  *   - Texto longo (5.11): `core/texto-longo.js`.
  *   - Tamanho do ícone e Ajuste de escala (v3.2): `opcoesDeEspacamento`.
+ *   - Quando não couber (v3.3): `opcoesDeAjuste` em ajuste.js.
  *   - "Permitir selecionar texto" (padrão desligado): user-select none.
  */
 
@@ -25,6 +26,7 @@ import { listaDeValores } from '../../core/options-kit.js';
 import { opcoesDeTextoLongo } from '../../core/texto-longo.js';
 import { opcoesDeIconePorValor } from '../../core/icone-por-valor.js';
 import { opcoesDeEspacamento } from './index.js';
+import { opcoesDeAjuste } from './ajuste.js';
 
 export const CURVAS_CSS = {
   linear: 'linear',
@@ -101,6 +103,8 @@ export function opcoesComunsDasArvores({ comCadaArvore = false } = {}) {
     ...opcoesDeIconePorValor({ secao: 'Ícone por valor', comCampo: false }),
     // v3.2 — tamanho do ícone e ajuste de escala
     ...opcoesDeEspacamento({ secao: 'Árvore' }),
+    // v3.3 — quando não couber: ajustar à célula (padrão) ou rolar
+    ...opcoesDeAjuste({ secao: 'Árvore', comColunas: comCadaArvore }),
   };
   if (comCadaArvore) saida.centralizarCadaArvore = cen('boolean', 'Cada árvore na célula', true);
   return saida;
@@ -295,5 +299,7 @@ export function deveCentralizar(config, { primeiro, alternou, botao }) {
 export const CSS_ANIMACAO_ARVORE = `
 .bl-entrando,.bl-movendo,.bl-saindo{will-change:transform,opacity;}
 .am-celula{box-sizing:border-box;overflow:auto;}
+.am-celula.am-ajustada{scrollbar-gutter:stable;}
+.am-diagnostico{flex:0 0 auto;font-size:10px;opacity:.7;padding:2px 8px;}
 .am-sem-selecao,.am-sem-selecao *{-webkit-user-select:none;user-select:none;}
 `;

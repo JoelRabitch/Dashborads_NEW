@@ -205,13 +205,14 @@ for (const [nome, extra] of [
 }
 
 test('v3.2 (c) — tudo aberto: nenhuma sobreposição em nenhum modo de "Texto longo"', () => {
-  for (const modo of ['inteiro', 'quebrar', 'reduzir', 'reticencias', 'cortar', 'abreviar', 'soNome']) {
-    const r = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', mostrarValorNoRotulo: true, mostrarRotulosInternos: true, modoDoTextoLongo: modo });
+  // v3.3: também no ajuste automático (que pode cortar como último recurso).
+  for (const [modo, quando] of ['inteiro', 'quebrar', 'reduzir', 'reticencias', 'cortar', 'abreviar', 'soNome'].flatMap((m) => [[m, 'rolar'], [m, 'ajustar']])) {
+    const r = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', mostrarValorNoRotulo: true, mostrarRotulosInternos: true, modoDoTextoLongo: modo, layoutQuandoNaoCouber: quando });
     try {
       for (const cel of r.todos('.am-celula')) {
         const nos = geometria(cel);
         conferirSobreposicoes(nos, `modo ${modo}`);
-        if (modo === 'inteiro' || modo === 'abreviar' || modo === 'soNome') {
+        if (quando === 'rolar' && (modo === 'inteiro' || modo === 'abreviar' || modo === 'soNome')) {
           for (const n of nos) if (n.rotulo) assert.doesNotMatch(n.rotulo.texto, /…/, `modo ${modo} não pode cortar`);
         }
       }
@@ -222,8 +223,9 @@ test('v3.2 (c) — tudo aberto: nenhuma sobreposição em nenhum modo de "Texto 
 });
 
 test('v3.2 — limites: modos de corte cabem na célula; "Mostrar inteiro" cresce com rolagem', () => {
-  const inteiro = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', mostrarValorNoRotulo: true, larguraMinimaDaArvore: 300 });
-  const reduzir = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', mostrarValorNoRotulo: true, larguraMinimaDaArvore: 300, modoDoTextoLongo: 'reticencias' });
+  // v3.3: comportamento da v3.2 = "Rolar em tamanho real".
+  const inteiro = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', mostrarValorNoRotulo: true, larguraMinimaDaArvore: 300, layoutQuandoNaoCouber: 'rolar' });
+  const reduzir = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', mostrarValorNoRotulo: true, larguraMinimaDaArvore: 300, modoDoTextoLongo: 'reticencias', layoutQuandoNaoCouber: 'rolar' });
   try {
     const ci = inteiro.palco.querySelector('.am-celula');
     assert.ok(num(ci.querySelector('svg'), 'width') > parseFloat(ci.style.width), '"Mostrar inteiro": a árvore deveria ficar mais larga que a célula (rolagem)');
@@ -238,8 +240,8 @@ test('v3.2 — limites: modos de corte cabem na célula; "Mostrar inteiro" cresc
 });
 
 test('v3.2 — altura cresce com rolagem (sem espremer as linhas); "Ajustar à área" reduz com fonte mínima', () => {
-  const real = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', alturaDaArvore: 100 });
-  const ajustar = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', alturaDaArvore: 100, ajusteDeEscala: 'ajustar' });
+  const real = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', alturaDaArvore: 100, layoutQuandoNaoCouber: 'rolar' });
+  const ajustar = abrir('arvores_multiplas', { iconePadraoPorValor: 'estrela', alturaDaArvore: 100, ajusteDeEscala: 'ajustar', layoutQuandoNaoCouber: 'rolar' });
   try {
     const cel = real.palco.querySelector('.am-celula');
     const svg = cel.querySelector('svg');

@@ -237,18 +237,96 @@ export function escalaDeAjuste(config, { area, desenho, fonte }) {
  * @returns {{largura:number, larguraVisivel:number, altura:number,
  *   limiteDoRotulo:number, ladoDoIcone:(raio:number)=>number}}
  */
-export function layoutHorizontalEstavel({
-  visivel,
+export function layoutHorizontalEstavel(p) {
+  const { visivel, config, larguraUtil, alturaUtil, ajuste = null } = p;
+  const prep = p.preparo || prepararMedidaDosNiveis(p);
+  const { rot, tl, folga, centro, profundidade, raioMax, ladoPedido, medir } = prep;
+
+  let limite = Infinity;
+  let m;
+  if (ajuste) {
+    // v3.3: fonte, limite e quebra decididos pelo ajuste automático.
+    limite = ajuste.limite;
+    m = medir({ tamanho: ajuste.tamanho, limite, quebrar: ajuste.quebrar });
+  } else {
+    m = medir({ limite });
+    if (tl.modo !== 'inteiro' && m.largura > larguraUtil && m.colunas) {
+      // Não cabe: limite por rótulo a partir da largura disponível.
+      limite = Math.max(40, (larguraUtil - m.fixo) / m.colunas);
+      m = medir({ limite });
+    }
+  }
+
+  // Sobra largura: espalha os níveis (como antes, com teto), de forma
+  // estável (a conta usa a árvore completa).
+  const extra = m.largura < larguraUtil && profundidade > 0 ? Math.min(EXTRA_MAXIMO_POR_NIVEL, (larguraUtil - m.largura) / profundidade) : 0;
+  const xDoNivel = [folga + Math.max(0, m.reservaEsq[0])];
+  for (let k = 0; k < profundidade; k++) xDoNivel.push(xDoNivel[k] + m.passos[k] + extra);
+  const largura = m.largura + extra * profundidade;
+
+  // ---------- Vertical ----------
+  const alturaDoTexto = Math.max(0, ...m.linhas);
+  const alturaDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
+  const minimo = (centro ? alturaDoNo + alturaDoTexto + 4 : Math.max(alturaDoNo, alturaDoTexto)) + folga;
+  const fabrica = (config.layoutDaArvore === 'tree' ? d3Tree : d3Cluster)().nodeSize([1, 1]);
+  fabrica(visivel);
+  const visiveis = visivel.descendants();
+  const minU = Math.min(...visiveis.map((n) => n.x));
+  const maxU = Math.max(...visiveis.map((n) => n.x));
+  const unidades = maxU - minU + 1;
+  const espaco = Math.max(minimo, alturaUtil > 0 ? alturaUtil / unidades : 0);
+  const topo = centro ? alturaDoTexto + 4 : 0;
+  let maisFundo = 0;
+  for (const n of visiveis) {
+    n.x = topo + (n.x - minU + 0.5) * espaco;
+    n.y = xDoNivel[n.depth];
+    maisFundo = Math.max(maisFundo, n.depth);
+  }
+  const larguraVisivel = xDoNivel[maisFundo] + Math.max(0, m.reservaDir[maisFundo]) + folga;
+  return {
+    largura,
+    larguraVisivel,
+    altura: topo + unidades * espaco,
+    limiteDoRotulo: limite,
+    ladoDoIcone: (raio) => ladoDoIconeDaArvore(config, raio, espaco),
+    tamanhoDoRotulo: ajuste ? ajuste.tamanho : rot.tamanho,
+  };
+}
+
+/**
+ * Rótulo de um nó da árvore pelo "Texto longo" e, se houver, pelo ajuste
+ * automático (v3.3): a MESMA conta no layout e no desenho.
+ */
+export function ajustarRotuloDaArvore(pt, { rot, tl, limite = Infinity, ajuste = null }) {
+  if (!ajuste) return ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
+  return ajustarRotulo({
+    ...pt,
+    tamanho: ajuste.tamanho,
+    largura: ajuste.limite,
+    tl: ajuste.quebrar ? { ...tl, modo: 'quebrar' } : tl,
+    estilo: { negrito: rot.negrito },
+    medir: ajuste.medir || undefined,
+  });
+}
+
+/**
+ * Medida dos níveis da árvore COMPLETA (v3.3: separada do posicionamento
+ * para o ajuste automático medir várias fontes e limites sem refazer o
+ * layout). As partes de cada rótulo são calculadas uma vez.
+ *
+ * `medir({tamanho, limite, quebrar})` → {largura, fixo, colunas, cortado,
+ * reservaEsq, reservaDir, passos, linhas}.
+ */
+export function prepararMedidaDosNiveis({
   completa,
   config,
   tema,
   valueFormat,
   total,
   maiorValor,
-  larguraUtil,
-  alturaUtil,
   temFilhos,
   temIcone = () => false,
+  medidor = null,
 }) {
   const rot = lerRotulos(config, tema);
   const tl = lerTextoLongo(config);
@@ -284,21 +362,29 @@ export function layoutHorizontalEstavel({
     return s;
   };
 
-  const medir = (limite) => {
+  const itens = nos.map((n) => {
+    const ls = lados(n);
+    return {
+      k: n.depth - base,
+      comFilhos: temFilhos(n),
+      lados: ls,
+      pt: ls.length ? partesDoRotuloDoNo(rot, n, { valueFormat, total, mostrarValor: comValor, tl }) : null,
+    };
+  });
+
+  const medir = ({ tamanho = rot.tamanho, limite = Infinity, quebrar = false } = {}) => {
     const dir = new Array(profundidade + 1).fill(0);
     const esq = new Array(profundidade + 1).fill(0);
     const linhas = new Array(profundidade + 1).fill(0);
     const comIndicador = new Array(profundidade + 1).fill(false);
-    let tamanho = rot.tamanho;
-    for (const n of nos) {
-      const k = n.depth - base;
-      if (temFilhos(n)) comIndicador[k] = true;
-      const ls = lados(n);
+    const ajuste = quebrar || tamanho !== rot.tamanho || medidor ? { tamanho, limite, quebrar, medir: medidor } : null;
+    let cortado = false;
+    for (const { k, comFilhos, lados: ls, pt } of itens) {
+      if (comFilhos) comIndicador[k] = true;
       if (!ls.length) continue;
-      const pt = partesDoRotuloDoNo(rot, n, { valueFormat, total, mostrarValor: comValor, tl });
-      const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
+      const aj = ajustarRotuloDaArvore(pt, { rot, tl, limite, ajuste });
+      if (aj.cortado && ajuste) cortado = true;
       linhas[k] = Math.max(linhas[k], aj.linhas.length * aj.tamanho * 1.15);
-      tamanho = Math.max(tamanho, aj.tamanho);
       for (const l of ls) {
         if (l === 'dir') dir[k] = Math.max(dir[k], aj.largura);
         else if (l === 'esq') esq[k] = Math.max(esq[k], aj.largura);
@@ -316,51 +402,11 @@ export function layoutHorizontalEstavel({
     for (let k = 0; k < profundidade; k++) passos.push(Math.max(0, reservaDir[k]) + folga + Math.max(0, reservaEsq[k + 1]));
     const largura = folga + Math.max(0, reservaEsq[0]) + passos.reduce((a, b) => a + b, 0) + Math.max(0, reservaDir[profundidade]) + folga;
     const colunas = dir.filter(Boolean).length + esq.filter(Boolean).length;
-    return { reservaEsq, reservaDir, passos, largura, linhas, colunas, rotulos: dir.concat(esq).reduce((a, b) => a + b, 0) };
+    const rotulos = dir.concat(esq).reduce((a, b) => a + b, 0);
+    return { reservaEsq, reservaDir, passos, largura, linhas, colunas, rotulos, fixo: largura - rotulos, cortado };
   };
 
-  let limite = Infinity;
-  let m = medir(limite);
-  if (tl.modo !== 'inteiro' && m.largura > larguraUtil && m.colunas) {
-    // Não cabe: limite por rótulo a partir da largura disponível.
-    const fixo = m.largura - m.rotulos;
-    limite = Math.max(40, (larguraUtil - fixo) / m.colunas);
-    m = medir(limite);
-  }
-
-  // Sobra largura: espalha os níveis (como antes, com teto), de forma
-  // estável (a conta usa a árvore completa).
-  const extra = m.largura < larguraUtil && profundidade > 0 ? Math.min(EXTRA_MAXIMO_POR_NIVEL, (larguraUtil - m.largura) / profundidade) : 0;
-  const xDoNivel = [folga + Math.max(0, m.reservaEsq[0])];
-  for (let k = 0; k < profundidade; k++) xDoNivel.push(xDoNivel[k] + m.passos[k] + extra);
-  const largura = m.largura + extra * profundidade;
-
-  // ---------- Vertical ----------
-  const alturaDoTexto = Math.max(0, ...m.linhas);
-  const alturaDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
-  const minimo = (centro ? alturaDoNo + alturaDoTexto + 4 : Math.max(alturaDoNo, alturaDoTexto)) + folga;
-  const fabrica = (config.layoutDaArvore === 'tree' ? d3Tree : d3Cluster)().nodeSize([1, 1]);
-  fabrica(visivel);
-  const visiveis = visivel.descendants();
-  const minU = Math.min(...visiveis.map((n) => n.x));
-  const maxU = Math.max(...visiveis.map((n) => n.x));
-  const unidades = maxU - minU + 1;
-  const espaco = Math.max(minimo, alturaUtil > 0 ? alturaUtil / unidades : 0);
-  const topo = centro ? alturaDoTexto + 4 : 0;
-  let maisFundo = 0;
-  for (const n of visiveis) {
-    n.x = topo + (n.x - minU + 0.5) * espaco;
-    n.y = xDoNivel[n.depth];
-    maisFundo = Math.max(maisFundo, n.depth);
-  }
-  const larguraVisivel = xDoNivel[maisFundo] + Math.max(0, m.reservaDir[maisFundo]) + folga;
-  return {
-    largura,
-    larguraVisivel,
-    altura: topo + unidades * espaco,
-    limiteDoRotulo: limite,
-    ladoDoIcone: (raio) => ladoDoIconeDaArvore(config, raio, espaco),
-  };
+  return { rot, tl, folga, centro, profundidade, raioMax, ladoPedido, larguraDoNo, medir };
 }
 
 /** Converte (ângulo, raio) para (x, y) com o zero apontando para cima. */
@@ -542,6 +588,7 @@ export function desenharArvore({
   chaveDe = null,
   limiteDoRotulo = Infinity,
   geometria = null,
+  ajuste = null,
 }) {
   const grupo = criarSvgEl('g', { pai: svg });
   if (deslocamento.x || deslocamento.y) {
@@ -638,6 +685,7 @@ export function desenharArvore({
     if (!querRotulo || !no.data.rotulo) continue;
 
     const afastamento = meiaLargura + 4;
+    const tamanhoDoTexto = ajuste ? ajuste.tamanho : rot.tamanho;
     if (modo === 'radial') {
       const texto = textoDoRotuloDoNo(rot, no, {
         valueFormat,
@@ -672,7 +720,7 @@ export function desenharArvore({
     if (rot.posicao === 'centro') {
       ancora = 'middle';
       tx = x;
-      ty = y - afastamento - rot.tamanho / 2;
+      ty = y - afastamento - tamanhoDoTexto / 2;
     } else {
       const aDireita =
         rot.posicao === 'fora' || rot.posicao === 'foraComLinha' ? true : rot.posicao === 'dentro' ? false : ehFolha;
@@ -683,7 +731,7 @@ export function desenharArvore({
     }
     // Texto longo (5.11): inteiro / quebrar / reduzir / cortar / abreviar / só o nome.
     const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
-    const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limiteDoRotulo, tl, estilo: { negrito: rot.negrito } });
+    const aj = ajustarRotuloDaArvore(pt, { rot, tl, limite: limiteDoRotulo, ajuste });
     const el = criarSvgEl('text', { pai: grupoDoNo, classe: 'av-rotulo', atributos: { 'dominant-baseline': 'central' } });
     el.setAttribute('x', tx);
     el.setAttribute('y', ty);
