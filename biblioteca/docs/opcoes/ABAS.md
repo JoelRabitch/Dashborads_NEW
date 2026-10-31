@@ -979,6 +979,15 @@ Ids marcados com ★ são novos (não existiam antes).
 | `linhasGuiaDaGrade` ★ | — | Estilo | Grade · Linhas-guia da grade |  |
 | `tamanhoDoIcone` ★ | — | Estilo | Árvore · Tamanho do ícone (0 = auto) |  |
 | `ajusteDeEscala` ★ | — | Estilo | Árvore · Ajuste de escala |  |
+| `layoutQuandoNaoCouber` ★ | — | Estilo | Árvore · Quando não couber |  |
+| `layoutAjusteFonte` ★ | — | Estilo | Árvore · Ajuste: fonte |  |
+| `layoutAjusteLinhas` ★ | — | Estilo | Árvore · Ajuste: linhas |  |
+| `layoutAjusteColunas` ★ | — | Estilo | Árvore · Ajuste: colunas |  |
+| `layoutAjusteEscala` ★ | — | Estilo | Árvore · Ajuste: escala |  |
+| `layoutAjusteRolagem` ★ | — | Estilo | Árvore · Ajuste: rolagem |  |
+| `layoutFonteMinima` ★ | — | Estilo | Árvore · Ajuste: fonte mínima (px) |  |
+| `layoutAjusteNaNota` ★ | — | Estilo | Árvore · Ajuste na nota |  |
+| `layoutDiagnostico` ★ | — | Estilo | Árvore · Diagnóstico do layout |  |
 | `pacoteTematico` ★ | — | Estilo | Tema · Pacote temático |  |
 | `estiloDoIcone` ★ | — | Estilo | Tema · Estilo do ícone |  |
 | `mostrarRotulos` | Texto | Texto | Rótulo · Mostrar rótulos |  |
@@ -1007,6 +1016,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `separadorDoRotulo` ★ | — | Texto | Texto longo · Separador |  |
 | `simboloDaMoedaDoRotulo` ★ | — | Texto | Texto longo · Símbolo da moeda |  |
 | `moedaPersonalizadaDoRotulo` ★ | — | Texto | Texto longo · Moeda personalizada |  |
+| `layoutFolgaDoTexto` ★ | — | Texto | Árvore · Folga do texto (%) |  |
 | `mostrarAvisos` | Texto | Texto | Aviso · Mostrar avisos | Aviso · Mostrar avisos (eles sempre vão também para o console) |
 | `posicaoDosAvisos` | Texto | Texto | Aviso · Posição dos avisos |  |
 | `mostrarTitulo` ★ | — | Texto | Título · Mostrar |  |
@@ -1133,12 +1143,20 @@ Ids marcados com ★ são novos (não existiam antes).
 | `ajusteDeEscala` ★ | — | Estilo | Árvore · Ajuste de escala |  |
 | `alturaDoCartao` | Visual | Estilo | Organograma · Altura do cartão (px) |  |
 | `coresPorValor` ★ | — | Estilo | Ícone por valor · Cores (valor=#cor; …) |  |
+| `layoutQuandoNaoCouber` ★ | — | Estilo | Árvore · Quando não couber |  |
 | `espacoEntreNiveis` | Visual | Estilo | Organograma · Espaço entre níveis (px) |  |
+| `layoutAjusteFonte` ★ | — | Estilo | Árvore · Ajuste: fonte |  |
 | `espacoEntreIrmaos` | Visual | Estilo | Organograma · Espaço entre vizinhos | Organograma · Espaço entre cartões vizinhos (px) |
+| `layoutAjusteLinhas` ★ | — | Estilo | Árvore · Ajuste: linhas |  |
 | `raioDoCartao` | Visual | Estilo | Organograma · Arredondamento do cartão | Organograma · Arredondamento do cartão (px) |
+| `layoutAjusteEscala` ★ | — | Estilo | Árvore · Ajuste: escala |  |
+| `layoutAjusteRolagem` ★ | — | Estilo | Árvore · Ajuste: rolagem |  |
+| `layoutFonteMinima` ★ | — | Estilo | Árvore · Ajuste: fonte mínima (px) |  |
 | `sombraDoCartao` ★ | — | Estilo | Organograma · Sombra do cartão |  |
 | `cartaoAjustavel` ★ | — | Estilo | Cartão cresce com o texto | Organograma · Cartão cresce com o texto |
+| `layoutAjusteNaNota` ★ | — | Estilo | Árvore · Ajuste na nota |  |
 | `fonteDoCartao` ★ | — | Estilo | Organograma · Fonte do cartão |  |
+| `layoutDiagnostico` ★ | — | Estilo | Árvore · Diagnóstico do layout |  |
 | `estiloDoContador` ★ | — | Estilo | Organograma · Estilo do contador |  |
 | `espessuraDaLigacaoDoOrg` ★ | — | Estilo | Organograma · Espessura das ligações |  |
 | `formaDaLigacaoDoOrg` ★ | — | Estilo | Organograma · Forma das ligações |  |
@@ -1169,6 +1187,7 @@ Ids marcados com ★ são novos (não existiam antes).
 | `margemExtraDoRotulo` ★ | — | Texto | Texto longo · Margem extra à direita | Texto longo · Margem extra à direita (px) |
 | `partesDoRotulo` ★ | — | Texto | Texto longo · O que aparece no rótulo |  |
 | `separadorDoRotulo` ★ | — | Texto | Texto longo · Separador |  |
+| `layoutFolgaDoTexto` ★ | — | Texto | Árvore · Folga do texto (%) |  |
 | `simboloDaMoedaDoRotulo` ★ | — | Texto | Texto longo · Símbolo da moeda |  |
 | `moedaPersonalizadaDoRotulo` ★ | — | Texto | Texto longo · Moeda personalizada |  |
 | `alinhamentoDoTextoDoCartao` ★ | — | Texto | Organograma · Alinhamento do texto |  |

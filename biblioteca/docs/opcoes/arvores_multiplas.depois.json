@@ -396,6 +396,87 @@
     "dinamica": false
   },
   {
+    "id": "layoutQuandoNaoCouber",
+    "label": "Árvore · Quando não couber",
+    "rotuloCompleto": "Árvore · Quando não couber",
+    "section": "Estilo",
+    "type": "string",
+    "default": "ajustar",
+    "dinamica": false
+  },
+  {
+    "id": "layoutAjusteFonte",
+    "label": "Árvore · Ajuste: fonte",
+    "rotuloCompleto": "Árvore · Ajuste: fonte",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "layoutAjusteLinhas",
+    "label": "Árvore · Ajuste: linhas",
+    "rotuloCompleto": "Árvore · Ajuste: linhas",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "layoutAjusteColunas",
+    "label": "Árvore · Ajuste: colunas",
+    "rotuloCompleto": "Árvore · Ajuste: colunas",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "layoutAjusteEscala",
+    "label": "Árvore · Ajuste: escala",
+    "rotuloCompleto": "Árvore · Ajuste: escala",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "layoutAjusteRolagem",
+    "label": "Árvore · Ajuste: rolagem",
+    "rotuloCompleto": "Árvore · Ajuste: rolagem",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
+    "id": "layoutFonteMinima",
+    "label": "Árvore · Ajuste: fonte mínima (px)",
+    "rotuloCompleto": "Árvore · Ajuste: fonte mínima (px)",
+    "section": "Estilo",
+    "type": "number",
+    "default": 9,
+    "dinamica": false
+  },
+  {
+    "id": "layoutAjusteNaNota",
+    "label": "Árvore · Ajuste na nota",
+    "rotuloCompleto": "Árvore · Ajuste na nota",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": true,
+    "dinamica": false
+  },
+  {
+    "id": "layoutDiagnostico",
+    "label": "Árvore · Diagnóstico do layout",
+    "rotuloCompleto": "Árvore · Diagnóstico do layout",
+    "section": "Estilo",
+    "type": "boolean",
+    "default": false,
+    "dinamica": false
+  },
+  {
     "id": "pacoteTematico",
     "label": "Tema · Pacote temático",
     "rotuloCompleto": "Tema · Pacote temático",
@@ -645,6 +726,15 @@
     "section": "Texto",
     "type": "string",
     "default": "",
+    "dinamica": false
+  },
+  {
+    "id": "layoutFolgaDoTexto",
+    "label": "Árvore · Folga do texto (%)",
+    "rotuloCompleto": "Árvore · Folga do texto (%)",
+    "section": "Texto",
+    "type": "number",
+    "default": 10,
     "dinamica": false
   },
   {

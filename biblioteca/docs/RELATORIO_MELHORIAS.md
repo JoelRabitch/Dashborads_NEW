@@ -168,3 +168,74 @@ e com níveis parados (das duas orientações). Suíte inteira: 936 testes
 (935 ok, 1 pulado); sem pacotes: 930 ok, 6 pulados; segurança sem violação.
 
 **Conferir no Looker real:** `docs/TESTE_NO_LOOKER.md`, seção v3.2.
+
+## 8. v3.3 — as árvores se ajustam ao limite da célula
+
+**Sintoma** (Looker real, grade de células de ~385 px, 3–4 níveis, "Texto
+longo" = Mostrar inteiro, ícone ligado): depois da v3.2 os níveis ficaram
+estáveis, mas a árvore precisava de bem mais largura que a célula; a célula
+rolava ("Tamanho real com rolagem") e o texto parecia cortado na borda.
+Reproduzido em `test/arvores_ajuste_v33.test.mjs`: desenho de 2.413 px numa
+célula de 380 px (falhou antes, passa depois).
+
+**O que mudou**
+- Opção nova "Árvore · Quando não couber" (`layoutQuandoNaoCouber`):
+  Ajustar automaticamente (padrão) | Rolar em tamanho real (= v3.2).
+- Motor único `_arvore/ajuste.js`, calculado sobre o ramo COMPLETO (abrir
+  ou fechar não muda o ajuste nem move os níveis). Só age com "Texto longo"
+  = Mostrar inteiro. Passos, na ordem, parando no primeiro que resolve:
+  (a) fonte até "Ajuste: fonte mínima (px)" (9); (b) quebra em até
+  "Máximo de linhas", sem cortar; (c) menos colunas na grade
+  (`colunasDaGrade` vira o máximo); (d) escala até 0,6, com a fonte na tela
+  nunca abaixo da mínima; (e) rolagem ("Ajuste: rolagem", desligada). Com a
+  rolagem desligada, o último recurso é quebrar e cortar com "…" (texto
+  completo no tooltip).
+- O ajuste aplicado vai para a nota ("Ajuste: fonte reduzida para 9 px · 2
+  linhas por rótulo · ..."; "Ajuste na nota" para ocultar). "Diagnóstico
+  do layout" mostra célula, largura necessária, passo, fonte, colunas e
+  escala (e grava no console com "Modo debug").
+- Medição: `criarMedidor` (cache por texto+fonte+negrito, "Folga do texto
+  (%)" = 10) com `canvas.measureText` no navegador e a estimativa de sempre
+  nos testes. `ajustarRotulo` aceita o medidor; sem ele, nada muda (o
+  dot_plot_denso continua igual).
+- Redimensionar: debounce de 100 ms, ignora < 2 px, no máximo 4 desenhos
+  por segundo (só nas árvores, opção `redimensionamento` do defineViz);
+  preserva o que está aberto, a seleção e a rolagem; cancela animações e
+  solta o tooltip fixo. Largura da barra de rolagem reservada
+  (`scrollbar-gutter: stable`): sem oscilação.
+- Filtro que muda os dados: nós que ficam mantêm o estado (chave = caminho);
+  os que somem são descartados.
+- Impressão/PDF: sempre o ajuste automático, sem rolagem.
+- org_chart: o cartão cresce até o maior nome; se passar da área (eixo dos
+  níveis na horizontal, ou o cartão na vertical): fonte, quebra, escala,
+  rolagem/corte. `larguraDoCartao` é o mínimo enquanto cabe; o cartão nunca
+  fica menor que o texto.
+
+**Precedência com opções salvas** (ids, tipos e padrões inalterados)
+- `ajusteDeEscala` só vale em "Rolar em tamanho real".
+- `larguraMinimaDaArvore`, `alturaDaArvore` e largura/altura por árvore
+  não forçam célula maior que a área no modo automático.
+- `fonteMinimaDoRotulo` (8) continua valendo para o modo "Reduzir a fonte"
+  e para o "Ajustar à área" da v3.2; o ajuste automático usa a opção nova
+  `layoutFonteMinima` (9), porque o padrão de uma opção existente não pode
+  mudar.
+
+**Mudanças de comportamento**
+- Tiles existentes passam a ajustar automaticamente (padrão novo). Para o
+  visual da v3.2: "Quando não couber" = Rolar em tamanho real.
+- Com 4 níveis e rótulos com valor e percentual numa célula estreita,
+  alguns rótulos do ramo completo podem precisar de mais linhas que o
+  máximo: o resultado é o corte com "…" e o texto no tooltip. Para nunca
+  cortar, ligue "Ajuste: rolagem" ou aumente "Máximo de linhas".
+- No modo automático o desenho ocupa a área menos a largura da barra de
+  rolagem (18 px quando não dá para medir).
+- Os 23 bundles têm hash novo (o núcleo `define-viz`/`dom` mudou); só as
+  duas árvores mudam de comportamento.
+
+**Testado (automático)**: `test/arvores_ajuste_v33.test.mjs` (reprodução,
+cenário solucionável sem corte, modo tamanho real, P1–P11, S1, opções e
+org_chart). Suíte inteira: 957 testes (956 ok, 1 pulado); sem pacotes: 951
+ok, 6 pulados; segurança sem violação; `npm run opcoes`: só ids novos.
+
+**Conferir no Looker real:** `docs/TESTE_NO_LOOKER.md`, seção v3.3, e as
+suposições de `docs/COMPAT.md` (v3.3). Página visual: `test/arvores_visual.html`.

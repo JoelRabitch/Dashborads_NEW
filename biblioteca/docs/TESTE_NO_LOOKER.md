@@ -171,3 +171,21 @@ real antes de considerar resolvido.
 - [ ] "Árvore · Tamanho do ícone" = 20: os ícones crescem e o nome começa depois do ícone. "Árvore · Ajuste de escala" = Ajustar à área: o desenho reduz para caber, sem a letra ficar menor que "Fonte mínima".
 - [ ] "Texto longo" = Quebrar em linhas / Reduzir a fonte / Cortar com reticências numa célula estreita: o texto se ajusta à célula sem sobrepor o ícone.
 - [ ] org_chart com ícone por valor: o texto do cartão fica à direita do ícone; expanda um "+" e confira que os níveis já visíveis não se movem.
+
+## v3.3 — árvores se ajustam ao limite da célula
+
+Antes de cadastrar, dá para conferir no navegador: rode `npm run build` e
+abra `test/arvores_visual.html` (largura do tile, colunas, fonte e modo;
+linha de diagnóstico ligada).
+
+- [ ] arvores_multiplas numa grade de células estreitas (~385 px, "Colunas" = 4, "Texto longo" = Mostrar inteiro, ícone ligado): NENHUM texto cortado na borda da célula. A nota mostra o ajuste ("Ajuste: fonte reduzida para 9 px · 2 linhas por rótulo · ..."). Se o tile tiver "Mostrar a nota" desligado, ligue para conferir.
+- [ ] Ligue "Árvore · Diagnóstico do layout": a linha mostra célula, largura necessária, passo, fonte, colunas e escala. Confira que a largura da célula bate com o que se vê.
+- [ ] Expanda uma linha (e use "Expandir tudo"/"Colapsar tudo"): os níveis já visíveis NÃO se movem e a fonte não muda ao abrir/fechar.
+- [ ] Redimensione o tile (arrastar a borda no modo de edição do dashboard) e vá para tela cheia: o layout se refaz em ~0,1 s, sem piscar em laço; o que estava aberto continua aberto, a seleção continua, o tooltip fixo é solto.
+- [ ] Barra de rolagem: com a árvore mais alta que a célula, a barra vertical aparece e NÃO surge barra horizontal (a largura da barra fica reservada).
+- [ ] "Árvore · Quando não couber" = Rolar em tamanho real: volta ao visual da v3.2 (rolagem, e "Ajuste de escala" volta a valer).
+- [ ] "Árvore · Ajuste: rolagem" ligado: quando nada resolve, a célula rola sem cortar texto; desligado (padrão), o rótulo é quebrado e cortado com "…", e o tooltip do nó mostra o texto completo.
+- [ ] Baixe o dashboard em PDF / entrega agendada: as árvores aparecem ajustadas, sem nada cortado na borda (impressão usa sempre o ajuste automático).
+- [ ] Fonte real × estimada: se algum rótulo ainda encostar na borda, aumente "Árvore · Folga do texto (%)" (padrão 10) e anote o valor que resolveu.
+- [ ] org_chart estreito (esquerda → direita e de cima para baixo): o cartão cresce até o maior nome; se não cabe, fonte, quebra e escala; nenhum texto sai do cartão nem fica cortado na borda da área.
+- [ ] dot_plot_denso e os outros gráficos: sem mudança visual.
