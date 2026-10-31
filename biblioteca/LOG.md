@@ -3640,3 +3640,16 @@ medida-texto; escrever o teste de geometria que reproduz o corte (380 px).
 - Testes antigos da v3.2 que verificam o tamanho real passaram a fixar
   `layoutQuandoNaoCouber: 'rolar'` (o padrão mudou por pedido da tarefa).
 PRÓXIMA AÇÃO: testes P1–P12 e S1; redimensionamento com debounce (define-viz opt-in); org_chart.
+
+### Etapa 2 (redimensionamento e casos P1–P12, S1) — feita
+- `dom.js`: `criarAgendadorDeRedimensionamento` (debounce 100 ms, ignora
+  < 2 px, máx. 4 desenhos/s, excedente adiado). `define-viz.js`: opção de
+  declaração `redimensionamento` (só as duas árvores usam; os outros 21
+  gráficos seguem com o redesenho imediato de antes). No modo opcional o
+  redesenho por tamanho também cancela animações/timers (limparPendencias)
+  e solta o tooltip fixo; `bl.tamanhoDesenhado` guarda o último tamanho.
+- P8: chaves de nós/ramos que sumiram são descartadas do estado.
+- `medicaoDoNavegador` olha o navigator da janela do documento (jsdom → null).
+- Testes P1–P11, S1 e opções em `test/arvores_ajuste_v33.test.mjs`;
+  P12 = suíte inteira: 954 testes, 953 ok, 1 pulado, 0 falhas.
+PRÓXIMA AÇÃO: org_chart (cartão cresce até o maior nome; fonte, quebra, escala, rolagem).

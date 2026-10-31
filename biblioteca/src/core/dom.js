@@ -148,6 +148,53 @@ export function observarRedimensionamento(el, callback) {
 }
 
 /**
+ * Agendador de redesenho por redimensionamento (v3.3, opcional por gráfico
+ * via `redimensionamento` no defineViz):
+ *   - debounce (`atraso`, ~100 ms): uma rajada de eventos vira um desenho;
+ *   - mudanças menores que `minimoPx` (2 px) são ignoradas;
+ *   - no máximo `maximoPorSegundo` desenhos por segundo (protege do laço
+ *     resize → layout → resize); o excedente é adiado, nunca perdido.
+ * `medir()` dá o tamanho atual e `referencia()` o do último desenho.
+ */
+export function criarAgendadorDeRedimensionamento(executar, {
+  atraso = 100,
+  minimoPx = 2,
+  maximoPorSegundo = 4,
+  medir,
+  referencia = () => null,
+  agora = () => Date.now(),
+  timer = (fn, ms) => setTimeout(fn, ms),
+  cancelarTimer = (t) => clearTimeout(t),
+} = {}) {
+  let pendente = null;
+  const feitos = [];
+  const rodar = () => {
+    pendente = null;
+    const t = medir();
+    const r = referencia();
+    if (r && Math.abs(t.largura - r.largura) < minimoPx && Math.abs(t.altura - r.altura) < minimoPx) return;
+    const instante = agora();
+    while (feitos.length && instante - feitos[0] >= 1000) feitos.shift();
+    if (feitos.length >= maximoPorSegundo) {
+      pendente = timer(rodar, Math.max(1, 1000 - (instante - feitos[0])));
+      return;
+    }
+    feitos.push(instante);
+    executar();
+  };
+  return {
+    pedir() {
+      if (pendente !== null) cancelarTimer(pendente);
+      pendente = timer(rodar, atraso);
+    },
+    cancelar() {
+      if (pendente !== null) cancelarTimer(pendente);
+      pendente = null;
+    },
+  };
+}
+
+/**
  * Injeta um bloco <style> com escopo por classe-raiz. O CSS é sempre
  * literal do nosso código (nunca vem de dados), então é seguro.
  */

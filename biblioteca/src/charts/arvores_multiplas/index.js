@@ -175,6 +175,9 @@ export default defineViz({
     }
   ),
   exigencia: { dimensoesMin: 1, aceitaPivo: false, exigeLinhas: true },
+  // v3.3: redimensionar com debounce (~100 ms), ignorando < 2 px e no máximo
+  // 4 desenhos por segundo; cancela animações em curso e solta o tooltip.
+  redimensionamento: { atraso: 100, minimoPx: 2, maximoPorSegundo: 4 },
 
   opcoesDinamicas({ modelo, config }) {
     const saida = opcoesDinamicasDeHierarquia(modelo);

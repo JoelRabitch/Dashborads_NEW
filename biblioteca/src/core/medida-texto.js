@@ -130,8 +130,10 @@ export function criarMedidor({ folga = 0, real = null } = {}) {
  * @param {string} [familia] família da fonte (a do tema)
  */
 export function medicaoDoNavegador(familia) {
-  if (typeof document === 'undefined' || typeof navigator === 'undefined') return null;
-  if (/jsdom/i.test(navigator.userAgent || '')) return null;
+  if (typeof document === 'undefined') return null;
+  const janela = document.defaultView || (typeof window !== 'undefined' ? window : null);
+  const nav = (janela && janela.navigator) || (typeof navigator !== 'undefined' ? navigator : null);
+  if (!nav || /jsdom/i.test(nav.userAgent || '')) return null;
   let c2d = null;
   try {
     const canvas = document.createElement('canvas');
