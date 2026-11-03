@@ -221,3 +221,33 @@ pelo caminho `/gh/`, as saídas são:
 - Re-registrar o painel ao trocar o "Pacote temático" (uma vez por troca).
 - `trigger('updateConfig')` não confirmado: arrastar bordas da grade de árvores não foi feito.
 - Tooltip: o menu de drill do Looker fica fora do iframe; usamos `blur`/`focus` da janela e `mouseout` sem relatedTarget.
+
+## v3.3 — suposições sobre o tamanho do contêiner (CONFERIR NO LOOKER REAL)
+
+O ajuste automático das árvores depende do tamanho do contêiner que o
+Looker entrega ao iframe:
+
+- **Largura útil = `clientWidth` da área do gráfico.** Supomos que, quando o
+  tile está visível, `clientWidth`/`clientHeight` da área já têm o tamanho
+  final no `updateAsync`. Como verificar: ligue "Árvore · Diagnóstico do
+  layout" e compare "célula N px" com a largura real (inspecionar elemento
+  → `.am-celula`).
+- **Tamanho 0 na primeira renderização** (aba oculta, tile ainda
+  carregando): o núcleo usa um piso (160×120) e as árvores um padrão
+  (600×400) quando o número não é válido; o desenho certo vem pelo
+  `ResizeObserver` (debounce de 100 ms, ignora < 2 px, no máximo 4 por
+  segundo). Como verificar: abra o dashboard numa aba de filtro oculta,
+  troque de aba e confira que a árvore se ajusta sozinha em ~0,1 s.
+- **Sem `ResizeObserver`** (navegador antigo): cai no evento `resize` da
+  janela e na próxima atualização do Looker.
+- **Barra de rolagem:** medida uma vez por uma div de prova
+  (`offsetWidth − clientWidth`); se a medida não fizer sentido, reservamos
+  18 px. A célula usa `scrollbar-gutter: stable`. Como verificar: com a
+  árvore mais alta que a célula não pode aparecer barra horizontal.
+- **Medição do texto:** `canvas.measureText` com a fonte do tema (cache por
+  texto, fonte e negrito) + "Folga do texto (%)". Se a fonte da conta
+  carregar depois do primeiro desenho, a medida pode ficar curta até o
+  próximo redimensionamento; a folga de 10% cobre a diferença comum.
+- **Impressão/PDF/entrega agendada:** supomos que o renderizador do Looker
+  responde `matchMedia('print')` como verdadeiro; se não responder, vale a
+  opção salva (o padrão já é o ajuste automático).

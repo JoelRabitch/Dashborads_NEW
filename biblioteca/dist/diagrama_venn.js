@@ -2990,6 +2990,43 @@
     return () => {
     };
   }
+  function criarAgendadorDeRedimensionamento(executar, {
+    atraso = 100,
+    minimoPx = 2,
+    maximoPorSegundo = 4,
+    medir: medir2,
+    referencia = () => null,
+    agora = () => Date.now(),
+    timer = (fn, ms) => setTimeout(fn, ms),
+    cancelarTimer = (t) => clearTimeout(t)
+  } = {}) {
+    let pendente = null;
+    const feitos = [];
+    const rodar = () => {
+      pendente = null;
+      const t = medir2();
+      const r = referencia();
+      if (r && Math.abs(t.largura - r.largura) < minimoPx && Math.abs(t.altura - r.altura) < minimoPx) return;
+      const instante = agora();
+      while (feitos.length && instante - feitos[0] >= 1e3) feitos.shift();
+      if (feitos.length >= maximoPorSegundo) {
+        pendente = timer(rodar, Math.max(1, 1e3 - (instante - feitos[0])));
+        return;
+      }
+      feitos.push(instante);
+      executar();
+    };
+    return {
+      pedir() {
+        if (pendente !== null) cancelarTimer(pendente);
+        pendente = timer(rodar, atraso);
+      },
+      cancelar() {
+        if (pendente !== null) cancelarTimer(pendente);
+        pendente = null;
+      }
+    };
+  }
   function injetarEstilo(hospedeiro, css, id) {
     const existente = id && hospedeiro.querySelector(`style[data-estilo="${id}"]`);
     if (existente) {
@@ -4049,7 +4086,11 @@
       animacaoPropria = false,
       // true = o gráfico desenha título/subtítulo dentro do próprio desenho
       // (kpi_vivo): o cabeçalho padrão não repete o título.
-      cabecalhoProprio = false
+      cabecalhoProprio = false,
+      // v3.3: { atraso, minimoPx, maximoPorSegundo } = redesenho por
+      // redimensionamento com debounce, limiar e limite por segundo, e que
+      // cancela animações em curso (árvores). Sem isso: imediato, como antes.
+      redimensionamento = null
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
@@ -4086,18 +4127,29 @@
           ultimoDesenho: null,
           cancelarObservador: null
         };
-        this._bl.cancelarObservador = observarRedimensionamento(element, () => {
+        const redesenharPorTamanho = () => {
           if (this._bl && typeof this._bl.ultimoDesenho === "function") {
             this._bl.ultimoDesenho();
           }
-        });
+        };
+        if (redimensionamento) {
+          const bl = this._bl;
+          bl.agendadorDeTamanho = criarAgendadorDeRedimensionamento(redesenharPorTamanho, {
+            ...redimensionamento,
+            medir: () => medir(bl.area),
+            referencia: () => bl.tamanhoDesenhado || null
+          });
+          bl.cancelarObservador = observarRedimensionamento(element, () => bl.agendadorDeTamanho.pedir());
+        } else {
+          this._bl.cancelarObservador = observarRedimensionamento(element, redesenharPorTamanho);
+        }
       },
       updateAsync(data, element, config, queryResponse, details, done) {
         const concluir = typeof done === "function" ? done : () => {
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes: opcoes2, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
+            declaracao: { id, label, opcoes: opcoes2, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio, redimensionamento },
             data,
             element,
             config,
@@ -4128,6 +4180,7 @@
         limparPendencias(this._bl);
         destruirTooltipsDe(this._bl.raiz);
         if (this._bl.cancelarObservador) this._bl.cancelarObservador();
+        if (this._bl.agendadorDeTamanho) this._bl.agendadorDeTamanho.cancelar();
         this._bl = null;
       }
     };
@@ -4142,7 +4195,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes: opcoes2, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
+    const { id, opcoes: opcoes2, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio, redimensionamento } = declaracao;
     const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes2, config || {}));
     ponte.limparErros();
     if (!this._bl) {
@@ -4283,6 +4336,7 @@
     function renderizar({ repetir = true } = {}) {
       ctx.nota = criarEl("div");
       render(ctx);
+      bl.tamanhoDesenhado = { largura: ctx.largura, altura: ctx.altura };
       const nova = (ctx.nota.textContent || "").trim();
       if (nova !== (bl.notaAutomatica || "")) {
         bl.notaAutomatica = nova;
@@ -4309,7 +4363,8 @@
       if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
       ctx.largura = tamanho.largura;
       ctx.altura = tamanho.altura;
-      bl.eventos.limpar();
+      if (redimensionamento) limparPendencias(bl);
+      else bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
       limparAviso(bl);
       try {

@@ -2984,6 +2984,43 @@
     return () => {
     };
   }
+  function criarAgendadorDeRedimensionamento(executar, {
+    atraso = 100,
+    minimoPx = 2,
+    maximoPorSegundo = 4,
+    medir: medir2,
+    referencia = () => null,
+    agora = () => Date.now(),
+    timer = (fn, ms) => setTimeout(fn, ms),
+    cancelarTimer = (t) => clearTimeout(t)
+  } = {}) {
+    let pendente = null;
+    const feitos = [];
+    const rodar = () => {
+      pendente = null;
+      const t = medir2();
+      const r = referencia();
+      if (r && Math.abs(t.largura - r.largura) < minimoPx && Math.abs(t.altura - r.altura) < minimoPx) return;
+      const instante = agora();
+      while (feitos.length && instante - feitos[0] >= 1e3) feitos.shift();
+      if (feitos.length >= maximoPorSegundo) {
+        pendente = timer(rodar, Math.max(1, 1e3 - (instante - feitos[0])));
+        return;
+      }
+      feitos.push(instante);
+      executar();
+    };
+    return {
+      pedir() {
+        if (pendente !== null) cancelarTimer(pendente);
+        pendente = timer(rodar, atraso);
+      },
+      cancelar() {
+        if (pendente !== null) cancelarTimer(pendente);
+        pendente = null;
+      }
+    };
+  }
   function injetarEstilo(hospedeiro, css, id) {
     const existente = id && hospedeiro.querySelector(`style[data-estilo="${id}"]`);
     if (existente) {
@@ -4051,7 +4088,11 @@
       animacaoPropria = false,
       // true = o gráfico desenha título/subtítulo dentro do próprio desenho
       // (kpi_vivo): o cabeçalho padrão não repete o título.
-      cabecalhoProprio = false
+      cabecalhoProprio = false,
+      // v3.3: { atraso, minimoPx, maximoPorSegundo } = redesenho por
+      // redimensionamento com debounce, limiar e limite por segundo, e que
+      // cancela animações em curso (árvores). Sem isso: imediato, como antes.
+      redimensionamento = null
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
@@ -4088,18 +4129,29 @@
           ultimoDesenho: null,
           cancelarObservador: null
         };
-        this._bl.cancelarObservador = observarRedimensionamento(element, () => {
+        const redesenharPorTamanho = () => {
           if (this._bl && typeof this._bl.ultimoDesenho === "function") {
             this._bl.ultimoDesenho();
           }
-        });
+        };
+        if (redimensionamento) {
+          const bl = this._bl;
+          bl.agendadorDeTamanho = criarAgendadorDeRedimensionamento(redesenharPorTamanho, {
+            ...redimensionamento,
+            medir: () => medir(bl.area),
+            referencia: () => bl.tamanhoDesenhado || null
+          });
+          bl.cancelarObservador = observarRedimensionamento(element, () => bl.agendadorDeTamanho.pedir());
+        } else {
+          this._bl.cancelarObservador = observarRedimensionamento(element, redesenharPorTamanho);
+        }
       },
       updateAsync(data, element, config, queryResponse, details, done) {
         const concluir = typeof done === "function" ? done : () => {
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio, redimensionamento },
             data,
             element,
             config,
@@ -4130,6 +4182,7 @@
         limparPendencias(this._bl);
         destruirTooltipsDe(this._bl.raiz);
         if (this._bl.cancelarObservador) this._bl.cancelarObservador();
+        if (this._bl.agendadorDeTamanho) this._bl.agendadorDeTamanho.cancelar();
         this._bl = null;
       }
     };
@@ -4144,7 +4197,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio, redimensionamento } = declaracao;
     const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
     ponte.limparErros();
     if (!this._bl) {
@@ -4285,6 +4338,7 @@
     function renderizar({ repetir = true } = {}) {
       ctx.nota = criarEl("div");
       render(ctx);
+      bl.tamanhoDesenhado = { largura: ctx.largura, altura: ctx.altura };
       const nova = (ctx.nota.textContent || "").trim();
       if (nova !== (bl.notaAutomatica || "")) {
         bl.notaAutomatica = nova;
@@ -4311,7 +4365,8 @@
       if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
       ctx.largura = tamanho.largura;
       ctx.altura = tamanho.altura;
-      bl.eventos.limpar();
+      if (redimensionamento) limparPendencias(bl);
+      else bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
       limparAviso(bl);
       try {
@@ -4707,40 +4762,40 @@
       return `${Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1).replace(/\.0$/, "")}${suf}`;
     });
   }
-  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias) {
-    if (larguraDoTexto(texto, tamanho, opcoes) <= largura) return texto;
+  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias, mede = larguraDoTexto) {
+    if (mede(texto, tamanho, opcoes) <= largura) return texto;
     const sufixo = comReticencias ? "\u2026" : "";
     let ini = 0;
     let fim = texto.length;
     while (ini < fim) {
       const meio = Math.ceil((ini + fim) / 2);
-      if (larguraDoTexto(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
+      if (mede(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
       else fim = meio - 1;
     }
     return texto.slice(0, Math.max(1, ini)).trimEnd() + sufixo;
   }
-  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo) {
+  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo, mede = larguraDoTexto) {
     const palavras = String(texto).split(/\s+/).filter(Boolean);
     const linhas = [];
     let atual = "";
     for (const p of palavras) {
       const t = atual ? `${atual} ${p}` : p;
-      if (!atual || larguraDoTexto(t, tamanho, opcoes) <= largura) atual = t;
+      if (!atual || mede(t, tamanho, opcoes) <= largura) atual = t;
       else {
         linhas.push(atual);
         atual = p;
       }
     }
     if (atual) linhas.push(atual);
-    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true));
+    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true, mede));
     if (saida.length > maximo) {
       const resto = saida.slice(maximo - 1).join(" ");
       saida.length = maximo - 1;
-      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true));
+      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true, mede));
     }
     return saida;
   }
-  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null }) {
+  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null, medir: medir2 = larguraDoTexto }) {
     const sep = tl.separador;
     const juntar = formatar || ((n, e) => [n, ...e].join(sep));
     const limpos = extras.filter(Boolean).map((e) => trocarMoeda(e, tl));
@@ -4748,34 +4803,34 @@
     let texto = tl.modo === "soNome" ? String(nome) : completo;
     if (tl.modo === "abreviar") texto = juntar(String(nome), limpos.map(abreviarNumeros));
     const limite = tl.larguraMaxima > 0 ? Math.min(tl.larguraMaxima, largura > 0 ? largura : Infinity) : largura > 0 ? largura : Infinity;
-    const mede = (t, tam2) => larguraDoTexto(t, tam2, estilo);
+    const mede = (t, tam2) => medir2(t, tam2, estilo);
     let linhas = [texto];
     let tam = tamanho;
     switch (tl.modo) {
       case "quebrar":
-        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas);
+        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas, medir2);
         break;
       case "reduzir":
         while (Number.isFinite(limite) && mede(texto, tam) > limite && tam > tl.fonteMinima) tam -= 0.5;
-        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true)];
+        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true, medir2)];
         break;
       case "reticencias": {
         let t = texto;
         if (tl.truncarEmCaracteres > 0 && t.length > tl.truncarEmCaracteres) {
           t = `${t.slice(0, Math.max(1, tl.truncarEmCaracteres - 1)).trimEnd()}\u2026`;
         }
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true) : t];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true, medir2) : t];
         break;
       }
       case "cortar":
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false) : texto];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false, medir2) : texto];
         break;
       case "abreviar":
       case "soNome":
       case "inteiro":
       default:
         if (tl.larguraMaxima > 0 && mede(texto, tam) > tl.larguraMaxima) {
-          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99);
+          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99, medir2);
         }
         break;
     }

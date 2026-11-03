@@ -2863,6 +2863,43 @@
     return () => {
     };
   }
+  function criarAgendadorDeRedimensionamento(executar, {
+    atraso = 100,
+    minimoPx = 2,
+    maximoPorSegundo = 4,
+    medir: medir2,
+    referencia = () => null,
+    agora = () => Date.now(),
+    timer = (fn, ms) => setTimeout(fn, ms),
+    cancelarTimer = (t) => clearTimeout(t)
+  } = {}) {
+    let pendente = null;
+    const feitos = [];
+    const rodar = () => {
+      pendente = null;
+      const t = medir2();
+      const r = referencia();
+      if (r && Math.abs(t.largura - r.largura) < minimoPx && Math.abs(t.altura - r.altura) < minimoPx) return;
+      const instante = agora();
+      while (feitos.length && instante - feitos[0] >= 1e3) feitos.shift();
+      if (feitos.length >= maximoPorSegundo) {
+        pendente = timer(rodar, Math.max(1, 1e3 - (instante - feitos[0])));
+        return;
+      }
+      feitos.push(instante);
+      executar();
+    };
+    return {
+      pedir() {
+        if (pendente !== null) cancelarTimer(pendente);
+        pendente = timer(rodar, atraso);
+      },
+      cancelar() {
+        if (pendente !== null) cancelarTimer(pendente);
+        pendente = null;
+      }
+    };
+  }
   function injetarEstilo(hospedeiro, css, id) {
     const existente = id && hospedeiro.querySelector(`style[data-estilo="${id}"]`);
     if (existente) {
@@ -3248,6 +3285,57 @@
       }
     }
     return linhas;
+  }
+  var LIMITE_DO_CACHE = 5e4;
+  function criarMedidor({ folga = 0, real = null } = {}) {
+    const cache = /* @__PURE__ */ new Map();
+    const fator = 1 + Math.max(0, Number(folga) || 0) / 100;
+    const estatisticas = { medicoes: 0, consultas: 0 };
+    const medir2 = (texto, tamanho = 12, opcoes = {}) => {
+      const s = String(texto != null ? texto : "");
+      const negrito = !!(opcoes && opcoes.negrito);
+      const mono = !!(opcoes && opcoes.mono);
+      const chave = `${tamanho}|${negrito ? 1 : 0}${mono ? 1 : 0}|${s}`;
+      estatisticas.consultas += 1;
+      let w = cache.get(chave);
+      if (w === void 0) {
+        estatisticas.medicoes += 1;
+        let base = null;
+        if (real && s) {
+          try {
+            base = real(s, tamanho, { negrito, mono });
+          } catch (_) {
+            base = null;
+          }
+        }
+        if (!(Number.isFinite(base) && base >= 0)) base = larguraDoTexto(s, tamanho, { negrito, mono });
+        w = base * fator;
+        if (cache.size >= LIMITE_DO_CACHE) cache.clear();
+        cache.set(chave, w);
+      }
+      return w;
+    };
+    medir2.estatisticas = estatisticas;
+    return medir2;
+  }
+  function medicaoDoNavegador(familia2) {
+    if (typeof document === "undefined") return null;
+    const janela = document.defaultView || (typeof window !== "undefined" ? window : null);
+    const nav = janela && janela.navigator || (typeof navigator !== "undefined" ? navigator : null);
+    if (!nav || /jsdom/i.test(nav.userAgent || "")) return null;
+    let c2d = null;
+    try {
+      const canvas = document.createElement("canvas");
+      c2d = canvas.getContext ? canvas.getContext("2d") : null;
+    } catch (_) {
+      c2d = null;
+    }
+    if (!c2d || typeof c2d.measureText !== "function") return null;
+    const fam = familia2 || "sans-serif";
+    return (texto, tamanho, { negrito = false, mono = false } = {}) => {
+      c2d.font = `${negrito ? "700 " : ""}${tamanho}px ${mono ? "monospace" : fam}`;
+      return c2d.measureText(texto).width;
+    };
   }
 
   // src/core/cabecalho.js
@@ -3945,7 +4033,11 @@
       animacaoPropria = false,
       // true = o gráfico desenha título/subtítulo dentro do próprio desenho
       // (kpi_vivo): o cabeçalho padrão não repete o título.
-      cabecalhoProprio = false
+      cabecalhoProprio = false,
+      // v3.3: { atraso, minimoPx, maximoPorSegundo } = redesenho por
+      // redimensionamento com debounce, limiar e limite por segundo, e que
+      // cancela animações em curso (árvores). Sem isso: imediato, como antes.
+      redimensionamento = null
     } = declaracao;
     if (typeof render !== "function") {
       throw new Error(`defineViz(${id}): a fun\xE7\xE3o render \xE9 obrigat\xF3ria.`);
@@ -3982,18 +4074,29 @@
           ultimoDesenho: null,
           cancelarObservador: null
         };
-        this._bl.cancelarObservador = observarRedimensionamento(element, () => {
+        const redesenharPorTamanho = () => {
           if (this._bl && typeof this._bl.ultimoDesenho === "function") {
             this._bl.ultimoDesenho();
           }
-        });
+        };
+        if (redimensionamento) {
+          const bl = this._bl;
+          bl.agendadorDeTamanho = criarAgendadorDeRedimensionamento(redesenharPorTamanho, {
+            ...redimensionamento,
+            medir: () => medir(bl.area),
+            referencia: () => bl.tamanhoDesenhado || null
+          });
+          bl.cancelarObservador = observarRedimensionamento(element, () => bl.agendadorDeTamanho.pedir());
+        } else {
+          this._bl.cancelarObservador = observarRedimensionamento(element, redesenharPorTamanho);
+        }
       },
       updateAsync(data, element, config, queryResponse, details, done) {
         const concluir = typeof done === "function" ? done : () => {
         };
         try {
           executarAtualizacao.call(this, {
-            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
+            declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio, redimensionamento },
             data,
             element,
             config,
@@ -4024,6 +4127,7 @@
         limparPendencias(this._bl);
         destruirTooltipsDe(this._bl.raiz);
         if (this._bl.cancelarObservador) this._bl.cancelarObservador();
+        if (this._bl.agendadorDeTamanho) this._bl.agendadorDeTamanho.cancelar();
         this._bl = null;
       }
     };
@@ -4038,7 +4142,7 @@
     bl.timersAgendados.clear();
   }
   function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
+    const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio, redimensionamento } = declaracao;
     const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
     ponte.limparErros();
     if (!this._bl) {
@@ -4179,6 +4283,7 @@
     function renderizar({ repetir = true } = {}) {
       ctx.nota = criarEl("div");
       render(ctx);
+      bl.tamanhoDesenhado = { largura: ctx.largura, altura: ctx.altura };
       const nova = (ctx.nota.textContent || "").trim();
       if (nova !== (bl.notaAutomatica || "")) {
         bl.notaAutomatica = nova;
@@ -4205,7 +4310,8 @@
       if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
       ctx.largura = tamanho.largura;
       ctx.altura = tamanho.altura;
-      bl.eventos.limpar();
+      if (redimensionamento) limparPendencias(bl);
+      else bl.eventos.limpar();
       esconderTooltipsDe(bl.raiz);
       limparAviso(bl);
       try {
@@ -4459,40 +4565,40 @@
       return `${Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1).replace(/\.0$/, "")}${suf}`;
     });
   }
-  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias) {
-    if (larguraDoTexto(texto, tamanho, opcoes) <= largura) return texto;
+  function cortarNaLargura(texto, largura, tamanho, opcoes, comReticencias, mede = larguraDoTexto) {
+    if (mede(texto, tamanho, opcoes) <= largura) return texto;
     const sufixo = comReticencias ? "\u2026" : "";
     let ini = 0;
     let fim = texto.length;
     while (ini < fim) {
       const meio = Math.ceil((ini + fim) / 2);
-      if (larguraDoTexto(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
+      if (mede(texto.slice(0, meio).trimEnd() + sufixo, tamanho, opcoes) <= largura) ini = meio;
       else fim = meio - 1;
     }
     return texto.slice(0, Math.max(1, ini)).trimEnd() + sufixo;
   }
-  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo) {
+  function quebrarEmLinhas(texto, largura, tamanho, opcoes, maximo, mede = larguraDoTexto) {
     const palavras = String(texto).split(/\s+/).filter(Boolean);
     const linhas = [];
     let atual = "";
     for (const p of palavras) {
       const t = atual ? `${atual} ${p}` : p;
-      if (!atual || larguraDoTexto(t, tamanho, opcoes) <= largura) atual = t;
+      if (!atual || mede(t, tamanho, opcoes) <= largura) atual = t;
       else {
         linhas.push(atual);
         atual = p;
       }
     }
     if (atual) linhas.push(atual);
-    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true));
+    const saida = linhas.map((l) => cortarNaLargura(l, largura, tamanho, opcoes, true, mede));
     if (saida.length > maximo) {
       const resto = saida.slice(maximo - 1).join(" ");
       saida.length = maximo - 1;
-      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true));
+      saida.push(cortarNaLargura(resto, largura, tamanho, opcoes, true, mede));
     }
     return saida;
   }
-  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null }) {
+  function ajustarRotulo({ nome, extras = [], tamanho, largura = 0, tl, estilo = {}, formatar = null, medir: medir2 = larguraDoTexto }) {
     const sep = tl.separador;
     const juntar = formatar || ((n, e) => [n, ...e].join(sep));
     const limpos = extras.filter(Boolean).map((e) => trocarMoeda(e, tl));
@@ -4500,34 +4606,34 @@
     let texto = tl.modo === "soNome" ? String(nome) : completo;
     if (tl.modo === "abreviar") texto = juntar(String(nome), limpos.map(abreviarNumeros));
     const limite = tl.larguraMaxima > 0 ? Math.min(tl.larguraMaxima, largura > 0 ? largura : Infinity) : largura > 0 ? largura : Infinity;
-    const mede = (t, tam2) => larguraDoTexto(t, tam2, estilo);
+    const mede = (t, tam2) => medir2(t, tam2, estilo);
     let linhas = [texto];
     let tam = tamanho;
     switch (tl.modo) {
       case "quebrar":
-        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas);
+        if (Number.isFinite(limite)) linhas = quebrarEmLinhas(texto, limite, tam, estilo, tl.linhas, medir2);
         break;
       case "reduzir":
         while (Number.isFinite(limite) && mede(texto, tam) > limite && tam > tl.fonteMinima) tam -= 0.5;
-        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true)];
+        if (Number.isFinite(limite) && mede(texto, tam) > limite) linhas = [cortarNaLargura(texto, limite, tam, estilo, true, medir2)];
         break;
       case "reticencias": {
         let t = texto;
         if (tl.truncarEmCaracteres > 0 && t.length > tl.truncarEmCaracteres) {
           t = `${t.slice(0, Math.max(1, tl.truncarEmCaracteres - 1)).trimEnd()}\u2026`;
         }
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true) : t];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(t, limite, tam, estilo, true, medir2) : t];
         break;
       }
       case "cortar":
-        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false) : texto];
+        linhas = [Number.isFinite(limite) ? cortarNaLargura(texto, limite, tam, estilo, false, medir2) : texto];
         break;
       case "abreviar":
       case "soNome":
       case "inteiro":
       default:
         if (tl.larguraMaxima > 0 && mede(texto, tam) > tl.larguraMaxima) {
-          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99);
+          linhas = quebrarEmLinhas(texto, tl.larguraMaxima, tam, estilo, 99, medir2);
         }
         break;
     }
@@ -5562,10 +5668,182 @@
       }
     };
   }
-  function layoutHorizontal(raiz, { largura, altura, config }) {
-    const fabrica = (config.layoutDaArvore === "tree" ? tree_default : cluster_default)();
-    fabrica.size([altura, largura]);
-    return fabrica(raiz);
+  var FOLGA_DA_ARVORE = 8;
+  var LADO_MINIMO_DO_ICONE = 10;
+  var LARGURA_DO_INDICADOR = 12;
+  var EXTRA_MAXIMO_POR_NIVEL = 80;
+  function raioDoNoDaArvore(valor, config, maiorValor) {
+    const base = Number(config.tamanhoDoNo);
+    const b = Number.isFinite(base) ? base : 4;
+    return config.tamanhoPorValor ? Math.max(1.5, b * Math.sqrt((valor || 0) / (maiorValor || 1)) * 2.2) : b;
+  }
+  function ladoDoIconeDaArvore(config, raio, espacoVertical = Infinity) {
+    const pedido = Number(config.tamanhoDoIcone) > 0 ? Number(config.tamanhoDoIcone) : Math.max(12, raio * 2 + 6);
+    return Math.max(LADO_MINIMO_DO_ICONE, Math.min(pedido, espacoVertical - FOLGA_DA_ARVORE / 2));
+  }
+  function opcoesDeEspacamento({ secao = "\xC1rvore" } = {}) {
+    return {
+      tamanhoDoIcone: { type: "number", label: "Tamanho do \xEDcone (0 = auto)", section: secao, default: 0 },
+      ajusteDeEscala: {
+        type: "string",
+        label: "Ajuste de escala",
+        section: secao,
+        display: "select",
+        default: "real",
+        values: listaDeValores([
+          { rotulo: "Tamanho real com rolagem", valor: "real" },
+          { rotulo: "Ajustar \xE0 \xE1rea", valor: "ajustar" }
+        ])
+      }
+    };
+  }
+  function escalaDeAjuste(config, { area, desenho, fonte }) {
+    if (config.ajusteDeEscala !== "ajustar") return 1;
+    const tl = lerTextoLongo(config);
+    const minima = Math.min(1, tl.fonteMinima / Math.max(1, fonte));
+    const s = Math.min(1, area.largura / Math.max(1, desenho.largura), area.altura / Math.max(1, desenho.altura));
+    return Math.max(minima, s);
+  }
+  function layoutHorizontalEstavel(p) {
+    const { visivel, config, larguraUtil, alturaUtil, ajuste = null } = p;
+    const prep = p.preparo || prepararMedidaDosNiveis(p);
+    const { rot, tl, folga, centro, profundidade, raioMax, ladoPedido, medir: medir2 } = prep;
+    let limite = Infinity;
+    let m;
+    if (ajuste) {
+      limite = ajuste.limite;
+      m = medir2({ tamanho: ajuste.tamanho, limite, quebrar: ajuste.quebrar });
+    } else {
+      m = medir2({ limite });
+      if (tl.modo !== "inteiro" && m.largura > larguraUtil && m.colunas) {
+        limite = Math.max(40, (larguraUtil - m.fixo) / m.colunas);
+        m = medir2({ limite });
+      }
+    }
+    const extra = m.largura < larguraUtil && profundidade > 0 ? Math.min(EXTRA_MAXIMO_POR_NIVEL, (larguraUtil - m.largura) / profundidade) : 0;
+    const xDoNivel = [folga + Math.max(0, m.reservaEsq[0])];
+    for (let k = 0; k < profundidade; k++) xDoNivel.push(xDoNivel[k] + m.passos[k] + extra);
+    const largura = m.largura + extra * profundidade;
+    const alturaDoTexto = Math.max(0, ...m.linhas);
+    const alturaDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
+    const minimo = (centro ? alturaDoNo + alturaDoTexto + 4 : Math.max(alturaDoNo, alturaDoTexto)) + folga;
+    const fabrica = (config.layoutDaArvore === "tree" ? tree_default : cluster_default)().nodeSize([1, 1]);
+    fabrica(visivel);
+    const visiveis = visivel.descendants();
+    const minU = Math.min(...visiveis.map((n) => n.x));
+    const maxU = Math.max(...visiveis.map((n) => n.x));
+    const unidades = maxU - minU + 1;
+    const espaco = Math.max(minimo, alturaUtil > 0 ? alturaUtil / unidades : 0);
+    const topo = centro ? alturaDoTexto + 4 : 0;
+    let maisFundo = 0;
+    for (const n of visiveis) {
+      n.x = topo + (n.x - minU + 0.5) * espaco;
+      n.y = xDoNivel[n.depth];
+      maisFundo = Math.max(maisFundo, n.depth);
+    }
+    const larguraVisivel = xDoNivel[maisFundo] + Math.max(0, m.reservaDir[maisFundo]) + folga;
+    return {
+      largura,
+      larguraVisivel,
+      altura: topo + unidades * espaco,
+      limiteDoRotulo: limite,
+      ladoDoIcone: (raio) => ladoDoIconeDaArvore(config, raio, espaco),
+      tamanhoDoRotulo: ajuste ? ajuste.tamanho : rot.tamanho
+    };
+  }
+  function ajustarRotuloDaArvore(pt, { rot, tl, limite = Infinity, ajuste = null }) {
+    if (!ajuste) return ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
+    return ajustarRotulo({
+      ...pt,
+      tamanho: ajuste.tamanho,
+      largura: ajuste.limite,
+      tl: ajuste.quebrar ? { ...tl, modo: "quebrar" } : tl,
+      estilo: { negrito: rot.negrito },
+      medir: ajuste.medir || void 0
+    });
+  }
+  function prepararMedidaDosNiveis({
+    completa,
+    config,
+    tema,
+    valueFormat,
+    total,
+    maiorValor,
+    temFilhos: temFilhos2,
+    temIcone = () => false,
+    medidor = null
+  }) {
+    const rot = lerRotulos(config, tema);
+    const tl = lerTextoLongo(config);
+    const folga = FOLGA_DA_ARVORE;
+    const posicao = rot.posicao;
+    const centro = posicao === "centro";
+    const mostrarFolha = config.mostrarRotulosDeFolha !== false;
+    const mostrarInterno = config.mostrarRotulosInternos === true;
+    const comValor = config.mostrarValorNoRotulo === true;
+    const nos = completa.descendants();
+    const base = completa.depth;
+    const profundidade = Math.max(0, ...nos.map((n) => n.depth - base));
+    const raioMax = Math.max(0, ...nos.map((n) => raioDoNoDaArvore(n.value, config, maiorValor)));
+    const algumIcone = nos.some(temIcone);
+    const ladoPedido = (raio) => algumIcone ? ladoDoIconeDaArvore(config, raio) : 0;
+    const larguraDoNo = Math.max(raioMax * 2, ladoPedido(raioMax));
+    const lados = (n) => {
+      if (!rot.mostrar || !n.data.rotulo) return [];
+      const comFilhos = temFilhos2(n);
+      const comoFolha = mostrarFolha;
+      const comoInterno = comFilhos && mostrarInterno;
+      if (!comoFolha && !comoInterno) return [];
+      if (centro) return ["centro"];
+      if (posicao === "fora" || posicao === "foraComLinha") return ["dir"];
+      if (posicao === "dentro") return ["esq"];
+      const s = [];
+      if (comoFolha) s.push("dir");
+      if (comoInterno) s.push("esq");
+      return s;
+    };
+    const itens = nos.map((n) => {
+      const ls = lados(n);
+      return {
+        k: n.depth - base,
+        comFilhos: temFilhos2(n),
+        lados: ls,
+        pt: ls.length ? partesDoRotuloDoNo(rot, n, { valueFormat, total, mostrarValor: comValor, tl }) : null
+      };
+    });
+    const medir2 = ({ tamanho = rot.tamanho, limite = Infinity, quebrar = false } = {}) => {
+      const dir = new Array(profundidade + 1).fill(0);
+      const esq = new Array(profundidade + 1).fill(0);
+      const linhas = new Array(profundidade + 1).fill(0);
+      const comIndicador = new Array(profundidade + 1).fill(false);
+      const ajuste = quebrar || tamanho !== rot.tamanho || medidor ? { tamanho, limite, quebrar, medir: medidor } : null;
+      let cortado = false;
+      for (const { k, comFilhos, lados: ls, pt } of itens) {
+        if (comFilhos) comIndicador[k] = true;
+        if (!ls.length) continue;
+        const aj = ajustarRotuloDaArvore(pt, { rot, tl, limite, ajuste });
+        if (aj.cortado && ajuste) cortado = true;
+        linhas[k] = Math.max(linhas[k], aj.linhas.length * aj.tamanho * 1.15);
+        for (const l of ls) {
+          if (l === "dir") dir[k] = Math.max(dir[k], aj.largura);
+          else if (l === "esq") esq[k] = Math.max(esq[k], aj.largura);
+          else {
+            dir[k] = Math.max(dir[k], aj.largura / 2);
+            esq[k] = Math.max(esq[k], aj.largura / 2);
+          }
+        }
+      }
+      const meia = larguraDoNo / 2;
+      const reservaEsq = esq.map((e, k) => meia + (comIndicador[k] ? LARGURA_DO_INDICADOR : 0) + (e ? centro ? e - meia : e + 4 : 0));
+      const reservaDir = dir.map((d) => meia + (d ? centro ? d - meia : d + 4 : 0));
+      const passos = [];
+      for (let k = 0; k < profundidade; k++) passos.push(Math.max(0, reservaDir[k]) + folga + Math.max(0, reservaEsq[k + 1]));
+      const largura = folga + Math.max(0, reservaEsq[0]) + passos.reduce((a, b) => a + b, 0) + Math.max(0, reservaDir[profundidade]) + folga;
+      const colunas = dir.filter(Boolean).length + esq.filter(Boolean).length;
+      const rotulos = dir.concat(esq).reduce((a, b) => a + b, 0);
+      return { reservaEsq, reservaDir, passos, largura, linhas, colunas, rotulos, fixo: largura - rotulos, cortado };
+    };
+    return { rot, tl, folga, centro, profundidade, raioMax, ladoPedido, larguraDoNo, medir: medir2 };
   }
   function paraCartesiano(angulo, raio) {
     return [raio * Math.cos(angulo - Math.PI / 2), raio * Math.sin(angulo - Math.PI / 2)];
@@ -5647,22 +5925,6 @@
         return mostrarValor ? { nome, extras: [v()], formatar: (n, e) => e.length ? `${n} (${e[0]})` : n } : { nome, extras: [], formatar: null };
     }
   }
-  function medirRotulosDaArvore(raiz, { config, tema, valueFormat, total, limite = Infinity }) {
-    const rot = lerRotulos(config, tema);
-    const tl = lerTextoLongo(config);
-    const saida = { folhas: 0, internos: 0 };
-    if (!rot.mostrar) return saida;
-    for (const no of raiz.descendants()) {
-      const ehFolha = !no.children || !no.children.length;
-      const quer = ehFolha ? config.mostrarRotulosDeFolha !== false : config.mostrarRotulosInternos === true;
-      if (!quer || !no.data.rotulo) continue;
-      const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
-      const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limite, tl, estilo: { negrito: rot.negrito } });
-      const k = ehFolha ? "folhas" : "internos";
-      saida[k] = Math.max(saida[k], aj.largura);
-    }
-    return saida;
-  }
   function desenharArvore({
     svg,
     raiz,
@@ -5677,7 +5939,9 @@
     compacto = false,
     valorDeReferencia = null,
     chaveDe = null,
-    limiteDoRotulo: limiteDoRotulo2 = Infinity
+    limiteDoRotulo: limiteDoRotulo2 = Infinity,
+    geometria = null,
+    ajuste = null
   }) {
     const grupo = criarSvgEl("g", { pai: svg });
     if (deslocamento.x || deslocamento.y) {
@@ -5701,7 +5965,6 @@
       });
     }
     const grupoDeNos = criarSvgEl("g", { pai: grupo, classe: "av-nos" });
-    const tamanhoBase = Number(config.tamanhoDoNo);
     const formaDoNo = formaDoMarcador(config.formaDoPonto);
     const contorno = lerContorno(config, tema, { corPadrao: tema.fundo });
     const rot = lerRotulos(config, tema);
@@ -5714,7 +5977,8 @@
     let maiorRotulo = 0;
     for (const no of raiz.descendants()) {
       const [x, y] = modo === "radial" ? paraCartesiano(no.x, no.y) : [no.y, no.x];
-      const raioDoNo = config.tamanhoPorValor ? Math.max(1.5, (Number.isFinite(tamanhoBase) ? tamanhoBase : 4) * Math.sqrt((no.value || 0) / maiorValor) * 2.2) : Number.isFinite(tamanhoBase) ? tamanhoBase : 4;
+      const raioDoNo = raioDoNoDaArvore(no.value, config, maiorValor);
+      let meiaLargura = Math.max(0, raioDoNo);
       const grupoDoNo = criarSvgEl("g", { pai: grupoDeNos, classe: "av-no-grupo" });
       if (chaveDe) grupoDoNo.setAttribute("data-chave", chaveDe(no));
       no.__grupo = grupoDoNo;
@@ -5725,15 +5989,18 @@
           classe: "av-no",
           "data-diametro": diametro.toFixed(2)
         });
+        elemento.setAttribute("data-meia", meiaLargura.toFixed(2));
         aplicarPreenchimento(elemento, cores(no), config);
         aplicarContorno(elemento, contorno);
         if (iconePorValor && modo !== "radial") {
-          const ic = desenharIconePorValor(iconePorValor, { pai: grupoDoNo, valor: no.data.rotulo, lado: Math.max(12, raioDoNo * 2 + 6), corPadrao: cores(no), estilo: config.estiloDoIcone });
+          const lado = geometria ? geometria.ladoDoIcone(raioDoNo) : ladoDoIconeDaArvore(config, raioDoNo);
+          const ic = desenharIconePorValor(iconePorValor, { pai: grupoDoNo, valor: no.data.rotulo, lado, corPadrao: cores(no), estilo: config.estiloDoIcone });
           if (ic) {
-            const lado = Number(ic.getAttribute("width"));
             ic.setAttribute("x", String(x - lado / 2));
             ic.setAttribute("y", String(y - lado / 2));
             ic.style.pointerEvents = "none";
+            meiaLargura = Math.max(meiaLargura, lado / 2);
+            elemento.setAttribute("data-meia", meiaLargura.toFixed(2));
           }
         }
         saida.push({ no, elemento });
@@ -5743,7 +6010,8 @@
       const ehFolha = !no.children || !no.children.length;
       const querRotulo = ehFolha ? config.mostrarRotulosDeFolha !== false : config.mostrarRotulosInternos === true;
       if (!querRotulo || !no.data.rotulo) continue;
-      const afastamento = Math.max(0, raioDoNo) + 4;
+      const afastamento = meiaLargura + 4;
+      const tamanhoDoTexto = ajuste ? ajuste.tamanho : rot.tamanho;
       if (modo === "radial") {
         const texto = textoDoRotuloDoNo(rot, no, {
           valueFormat,
@@ -5769,14 +6037,15 @@
       if (rot.posicao === "centro") {
         ancora = "middle";
         tx = x;
-        ty = y - afastamento - rot.tamanho / 2;
+        ty = y - afastamento - tamanhoDoTexto / 2;
       } else {
         const aDireita = rot.posicao === "fora" || rot.posicao === "foraComLinha" ? true : rot.posicao === "dentro" ? false : ehFolha;
         ancora = aDireita ? "start" : "end";
-        tx = aDireita ? x + afastamento : x - afastamento;
+        const recuo = !aDireita && geometria && geometria.comIndicador && geometria.comIndicador(no) ? LARGURA_DO_INDICADOR : 0;
+        tx = aDireita ? x + afastamento : x - afastamento - recuo;
       }
       const pt = partesDoRotuloDoNo(rot, no, { valueFormat, total, mostrarValor: config.mostrarValorNoRotulo === true, tl });
-      const aj = ajustarRotulo({ ...pt, tamanho: rot.tamanho, largura: limiteDoRotulo2, tl, estilo: { negrito: rot.negrito } });
+      const aj = ajustarRotuloDaArvore(pt, { rot, tl, limite: limiteDoRotulo2, ajuste });
       const el = criarSvgEl("text", { pai: grupoDoNo, classe: "av-rotulo", atributos: { "dominant-baseline": "central" } });
       el.setAttribute("x", tx);
       el.setAttribute("y", ty);
@@ -5850,6 +6119,177 @@
     return linhas;
   }
 
+  // src/charts/_arvore/ajuste.js
+  var ESCALA_MINIMA = 0.6;
+  var LARGURA_PADRAO = 600;
+  var ALTURA_PADRAO = 400;
+  var RESERVA_DA_BARRA = 18;
+  var LIMITE_MINIMO = 40;
+  var ITERACOES = 24;
+  function opcoesDeAjuste({ secao = "\xC1rvore", comColunas = false } = {}) {
+    const b = (label, def) => ({ type: "boolean", label, section: secao, default: def });
+    const saida = {
+      layoutQuandoNaoCouber: {
+        type: "string",
+        label: "Quando n\xE3o couber",
+        section: secao,
+        display: "select",
+        default: "ajustar",
+        values: listaDeValores([
+          { rotulo: "Ajustar automaticamente", valor: "ajustar" },
+          { rotulo: "Rolar em tamanho real", valor: "rolar" }
+        ])
+      },
+      layoutAjusteFonte: b("Ajuste: fonte", true),
+      layoutAjusteLinhas: b("Ajuste: linhas", true)
+    };
+    if (comColunas) saida.layoutAjusteColunas = b("Ajuste: colunas", true);
+    Object.assign(saida, {
+      layoutAjusteEscala: b("Ajuste: escala", true),
+      layoutAjusteRolagem: b("Ajuste: rolagem", false),
+      layoutFonteMinima: { type: "number", label: "Ajuste: fonte m\xEDnima (px)", section: secao, default: 9 },
+      layoutFolgaDoTexto: { type: "number", label: "Folga do texto (%)", section: secao, default: 10 },
+      layoutAjusteNaNota: b("Ajuste na nota", true),
+      layoutDiagnostico: b("Diagn\xF3stico do layout", false)
+    });
+    return saida;
+  }
+  function emImpressao() {
+    try {
+      return typeof window !== "undefined" && typeof window.matchMedia === "function" && !!window.matchMedia("print").matches;
+    } catch (_) {
+      return false;
+    }
+  }
+  function lerAjuste(config = {}, { impressao = false } = {}) {
+    const n = (v, d) => Number.isFinite(Number(v)) && v !== "" && v !== null ? Number(v) : d;
+    return {
+      automatico: impressao || config.layoutQuandoNaoCouber !== "rolar",
+      impressao,
+      fonte: config.layoutAjusteFonte !== false,
+      linhas: config.layoutAjusteLinhas !== false,
+      colunas: config.layoutAjusteColunas !== false,
+      escala: config.layoutAjusteEscala !== false,
+      rolagem: !impressao && config.layoutAjusteRolagem === true,
+      fonteMinima: Math.max(5, n(config.layoutFonteMinima, 9)),
+      folga: Math.max(0, Math.min(100, n(config.layoutFolgaDoTexto, 10))),
+      naNota: config.layoutAjusteNaNota !== false,
+      diagnostico: config.layoutDiagnostico === true
+    };
+  }
+  function tamanhoSeguro(v, padrao) {
+    const x = Number(v);
+    return Number.isFinite(x) && x > 1 ? x : padrao;
+  }
+  function ajustarPorTexto({ disponivel, fonte, aj, linhas = 2, medir: medir2 }) {
+    const d = tamanhoSeguro(disponivel, LARGURA_PADRAO);
+    const pronto = (passo, tamanho, m2, limite = Infinity, quebrar = false) => ({ cabe: true, passo, tamanho, limite, quebrar, largura: m2.largura });
+    let tam = fonte;
+    let m = medir2({ tamanho: tam, limite: Infinity, quebrar: false });
+    if (m.largura <= d) return pronto("nenhum", tam, m);
+    if (aj.fonte && fonte > aj.fonteMinima) {
+      for (let i = 1; i <= ITERACOES * 4; i++) {
+        tam = Math.max(aj.fonteMinima, fonte - 0.5 * i);
+        m = medir2({ tamanho: tam, limite: Infinity, quebrar: false });
+        if (m.largura <= d) return pronto("fonte", tam, m);
+        if (tam <= aj.fonteMinima) break;
+      }
+    }
+    if (aj.linhas && linhas > 1 && m.colunas > 0) {
+      const limite = Math.floor((d - m.fixo) / m.colunas);
+      if (limite >= LIMITE_MINIMO) {
+        const q = medir2({ tamanho: tam, limite, quebrar: true });
+        if (q.largura <= d + 0.01 && !q.cortado) return pronto("linhas", tam, q, limite, true);
+      }
+    }
+    return { cabe: false, passo: null, tamanho: tam, limite: Infinity, quebrar: false, largura: m.largura };
+  }
+  function ajustarPorEscala({ disponivel, texto, aj, linhas = 2, medir: medir2 }) {
+    const d = tamanhoSeguro(disponivel, LARGURA_PADRAO);
+    if (texto.cabe) return { ...texto, escala: 1 };
+    let escala = 1;
+    let tam = texto.tamanho;
+    if (aj.escala) {
+      const fonteEm = (s) => Math.max(tam, Math.ceil(aj.fonteMinima / s * 4) / 4);
+      const tentar = (s) => {
+        const t = fonteEm(s);
+        const m2 = medir2({ tamanho: t, limite: Infinity, quebrar: false, escala: s });
+        if (s * m2.largura <= d) return { cabe: true, tamanho: t, limite: Infinity, quebrar: false, largura: s * m2.largura };
+        if (aj.linhas && linhas > 1 && m2.colunas > 0) {
+          const limite2 = Math.floor((d / s - m2.fixo) / m2.colunas);
+          if (limite2 >= LIMITE_MINIMO) {
+            const q2 = medir2({ tamanho: t, limite: limite2, quebrar: true, escala: s });
+            if (s * q2.largura <= d + 0.01 && !q2.cortado) return { cabe: true, tamanho: t, limite: limite2, quebrar: true, largura: s * q2.largura };
+          }
+        }
+        return { cabe: false };
+      };
+      if (tentar(ESCALA_MINIMA).cabe) {
+        let lo = ESCALA_MINIMA;
+        let hi = 1;
+        for (let i = 0; i < ITERACOES; i++) {
+          const meio = (lo + hi) / 2;
+          if (tentar(meio).cabe) lo = meio;
+          else hi = meio;
+        }
+        escala = Math.floor(lo * 1e3) / 1e3;
+        let r = tentar(escala);
+        if (!r.cabe) {
+          escala = ESCALA_MINIMA;
+          r = tentar(escala);
+        }
+        return { ...r, cabe: true, passo: "escala", escala };
+      }
+      escala = ESCALA_MINIMA;
+      tam = fonteEm(escala);
+    }
+    const m = medir2({ tamanho: tam, limite: Infinity, quebrar: false, escala });
+    if (aj.rolagem) return { cabe: false, passo: "rolagem", escala, tamanho: tam, limite: Infinity, quebrar: false, largura: m.largura * escala };
+    const limite = Math.max(LIMITE_MINIMO, Math.floor((d / escala - m.fixo) / Math.max(1, m.colunas)));
+    const q = medir2({ tamanho: tam, limite, quebrar: true, escala });
+    return { cabe: q.largura * escala <= d + 0.01, passo: "corte", escala, tamanho: tam, limite, quebrar: true, largura: q.largura * escala };
+  }
+  function larguraDaBarraDeRolagem(pai) {
+    try {
+      const prova = document.createElement("div");
+      prova.style.cssText = "position:absolute;visibility:hidden;width:100px;height:100px;overflow:scroll;top:-200px;";
+      pai.appendChild(prova);
+      const w = prova.offsetWidth - prova.clientWidth;
+      pai.removeChild(prova);
+      return Number.isFinite(w) && w >= 0 && w <= 40 && prova.offsetWidth === 100 ? w : RESERVA_DA_BARRA;
+    } catch (_) {
+      return RESERVA_DA_BARRA;
+    }
+  }
+  function textoDoAjuste(planos, { linhas = 2, colunas = null } = {}) {
+    const partes = [];
+    const usados = planos.filter(Boolean);
+    const fontes = usados.filter((p) => p.passo !== "nenhum").map((p) => p.tamanho);
+    if (usados.some((p) => p.passo !== "nenhum" && p.passo !== null) && fontes.length) {
+      const menor = Math.min(...usados.map((p) => p.tamanhoNaTela || p.tamanho));
+      const original = Math.max(...usados.map((p) => p.fonteOriginal || 0));
+      if (menor < original - 0.01) partes.push(`fonte reduzida para ${arredondar(menor)} px`);
+    }
+    if (usados.some((p) => p.quebrar)) partes.push(`${linhas} linhas por r\xF3tulo`);
+    if (colunas && colunas.para < colunas.de) partes.push(`${colunas.para} ${colunas.para === 1 ? "coluna" : "colunas"}`);
+    const escalas = usados.filter((p) => p.escala < 1).map((p) => p.escala);
+    if (escalas.length) partes.push(`escala ${Math.round(Math.min(...escalas) * 100)}%`);
+    if (usados.some((p) => p.passo === "rolagem")) partes.push("com rolagem");
+    if (usados.some((p) => p.passo === "corte")) partes.push("r\xF3tulos cortados (texto completo no tooltip)");
+    return partes.length ? `Ajuste: ${partes.join(" \xB7 ")}` : "";
+  }
+  function textoDoDiagnostico({ larguraDaCelula, planos, colunas }) {
+    const usados = planos.filter(Boolean);
+    const necessaria = Math.max(0, ...usados.map((p) => p.larguraOriginal || 0));
+    const passos = [...new Set(usados.map((p) => p.passo || "nenhum"))].join("+");
+    const fonte = usados.length ? Math.min(...usados.map((p) => p.tamanhoNaTela || p.tamanho)) : 0;
+    const escala = usados.length ? Math.min(...usados.map((p) => p.escala || 1)) : 1;
+    return `c\xE9lula ${Math.round(larguraDaCelula)} px \xB7 necess\xE1ria ${Math.round(necessaria)} px \xB7 passo ${passos} \xB7 fonte ${arredondar(fonte)} px \xB7 colunas ${colunas} \xB7 escala ${escala.toFixed(2)}`;
+  }
+  function arredondar(v) {
+    return String(Math.round(v * 100) / 100).replace(".", ",");
+  }
+
   // src/charts/_arvore/comum.js
   var CURVAS_CSS2 = {
     linear: "linear",
@@ -5921,7 +6361,11 @@
       // 5.11 — texto longo
       ...opcoesDeTextoLongo({ secao: "Texto longo" }),
       // 5.14f — ícone por valor (o valor é o nome do nó)
-      ...opcoesDeIconePorValor({ secao: "\xCDcone por valor", comCampo: false })
+      ...opcoesDeIconePorValor({ secao: "\xCDcone por valor", comCampo: false }),
+      // v3.2 — tamanho do ícone e ajuste de escala
+      ...opcoesDeEspacamento({ secao: "\xC1rvore" }),
+      // v3.3 — quando não couber: ajustar à célula (padrão) ou rolar
+      ...opcoesDeAjuste({ secao: "\xC1rvore", comColunas: comCadaArvore })
     };
     if (comCadaArvore) saida.centralizarCadaArvore = cen("boolean", "Cada \xE1rvore na c\xE9lula", true);
     return saida;
@@ -6070,6 +6514,8 @@
   var CSS_ANIMACAO_ARVORE = `
 .bl-entrando,.bl-movendo,.bl-saindo{will-change:transform,opacity;}
 .am-celula{box-sizing:border-box;overflow:auto;}
+.am-celula.am-ajustada{scrollbar-gutter:stable;}
+.am-diagnostico{flex:0 0 auto;font-size:10px;opacity:.7;padding:2px 8px;}
 .am-sem-selecao,.am-sem-selecao *{-webkit-user-select:none;user-select:none;}
 `;
 
@@ -6151,6 +6597,9 @@
       }
     ),
     exigencia: { dimensoesMin: 1, aceitaPivo: false, exigeLinhas: true },
+    // v3.3: redimensionar com debounce (~100 ms), ignorando < 2 px e no máximo
+    // 4 desenhos por segundo; cancela animações em curso e solta o tooltip.
+    redimensionamento: { atraso: 100, minimoPx: 2, maximoPorSegundo: 4 },
     opcoesDinamicas({ modelo, config }) {
       const saida = opcoesDinamicasDeHierarquia(modelo);
       try {
@@ -6207,7 +6656,7 @@
       estado.centralizarAgora = false;
       if (!estado.posicoesPorArvore) estado.posicoesPorArvore = /* @__PURE__ */ new Map();
       if (!estado.rolagemDasCelulas) estado.rolagemDasCelulas = /* @__PURE__ */ new Map();
-      criarBarraDaArvore({
+      const barra = criarBarraDaArvore({
         ctx,
         pai: elementoRaiz,
         config,
@@ -6228,6 +6677,27 @@
           ctx.redesenhar();
         }
       });
+      const chavesAtuais = /* @__PURE__ */ new Set();
+      for (const ramo of ramos) for (const n of ramo.descendants()) chavesAtuais.add(chaveDoNo(n));
+      for (const k of [...recolhidos]) if (!chavesAtuais.has(k)) recolhidos.delete(k);
+      for (const mapa of [estado.posicoesPorArvore, estado.rolagemDasCelulas]) {
+        for (const k of [...mapa.keys()]) if (!chavesAtuais.has(k)) mapa.delete(k);
+      }
+      if (estado.selecionado && !chavesAtuais.has(estado.selecionado)) estado.selecionado = null;
+      const aj = lerAjuste(config, { impressao: emImpressao() });
+      const automatico = aj.automatico;
+      const ajustaTexto = automatico && tl.modo === "inteiro";
+      const larguraTotal = tamanhoSeguro(largura, LARGURA_PADRAO);
+      const alturaTotal = tamanhoSeguro(ctx.altura, ALTURA_PADRAO);
+      if (automatico && estado.larguraDaBarra === void 0) estado.larguraDaBarra = larguraDaBarraDeRolagem(elementoRaiz);
+      const reservaDaBarra = automatico ? estado.larguraDaBarra : 0;
+      const chaveDoMedidor = `${aj.folga}|${tema.fonte}`;
+      if (ajustaTexto && (!estado.medidor || estado.chaveDoMedidor !== chaveDoMedidor)) {
+        estado.medidor = criarMedidor({ folga: aj.folga, real: medicaoDoNavegador(tema.fonte) });
+        estado.chaveDoMedidor = chaveDoMedidor;
+      }
+      const medidor = ajustaTexto ? estado.medidor : null;
+      const diagnostico = aj.diagnostico ? criarEl("div", { classe: "am-diagnostico", pai: elementoRaiz }) : null;
       const espacoH = Math.max(0, Number(config.espacoHorizontalDaGrade) || 0);
       const espacoV = Math.max(0, Number(config.espacoVerticalDaGrade) || 0);
       const grade = criarEl("div", { classe: "md-grade", pai: elementoRaiz });
@@ -6246,9 +6716,14 @@
       elementoRaiz.style.flexDirection = "column";
       const larguraMinima = Number(config.larguraMinimaDaArvore) || 260;
       const colunasPedidas = Number(config.colunasDaGrade) || 0;
-      const colunas = colunasPedidas > 0 ? colunasPedidas : Math.max(1, Math.min(ramos.length, Math.floor((largura + espacoH) / (larguraMinima + espacoH)) || 1));
-      const larguraPadrao = Math.max(120, Math.floor((largura - espacoH * (colunas - 1)) / colunas));
+      const colunasPeloTamanho = Math.max(1, Math.min(ramos.length, Math.floor((larguraTotal + espacoH) / (larguraMinima + espacoH)) || 1));
+      const colunasMaximas = colunasPedidas > 0 ? automatico ? Math.min(colunasPedidas, ramos.length) : colunasPedidas : colunasPeloTamanho;
+      const larguraDaColuna = (c) => {
+        const w = Math.floor((larguraTotal - espacoH * (c - 1)) / c);
+        return automatico ? Math.max(1, w) : Math.max(120, w);
+      };
       const alturaPadrao = Number(config.alturaDaArvore) || 200;
+      const alturaMaxima = Math.max(80, alturaTotal - (barra ? 30 : 0) - (diagnostico ? 16 : 0));
       const cores = criarCoresDaArvore(raiz, config, tema);
       const valueFormat = campoDoValor ? campoDoValor.valueFormat : void 0;
       const formatar = formatadorDeValueFormat(valueFormat);
@@ -6256,17 +6731,11 @@
       const maiorGlobal = raiz.value || 1;
       const espacoDoTitulo = 18;
       const semRotulos = config.mostrarRotulos === false || config.mostrarRotulosDeFolha === false;
-      for (const ramo of ramos) {
-        const chaveDoRamo = chaveDoNo(ramo);
-        const larguraDaCelula = Number(config[`largura_${sanitizarChave(ramo.data.rotulo)}`]) || larguraPadrao;
-        const alturaDaCelula = Number(config[`altura_${sanitizarChave(ramo.data.rotulo)}`]) || alturaPadrao;
-        const celula = criarEl("div", { pai: grade, classe: "am-celula" });
-        celula.style.width = `${larguraDaCelula}px`;
-        celula.style.height = `${alturaDaCelula}px`;
-        celula.style.flex = "0 0 auto";
-        celula.style.display = "flex";
-        celula.setAttribute("data-arvore", chaveDoRamo);
-        if (config.linhasGuiaDaGrade === true) celula.style.outline = `1px dashed ${tema.borda}`;
+      const margemDireita = semRotulos ? 0 : tl.margemExtra;
+      const iconePorValor = criarIconePorValor(config);
+      const rot = lerRotulos(config, tema);
+      const arvores = ramos.map((ramo) => {
+        const k = sanitizarChave(ramo.data.rotulo);
         const globalPorDados = new Map(ramo.descendants().map((n) => [n.data, n]));
         const chavePorDados = new Map(ramo.descendants().map((n) => [n.data, chaveDoNo(n)]));
         const estaRecolhido = (dados) => recolhidos.has(chavePorDados.get(dados));
@@ -6277,30 +6746,109 @@
           }
           return no.filhos && no.filhos.length ? 0 : no.valor || 0;
         }).sort((a, b) => (b.value || 0) - (a.value || 0));
-        const corDoNo = (no) => cores(globalPorDados.get(no.data) || ramo);
-        const limiteFixo = Math.max(40, larguraDaCelula * 0.38 - 10);
-        const limite = tl.modo === "inteiro" ? Infinity : limiteFixo;
-        const medida = medirRotulosDaArvore(subRaiz, { config, tema, valueFormat, total: maiorGlobal, limite });
-        const reservaDireita = semRotulos ? 12 : (tl.modo === "inteiro" ? medida.folhas : Math.min(medida.folhas, limiteFixo)) + 12 + tl.margemExtra;
-        const reservaEsquerda = 12 + (config.mostrarRotulosInternos === true && medida.internos ? medida.internos + 8 : 0);
-        const profundidade = Math.max(1, subRaiz.height);
-        const larguraDoLayout = Math.max(profundidade * 48, larguraDaCelula - reservaEsquerda - reservaDireita);
-        const larguraDoSvg = reservaEsquerda + larguraDoLayout + reservaDireita;
-        const alturaDoSvg = alturaDaCelula;
+        const params = {
+          visivel: subRaiz,
+          completa: ramo,
+          config,
+          tema,
+          valueFormat,
+          total: maiorGlobal,
+          maiorValor: config.escalaPorArvore ? ramo.value || 1 : maiorGlobal,
+          temFilhos: (n) => temFilhos(n.data),
+          temIcone: (n) => !!(iconePorValor && iconePorValor(n.data.rotulo)),
+          medidor
+        };
+        return {
+          ramo,
+          chaveDoRamo: chaveDoNo(ramo),
+          larguraPropria: Number(config[`largura_${k}`]) || 0,
+          alturaPropria: Number(config[`altura_${k}`]) || 0,
+          globalPorDados,
+          chavePorDados,
+          estaRecolhido,
+          subRaiz,
+          params,
+          preparo: ajustaTexto ? prepararMedidaDosNiveis(params) : null
+        };
+      });
+      const larguraDaCelulaDe = (a, c) => a.larguraPropria ? automatico ? Math.min(a.larguraPropria, larguraTotal) : a.larguraPropria : larguraDaColuna(c);
+      const alturaDaCelulaDe = (a) => {
+        const h = a.alturaPropria || alturaPadrao;
+        return automatico ? Math.min(h, alturaMaxima) : h;
+      };
+      const disponivelDe = (a, c) => larguraDaCelulaDe(a, c) - margemDireita - reservaDaBarra;
+      let colunas = colunasMaximas;
+      let planos = null;
+      if (ajustaTexto) {
+        const porTexto = (c) => arvores.map((a) => ajustarPorTexto({ disponivel: disponivelDe(a, c), fonte: rot.tamanho, aj, linhas: tl.linhas, medir: a.preparo.medir }));
+        let textos = porTexto(colunas);
+        if (aj.colunas && !textos.every((p) => p.cabe)) {
+          for (let c = colunas - 1; c >= 1; c--) {
+            colunas = c;
+            textos = porTexto(c);
+            if (textos.every((p) => p.cabe)) break;
+          }
+        }
+        planos = textos.map((t, i) => {
+          const a = arvores[i];
+          const f = ajustarPorEscala({ disponivel: disponivelDe(a, colunas), texto: t, aj, linhas: tl.linhas, medir: a.preparo.medir });
+          return {
+            ...f,
+            fonteOriginal: rot.tamanho,
+            tamanhoNaTela: f.tamanho * f.escala,
+            larguraOriginal: a.preparo.medir({}).largura
+          };
+        });
+      }
+      arvores.forEach((a, i) => {
+        const { ramo, chaveDoRamo, chavePorDados, estaRecolhido, subRaiz } = a;
+        const plan = planos ? planos[i] : null;
+        const ajuste = plan ? { tamanho: plan.tamanho, limite: plan.limite, quebrar: plan.quebrar, medir: medidor } : null;
+        const escalaAuto = plan ? plan.escala : 1;
+        const larguraDaCelula = larguraDaCelulaDe(a, colunas);
+        const alturaDaCelula = alturaDaCelulaDe(a);
+        const celula = criarEl("div", { pai: grade, classe: automatico ? "am-celula am-ajustada" : "am-celula" });
+        celula.style.width = `${larguraDaCelula}px`;
+        celula.style.height = `${alturaDaCelula}px`;
+        celula.style.flex = "0 0 auto";
+        celula.style.display = "flex";
+        celula.setAttribute("data-arvore", chaveDoRamo);
+        if (plan) celula.setAttribute("data-ajuste", plan.passo);
+        if (config.linhasGuiaDaGrade === true) celula.style.outline = `1px dashed ${tema.borda}`;
+        const corDoNo = (no) => cores(a.globalPorDados.get(no.data) || ramo);
+        const areaL = automatico ? (larguraDaCelula - reservaDaBarra) / escalaAuto : larguraDaCelula;
+        const areaA = automatico ? alturaDaCelula / escalaAuto : alturaDaCelula;
+        const plano = layoutHorizontalEstavel({
+          ...a.params,
+          preparo: a.preparo,
+          ajuste,
+          larguraUtil: areaL - margemDireita,
+          alturaUtil: areaA - espacoDoTitulo - 12
+        });
+        const limite = plano.limiteDoRotulo;
+        const larguraCompleta = plano.largura + margemDireita;
+        const sobra = Math.max(0, areaL - larguraCompleta);
+        const deslocX = config.centralizarCadaArvore === false || alinhH === "esquerda" ? 0 : alinhH === "direita" ? sobra : sobra / 2;
+        let larguraDoSvg = Math.max(areaL, deslocX + plano.larguraVisivel + margemDireita);
+        let alturaDoSvg = Math.max(areaA, espacoDoTitulo + plano.altura + 12);
+        const escala = automatico ? escalaAuto : escalaDeAjuste(config, {
+          area: { largura: larguraDaCelula, altura: alturaDaCelula },
+          desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
+          fonte: rot.tamanho
+        });
+        const viewBox = `0 0 ${larguraDoSvg} ${alturaDoSvg}`;
+        larguraDoSvg *= escala;
+        alturaDoSvg *= escala;
         const svg = criarSvgEl("svg", {
           pai: celula,
           atributos: {
             width: larguraDoSvg,
             height: alturaDoSvg,
-            viewBox: `0 0 ${larguraDoSvg} ${alturaDoSvg}`
+            viewBox
           }
         });
         svg.style.display = "block";
         svg.style.flex = "0 0 auto";
-        if (config.centralizarCadaArvore !== false && larguraDoSvg < larguraDaCelula) {
-          svg.style.marginLeft = alinhH === "esquerda" ? "0" : "auto";
-          svg.style.marginRight = alinhH === "direita" ? "0" : "auto";
-        }
         const titulo = criarSvgEl("text", {
           pai: svg,
           classe: "av-titulo-arvore",
@@ -6312,16 +6860,11 @@
           }
         });
         definirTexto(titulo, `${ramo.data.rotulo} (${formatar(ramo.value || 0)})`);
-        layoutHorizontal(subRaiz, {
-          largura: Math.max(20, larguraDoLayout),
-          altura: Math.max(20, alturaDoSvg - espacoDoTitulo - 12),
-          config
-        });
         const desenho = desenharArvore({
           svg,
           raiz: subRaiz,
           modo: "horizontal",
-          deslocamento: { x: reservaEsquerda, y: espacoDoTitulo },
+          deslocamento: { x: deslocX, y: espacoDoTitulo },
           config,
           valorDeReferencia: config.escalaPorArvore ? null : maiorGlobal,
           tema,
@@ -6331,6 +6874,8 @@
           compacto: true,
           chaveDe: (n) => chavePorDados.get(n.data),
           limiteDoRotulo: limite,
+          ajuste,
+          geometria: { ladoDoIcone: plano.ladoDoIcone, comIndicador: (n) => temFilhos(n.data) },
           aoInteragir(elemento, no) {
             const conteudo = () => ({
               titulo: `${ramo.data.rotulo} \u203A ${no.data.rotulo}`,
@@ -6384,21 +6929,31 @@
           })
         );
         const rolagemGuardada = estado.rolagemDasCelulas.get(chaveDoRamo);
-        if (centralizarAgora && larguraDoSvg > larguraDaCelula) {
+        if (centralizarAgora && (larguraDoSvg > larguraDaCelula || alturaDoSvg > alturaDaCelula)) {
           const alvoNo = config.oQueCentralizar === "raiz" ? subRaiz : config.oQueCentralizar === "selecionado" ? subRaiz.descendants().find((n) => chavePorDados.get(n.data) === estado.selecionado) || null : null;
-          const plano = planoDeCentralizacao({
+          const centro = planoDeCentralizacao({
             area: { largura: larguraDaCelula, altura: alturaDaCelula },
             desenho: { largura: larguraDoSvg, altura: alturaDoSvg },
-            alvo: alvoNo ? alvoNo.__xy : null,
+            alvo: alvoNo ? { x: alvoNo.__xy.x * escala, y: alvoNo.__xy.y * escala } : null,
             config
           });
-          celula.scrollLeft = plano.scrollLeft;
+          celula.scrollLeft = centro.scrollLeft;
+          celula.scrollTop = centro.scrollTop;
         } else if (rolagemGuardada) {
-          celula.scrollLeft = rolagemGuardada;
+          celula.scrollLeft = rolagemGuardada.x;
+          celula.scrollTop = rolagemGuardada.y;
         }
-        ctx.eventos.on(celula, "scroll", () => estado.rolagemDasCelulas.set(chaveDoRamo, celula.scrollLeft));
-      }
+        ctx.eventos.on(celula, "scroll", () => estado.rolagemDasCelulas.set(chaveDoRamo, { x: celula.scrollLeft, y: celula.scrollTop }));
+      });
       if (centralizarAgora) estado.jaCentralizou = true;
+      const textoDaNota = planos ? textoDoAjuste(planos, { linhas: tl.linhas, colunas: { de: colunasMaximas, para: colunas } }) : "";
+      if (aj.naNota && textoDaNota && ctx.nota) definirTexto(ctx.nota, textoDaNota);
+      if (aj.diagnostico || config.modoDebug) {
+        const larguraDaCelula = arvores.length ? larguraDaCelulaDe(arvores[0], colunas) : larguraTotal;
+        const linha = planos ? textoDoDiagnostico({ larguraDaCelula, planos, colunas }) : `c\xE9lula ${Math.round(larguraDaCelula)} px \xB7 ajuste autom\xE1tico inativo (${automatico ? `Texto longo: ${tl.modo}` : "rolar em tamanho real"}) \xB7 colunas ${colunas}`;
+        if (diagnostico) definirTexto(diagnostico, linha);
+        if (config.modoDebug && typeof console !== "undefined" && console.log) console.log("[arvores_multiplas] layout:", linha);
+      }
     }
   });
   var CSS_EXPANDIR = `
@@ -6429,7 +6984,7 @@
     if (!pai) return;
     const m = /translate\(([-\d.]+),([-\d.]+)\)/.exec(marcador.getAttribute("transform") || "");
     if (!m) return;
-    const raio = (Number(marcador.getAttribute("data-diametro")) || 6) / 2;
+    const raio = Number(marcador.getAttribute("data-meia")) || (Number(marcador.getAttribute("data-diametro")) || 6) / 2;
     const t = criarSvgEl("text", {
       pai,
       classe: "am-indicador",

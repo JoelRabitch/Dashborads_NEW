@@ -168,3 +168,9 @@ arquivados em `_arquivados/` e não devem ser retomados:
 ### FASE 6 — fechamento
 - [x] 5.15 Build, testes, tag v3.N, URLs, docs, relatório
 - [x] 5.15b Portabilidade do repositório
+
+### v3.2 — tarefa avulsa
+- [x] v3.2 Espaçamento dos níveis e tamanho do ícone nas árvores (arvores_multiplas, _arvore, org_chart); tag v3.2
+
+### v3.3 — tarefa avulsa
+- [x] v3.3 Árvores se ajustam ao limite da célula (arvores_multiplas, _arvore, org_chart); tag v3.3

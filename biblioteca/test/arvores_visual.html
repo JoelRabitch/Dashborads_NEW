@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Árvores — teste visual do ajuste (v3.3)</title>
+<!--
+  Página de teste VISUAL do "Quando não couber" (v3.3) das árvores.
+
+  COMO USAR
+    1. Rode `npm run build` na pasta /biblioteca (gera dist/).
+    2. Abra este arquivo direto no navegador (duplo clique). Não precisa de
+       servidor nem de internet: carrega ../dist/arvores_multiplas.js e
+       ../dist/org_chart.js, com dados SINTÉTICOS.
+    3. Mude a largura do tile, as colunas, a fonte e o modo; confira:
+       nada cortado na borda da célula, níveis parados ao abrir uma linha,
+       a nota com o ajuste aplicado e a linha de diagnóstico.
+
+  Aqui a medição do texto é a REAL do navegador (canvas.measureText) e o
+  ResizeObserver é o de verdade (debounce de ~100 ms). Mesmo assim, confira
+  no Looker real (docs/TESTE_NO_LOOKER.md, seção v3.3).
+-->
+<style>
+  :root { color-scheme: light; }
+  body { margin:0; font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+         background:#F1F5F9; color:#0F172A; }
+  header { background:#0F172A; color:#fff; padding:10px 16px; }
+  header h1 { font-size:14px; margin:0; font-weight:600; }
+  header p { margin:4px 0 0; font-size:11px; opacity:.75; }
+  .barra { display:flex; gap:14px; padding:10px 16px; background:#fff; border-bottom:1px solid #E2E8F0;
+           align-items:flex-end; flex-wrap:wrap; }
+  label { display:block; font-size:11px; font-weight:600; color:#475569; margin-bottom:3px; }
+  select, input { font:inherit; padding:4px 6px; border:1px solid #CBD5E1; border-radius:5px; background:#fff; }
+  input[type=range] { padding:0; width:160px; }
+  .valor { font-variant-numeric: tabular-nums; color:#334155; margin-left:4px; }
+  main { padding:12px 16px; }
+  #tile { background:#fff; border:1px solid #94A3B8; border-radius:6px; overflow:hidden; height:520px;
+          resize:both; max-width:100%; }
+  #info { font-size:11px; color:#475569; margin-top:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Árvores — teste visual do ajuste à célula (v3.3)</h1>
+  <p>Dados sintéticos. Arraste o canto do tile para redimensionar. Sempre confira no Looker real.</p>
+</header>
+
+<div class="barra">
+  <div>
+    <label for="grafico">Gráfico</label>
+    <select id="grafico">
+      <option value="arvores_multiplas">Múltiplas Árvores</option>
+      <option value="org_chart">Organograma</option>
+    </select>
+  </div>
+  <div>
+    <label for="largura">Largura do tile <span class="valor" id="vLargura"></span></label>
+    <input id="largura" type="range" min="160" max="1800" step="10" value="1540" />
+  </div>
+  <div>
+    <label for="colunas">Colunas (máximo) <span class="valor" id="vColunas"></span></label>
+    <input id="colunas" type="range" min="0" max="8" step="1" value="4" />
+  </div>
+  <div>
+    <label for="fonte">Fonte do rótulo <span class="valor" id="vFonte"></span></label>
+    <input id="fonte" type="range" min="8" max="20" step="1" value="11" />
+  </div>
+  <div>
+    <label for="modo">Quando não couber</label>
+    <select id="modo">
+      <option value="ajustar">Ajustar automaticamente</option>
+      <option value="rolar">Rolar em tamanho real</option>
+    </select>
+  </div>
+  <div>
+    <label for="rolagem">Ajuste: rolagem</label>
+    <select id="rolagem">
+      <option value="nao">Desligada (corta com tooltip)</option>
+      <option value="sim">Ligada (rola sem cortar)</option>
+    </select>
+  </div>
+  <div>
+    <label for="niveis">Níveis</label>
+    <select id="niveis">
+      <option value="3">3</option>
+      <option value="4" selected>4</option>
+    </select>
+  </div>
+  <div>
+    <label for="orientacao">Organograma</label>
+    <select id="orientacao">
+      <option value="esquerda">Esquerda → direita</option>
+      <option value="cima">De cima para baixo</option>
+    </select>
+  </div>
+</div>
+
+<main>
+  <div id="tile"></div>
+  <div id="info"></div>
+</main>
+
+<script>
+/* Ambiente mínimo do Looker (o mesmo contrato do test/harness.html). */
+var REGISTRO = {};
+window.looker = { plugins: { visualizations: { add: function (d) { REGISTRO[d.id] = d; } } } };
+window.LookerCharts = {
+  Utils: {
+    textForCell: function (c) {
+      if (!c) return '';
+      if (c.value === null || c.value === undefined) return '∅';
+      return c.rendered !== undefined && c.rendered !== null ? String(c.rendered) : String(c.value);
+    },
+    htmlForCell: function (c) { return window.LookerCharts.Utils.textForCell(c); },
+    filterableValueForCell: function (c) { return c && c.value != null ? String(c.value) : ''; },
+    openDrillMenu: function () {}
+  }
+};
+
+/* Dados SINTÉTICOS: 4 ramos, nomes longos com valor. */
+function dados(niveis) {
+  var nomes = ['n1', 'n2', 'n3', 'n4'].slice(0, niveis);
+  var dims = nomes.map(function (n, i) {
+    return { name: n, label: 'Nível ' + (i + 1), label_short: 'Nível ' + (i + 1), type: 'string', is_numeric: false, value_format: null };
+  });
+  var medida = { name: 'valor', label: 'Valor', label_short: 'Valor', type: 'number', is_numeric: true, value_format: '$#,##0.00' };
+  var linhas = [];
+  ['Ramo Alfa', 'Ramo Beta', 'Ramo Gama', 'Ramo Delta'].forEach(function (r, ir) {
+    for (var a = 1; a <= 2; a++) for (var b = 1; b <= 2; b++) for (var c = 1; c <= 2; c++) {
+      var nomesDaLinha = [r, r + ' · Grupo sintético ' + a + ' de nome comprido', 'Subgrupo ' + a + '.' + b + ' com descrição longa', 'Item ' + a + '.' + b + '.' + c + ' de teste com nome extenso'];
+      var linha = {};
+      nomes.forEach(function (n, i) {
+        linha[n] = { value: nomesDaLinha[i], rendered: nomesDaLinha[i] };
+      });
+      var v = 98765432.1 * (a + b + c + ir);
+      linha.valor = { value: v, rendered: String(v) };
+      linhas.push(linha);
+    }
+  });
+  return {
+    data: linhas,
+    queryResponse: {
+      fields: { dimensions: dims, measures: [medida], table_calculations: [], dimension_like: dims, measure_like: [medida], pivots: [] },
+      pivots: []
+    }
+  };
+}
+
+var tile = document.getElementById('tile');
+var info = document.getElementById('info');
+var el = function (id) { return document.getElementById(id); };
+var instancia = null;
+var idAtual = null;
+
+function carregar(id, depois) {
+  if (REGISTRO[id]) return depois();
+  var s = document.createElement('script');
+  s.src = '../dist/' + id + '.js';
+  s.onload = depois;
+  s.onerror = function () { info.textContent = 'Não carregou ../dist/' + id + '.js — rode `npm run build`.'; };
+  document.head.appendChild(s);
+}
+
+function configPadrao(def) {
+  var cfg = {};
+  Object.keys(def.options || {}).forEach(function (k) {
+    if (def.options[k].default !== undefined) cfg[k] = def.options[k].default;
+  });
+  return cfg;
+}
+
+function desenhar() {
+  var id = el('grafico').value;
+  el('vLargura').textContent = el('largura').value + ' px';
+  el('vColunas').textContent = el('colunas').value;
+  el('vFonte').textContent = el('fonte').value + ' px';
+  tile.style.width = el('largura').value + 'px';
+  carregar(id, function () {
+    var def = REGISTRO[id];
+    var cfg = configPadrao(def);
+    cfg.iconePadraoPorValor = 'estrela';
+    cfg.partesDoRotulo = 'nomeValor';
+    cfg.colunasDaGrade = Number(el('colunas').value);
+    cfg.larguraMinimaDaArvore = 1000;
+    cfg.alturaDaArvore = 1000;
+    cfg.tamanhoDoRotulo = Number(el('fonte').value);
+    cfg.layoutQuandoNaoCouber = el('modo').value;
+    cfg.layoutAjusteRolagem = el('rolagem').value === 'sim';
+    cfg.layoutDiagnostico = true;
+    cfg.nivelInicialExpandido = 2;
+    cfg.orientacao = el('orientacao').value;
+    var d = dados(Number(el('niveis').value));
+    if (!instancia || idAtual !== id) {
+      if (instancia && instancia.destroy) instancia.destroy();
+      tile.textContent = '';
+      instancia = Object.create(def);
+      instancia.addError = function (e) { info.textContent = 'Erro: ' + (e.title || '') + ' ' + (e.message || ''); };
+      instancia.clearErrors = function () {};
+      instancia.trigger = function () {};
+      instancia.create(tile, cfg);
+      idAtual = id;
+    }
+    var t0 = performance.now();
+    instancia.updateAsync(d.data, tile, cfg, d.queryResponse, {}, function () {
+      info.textContent = 'Desenhado em ' + (performance.now() - t0).toFixed(1) + ' ms. Clique num nó com "+" para abrir: os níveis não devem se mover.';
+    });
+  });
+}
+
+['grafico', 'largura', 'colunas', 'fonte', 'modo', 'rolagem', 'niveis', 'orientacao'].forEach(function (id) {
+  el(id).addEventListener('input', desenhar);
+  el(id).addEventListener('change', desenhar);
+});
+desenhar();
+</script>
+</body>
+</html>

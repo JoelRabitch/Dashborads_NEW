@@ -112,3 +112,130 @@ Os **23** — os 22 antigos (o núcleo mudou: tooltip, painel, cabeçalho,
 pacotes) e o novo `cartao_multivalor`. Nenhum ficou igual. As URLs antigas
 (v2) continuam funcionando, fixadas no hash antigo; para receber as
 melhorias, troque o Main de cada visualização pela URL principal da v3.1.
+
+## 7. v3.2 — espaçamento dos níveis e tamanho do ícone nas árvores
+
+**Defeito** (visto no Looker, árvore horizontal com "Ícone por valor"):
+expandir UMA linha fazia os ícones dos filhos caírem no texto do pai e tudo
+ficava apertado. Causa: `layoutHorizontal` (cluster/tree do d3 com
+`size([altura, largura])`) dividia uma largura FIXA pelos níveis visíveis;
+no modo cluster, um nó recolhido (folha) ficava na MESMA coluna dos filhos
+de um irmão aberto (distância 0 px no teste). O ícone tinha
+`max(12, raio*2+6)` e o rótulo começava depois do marcador, não do ícone.
+
+**O que mudou** (`_arvore/index.js`, `arvores_multiplas`, `org_chart`):
+- Novo `layoutHorizontalEstavel`: X do nível k = soma das larguras dos
+  níveis anteriores (maior rótulo + ícone + folga + "+/−"), medidas no ramo
+  COMPLETO — abrir/fechar não move nenhum nível visível. O d3 só dá a ordem
+  e a posição vertical (`nodeSize`); cada linha tem max(ícone, texto) +
+  folga, e a altura cresce com rolagem em vez de comprimir.
+- Largura além da célula: "Texto longo" = Mostrar inteiro cresce com
+  rolagem; os outros modos recebem um limite por rótulo calculado da
+  largura disponível. O rótulo começa depois do ícone.
+- Opções novas (aba Estilo): `tamanhoDoIcone` ("Árvore · Tamanho do ícone
+  (0 = auto)", 0 = automático como antes) e `ajusteDeEscala` ("Árvore ·
+  Ajuste de escala": Tamanho real com rolagem | Ajustar à área).
+- org_chart: o mesmo defeito reproduziu de duas formas e foi corrigido — o
+  texto do cartão passava por cima do ícone (agora a área do texto começa
+  depois dele) e, de cima para baixo, abrir um nó movia os níveis (o
+  tamanho do cartão e a extensão no eixo dos níveis vêm da árvore completa).
+- Modo radial: sem mudança.
+
+**Mudanças de comportamento**
+- **Escala:** padrão novo "Tamanho real com rolagem": a árvore não é mais
+  espremida para caber na célula; quando não cabe, a célula rola (nas duas
+  direções). Para o visual reduzido, use "Ajuste de escala" = Ajustar à
+  área (a fonte na tela nunca fica abaixo de "Fonte mínima").
+- Os níveis não ocupam mais toda a largura da célula: a distância vem dos
+  rótulos (com um extra de até 80 px por nível quando sobra espaço) e a
+  árvore é centralizada pela largura do ramo COMPLETO (por isso, com tudo
+  recolhido, pode sobrar espaço à direita: é o lugar dos níveis fechados).
+- "Distribuição dos nós" cluster × tree agora só muda a posição vertical:
+  as folhas não são mais empurradas para a última coluna.
+- "Esconder rótulos sobrepostos" deixa de ter efeito no layout horizontal,
+  porque os rótulos não se sobrepõem mais.
+- org_chart: o cartão tem o tamanho do maior texto da árvore inteira (antes,
+  só dos cartões abertos), e com ícone o texto fica à direita dele.
+
+**Testado (automático, geometria com `medida-texto.js`)**:
+`test/arvores_espacamento_v32.test.mjs` — com 2, 3 e 4 níveis visíveis
+(expandindo um nó por vez) os X dos níveis visíveis não mudam; distância
+entre níveis ≥ maior rótulo + ícone + folga; nenhum rótulo cobre ícone ou
+círculo, ícones de irmãos não se sobrepõem, nos 7 modos de "Texto longo";
+modos de corte cabem na célula e "Mostrar inteiro" rola; altura cresce;
+"Ajustar à área" respeita a fonte mínima; org_chart sem texto sobre o ícone
+e com níveis parados (das duas orientações). Suíte inteira: 936 testes
+(935 ok, 1 pulado); sem pacotes: 930 ok, 6 pulados; segurança sem violação.
+
+**Conferir no Looker real:** `docs/TESTE_NO_LOOKER.md`, seção v3.2.
+
+## 8. v3.3 — as árvores se ajustam ao limite da célula
+
+**Sintoma** (Looker real, grade de células de ~385 px, 3–4 níveis, "Texto
+longo" = Mostrar inteiro, ícone ligado): depois da v3.2 os níveis ficaram
+estáveis, mas a árvore precisava de bem mais largura que a célula; a célula
+rolava ("Tamanho real com rolagem") e o texto parecia cortado na borda.
+Reproduzido em `test/arvores_ajuste_v33.test.mjs`: desenho de 2.413 px numa
+célula de 380 px (falhou antes, passa depois).
+
+**O que mudou**
+- Opção nova "Árvore · Quando não couber" (`layoutQuandoNaoCouber`):
+  Ajustar automaticamente (padrão) | Rolar em tamanho real (= v3.2).
+- Motor único `_arvore/ajuste.js`, calculado sobre o ramo COMPLETO (abrir
+  ou fechar não muda o ajuste nem move os níveis). Só age com "Texto longo"
+  = Mostrar inteiro. Passos, na ordem, parando no primeiro que resolve:
+  (a) fonte até "Ajuste: fonte mínima (px)" (9); (b) quebra em até
+  "Máximo de linhas", sem cortar; (c) menos colunas na grade
+  (`colunasDaGrade` vira o máximo); (d) escala até 0,6, com a fonte na tela
+  nunca abaixo da mínima; (e) rolagem ("Ajuste: rolagem", desligada). Com a
+  rolagem desligada, o último recurso é quebrar e cortar com "…" (texto
+  completo no tooltip).
+- O ajuste aplicado vai para a nota ("Ajuste: fonte reduzida para 9 px · 2
+  linhas por rótulo · ..."; "Ajuste na nota" para ocultar). "Diagnóstico
+  do layout" mostra célula, largura necessária, passo, fonte, colunas e
+  escala (e grava no console com "Modo debug").
+- Medição: `criarMedidor` (cache por texto+fonte+negrito, "Folga do texto
+  (%)" = 10) com `canvas.measureText` no navegador e a estimativa de sempre
+  nos testes. `ajustarRotulo` aceita o medidor; sem ele, nada muda (o
+  dot_plot_denso continua igual).
+- Redimensionar: debounce de 100 ms, ignora < 2 px, no máximo 4 desenhos
+  por segundo (só nas árvores, opção `redimensionamento` do defineViz);
+  preserva o que está aberto, a seleção e a rolagem; cancela animações e
+  solta o tooltip fixo. Largura da barra de rolagem reservada
+  (`scrollbar-gutter: stable`): sem oscilação.
+- Filtro que muda os dados: nós que ficam mantêm o estado (chave = caminho);
+  os que somem são descartados.
+- Impressão/PDF: sempre o ajuste automático, sem rolagem.
+- org_chart: o cartão cresce até o maior nome; se passar da área (eixo dos
+  níveis na horizontal, ou o cartão na vertical): fonte, quebra, escala,
+  rolagem/corte. `larguraDoCartao` é o mínimo enquanto cabe; o cartão nunca
+  fica menor que o texto.
+
+**Precedência com opções salvas** (ids, tipos e padrões inalterados)
+- `ajusteDeEscala` só vale em "Rolar em tamanho real".
+- `larguraMinimaDaArvore`, `alturaDaArvore` e largura/altura por árvore
+  não forçam célula maior que a área no modo automático.
+- `fonteMinimaDoRotulo` (8) continua valendo para o modo "Reduzir a fonte"
+  e para o "Ajustar à área" da v3.2; o ajuste automático usa a opção nova
+  `layoutFonteMinima` (9), porque o padrão de uma opção existente não pode
+  mudar.
+
+**Mudanças de comportamento**
+- Tiles existentes passam a ajustar automaticamente (padrão novo). Para o
+  visual da v3.2: "Quando não couber" = Rolar em tamanho real.
+- Com 4 níveis e rótulos com valor e percentual numa célula estreita,
+  alguns rótulos do ramo completo podem precisar de mais linhas que o
+  máximo: o resultado é o corte com "…" e o texto no tooltip. Para nunca
+  cortar, ligue "Ajuste: rolagem" ou aumente "Máximo de linhas".
+- No modo automático o desenho ocupa a área menos a largura da barra de
+  rolagem (18 px quando não dá para medir).
+- Os 23 bundles têm hash novo (o núcleo `define-viz`/`dom` mudou); só as
+  duas árvores mudam de comportamento.
+
+**Testado (automático)**: `test/arvores_ajuste_v33.test.mjs` (reprodução,
+cenário solucionável sem corte, modo tamanho real, P1–P11, S1, opções e
+org_chart). Suíte inteira: 957 testes (956 ok, 1 pulado); sem pacotes: 951
+ok, 6 pulados; segurança sem violação; `npm run opcoes`: só ids novos.
+
+**Conferir no Looker real:** `docs/TESTE_NO_LOOKER.md`, seção v3.3, e as
+suposições de `docs/COMPAT.md` (v3.3). Página visual: `test/arvores_visual.html`.

@@ -3543,3 +3543,142 @@ TODAS AS TAREFAS DA V3 CONCLUÍDAS, exceto 5.14i (opcional, não feito).
 PRÓXIMA AÇÃO: nenhuma no agente. O usuário confere
 `docs/TESTE_NO_LOOKER.md` (seção Melhorias v3) e lê
 `docs/RELATORIO_MELHORIAS.md`.
+
+## v3.2 — espaçamento dos níveis e tamanho do ícone nas árvores (2026-10-30)
+
+Tarefa avulsa (a v3 segue concluída; nenhuma fase retomada). Branch
+`agente/novas-viz`, `git pull` sem novidades no branch.
+
+### Reprodução (antes da correção)
+- `test/arvores_espacamento_v32.test.mjs`, fixture sintética de 4 níveis
+  com nomes e valores longos, ícone `estrela` (conjunto base, existe sem
+  pacotes). Falharam 6 de 8: com 3 níveis, distância 1→2 = 0,0 px (cluster:
+  o nó recolhido fica na coluna dos filhos do irmão aberto; precisava de
+  373 px); posição X dos níveis muda ao expandir; altura não cresce; opções
+  novas ausentes; org_chart: nome do cartão por cima do ícone; org_chart de
+  cima para baixo: nível 0 se move ao expandir (centralização pela altura
+  visível). O teste de sobreposição com tudo aberto em célula de 450 px já
+  passava antes (o defeito aparece ao expandir).
+
+### Decisões (sem poder perguntar; caminho mais simples)
+- Larguras dos níveis medidas no ramo COMPLETO (todos os nós do nível, com
+  o rótulo que teriam aberto ou fechado), e não só nos visíveis: só assim
+  abrir um IRMÃO (que troca de folha para nó interno) não move o nível
+  seguinte. Também o limite por rótulo dos modos de corte usa o ramo
+  completo.
+- Lados do rótulo mantidos ("auto": folha à direita, interno à esquerda);
+  a reserva soma o lado direito do nível j e o esquerdo do nível j+1, mais
+  12 px do "+/−", que agora fica depois do ícone (`data-meia`).
+- Quando sobra largura, cada nível ganha até 80 px extras (estável, pela
+  conta do ramo completo); a árvore é centralizada pela largura do ramo
+  completo (não pula ao abrir). Na vertical, as linhas se espalham pela
+  altura quando cabem (como antes) e crescem quando não cabem.
+- cluster × tree: só muda a posição vertical (o enunciado manda usar o d3
+  só para ordem e vertical).
+- "Tamanho do ícone": number, 0 = Automático (max(12, raio·2+6), como
+  antes; no org_chart 16 px, como antes). Teto: espaço vertical − folga;
+  mínimo 10 px. "Ajuste de escala": select real | ajustar, padrão "real"
+  (mudança de comportamento registrada no relatório). Ambas em
+  `opcoesComunsDasArvores` (seção "Árvore" → aba Estilo), rótulos
+  "Árvore · Tamanho do ícone (0 = auto)" (36) e "Árvore · Ajuste de
+  escala" (25).
+- "Ajustar à área": escala = min(1, área/desenho), nunca abaixo de
+  fonteMinima/tamanho do rótulo (o resto rola).
+- org_chart: mesmo defeito reproduzido → área de texto do cartão começa
+  depois do ícone; tamanho do cartão medido na árvore completa; extensão no
+  eixo dos níveis pela profundidade da árvore completa.
+- Teste antigo ajustado: `correcoes_arvores_kpi` "esconder rótulos que se
+  sobrepõem" esperava que algum rótulo sumisse com fonte 28; com o layout
+  novo nada se sobrepõe, então agora espera que nada suma.
+- `layoutHorizontal` (antigo) removido; `medirRotulosDaArvore` ficou
+  exportado sem uso. ARQUITETURA/COMPAT sem mudança (nada novo de
+  arquitetura: função nova na base `_arvore`).
+
+### Verificação
+- Build duplo determinístico; `npm test` 936 (935 ok, 1 pulado);
+  `npm run testar-sem-pacotes` 936 (930 ok, 6 pulados); `npm run seguranca`
+  sem violação (arvores_multiplas e org_chart incluídos); `npm run opcoes`:
+  4 abas, ids novos só `tamanhoDoIcone` e `ajusteDeEscala` (★ em ABAS.md).
+- Docs: RELATORIO_MELHORIAS §7, TESTE_NO_LOOKER seção v3.2.
+- Commit 6c360dd (código + bundles) enviado. Tag nova `v3.2` nesse commit
+  (último que alterou `biblioteca/dist`); `git ls-remote` confirma
+  refs/tags/v3.2 → 6c360dda49d10084b300ad0e05f5f3393e5697f2. Nenhuma tag
+  existente foi mexida. `npm run urls -- v3.2` gerou URLS.md/URLS.csv em
+  commit separado. Os outros 21 bundles não mudaram desde a v3.1.
+PRÓXIMA AÇÃO: nenhuma no agente; o usuário confere TESTE_NO_LOOKER.md (v3.2).
+
+## v3.3 — árvores se ajustam ao limite da célula (início 2026-10-30)
+Tarefa avulsa (v3 e v3.2 concluídas; nenhuma fase retomada). `git pull`
+sem novidades; a `main` tinha avançado (merge do PR #2) e foi mesclada no
+branch sem conflito (fe503a4), enviado.
+PRÓXIMA AÇÃO: ler _arvore, arvores_multiplas, org_chart, texto-longo e
+medida-texto; escrever o teste de geometria que reproduz o corte (380 px).
+
+### Etapa 1 (arvores_multiplas + motor) — feita
+- Reprodução: `test/arvores_ajuste_v33.test.mjs` falhou antes (desenho de
+  2413 px numa célula de 380 px) e passa depois.
+- Motor `_arvore/ajuste.js` (genérico, recebe `medir`): (a) fonte de 0,5 em
+  0,5 px até a mínima; (b) quebra em até "Máximo de linhas" SEM corte;
+  (c) menos colunas (feito na grade: repete a e b); (d) escala com a fonte
+  na tela ≥ mínima (no desenho a fonte sobe ÷ escala), tentando sem e com
+  quebra; (e) rolagem; rolagem desligada → quebra + reticências + tooltip.
+- `_arvore/index.js`: `prepararMedidaDosNiveis` (medida do ramo completo,
+  partes do rótulo calculadas uma vez) separada do posicionamento;
+  `ajustarRotuloDaArvore` usado no layout e no desenho (mesma conta).
+- `medida-texto.js`: `criarMedidor` (cache por texto+fonte+negrito, folga
+  %) e `medicaoDoNavegador` (canvas.measureText; null no jsdom).
+  `texto-longo.js`: `ajustarRotulo` aceita `medir` (padrão = estimativa:
+  dot_plot_denso inalterado).
+- Decisões: ids novos começam com `layout` (caem na aba Estilo pelo
+  `abaPeloId`). "Fonte mínima 9 px": NOVA opção `layoutFonteMinima`
+  (padrão 9), porque a regra proíbe mudar o padrão de `fonteMinimaDoRotulo`
+  (8). Escala mínima legível 0,6. Ajuste pelo eixo dos níveis (largura);
+  linhas a mais na vertical rolam na célula (não cortam texto). Cada árvore
+  tem o próprio plano; a quantidade de colunas é a mesma para todas.
+  Barra de rolagem: medida uma vez por div de prova (fallback 18 px) e
+  reservada sempre, com `scrollbar-gutter: stable`.
+- Testes antigos da v3.2 que verificam o tamanho real passaram a fixar
+  `layoutQuandoNaoCouber: 'rolar'` (o padrão mudou por pedido da tarefa).
+PRÓXIMA AÇÃO: testes P1–P12 e S1; redimensionamento com debounce (define-viz opt-in); org_chart.
+
+### Etapa 2 (redimensionamento e casos P1–P12, S1) — feita
+- `dom.js`: `criarAgendadorDeRedimensionamento` (debounce 100 ms, ignora
+  < 2 px, máx. 4 desenhos/s, excedente adiado). `define-viz.js`: opção de
+  declaração `redimensionamento` (só as duas árvores usam; os outros 21
+  gráficos seguem com o redesenho imediato de antes). No modo opcional o
+  redesenho por tamanho também cancela animações/timers (limparPendencias)
+  e solta o tooltip fixo; `bl.tamanhoDesenhado` guarda o último tamanho.
+- P8: chaves de nós/ramos que sumiram são descartadas do estado.
+- `medicaoDoNavegador` olha o navigator da janela do documento (jsdom → null).
+- Testes P1–P11, S1 e opções em `test/arvores_ajuste_v33.test.mjs`;
+  P12 = suíte inteira: 954 testes, 953 ok, 1 pulado, 0 falhas.
+PRÓXIMA AÇÃO: org_chart (cartão cresce até o maior nome; fonte, quebra, escala, rolagem).
+
+### Etapa 3 (org_chart) — feita
+- O cartão cresce até o maior nome; o ajuste mede a árvore COMPLETA:
+  esquerda→direita = extensão dos níveis na largura da área; cima→baixo =
+  o cartão na largura da área (a largura do conjunto, irmãos lado a lado,
+  rola como antes). Fonte → quebra → escala → rolagem/corte, pelo mesmo
+  motor. A linha menor do cartão nunca fica abaixo da fonte mínima na tela.
+- Decisão: `larguraDoCartao` é o mínimo enquanto cabe; se nem ele cabe, o
+  cartão encolhe até o texto (nunca abaixo). Só age com "Mostrar inteiro"
+  e "Cartão cresce com o texto".
+- Corte final que ainda não cabe (mínimo 40 px por rótulo): fica o corte
+  (desenho mais perto de caber) e o resto rola.
+- Teste antigo `5.10 organograma` ajustado: no automático o svg ocupa a
+  área menos a barra reservada (882 = 900 − 18 no jsdom).
+- `npm test`: 957 testes, 956 ok, 1 pulado.
+PRÓXIMA AÇÃO: S2 (test/arvores_visual.html), docs (COMPAT, TESTE_NO_LOOKER,
+RELATORIO_MELHORIAS), npm run opcoes, testar-sem-pacotes, tag v3.3, urls.
+
+### Fechamento v3.3
+- Docs: TESTE_NO_LOOKER (seção v3.3), COMPAT (suposições do contêiner),
+  RELATORIO_MELHORIAS §8; página visual `test/arvores_visual.html`.
+- `npm run opcoes`: 4 abas; só ids novos (`layout*`), nenhum id removido
+  ou alterado. `npm test`: 957 (956 ok, 1 pulado). Sem pacotes: 957 (951 ok,
+  6 pulados). Segurança: sem violação. Build determinístico (sem diff).
+- Tag NOVA `v3.3` (anotada) em d4ff048 (último commit que alterou
+  biblioteca/dist), enviada; `git ls-remote` confirma refs/tags/v3.3^{} →
+  d4ff048540cc946c8fba7cd576bc85c1b446e96d. v3.1 e v3.2 intocadas.
+  `npm run urls -- v3.3` em commit separado.
+PRÓXIMA AÇÃO: nenhuma no agente; o usuário confere TESTE_NO_LOOKER.md (v3.3).

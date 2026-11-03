@@ -76,7 +76,8 @@ const visiveis = (els) => els.filter((e) => e.getAttribute('display') !== 'none'
 const AM = (ajustes, extra) => renderizar('arvores_multiplas', 'hierarquia', ajustes, extra);
 
 test('arvores_multiplas — tamanho, cor, negrito e rotação do rótulo têm efeito', () => {
-  const r = AM({ tamanhoDoRotulo: 20, corDoRotulo: '#FF0000', negritoNoRotulo: true, rotacaoDoRotulo: 30 });
+  // v3.3: em tamanho real (no ajuste automático a fonte pode ser reduzida para caber).
+  const r = AM({ tamanhoDoRotulo: 20, corDoRotulo: '#FF0000', negritoNoRotulo: true, rotacaoDoRotulo: 30, layoutQuandoNaoCouber: 'rolar' });
   try {
     const rot = r.todos('.av-rotulo');
     assert.ok(rot.length > 0, 'precisa haver rótulos de folha');
@@ -137,8 +138,13 @@ test('arvores_multiplas — "esconder rótulos que se sobrepõem" e truncar', ()
   // v3 (5.11): truncarRotulo só vale no modo "Cortar com reticências".
   const trunc = AM({ truncarRotulo: 4, modoDoTextoLongo: 'reticencias' });
   try {
+    // v3.2: o layout horizontal reserva espaço para o maior rótulo de cada
+    // nível e a altura de cada linha cresce com a fonte, então rótulos não
+    // se sobrepõem mais e a opção não tem o que esconder (antes, com fonte
+    // 28, alguns sumiam). A opção continua lida (esconderColisoes).
     const total = comEvitar.todos('.av-rotulo').length;
-    assert.ok(visiveis(comEvitar.todos('.av-rotulo')).length < total, 'com a opção ligada, algum rótulo some');
+    assert.ok(total > 0);
+    assert.equal(visiveis(comEvitar.todos('.av-rotulo')).length, total, 'v3.2: nenhum rótulo sobreposto para esconder');
     assert.equal(visiveis(semEvitar.todos('.av-rotulo')).length, semEvitar.todos('.av-rotulo').length);
     for (const t of trunc.todos('.av-rotulo').map((e) => e.textContent)) {
       assert.ok(t.length <= 4, `truncar em 4; veio "${t}"`);

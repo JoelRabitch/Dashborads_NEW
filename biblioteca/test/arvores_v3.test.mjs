@@ -118,13 +118,15 @@ test('5.10 — organograma: centraliza quando cabe, rola sem cortar quando não 
   const pequeno = abrir('org_chart', 'paiFilho', { larguraDoCartao: 70, espacoEntreIrmaos: 4, cartaoAjustavel: false });
   try {
     const svg = pequeno.palco.querySelector('.oc-area > svg');
-    assert.equal(num(svg, 'width'), 900, 'cabe: o svg tem o tamanho da área (sem barra de rolagem)');
+    // v3.3: no ajuste automático a largura da barra de rolagem fica reservada (18 px no jsdom).
+    const util = 900 - 18;
+    assert.equal(num(svg, 'width'), util, 'cabe: o svg tem o tamanho da área (sem barra de rolagem)');
     const g = svg.querySelector('g');
     const tx = Number(/translate\(([-\d.]+)/.exec(g.getAttribute('transform'))[1]);
     const caixas = pequeno.todos('.oc-caixa').map((c) => num(c, 'x') + tx);
     const esq = Math.min(...caixas);
     const dir = Math.max(...pequeno.todos('.oc-caixa').map((c) => num(c, 'x') + num(c, 'width') + tx));
-    assert.ok(Math.abs(esq - (900 - dir)) < 30, `não centralizou (sobra ${esq.toFixed(0)} à esquerda e ${(900 - dir).toFixed(0)} à direita)`);
+    assert.ok(Math.abs(esq - (util - dir)) < 30, `não centralizou (sobra ${esq.toFixed(0)} à esquerda e ${(util - dir).toFixed(0)} à direita)`);
     assert.ok(pequeno.palco.querySelector('.am-centralizar'), 'falta o botão Centralizar');
   } finally {
     pequeno.fim();

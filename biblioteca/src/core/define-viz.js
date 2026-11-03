@@ -71,6 +71,7 @@ import {
   definirTexto,
   medir,
   observarRedimensionamento,
+  criarAgendadorDeRedimensionamento,
   criarGerenciadorDeEventos,
   injetarEstilo,
   cancelarQuadro,
@@ -110,6 +111,10 @@ export function defineViz(declaracao) {
     // true = o gráfico desenha título/subtítulo dentro do próprio desenho
     // (kpi_vivo): o cabeçalho padrão não repete o título.
     cabecalhoProprio = false,
+    // v3.3: { atraso, minimoPx, maximoPorSegundo } = redesenho por
+    // redimensionamento com debounce, limiar e limite por segundo, e que
+    // cancela animações em curso (árvores). Sem isso: imediato, como antes.
+    redimensionamento = null,
   } = declaracao;
 
   if (typeof render !== 'function') {
@@ -160,18 +165,29 @@ export function defineViz(declaracao) {
       };
 
       // Redesenha quando o tile muda de tamanho.
-      this._bl.cancelarObservador = observarRedimensionamento(element, () => {
+      const redesenharPorTamanho = () => {
         if (this._bl && typeof this._bl.ultimoDesenho === 'function') {
           this._bl.ultimoDesenho();
         }
-      });
+      };
+      if (redimensionamento) {
+        const bl = this._bl;
+        bl.agendadorDeTamanho = criarAgendadorDeRedimensionamento(redesenharPorTamanho, {
+          ...redimensionamento,
+          medir: () => medir(bl.area),
+          referencia: () => bl.tamanhoDesenhado || null,
+        });
+        bl.cancelarObservador = observarRedimensionamento(element, () => bl.agendadorDeTamanho.pedir());
+      } else {
+        this._bl.cancelarObservador = observarRedimensionamento(element, redesenharPorTamanho);
+      }
     },
 
     updateAsync(data, element, config, queryResponse, details, done) {
       const concluir = typeof done === 'function' ? done : () => {};
       try {
         executarAtualizacao.call(this, {
-          declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio },
+          declaracao: { id, label, opcoes, exigencia, opcoesDinamicas, render, aoDestruir, animacaoPropria, cabecalhoProprio, redimensionamento },
           data,
           element,
           config,
@@ -205,6 +221,7 @@ export function defineViz(declaracao) {
       limparPendencias(this._bl);
       destruirTooltipsDe(this._bl.raiz);
       if (this._bl.cancelarObservador) this._bl.cancelarObservador();
+      if (this._bl.agendadorDeTamanho) this._bl.agendadorDeTamanho.cancelar();
       this._bl = null;
     },
   };
@@ -223,7 +240,7 @@ function limparPendencias(bl) {
 }
 
 function executarAtualizacao({ declaracao, data, element, config, queryResponse, details }) {
-  const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio } = declaracao;
+  const { id, opcoes, exigencia, opcoesDinamicas, render, animacaoPropria, cabecalhoProprio, redimensionamento } = declaracao;
   // Listas do painel sem os itens de pacotes desligados (5.14b).
   const ponte = criarPonte(this, filtrarOpcoesPorPacote(opcoes, config || {}));
   ponte.limparErros();
@@ -411,6 +428,7 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
   function renderizar({ repetir = true } = {}) {
     ctx.nota = criarEl('div');
     render(ctx);
+    bl.tamanhoDesenhado = { largura: ctx.largura, altura: ctx.altura };
     const nova = (ctx.nota.textContent || '').trim();
     if (nova !== (bl.notaAutomatica || '')) {
       bl.notaAutomatica = nova;
@@ -441,8 +459,10 @@ function executarAtualizacao({ declaracao, data, element, config, queryResponse,
     if (tamanho.largura === ctx.largura && tamanho.altura === ctx.altura) return;
     ctx.largura = tamanho.largura;
     ctx.altura = tamanho.altura;
-    bl.eventos.limpar();
-    esconderTooltipsDe(bl.raiz);
+    // v3.3 (opcional): também cancela animações e timers em curso.
+    if (redimensionamento) limparPendencias(bl);
+    else bl.eventos.limpar();
+    esconderTooltipsDe(bl.raiz); // solta o tooltip fixo
     limparAviso(bl); // senão o mesmo aviso se repete a cada redimensionamento
     try {
       renderizar();
